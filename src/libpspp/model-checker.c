@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1743,7 +1743,7 @@ finish_mc (struct mc *mc)
   /* Free memory. */
   mc_path_destroy (&mc->path);
   ds_destroy (&mc->path_string);
-  free (mc->options);
+  mc_options_destroy (mc->options);
   free (mc->queue);
   free (mc->hash);
 }

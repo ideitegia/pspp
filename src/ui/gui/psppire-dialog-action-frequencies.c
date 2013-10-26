@@ -27,7 +27,7 @@ This program is free software: you can redistribute it and/or modify
 
 #include "psppire-dialog.h"
 #include "builder-wrapper.h"
-#include "checkbox-treeview.h"
+#include "psppire-checkbox-treeview.h"
 #include "psppire-dict.h"
 #include "libpspp/str.h"
 
@@ -263,7 +263,7 @@ psppire_dialog_action_frequencies_activate (GtkAction * a)
 
   act->stat_vars = get_widget_assert (xml, "var-treeview");
 
-  put_checkbox_items_in_treeview (GTK_TREE_VIEW (stats_treeview),
+  psppire_checkbox_treeview_populate (PSPPIRE_CHECKBOX_TREEVIEW (stats_treeview),
                                   B_FS_DEFAULT, N_FREQUENCY_STATS, stats);
 
   act->stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats_treeview));

@@ -3,7 +3,10 @@ AT_BANNER([system files])
 # Also tests that long variable names are preserved by SAVE and GET.
 AT_SETUP([write and read numeric data])
 AT_KEYWORDS([SAVE GET system file])
-AT_DATA([sysfile.sps], [dnl
+for variant in 'UNCOMPRESSED $FL2' 'ZCOMPRESSED $FL3'; do
+    set $variant
+    compression=$1 magic=$2
+    cat >sysfile.sps <<EOF
 DATA LIST LIST NOTABLE / variable001 * variable002 * variable003 * variable004 * .
 BEGIN DATA.
     1.00     1.00    1.0     2.00
@@ -16,14 +19,14 @@ BEGIN DATA.
     2.00     2.00    2.0     3.00
 END DATA.
 
-SAVE /OUTFILE='foo.sav'.
+SAVE/$compression /OUTFILE='foo.sav'.
 
 GET /FILE='foo.sav'.
 
 LIST.
-])
-AT_CHECK([pspp -o pspp.csv sysfile.sps])
-AT_CHECK([cat pspp.csv], [0], [dnl
+EOF
+    AT_CHECK([pspp -o pspp.csv sysfile.sps])
+    AT_CHECK([cat pspp.csv], [0], [dnl
 Table: Data List
 variable001,variable002,variable003,variable004
 1.00,1.00,1.00,2.00
@@ -35,6 +38,67 @@ variable001,variable002,variable003,variable004
 2.00,2.00,1.00,1.00
 2.00,2.00,2.00,3.00
 ])
+    AT_CHECK_UNQUOTED([dd if=foo.sav bs=1 count=4; echo], [0], [$magic
+], [ignore])
+done
+AT_CLEANUP
+
+AT_SETUP([write and read long string value labels and missing values])
+AT_KEYWORDS([SAVE GET system file])
+for variant in 'UNCOMPRESSED $FL2' 'ZCOMPRESSED $FL3'; do
+    set $variant
+    compression=$1 magic=$2
+    cat >sysfile.sps <<EOF
+DATA LIST LIST NOTABLE/s1 s2 s3 (a9).
+BEGIN DATA
+a b c
+END DATA.
+
+VALUE LABELS
+    /s1 'abc' 'First value label'
+	'abcdefgh' 'Second value label'
+	'abcdefghi' 'Third value label'
+    /s2 '0' 'Fourth value label'
+	'01234567' 'Fifth value label'
+	'012345678' 'Sixth value label'.
+
+MISSING VALUES
+     s1 ('0')
+    /s2 ('12' '123')
+    /s3 ('1234' '12345' '12345678').
+
+SAVE/$compression /OUTFILE='foo.sav'.
+GET /FILE='foo.sav'.
+DISPLAY DICTIONARY.
+EOF
+    AT_CHECK([pspp -o pspp.csv sysfile.sps])
+    AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,,Position
+s1,Format: A9,,1
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+,"Missing Values: ""0       """,,
+,abc      ,First value label,
+,abcdefgh ,Second value label,
+,abcdefghi,Third value label,
+s2,Format: A9,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+,"Missing Values: ""12      ""; ""123     """,,
+,0        ,Fourth value label,
+,01234567 ,Fifth value label,
+,012345678,Sixth value label,
+s3,Format: A9,,3
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+,"Missing Values: ""1234    ""; ""12345   ""; ""12345678""",,
+])
+    AT_CHECK_UNQUOTED([dd if=foo.sav bs=1 count=4; echo], [0], [$magic
+], [ignore])
+done
 AT_CLEANUP
 
 AT_SETUP([write and read compressed files])

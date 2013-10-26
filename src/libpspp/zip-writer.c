@@ -25,9 +25,10 @@
 #include <time.h>
 
 #include "gl/crc.h"
-#include "gl/error.h"
 #include "gl/fwriteerror.h"
 #include "gl/xalloc.h"
+
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -90,7 +91,7 @@ zip_writer_create (const char *file_name)
   file = fopen (file_name, "wb");
   if (file == NULL)
     {
-      error (0, errno, _("%s: error opening output file"), file_name);
+      msg_error (errno, _("%s: error opening output file"), file_name);
       return NULL;
     }
 
@@ -223,7 +224,7 @@ zip_writer_close (struct zip_writer *zw)
     ok = true;
   else
     {
-      error (0, errno, _("%s: write failed"), zw->file_name);
+      msg_error (errno, _("%s: write failed"), zw->file_name);
       ok = false;
     }
 

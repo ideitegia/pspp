@@ -27,7 +27,7 @@
 
 #include "psppire-dialog.h"
 #include "builder-wrapper.h"
-#include "checkbox-treeview.h"
+#include "psppire-checkbox-treeview.h"
 #include "psppire-dict.h"
 #include "libpspp/str.h"
 
@@ -235,19 +235,17 @@ psppire_dialog_action_crosstabs_activate (GtkAction *a)
   act->format_options_table = TRUE;
   act->format_options_pivot = TRUE;
 
-  put_checkbox_items_in_treeview (GTK_TREE_VIEW (act->cell_view),
-				  B_CS_CELL_DEFAULT,
-				  N_CROSSTABS_CELLS,
-				  cells
-				  );
+  psppire_checkbox_treeview_populate (PSPPIRE_CHECKBOX_TREEVIEW (act->cell_view),
+  				  B_CS_CELL_DEFAULT,
+  				  N_CROSSTABS_CELLS,
+  				  cells);
 
   act->cell = gtk_tree_view_get_model (GTK_TREE_VIEW (act->cell_view));
 
-  put_checkbox_items_in_treeview (GTK_TREE_VIEW (act->stat_view),
-				  B_CS_STATS_DEFAULT,
-				  N_CROSSTABS_STATS,
-				  stats
-				  );
+  psppire_checkbox_treeview_populate (PSPPIRE_CHECKBOX_TREEVIEW (act->stat_view),
+  				  B_CS_STATS_DEFAULT,
+  				  N_CROSSTABS_STATS,
+  				  stats);
 
   act->stat = gtk_tree_view_get_model (GTK_TREE_VIEW (act->stat_view));
 

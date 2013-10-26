@@ -211,7 +211,7 @@ specified.  It determines the type of the file or source to read.
 Spreadsheet files created by Gnumeric (@url{http://gnumeric.org}).
 
 @item ODS
-Spreadsheet files in OpenDocument format.
+Spreadsheet files in OpenDocument format (@url{http://opendocumentformat.org}).
 
 @item PSQL
 Relations from PostgreSQL databases (@url{http://postgresql.org}).
@@ -684,7 +684,7 @@ Use of @cmd{IMPORT} to read a system file is a @pspp{} extension.
 SAVE
         /OUTFILE=@{'@var{file_name}',@var{file_handle}@}
         /UNSELECTED=@{RETAIN,DELETE@}
-        /@{COMPRESSED,UNCOMPRESSED@}
+        /@{UNCOMPRESSED,COMPRESSED,ZCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
         /DROP=@var{var_list}
         /KEEP=@var{var_list}
@@ -706,9 +706,32 @@ By default, cases excluded with FILTER are written to the system file.
 These can be excluded by specifying @subcmd{DELETE} on the @subcmd{UNSELECTED}
 subcommand.  Specifying @subcmd{RETAIN} makes the default explicit.
 
-The @subcmd{COMPRESS} and @subcmd{UNCOMPRESS} subcommand determine whether
-the saved system file is compressed.  By default, system files are compressed.
-This default can be changed with the SET command (@pxref{SET}).
+The @subcmd{UNCOMPRESSED}, @subcmd{COMPRESSED}, and
+@subcmd{ZCOMPRESSED} subcommand determine the system file's
+compression level:
+
+@table @code
+@item UNCOMPRESSED
+Data is not compressed.  Each numeric value uses 8 bytes of disk
+space.  Each string value uses one byte per column width, rounded up
+to a multiple of 8 bytes.
+
+@item COMPRESSED
+Data is compressed with a simple algorithm.  Each integer numeric
+value between @minus{}99 and 151, inclusive, or system missing value
+uses one byte of disk space.  Each 8-byte segment of a string that
+consists only of spaces uses 1 byte.  Any other numeric value or
+8-byte string segment uses 9 bytes of disk space.
+
+@item ZCOMPRESSED
+Data is compressed with the ``deflate'' compression algorithm
+specified in RFC@tie{}1951 (the same algorithm used by
+@command{gzip}).  Files written with this compression level cannot be
+read by PSPP 0.8.1 or earlier or by SPSS 20 or earlier.
+@end table
+
+@subcmd{COMPRESSED} is the default compression level.  The SET command
+(@pxref{SET}) can change this default.
 
 The @subcmd{PERMISSIONS} subcommand specifies permissions for the new system
 file.  WRITEABLE, the default, creates the file with read and write
@@ -938,7 +961,7 @@ the data is read by a procedure or procedure-like command.
 @display
 XSAVE
         /OUTFILE='@var{file_name}'
-        /@{COMPRESSED,UNCOMPRESSED@}
+        /@{UNCOMPRESSED,COMPRESSED,ZCOMPRESSED@}
         /PERMISSIONS=@{WRITEABLE,READONLY@}
         /DROP=@var{var_list}
         /KEEP=@var{var_list}

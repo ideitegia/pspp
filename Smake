@@ -79,6 +79,7 @@ GNULIB_MODULES = \
 	strtok_r \
 	sys_stat \
 	tempname \
+	termios \
 	trunc \
 	unicase/u8-casecmp \
 	unicase/u8-casefold \
@@ -118,8 +119,207 @@ GNULIB_MODULES = \
 	xstrndup \
 	xvasprintf
 
-all: prep_ph
+APP_ICONS = \
+src/ui/gui/icons/apps/32x32/pspp.png \
+src/ui/gui/icons/apps/22x22/pspp.png \
+src/ui/gui/icons/apps/24x24/pspp.png \
+src/ui/gui/icons/apps/256x256/pspp.png \
+src/ui/gui/icons/apps/16x16/pspp.png \
+src/ui/gui/icons/apps/48x48/pspp.png \
+src/ui/gui/icons/apps/scalable/pspp.svg
+
+CATEGORY_ICONS = \
+src/ui/gui/icons/categories/16x16/align-left.png \
+src/ui/gui/icons/categories/16x16/align-center.png \
+src/ui/gui/icons/categories/16x16/align-right.png \
+src/ui/gui/icons/categories/16x16/measure-scale.png \
+src/ui/gui/icons/categories/16x16/measure-ordinal.png \
+src/ui/gui/icons/categories/16x16/measure-nominal.png \
+src/ui/gui/icons/categories/16x16/measure-date-scale.png \
+src/ui/gui/icons/categories/16x16/measure-date-nominal.png \
+src/ui/gui/icons/categories/16x16/measure-date-ordinal.png \
+src/ui/gui/icons/categories/16x16/measure-time-scale.png \
+src/ui/gui/icons/categories/16x16/measure-time-nominal.png \
+src/ui/gui/icons/categories/16x16/measure-time-ordinal.png \
+src/ui/gui/icons/categories/16x16/measure-string-nominal.png \
+src/ui/gui/icons/categories/16x16/measure-string-ordinal.png \
+src/ui/gui/icons/categories/16x16/measure-currency-scale.png \
+src/ui/gui/icons/categories/16x16/measure-currency-nominal.png \
+src/ui/gui/icons/categories/16x16/measure-currency-ordinal.png \
+src/ui/gui/icons/categories/16x16/role-input.png \
+src/ui/gui/icons/categories/16x16/role-target.png \
+src/ui/gui/icons/categories/16x16/role-both.png \
+src/ui/gui/icons/categories/16x16/role-none.png \
+src/ui/gui/icons/categories/16x16/role-partition.png \
+src/ui/gui/icons/categories/16x16/role-split.png
+
+MIMETYPE_ICONS = \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-por.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
+
+MISC_ICONS = src/ui/gui/icons/splash.png
+
+
+ACTION_ICONS = \
+src/ui/gui/icons/actions/32x32/data-split-file.png \
+src/ui/gui/icons/actions/32x32/data-weight-cases.png \
+src/ui/gui/icons/actions/32x32/edit-find.png \
+src/ui/gui/icons/actions/32x32/edit-go-to-case.png \
+src/ui/gui/icons/actions/32x32/edit-go-to-variable.png \
+src/ui/gui/icons/actions/32x32/edit-insert-case.png \
+src/ui/gui/icons/actions/32x32/edit-insert-variable.png \
+src/ui/gui/icons/actions/32x32/file-open-data.png \
+src/ui/gui/icons/actions/32x32/file-save-data.png \
+src/ui/gui/icons/actions/32x32/view-value-labels.png \
+src/ui/gui/icons/actions/24x24/data-split-file.png \
+src/ui/gui/icons/actions/24x24/data-weight-cases.png \
+src/ui/gui/icons/actions/24x24/edit-find.png \
+src/ui/gui/icons/actions/24x24/edit-go-to-case.png \
+src/ui/gui/icons/actions/24x24/edit-go-to-variable.png \
+src/ui/gui/icons/actions/24x24/edit-insert-case.png \
+src/ui/gui/icons/actions/24x24/edit-insert-variable.png \
+src/ui/gui/icons/actions/24x24/file-open-data.png \
+src/ui/gui/icons/actions/24x24/file-save-data.png \
+src/ui/gui/icons/actions/24x24/view-value-labels.png \
+src/ui/gui/icons/actions/16x16/file-new-data.png \
+src/ui/gui/icons/actions/16x16/file-syntax-data.png \
+src/ui/gui/icons/actions/16x16/file-system-data.png \
+src/ui/gui/icons/actions/16x16/file-open-data.png \
+src/ui/gui/icons/actions/16x16/file-import-data.png \
+src/ui/gui/icons/actions/16x16/file-export-data.png \
+src/ui/gui/icons/actions/16x16/file-save-data.png \
+src/ui/gui/icons/actions/16x16/file-save-as.png \
+src/ui/gui/icons/actions/16x16/file-print.png \
+src/ui/gui/icons/actions/16x16/file-rename-data-set.png \
+src/ui/gui/icons/actions/16x16/file-display-information.png \
+src/ui/gui/icons/actions/16x16/display-information-working-file.png \
+src/ui/gui/icons/actions/16x16/display-information-external-file.png \
+src/ui/gui/icons/actions/16x16/file-recently-used.png \
+src/ui/gui/icons/actions/16x16/file-quit.png \
+src/ui/gui/icons/actions/16x16/file-display-information.png \
+src/ui/gui/icons/actions/16x16/edit-insert-variable.png \
+src/ui/gui/icons/actions/16x16/edit-insert-case.png \
+src/ui/gui/icons/actions/16x16/edit-go-to-variable.png \
+src/ui/gui/icons/actions/16x16/edit-go-to-case.png \
+src/ui/gui/icons/actions/16x16/edit-cut.png \
+src/ui/gui/icons/actions/16x16/edit-copy.png \
+src/ui/gui/icons/actions/16x16/edit-paste.png \
+src/ui/gui/icons/actions/16x16/edit-delete.png \
+src/ui/gui/icons/actions/16x16/edit-undo.png \
+src/ui/gui/icons/actions/16x16/edit-redo.png \
+src/ui/gui/icons/actions/16x16/edit-select-all.png \
+src/ui/gui/icons/actions/16x16/edit-clear.png \
+src/ui/gui/icons/actions/16x16/edit-find.png \
+src/ui/gui/icons/actions/16x16/view-font.png \
+src/ui/gui/icons/actions/16x16/view-value-labels.png \
+src/ui/gui/icons/actions/16x16/data-sort-cases.png \
+src/ui/gui/icons/actions/16x16/data-transpose.png \
+src/ui/gui/icons/actions/16x16/data-aggregate.png \
+src/ui/gui/icons/actions/16x16/data-split-file.png \
+src/ui/gui/icons/actions/16x16/data-select-cases.png \
+src/ui/gui/icons/actions/16x16/data-weight-cases.png \
+src/ui/gui/icons/actions/16x16/run-all.png \
+src/ui/gui/icons/actions/16x16/run-selection.png \
+src/ui/gui/icons/actions/16x16/run-current-line.png \
+src/ui/gui/icons/actions/16x16/run-to-end.png \
+src/ui/gui/icons/actions/16x16/transform-compute.png \
+src/ui/gui/icons/actions/16x16/transform-count.png \
+src/ui/gui/icons/actions/16x16/transform-rank-cases.png \
+src/ui/gui/icons/actions/16x16/transform-automatic-recode.png \
+src/ui/gui/icons/actions/16x16/transform-in-to-same-variables.png \
+src/ui/gui/icons/actions/16x16/transform-in-to-different-variables.png \
+src/ui/gui/icons/actions/16x16/transform-run-pending.png \
+src/ui/gui/icons/actions/16x16/analyze-descriptive-statistics.png \
+src/ui/gui/icons/actions/16x16/analyze-compare-means.png \
+src/ui/gui/icons/actions/16x16/analyze-univariate-analysis.png \
+src/ui/gui/icons/actions/16x16/analyze-bivariate-correlation.png \
+src/ui/gui/icons/actions/16x16/analyze-kmeans-cluster.png \
+src/ui/gui/icons/actions/16x16/analyze-factor-analysis.png \
+src/ui/gui/icons/actions/16x16/analyze-realiability.png \
+src/ui/gui/icons/actions/16x16/analyze-regression.png \
+src/ui/gui/icons/actions/16x16/analyze-non-parametric-statistics.png \
+src/ui/gui/icons/actions/16x16/analyze-roc-curve.png \
+src/ui/gui/icons/actions/16x16/utilities-variables.png \
+src/ui/gui/icons/actions/16x16/utilities-data-file-comments.png \
+src/ui/gui/icons/actions/16x16/windows-minimize-all.png \
+src/ui/gui/icons/actions/16x16/windows-split.png \
+src/ui/gui/icons/actions/16x16/help-reference-manual.png \
+src/ui/gui/icons/actions/16x16/help-about.png
+
+
+ICONS=$(CATEGORY_ICONS) $(ACTION_ICONS) $(MIMETYPE_ICONS) $(APP_ICONS) $(MISC_ICONS)
+
+all: prep_ph  icons
 	$(MAKE) -f Smake Makefile.in configure
+
+icons: $(ICONS) src/ui/gui/icons/icon-names.c
+
+src/ui/gui/icons/icon-names.c: $(MAKEFILE_LIST)
+	$(RM) $@
+	printf '/* This is a generated file. Do not edit. */\n' >> $@
+	printf '#include "icon-names.h"\n' >> $@
+	echo >> $@
+	printf 'static const char *action_icon_name[] =' >> $@
+	printf '\n{\n' >> $@
+	for i in $(ACTION_ICONS) ; do \
+	 echo $$i; \
+	done | sed -e 's%[a-zA-Z/]*/[1-9]*x[1-9]*/\([^ ]*\)\.png%\1%g' | sort -u | while read f ; do \
+	 printf '  "%s", \n' $$f >> $@ ; \
+	done ; \
+	printf '};\n\n' >> $@ ; \
+	printf 'const struct icon_context action_icon_context = {\n' >> $@
+	printf '  action_icon_name,\n' >> $@
+	printf "  sizeof (action_icon_name) / sizeof (action_icon_name[0]),\n" >> $@ 
+	printf "  \"actions\"\n" >> $@
+	printf '};\n' >> $@ ; \
+	echo >> $@
+	printf 'static const char *category_icon_name[] =' >> $@
+	printf '\n{\n' >> $@
+	for i in $(CATEGORY_ICONS) ; do \
+	 echo $$i; \
+	done | sed -e 's%[a-zA-Z/]*/[1-9]*x[1-9]*/\([^ ]*\)\.png%\1%g' | sort -u | while read f ; do \
+	 printf '  "%s", \n' $$f >> $@ ; \
+	done ; \
+	printf '};\n\n' >> $@ ; \
+	printf 'const struct icon_context category_icon_context = {\n' >> $@
+	printf '  category_icon_name,\n' >> $@
+	printf "  sizeof (category_icon_name) / sizeof (category_icon_name[0]),\n" >> $@ 
+	printf "  \"categories\"\n" >> $@
+	printf '};\n' >> $@ ; \
+	echo >> $@
+
+
+src/ui/gui/icons/manifest: $(MAKEFILE_LIST)
+	$(RM) $@
+	printf '# This is a generated file. Do not edit.\n' >> $@
+	printf 'icons =' >> $@
+	for i in  $(ICONS); do \
+	  printf ' \\\n\t '$$i >> $@; \
+	done
+	echo >> $@
+	echo >> $@
+	printf 'icon_srcs = ' >> $@
+	for i in  $(ICONS); do \
+	  printf ' \\\n\t '$$i | sed -e 's/\.png$$/.svg/' -e 's%/icons/%/artwork/%' >> $@ ; \
+	done
+	echo ' ' >> $@
+	echo >> $@
 
 .PHONY: prep_ph
 prep_ph: 
@@ -149,7 +349,7 @@ configure: configure.ac aclocal.m4
 config.h.in: configure.ac
 	autoheader
 
-Makefile.in: Makefile.am config.h.in aclocal.m4
+Makefile.in: Makefile.am config.h.in aclocal.m4 src/ui/gui/icons/manifest
 	automake --add-missing --copy --no-force --include-deps
 
 
@@ -172,6 +372,8 @@ _build: all
 _debug: all
 	test -d _debug || mkdir _debug
 	cd _debug && ../configure $(CONFIGUREFLAGS) --enable-debug
+
+
 
 PO_FILES = po/ChangeLog \
 po/Rules-quot po/boldquot.sed		\
@@ -200,3 +402,22 @@ clean:
 	rm -f reloc-ldflags install-reloc
 
 .PHONY: all gettextize clean
+
+
+# The "convert" program from imagemagick can be used to create png from svg but doesn't properly deal
+# with the alpha channels.  Therefore, it is not recommended for production pspp builds, but might
+# be useful to get something working on a platform which doesn't have a working gimp.
+
+#svg2png=convert $1 $3
+
+svg2png=gimp -i -b '(let* ((image  (car  (gimp-file-load 1  "$1"  "$1"))))  (gimp-image-attach-parasite image (list "gimp-comment" 0 "$(shell cat $2)"))  (gimp-file-save 1 image (car  (gimp-image-get-active-drawable image)) "$3" "$3")) (gimp-quit 1)'
+
+
+src/ui/gui/icons/%.png: src/ui/gui/artwork/%.svg src/ui/gui/icons/COPYING_CCBYSA3
+	mkdir -p $(dir $@)
+	$(call svg2png,$<,$(lastword $^),$@)
+
+
+src/ui/gui/icons/%.svg: src/ui/gui/artwork/%.svg
+	mkdir -p $(dir $@)
+	cp $< $@

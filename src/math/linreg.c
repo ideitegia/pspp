@@ -86,9 +86,6 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
 
-  c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the
-					   model parameters.
-					 */
   c->n_obs = n;
   c->n_indeps = p;
   c->n_coeffs = p;
@@ -99,17 +96,16 @@ linreg_alloc (const struct variable *depvar, const struct variable **indep_vars,
   c->dfe = c->dft - c->dfm;
   c->intercept = 0.0;
   c->depvar_mean = 0.0;
-  c->depvar_std = 0.0;
   /*
      Default settings.
    */
   c->method = LINREG_SWEEP;
-  c->pred = NULL;
-  c->resid = NULL;
 
   c->refcnt = 1;
+
   return c;
 }
+
 
 void
 linreg_ref (linreg *c)
@@ -120,11 +116,10 @@ linreg_ref (linreg *c)
 void
 linreg_unref (linreg *c)
 {
-  if (c && --c->refcnt == 0)
+  if (--c->refcnt == 0)
     {
       gsl_vector_free (c->indep_means);
       gsl_vector_free (c->indep_std);
-      gsl_vector_free (c->ss_indeps);
       gsl_matrix_free (c->cov);
       free (c->indep_vars);
       free (c->coeff);
@@ -249,22 +244,10 @@ linreg_residual (const linreg *c, double obs, const double *vals, size_t n_vals)
   return (obs - linreg_predict (c, vals, n_vals));
 }
 
-double linreg_get_indep_variable_sd (linreg *c, size_t j)
-{
-  assert (c != NULL);
-  return gsl_vector_get (c->indep_std, j);
-}
-
-void linreg_set_indep_variable_sd (linreg *c, size_t j, double s)
-{
-  assert (c != NULL);
-  gsl_vector_set (c->indep_std, j, s);
-}
-
 /*
   Mean of the independent variable.
  */
-double linreg_get_indep_variable_mean (linreg *c, size_t j)
+double linreg_get_indep_variable_mean (const linreg *c, size_t j)
 {
   assert (c != NULL);
   return gsl_vector_get (c->indep_means, j);
@@ -407,7 +390,7 @@ double linreg_intercept (const linreg *c)
   return c->intercept;
 }
 
-gsl_matrix *
+const gsl_matrix *
 linreg_cov (const linreg *c)
 {
   return c->cov;
@@ -467,7 +450,7 @@ linreg_set_depvar_mean (linreg *c, double x)
 }
 
 double 
-linreg_get_depvar_mean (linreg *c)
+linreg_get_depvar_mean (const linreg *c)
 {
   return c->depvar_mean;
 }

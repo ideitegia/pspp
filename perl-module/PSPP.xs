@@ -632,7 +632,9 @@ INIT:
     SV** version = hv_fetch(opt_h, "version", 7, 0);
 
     opts.create_writeable = readonly ? ! SvIV (*readonly) : true;
-    opts.compress = compress ? SvIV (*compress) : false;
+    opts.compression = (compress && SvIV (*compress)
+                        ? SFM_COMP_SIMPLE
+			: SFM_COMP_NONE);
     opts.version = version ? SvIV (*version) : 3 ;
   }
 CODE:

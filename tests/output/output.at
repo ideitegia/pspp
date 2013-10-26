@@ -14,10 +14,9 @@ begin data.
 end data.
 frequencies x/histogram.
 ])
-   dnl PSPP will fail to create the output file.  Currently this doesn't cause
-   dnl PSPP's exit status to be nonzero, although this is arguably incorrect.
-   dnl At any rate, PSPP should not crash.
-   AT_CHECK([cd unwritable && pspp -o pspp.$1 ../unwritable.sps], [0],
+   dnl PSPP will fail to create the output file.  Thus, the exit status is 
+   dnl non zero
+   AT_CHECK([cd unwritable && pspp -o pspp.$1 ../unwritable.sps], [1],
             [ignore], [ignore])
    AT_CLEANUP])
 

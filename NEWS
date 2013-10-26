@@ -3,8 +3,65 @@ Copyright (C) 1996-2000, 2008-2013 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+ 
+Changes since 0.8.1:
 
-Changes from 0.6.2 to 0.7.10:
+ * Charts are now rendered with colours from the Tango palette instead
+   of fully saturated primaries.
+
+ * PSPP can now read and write ZCOMPRESSED system files, a new format
+   variant that compresses data much more effectively than the
+   previous form of compression (which is still supported).
+
+ * Missing values for long string variables are now read from and
+   written to system files in an SPSS-compatible fashion.
+
+   (Earlier versions of PSPP that supported missing values for long
+   string variables wrote them to system files in an SPSS-incompatible
+   way.  To fix the problem, read the system file with this version of
+   PSPP and then save a new copy of it.)
+
+ * pspp-convert, a new standalone utility for converting SPSS system
+   and portable files to other formats, is now included.  The initial
+   version is only capable of converting to comma-separated value
+   files..
+
+ * Build changes:
+
+   - zlib is now a required dependency.  (Previously it was optional.)
+
+Changes from 0.8.0 to 0.8.1:
+
+ * New commands:
+
+   - VARIABLE ROLE.
+
+ * Changes to existing commands:
+
+   - CROSSTABS: The requirement that one expected count must be less than five
+	before Fishers Exact Test will be reported has been removed.
+
+ * PSPPIRE graphical user interface improvements:
+
+   - A new set of icons has been contributed.
+
+   - Syntax windows now parse syntax in "auto" mode, which in practice
+     should mean that both "batch" and "interactive" syntax now works,
+     instead of just "interactive" syntax.
+
+   - The variable pane of data windows now include a Role column.
+
+ * Notable bug fixes:
+
+   - System files written by IBM SPSS 21 are now read without warnings.
+
+   - System files written by "VOXCO INTERVIEWER 4.3" are now read
+     without warnings.
+
+   - PSPPIRE should now more gracefully handle syntax files that contain
+     errors.
+
+Changes from 0.6.2 to 0.8.0:
 
  * New commands:
 

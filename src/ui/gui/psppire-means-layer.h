@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2012  Free Software Foundation
+   Copyright (C) 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,6 +58,9 @@ struct _PsppireMeansLayer
   GtkWidget *var_view;
   int n_layers;
   int current_layer;
+  GPtrArray *layer;
+  gboolean dispose_has_run;
+
   GtkWidget *label;
   GtkWidget *back;
   GtkWidget *forward;
@@ -77,6 +80,7 @@ GtkWidget * psppire_means_layer_new (void);
 void       psppire_means_layer_set_source (PsppireMeansLayer *ml, GtkWidget *w);
 
 void       psppire_means_layer_clear (PsppireMeansLayer *ml);
+GtkTreeModel *psppire_means_layer_get_model_n (PsppireMeansLayer *ml, gint n);
 
 
 G_END_DECLS

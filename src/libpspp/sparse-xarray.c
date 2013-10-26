@@ -134,6 +134,21 @@ sparse_xarray_clone (const struct sparse_xarray *old)
   return new;
 }
 
+static void
+free_memory_rows (struct sparse_xarray *sx)
+{
+  if (sx->memory != NULL)
+    {
+      unsigned long int idx;
+      uint8_t **row;
+      for (row = sparse_array_first (sx->memory, &idx); row != NULL;
+           row = sparse_array_next (sx->memory, idx, &idx))
+        free (*row);
+      sparse_array_destroy (sx->memory);
+      sx->memory = NULL;
+    }
+}
+
 /* Destroys sparse array of rows SX. */
 void
 sparse_xarray_destroy (struct sparse_xarray *sx)
@@ -141,15 +156,7 @@ sparse_xarray_destroy (struct sparse_xarray *sx)
   if (sx != NULL)
     {
       free (sx->default_row);
-      if (sx->memory != NULL)
-        {
-          unsigned long int idx;
-          uint8_t **row;
-          for (row = sparse_array_first (sx->memory, &idx); row != NULL;
-               row = sparse_array_next (sx->memory, idx, &idx))
-            free (*row);
-          sparse_array_destroy (sx->memory);
-        }
+      free_memory_rows (sx);
       ext_array_destroy (sx->disk);
       range_set_destroy (sx->disk_rows);
       free (sx);
@@ -208,8 +215,7 @@ dump_sparse_xarray_to_disk (struct sparse_xarray *sx)
         }
       range_set_set1 (sx->disk_rows, idx, 1);
     }
-  sparse_array_destroy (sx->memory);
-  sx->memory = NULL;
+  free_memory_rows (sx);
   return true;
 }
 

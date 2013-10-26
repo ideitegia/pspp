@@ -69,6 +69,7 @@ session_destroy (struct session *s)
       s->active = NULL;
       HMAPX_FOR_EACH_SAFE (ds, node, next, &s->datasets)
         dataset_destroy (ds);
+      hmapx_destroy (&s->datasets);
       free (s->syntax_encoding);
       free (s);
     }
@@ -96,7 +97,10 @@ session_add_dataset (struct session *s, struct dataset *ds)
   if (old == s->active)
     s->active = ds;
   if (old != NULL)
-    session_remove_dataset (s, old);
+    {
+      session_remove_dataset (s, old);
+      dataset_destroy (old);
+    }
 
   hmapx_insert (&s->datasets, ds,
                 utf8_hash_case_string (dataset_name (ds), 0));

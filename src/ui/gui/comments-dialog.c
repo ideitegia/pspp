@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2007, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,16 +74,10 @@ wrap_line (GtkTextBuffer *buffer,
   if ( chars > DOC_LINE_LENGTH )
     {
       GtkTextIter line_fold = *iter;
-      GtkTextIter cursor;
 
       gtk_text_iter_set_line_offset (&line_fold, DOC_LINE_LENGTH);
 
       gtk_text_buffer_insert (buffer, &line_fold, "\r\n", 2);
-
-      cursor = line_fold;
-      gtk_text_iter_forward_to_line_end (&cursor);
-
-      gtk_text_buffer_place_cursor (buffer, &cursor);
     }
 
 }

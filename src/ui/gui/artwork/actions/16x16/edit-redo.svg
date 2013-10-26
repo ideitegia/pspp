@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="16"
+   height="16"
+   id="svg3991"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="edit-redo.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="22.4"
+     inkscape:cx="8"
+     inkscape:cy="7.9640184"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="683"
+     inkscape:window-height="709"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,16"
+       id="guide2985" />
+    <sodipodi:guide
+       position="16,0"
+       orientation="-16,0"
+       id="guide2987" />
+    <sodipodi:guide
+       position="16,16"
+       orientation="0,-16"
+       id="guide2989" />
+    <sodipodi:guide
+       position="0,16"
+       orientation="16,0"
+       id="guide2991" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3996">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>GNU PSPP flat icon set</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1036.3622)">
+    <g
+       transform="matrix(-1,0,0,1,-229,885.00002)"
+       style="display:inline"
+       id="g4787">
+      <g
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="/home/raizen/Dropbox/Proyectos/GNU PSPP/PSPPire artwork/icons/actions/16x16/edit-undo.png"
+         id="g6359"
+         style="display:inline"
+         transform="translate(-525,-172.63781)">
+        <g
+           id="g4896"
+           transform="translate(120,-0.023738)">
+          <path
+             sodipodi:nodetypes="csssc"
+             inkscape:connector-curvature="0"
+             id="path35770-4-9"
+             d="m 170,335.99798 0.5,0 c 1.38071,0 2.5,-1.11884 2.5,-2.49898 0,-1.38015 -1.11929,-2.49899 -2.5,-2.49899 l -6.5,0"
+             style="color:#000000;fill:none;stroke:#545753;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
+          <path
+             sodipodi:nodetypes="ccccccccccccc"
+             id="rect3217-6-2-2-4-85-2"
+             d="m 166.9998,327.02373 0,0.9996 c 0,0.25678 -0.12983,0.52824 -0.3125,0.71845 l -2.18735,2.25817 2.18735,2.30248 c 0.18267,0.19021 0.3125,0.46167 0.3125,0.71845 l 0,0.9996 -1,0 c -0.30945,0 -0.55232,-0.0903 -0.75,-0.28114 l -3.24985,-3.73925 3.24985,-3.69522 c 0.19768,-0.19087 0.44055,-0.28114 0.75,-0.28114 z"
+             style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;color:#555753;fill:#545753;fill-opacity:1;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans"
+             inkscape:connector-curvature="0" />
+        </g>
+        <rect
+           style="opacity:0;fill:#555753;fill-opacity:1;fill-rule:evenodd;stroke:none"
+           id="rect5589"
+           width="16"
+           height="16"
+           x="260"
+           y="344"
+           transform="translate(20,-20.000008)" />
+      </g>
+    </g>
+  </g>
+</svg>

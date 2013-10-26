@@ -124,6 +124,7 @@ on_query_tooltip (GtkWidget *widget, gint wx, gint wy,
   int width;
 
   g_return_val_if_fail (data_store != NULL, FALSE);
+  g_return_val_if_fail (data_store->datasheet != NULL, FALSE);
 
   if (!get_tooltip_location (widget, tooltip, wx, wy, &row, &column))
     return FALSE;
@@ -176,9 +177,9 @@ render_row_number_cell (PsppSheetViewColumn *tree_column,
 {
   PsppireDataStore *store = store_;
   GValue gvalue = { 0, };
-  gint row;
+  gint row = GPOINTER_TO_INT (iter->user_data);
 
-  row = GPOINTER_TO_INT (iter->user_data);
+  g_return_if_fail (store->datasheet);
 
   g_value_init (&gvalue, G_TYPE_INT);
   g_value_set_int (&gvalue, row + 1);

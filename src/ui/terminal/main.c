@@ -147,7 +147,7 @@ main (int argc, char **argv)
               lex_discard_noninteractive (lexer);
             }
           else if (result == CMD_CASCADING_FAILURE
-                   && lex_get_error_mode (lexer) != LEX_ERROR_INTERACTIVE)
+                   && lex_get_error_mode (lexer) != LEX_ERROR_TERMINAL)
             {
               msg (SE, _("Stopping syntax file processing here to avoid "
                          "a cascade of dependent command failures."));

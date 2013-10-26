@@ -46,6 +46,19 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) (msgid)
 
+
+#ifdef ODF_READ_SUPPORT
+static const bool odf_read_support = true;
+#else
+static const bool odf_read_support = false;
+#endif
+
+#ifdef GNM_READ_SUPPORT
+static const bool gnm_read_support = true;
+#else
+static const bool gnm_read_support = false;
+#endif
+
 static bool parse_spreadsheet (struct lexer *lexer, char **filename,
 			       struct spreadsheet_read_options *opts);
 
@@ -94,7 +107,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
       if (!parse_spreadsheet (lexer, &filename, &opts))
 	goto error;
 
-      if ( 0 == strncasecmp (tok, "GNM", 3))
+      if ( gnm_read_support && 0 == strncasecmp (tok, "GNM", 3))
 	{
 	  struct spreadsheet *spreadsheet = gnumeric_probe (filename, true);
 	  if (spreadsheet == NULL)
@@ -103,7 +116,7 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
 	  dict = spreadsheet->dict;
 	  gnumeric_destroy (spreadsheet);
 	}
-      else if (0 == strncasecmp (tok, "ODS", 3))
+      else if ( odf_read_support && 0 == strncasecmp (tok, "ODS", 3))
 	{
 	  struct spreadsheet *spreadsheet = ods_probe (filename, true);
 	  if (spreadsheet == NULL)

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AC_PREREQ(2.63)
-AC_INIT([GNU PSPP], [0.7.10], [bug-gnu-pspp@gnu.org], [pspp])
+AC_INIT([GNU PSPP], [0.8.1], [bug-gnu-pspp@gnu.org], [pspp])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_TESTDIR([tests])
@@ -176,16 +176,8 @@ PKG_CHECK_MODULES(
    PSPP_OPTIONAL_PREREQ([libxml2])])
 
 dnl Check for zlib.
-AC_SEARCH_LIBS(
-  [gzopen], [z],
-  [HAVE_ZLIB=yes],
-  [HAVE_ZLIB=no
-   PSPP_OPTIONAL_PREREQ([zlib])])
-AC_CHECK_HEADERS(
-  [zlib.h], 
-  [],
-  [HAVE_ZLIB=no
-   PSPP_OPTIONAL_PREREQ([zlib])])
+AC_SEARCH_LIBS([gzopen], [z], [], [PSPP_REQUIRED_PREREQ([zlib])])
+AC_CHECK_HEADERS([zlib.h], [], [PSPP_REQUIRED_PREREQ([zlib])])
 
 dnl Avoid interference between zlib's crc32() function and gnulib's
 dnl crc32() function, which have different signatures.  PSPP calls
@@ -200,20 +192,20 @@ AC_DEFINE(
   [Avoid making zlib call gnulib's crc32() instead of its own.])
 
 dnl Gnumeric and OpenDocument (read) support requires libxml2 and zlib.
-if test $HAVE_LIBXML2 = yes && test $HAVE_ZLIB = yes; then
-  GNM_SUPPORT=yes
+if test $HAVE_LIBXML2 = yes; then
+  GNM_READ_SUPPORT=yes
   ODF_READ_SUPPORT=yes
   AC_DEFINE(
-    [GNM_SUPPORT], [1],
+    [GNM_READ_SUPPORT], [1],
     [Define to 1 if building in support for reading Gnumeric files.])
   AC_DEFINE(
     [ODF_READ_SUPPORT], [1],
     [Define to 1 if building in support for reading OpenDocument files.])
 else
-  GNM_SUPPORT=no
+  GNM_READ_SUPPORT=no
   ODF_READ_SUPPORT=no
 fi
-AC_SUBST([GNM_SUPPORT])
+AC_SUBST([GNM_READ_SUPPORT])
 AC_SUBST([ODF_READ_SUPPORT])
 
 dnl ODF support requires libxml2 (zlib is optional).

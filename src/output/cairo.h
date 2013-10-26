@@ -81,9 +81,27 @@ void xr_driver_output_item (struct xr_driver *, const struct output_item *);
 bool xr_driver_need_new_page (const struct xr_driver *);
 bool xr_driver_is_page_blank (const struct xr_driver *);
 
+struct xr_color
+{
+  double red;
+  double green;
+  double blue;
+};
+
+struct output_driver;
+struct string_map;
+
+void parse_color (struct output_driver *d, struct string_map *options,
+		  const char *key, const char *default_value,
+		  struct xr_color *color);
+
+
 /* Render charts with Cairo. */
 char *xr_draw_png_chart (const struct chart_item *,
-                         const char *file_name_template, int number);
+                         const char *file_name_template, int number,
+                         const struct xr_color *fg,
+			 const struct xr_color *bg);
+
 
 #endif  /* HAVE_CAIRO */
 

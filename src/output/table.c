@@ -47,7 +47,7 @@ table_unref (struct table *table)
     {
       assert (table->ref_cnt > 0);
       if (--table->ref_cnt == 0)
-        table->class->destroy (table);
+        table->klass->destroy (table);
     }
 }
 
@@ -104,7 +104,7 @@ table_set_hb (struct table *table, int hb)
 void
 table_init (struct table *table, const struct table_class *class)
 {
-  table->class = class;
+  table->klass = class;
   table->n[TABLE_HORZ] = table->n[TABLE_VERT] = 0;
   table->h[TABLE_HORZ][0] = table->h[TABLE_HORZ][1] = 0;
   table->h[TABLE_VERT][0] = table->h[TABLE_VERT][1] = 0;
@@ -138,7 +138,7 @@ table_get_cell (const struct table *table, int x, int y,
 {
   assert (x >= 0 && x < table->n[TABLE_HORZ]);
   assert (y >= 0 && y < table->n[TABLE_VERT]);
-  table->class->get_cell (table, x, y, cell);
+  table->klass->get_cell (table, x, y, cell);
 }
 
 /* Frees CELL, which should have been initialized by calling
@@ -192,7 +192,7 @@ table_get_rule (const struct table *table, enum table_axis axis, int x, int y)
 {
   assert (x >= 0 && x < table->n[TABLE_HORZ] + (axis == TABLE_HORZ));
   assert (y >= 0 && y < table->n[TABLE_VERT] + (axis == TABLE_VERT));
-  return table->class->get_rule (table, axis, x, y);
+  return table->klass->get_rule (table, axis, x, y);
 }
 
 struct table_unshared
@@ -233,7 +233,7 @@ table_unshare (struct table *table)
 static struct table_unshared *
 table_unshared_cast (const struct table *table)
 {
-  assert (table->class == &table_unshared_class);
+  assert (table->klass == &table_unshared_class);
   return UP_CAST (table, struct table_unshared, table);
 }
 
@@ -295,7 +295,7 @@ table_from_string (unsigned int options, const char *s)
 static struct table_string *
 table_string_cast (const struct table *table)
 {
-  assert (table->class == &table_string_class);
+  assert (table->klass == &table_string_class);
   return UP_CAST (table, struct table_string, table);
 }
 

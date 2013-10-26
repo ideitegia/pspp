@@ -152,12 +152,13 @@ struct cmd_factor
   enum extraction_method extraction;
   enum plot_opts plot;
   enum rotation_type rotation;
+  int rotation_iterations;
 
   /* Extraction Criteria */
   int n_factors;
   double min_eigen;
   double econverge;
-  int iterations;
+  int extraction_iterations;
 
   double rconverge;
 
@@ -658,7 +659,7 @@ rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
   /* Now perform the rotation iterations */
 
   prev_sv = initial_sv (normalised);
-  for (i = 0 ; i < cf->iterations ; ++i)
+  for (i = 0 ; i < cf->rotation_iterations ; ++i)
     {
       double sv = 0.0;
       for (j = 0 ; j < normalised->size2; ++j)
@@ -814,7 +815,7 @@ int
 cmd_factor (struct lexer *lexer, struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
-
+  int n_iterations = 25;
   struct cmd_factor factor;
   factor.n_vars = 0;
   factor.vars = NULL;
@@ -825,7 +826,8 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   factor.extraction = EXTRACTION_PC;
   factor.n_factors = 0;
   factor.min_eigen = SYSMIS;
-  factor.iterations = 25;
+  factor.extraction_iterations = 25;
+  factor.rotation_iterations = 25;
   factor.econverge = 0.001;
 
   factor.blank = 0;
@@ -926,6 +928,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		  goto error;
 		}
 	    }
+          factor.rotation_iterations = n_iterations;
 	}
       else if (lex_match_id (lexer, "CRITERIA"))
 	{
@@ -977,7 +980,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		  if ( lex_force_match (lexer, T_LPAREN))
 		    {
 		      lex_force_int (lexer);
-		      factor.iterations = lex_integer (lexer);
+		      n_iterations = lex_integer (lexer);
 		      lex_get (lexer);
 		      lex_force_match (lexer, T_RPAREN);
 		    }
@@ -986,7 +989,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		{
 		  factor.n_factors = 0;
 		  factor.min_eigen = 1;
-		  factor.iterations = 25;
+		  n_iterations = 25;
 		}
 	      else
 		{
@@ -1022,6 +1025,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		  goto error;
 		}
 	    }
+          factor.extraction_iterations = n_iterations;
 	}
       else if (lex_match_id (lexer, "FORMAT"))
 	{
@@ -1955,7 +1959,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
 	gsl_vector_memcpy (initial_communalities, idata->msr);
 
-	for (i = 0; i < factor->iterations; ++i)
+	for (i = 0; i < factor->extraction_iterations; ++i)
 	  {
 	    double min, max;
 	    gsl_vector_memcpy (diff, idata->msr);

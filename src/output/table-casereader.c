@@ -38,7 +38,7 @@ static const struct table_class table_casereader_class;
 static struct table_casereader *
 table_casereader_cast (const struct table *table)
 {
-  assert (table->class == &table_casereader_class);
+  assert (table->klass == &table_casereader_class);
   return UP_CAST (table, struct table_casereader, table);
 }
 

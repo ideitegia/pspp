@@ -1,5 +1,5 @@
 /* pspp - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -248,7 +248,7 @@ range_tower_set1 (struct range_tower *rt,
                      entire width into PREV's trailing ones, e.g. 00001111
                      00001111 becomes 0000111111111111. */
                   int node_width = node->n_zeros + node->n_ones;
-                  abt_delete (&rt->abt, &node->abt_node);
+                  delete_node (rt, node);
                   prev->n_ones += node_width;
                   abt_reaugmented (&rt->abt, &prev->abt_node);
                   if (width <= node_width)
@@ -410,7 +410,7 @@ range_tower_set0 (struct range_tower *rt,
 
               next_zeros = next->n_zeros;
               next_ones = next->n_ones;
-              abt_delete (&rt->abt, &next->abt_node);
+              delete_node (rt, next);
 
               node->n_zeros += node->n_ones + next_zeros;
               node->n_ones = next_ones;
@@ -509,7 +509,7 @@ range_tower_delete__ (struct range_tower *rt,
               ones_left = (node->n_zeros + node->n_ones) - width;
               if (prev != NULL)
                 {
-                  abt_delete (&rt->abt, &node->abt_node);
+                  delete_node (rt, node);
                   prev->n_ones += ones_left;
                   abt_reaugmented (&rt->abt, &prev->abt_node);
                 }
@@ -527,7 +527,7 @@ range_tower_delete__ (struct range_tower *rt,
               struct range_tower_node *next = range_tower_next__ (rt, node);
 
               width -= node->n_zeros + node->n_ones;
-              abt_delete (&rt->abt, &node->abt_node);
+              delete_node (rt, node);
               if (next == NULL)
                 break;
 
@@ -563,7 +563,7 @@ range_tower_delete__ (struct range_tower *rt,
               unsigned long int next_zeros = next->n_zeros;
               unsigned long int next_ones = next->n_ones;
 
-              abt_delete (&rt->abt, &next->abt_node);
+              delete_node (rt, next);
 
               width -= node->n_ones;
 
@@ -784,14 +784,14 @@ range_tower_move (struct range_tower *rt,
       if (node->n_zeros == 0)
         {
           if (node->n_ones == 0)
-            abt_delete (&rt->abt, &node->abt_node);
+            delete_node (rt, node);
           else if (node_start > 0)
             {
               /* Merge with previous. */
               unsigned long int n_ones = node->n_ones;
               struct range_tower_node *prev = range_tower_prev__ (rt, node);
 
-              abt_delete (&rt->abt, &node->abt_node);
+              delete_node (rt, node);
               prev->n_ones += n_ones;
               abt_reaugmented (&rt->abt, &prev->abt_node);
             }
@@ -804,7 +804,7 @@ range_tower_move (struct range_tower *rt,
               /* Merge with next. */
               unsigned long int n_zeros = node->n_zeros;
 
-              abt_delete (&rt->abt, &node->abt_node);
+              delete_node (rt, node);
               next->n_zeros += n_zeros;
               abt_reaugmented (&rt->abt, &next->abt_node);
             }

@@ -144,6 +144,16 @@ and @samp{(A12)} says that the variable @var{forename} is a string
 variable and that its maximum length is 12 bytes.
 The second variable's name is specified by the text @samp{height}.
 Since no format is given, this variable has the default format.
+Normally the default format expects numeric data, which should be
+entered in the locale of the operating system.
+Thus, the example is correct for English locales and other
+locales which use a period (@samp{.}) as the decimal separator.
+However if you are using a system with a locale which uses the comma (@samp{,})
+as the decimal separator, then you should in the subsequent lines substitute
+@samp{.} with @samp{,}.  
+Alternatively, you could explicitly tell @pspp{} that the @var{height} 
+variable is to be read using a period as its decimal separator by appending the
+text @samp{DOT8.3} after the word @samp{height}.
 For more information on data formats, @pxref{Input and Output Formats}.
 
 

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2007, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2006, 2007, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,19 +32,14 @@
 #define N_(msgid) msgid
 
 
-static const gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
+static const gchar *artists[] = { "Bastián Díaz", "Hugo Alejandro", NULL};
 
 static void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
   GtkWidget *about =  gtk_about_dialog_new ();
 
-  GdkPixbuf *pb =
-    gdk_pixbuf_new_from_file_at_size (relocate (PKGDATADIR "/pspplogo.png"),
-				      64, 64, 0);
-
-  gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG (about), pb);
-
+  gtk_about_dialog_set_logo_icon_name (GTK_ABOUT_DIALOG (about), "pspp");
 
   gtk_window_set_icon_name (GTK_WINDOW (about), "pspp");
 
@@ -136,14 +131,14 @@ merge_help_menu (GtkUIManager *uim)
       },
     
       {
-	"help_reference", GTK_STOCK_HELP,            /* name, stock id */
+	"help_reference", "help-reference-manual",            /* name, stock id */
 	N_("_Reference Manual"), NULL,               /* label, accelerator */
 	NULL,                                        /* tooltip */
 	G_CALLBACK (reference_manual)
       },
     
       {
-	"help_about", GTK_STOCK_ABOUT,
+	"help_about", "help-about",
 	NULL, NULL, NULL,
 	G_CALLBACK (about_new)
       },

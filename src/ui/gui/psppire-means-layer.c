@@ -32,28 +32,54 @@ static void psppire_means_layer_init          (PsppireMeansLayer      *window);
 
 G_DEFINE_TYPE (PsppireMeansLayer, psppire_means_layer, GTK_TYPE_VBOX);
 
+static GObjectClass *parent_class = NULL;
+
+static void
+psppire_means_layer_dispose (GObject *obj)
+{
+  PsppireMeansLayer *w = (PsppireMeansLayer *)obj;
+
+  if (w->dispose_has_run)
+    return;
+
+  /* Make sure dispose does not run twice. */
+  w->dispose_has_run = TRUE;
+
+  g_ptr_array_unref (w->layer);
+
+  /* Chain up to the parent class */
+  G_OBJECT_CLASS (parent_class)->dispose (obj);
+}
+
 
 static void 
 psppire_means_layer_class_init    (PsppireMeansLayerClass *class)
 {
-  //  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+  parent_class = g_type_class_peek_parent (class);
+
+
+  object_class->dispose = psppire_means_layer_dispose;
 }
 
 static void
 update (PsppireMeansLayer *ml)
 {
-  gchar *l = g_strdup_printf (_("Layer %d of %d"),
+  gchar *l;
+
+  if (!gtk_widget_get_realized (GTK_WIDGET (ml)))
+    return;
+
+  l = g_strdup_printf (_("Layer %d of %d"),
 			      ml->current_layer + 1, ml->n_layers);
   
   gtk_label_set_text (GTK_LABEL (ml->label), l);
   g_free (l);
 
-  psppire_var_view_set_current_model (PSPPIRE_VAR_VIEW (ml->var_view),
-				      ml->current_layer);
-
   gtk_widget_set_sensitive (ml->back, ml->current_layer > 0);
   gtk_widget_set_sensitive (ml->forward,
-			    psppire_var_view_get_iter_first (PSPPIRE_VAR_VIEW (ml->var_view), NULL));
+			    psppire_var_view_get_iter_first (PSPPIRE_VAR_VIEW (ml->var_view),
+							     NULL));
 }
 
 static void
@@ -62,20 +88,29 @@ on_forward (PsppireMeansLayer *ml)
   ml->current_layer++;
   if (ml->current_layer >= ml->n_layers)
     {
-      ml->n_layers = ml->current_layer + 1;
-      psppire_var_view_push_model (PSPPIRE_VAR_VIEW (ml->var_view));
+      GtkTreeModel *tm;
+      psppire_var_view_clear (PSPPIRE_VAR_VIEW (ml->var_view));
+      tm = gtk_tree_view_get_model (GTK_TREE_VIEW (ml->var_view));
+      g_ptr_array_add (ml->layer, tm);
+      g_object_ref (tm);
+      ml->n_layers = ml->current_layer + 1;      
     }
-
-  update (ml);
+  else
+    {
+      GtkTreeModel *tm = g_ptr_array_index (ml->layer, ml->current_layer);
+      gtk_tree_view_set_model (GTK_TREE_VIEW (ml->var_view), tm);
+    }
 }
 
 static void
 on_back (PsppireMeansLayer *ml)
 {
+  GtkTreeModel *tm;
   g_return_if_fail (ml->current_layer > 0);
   ml->current_layer--;
 
-  update (ml);
+  tm = g_ptr_array_index (ml->layer, ml->current_layer);
+  gtk_tree_view_set_model (GTK_TREE_VIEW (ml->var_view), tm);
 }
 
 
@@ -87,6 +122,7 @@ psppire_means_layer_init  (PsppireMeansLayer      *ml)
   GtkWidget *alignment = gtk_alignment_new (0, 0.5, 0, 0);
   GtkWidget *sw = gtk_scrolled_window_new (NULL, NULL);
 
+  ml->dispose_has_run = FALSE;
   ml->forward = gtk_button_new_from_stock (GTK_STOCK_GO_FORWARD);
   ml->back = gtk_button_new_from_stock (GTK_STOCK_GO_BACK);
   ml->var_view = psppire_var_view_new ();
@@ -109,6 +145,7 @@ psppire_means_layer_init  (PsppireMeansLayer      *ml)
 		NULL);
 
   g_object_set (ml->selector, "dest-widget", ml->var_view, NULL);
+  g_signal_connect_swapped (ml->var_view, "notify::model", G_CALLBACK (update), ml);
 
   gtk_box_pack_start (GTK_BOX (hbox_upper), ml->back, FALSE, FALSE, 5);
   gtk_box_pack_start (GTK_BOX (hbox_upper), ml->label, TRUE, FALSE, 5);
@@ -122,8 +159,16 @@ psppire_means_layer_init  (PsppireMeansLayer      *ml)
   gtk_box_pack_start (GTK_BOX (ml), hbox_upper, FALSE, FALSE, 5);
   gtk_box_pack_start (GTK_BOX (ml), hbox_lower, TRUE, TRUE, 5);
 
+
+
   ml->n_layers = 1;
   ml->current_layer = 0;
+  ml->layer = g_ptr_array_new_full (3, g_object_unref);
+
+  /* Add a model and take a reference to it */
+  g_ptr_array_add (ml->layer, gtk_tree_view_get_model (GTK_TREE_VIEW (ml->var_view)));
+  g_object_ref (g_ptr_array_index (ml->layer, ml->current_layer));
+
   update (ml);
 
   gtk_widget_show_all (hbox_upper);
@@ -147,8 +192,14 @@ psppire_means_layer_set_source (PsppireMeansLayer *ml, GtkWidget *w)
 void
 psppire_means_layer_clear (PsppireMeansLayer *ml)
 {
-  psppire_var_view_clear (PSPPIRE_VAR_VIEW (ml->var_view));
   ml->n_layers = 1;
   ml->current_layer = 0;
-  update (ml);
+  psppire_var_view_clear (PSPPIRE_VAR_VIEW (ml->var_view));
+}
+
+
+GtkTreeModel *
+psppire_means_layer_get_model_n (PsppireMeansLayer *ml, gint n)
+{
+  return g_ptr_array_index (ml->layer, n);
 }

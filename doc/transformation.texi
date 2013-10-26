@@ -579,7 +579,7 @@ The behaviour of the command is slightly different depending on whether it
 appears or not.
 
 If @samp{INTO @var{dest_vars}} does not appear, then values will be recoded
-``in place´´.
+``in place''.
 This means that the recoded values are written back to the
 source variables from whence the original values came.
 In this case, the @var{dest_value} for every mapping must imply a value which

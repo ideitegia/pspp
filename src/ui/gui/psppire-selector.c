@@ -599,7 +599,8 @@ static gboolean
 refilter (PsppireSelector *selector)
 {
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source));
-  gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (model));
+  if (GTK_IS_TREE_MODEL_FILTER (model))
+    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (model));
   return FALSE;
 }
 
@@ -883,18 +884,30 @@ on_dest_data_delete (GtkTreeModel *tree_model,
 
 
 static void
+remove_selector_handlers (PsppireSelector *selector, GObject *sel)
+{
+  g_signal_handlers_disconnect_by_data (sel, selector);
+}
+
+static void
 on_dest_model_changed (PsppireSelector *selector)
 {
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
 
-  if ( model ) 
-    {
-      g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
-			selector);
-      
-      g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
-			selector);
-    }
+  if (model == NULL) 
+    return;
+
+  g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
+		    selector);
+  
+  g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
+		    selector);
+
+  g_signal_connect (selector, "destroy", G_CALLBACK (remove_selector_handlers), model);
+  
+  if ( selector->selecting ) return;
+  
+  refilter (selector);
 }
 
 /* Set the destination widget to DEST */

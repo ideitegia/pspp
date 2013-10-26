@@ -35,12 +35,16 @@ spreadsheet_destroy (struct spreadsheet *s)
 {
   switch (s->type)
     {
+#ifdef ODF_READ_SUPPORT
     case SPREADSHEET_ODS:
       ods_destroy (s);
       break;
+#endif
+#ifdef GNM_READ_SUPPORT
     case SPREADSHEET_GNUMERIC:
       gnumeric_destroy (s);
       break;
+#endif
     default:
       NOT_REACHED ();
       break;
@@ -49,12 +53,17 @@ spreadsheet_destroy (struct spreadsheet *s)
 
 
 struct casereader * 
-spreadsheet_make_reader (struct spreadsheet *s, const struct spreadsheet_read_options *opts)
+spreadsheet_make_reader (struct spreadsheet *s UNUSED,
+                         const struct spreadsheet_read_options *opts UNUSED)
 {
+#ifdef ODS_READ_SUPPORT
   if ( s->type == SPREADSHEET_ODS)
     return ods_make_reader (s, opts);
+#endif
+#ifdef GNM_READ_SUPPORT
   if ( s->type == SPREADSHEET_GNUMERIC)
     return gnumeric_make_reader (s, opts);
+#endif
 
   return NULL;
 }
@@ -62,11 +71,14 @@ spreadsheet_make_reader (struct spreadsheet *s, const struct spreadsheet_read_op
 const char * 
 spreadsheet_get_sheet_name (struct spreadsheet *s, int n)
 {
+#ifdef ODF_READ_SUPPORT
   if ( s->type == SPREADSHEET_ODS)
     return ods_get_sheet_name (s, n);
-
+#endif
+#ifdef GNM_READ_SUPPORT
   if ( s->type == SPREADSHEET_GNUMERIC)
     return gnumeric_get_sheet_name (s, n);
+#endif
 
   return NULL;
 }
@@ -74,11 +86,15 @@ spreadsheet_get_sheet_name (struct spreadsheet *s, int n)
 char * 
 spreadsheet_get_sheet_range (struct spreadsheet *s, int n)
 {
+#ifdef ODF_READ_SUPPORT
   if ( s->type == SPREADSHEET_ODS)
     return ods_get_sheet_range (s, n);
+#endif
 
+#ifdef GNM_READ_SUPPORT
   if ( s->type == SPREADSHEET_GNUMERIC)
     return gnumeric_get_sheet_range (s, n);
+#endif
 
   return NULL;
 }

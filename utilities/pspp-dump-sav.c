@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,13 @@
 
 #define ID_MAX_LEN 64
 
+enum compression
+  {
+    COMP_NONE,
+    COMP_SIMPLE,
+    COMP_ZLIB
+  };
+
 struct sfm_reader
   {
     const char *file_name;
@@ -52,7 +59,7 @@ struct sfm_reader
     enum integer_format integer_format;
     enum float_format float_format;
 
-    bool compressed;
+    enum compression compression;
     double bias;
   };
 
@@ -64,6 +71,8 @@ static void read_extension_record (struct sfm_reader *);
 static void read_machine_integer_info (struct sfm_reader *,
                                        size_t size, size_t count);
 static void read_machine_float_info (struct sfm_reader *,
+                                     size_t size, size_t count);
+static void read_extra_product_info (struct sfm_reader *,
                                      size_t size, size_t count);
 static void read_mrsets (struct sfm_reader *, size_t size, size_t count);
 static void read_display_parameters (struct sfm_reader *,
@@ -81,9 +90,12 @@ static void read_character_encoding (struct sfm_reader *r,
 				       size_t size, size_t count);
 static void read_long_string_value_labels (struct sfm_reader *r,
                                            size_t size, size_t count);
+static void read_long_string_missing_values (struct sfm_reader *r,
+                                             size_t size, size_t count);
 static void read_unknown_extension (struct sfm_reader *,
                                     size_t size, size_t count);
-static void read_compressed_data (struct sfm_reader *, int max_cases);
+static void read_simple_compressed_data (struct sfm_reader *, int max_cases);
+static void read_zlib_compressed_data (struct sfm_reader *);
 
 static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
@@ -94,6 +106,7 @@ static char *text_tokenize (struct text_record *, int delimiter);
 static bool text_match (struct text_record *text, int c);
 static const char *text_parse_counted_string (struct text_record *);
 static size_t text_pos (const struct text_record *);
+static const char *text_get_all (const struct text_record *);
 
 static void usage (void);
 static void sys_warn (struct sfm_reader *, const char *, ...)
@@ -110,6 +123,8 @@ static double read_float (struct sfm_reader *);
 static void read_string (struct sfm_reader *, char *, size_t);
 static void skip_bytes (struct sfm_reader *, size_t);
 static void trim_spaces (char *);
+
+static void print_string (const char *s, size_t len);
 
 int
 main (int argc, char *argv[])
@@ -173,7 +188,7 @@ main (int argc, char *argv[])
       r.n_var_widths = 0;
       r.allocated_var_widths = 0;
       r.var_widths = 0;
-      r.compressed = false;
+      r.compression = COMP_NONE;
 
       if (argc - optind > 1)
         printf ("Reading \"%s\":\n", r.file_name);
@@ -211,8 +226,13 @@ main (int argc, char *argv[])
               (long long int) ftello (r.file),
               (long long int) ftello (r.file) + 4);
 
-      if (r.compressed && max_cases > 0)
-        read_compressed_data (&r, max_cases);
+      if (r.compression == COMP_SIMPLE)
+        {
+          if (max_cases > 0)
+            read_simple_compressed_data (&r, max_cases);
+        }
+      else if (r.compression == COMP_ZLIB)
+        read_zlib_compressed_data (&r);
 
       fclose (r.file);
     }
@@ -234,11 +254,16 @@ read_header (struct sfm_reader *r)
   char creation_date[10];
   char creation_time[9];
   char file_label[65];
+  bool zmagic;
 
   read_string (r, rec_type, sizeof rec_type);
   read_string (r, eye_catcher, sizeof eye_catcher);
 
-  if (strcmp ("$FL2", rec_type) != 0)
+  if (!strcmp ("$FL2", rec_type))
+    zmagic = false;
+  else if (!strcmp ("$FL3", rec_type))
+    zmagic = true;
+  else
     sys_error (r, "This is not an SPSS system file.");
 
   /* Identify integer format. */
@@ -258,7 +283,24 @@ read_header (struct sfm_reader *r)
   weight_index = read_int (r);
   ncases = read_int (r);
 
-  r->compressed = compressed != 0;
+  if (!zmagic)
+    {
+      if (compressed == 0)
+        r->compression = COMP_NONE;
+      else if (compressed == 1)
+        r->compression = COMP_SIMPLE;
+      else if (compressed != 0)
+        sys_error (r, "SAV file header has invalid compression value "
+                   "%"PRId32".", compressed);
+    }
+  else
+    {
+      if (compressed == 2)
+        r->compression = COMP_ZLIB;
+      else
+        sys_error (r, "ZSAV file header has invalid compression value "
+                   "%"PRId32".", compressed);
+    }
 
   /* Identify floating-point format and obtain compression bias. */
   read_bytes (r, raw_bias, sizeof raw_bias);
@@ -282,7 +324,12 @@ read_header (struct sfm_reader *r)
   printf ("File header record:\n");
   printf ("\t%17s: %s\n", "Product name", eye_catcher);
   printf ("\t%17s: %"PRId32"\n", "Layout code", layout_code);
-  printf ("\t%17s: %"PRId32"\n", "Compressed", compressed);
+  printf ("\t%17s: %"PRId32" (%s)\n", "Compressed",
+          compressed,
+          r->compression == COMP_NONE ? "no compression"
+          : r->compression == COMP_SIMPLE ? "simple compression"
+          : r->compression == COMP_ZLIB ? "ZLIB compression"
+          : "<error>");
   printf ("\t%17s: %"PRId32"\n", "Weight index", weight_index);
   printf ("\t%17s: %"PRId32"\n", "Number of cases", ncases);
   printf ("\t%17s: %g\n", "Compression bias", r->bias);
@@ -574,6 +621,10 @@ read_extension_record (struct sfm_reader *r)
       read_mrsets (r, size, count);
       return;
 
+    case 10:
+      read_extra_product_info (r, size, count);
+      return;
+
     case 11:
       read_display_parameters (r, size, count);
       return;
@@ -604,6 +655,10 @@ read_extension_record (struct sfm_reader *r)
 
     case 21:
       read_long_string_value_labels (r, size, count);
+      return;
+
+    case 22:
+      read_long_string_missing_values (r, size, count);
       return;
 
     default:
@@ -663,20 +718,34 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
     sys_error (r, "Bad size (%zu) or count (%zu) on extension 4.",
                size, count);
 
-  printf ("\tsysmis: %g\n", sysmis);
+  printf ("\tsysmis: %g (%a)\n", sysmis, sysmis);
   if (sysmis != SYSMIS)
-    sys_warn (r, "File specifies unexpected value %g as %s.",
-              sysmis, "SYSMIS");
+    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
+              sysmis, sysmis, "SYSMIS");
 
-  printf ("\thighest: %g\n", highest);
+  printf ("\thighest: %g (%a)\n", highest, highest);
   if (highest != HIGHEST)
-    sys_warn (r, "File specifies unexpected value %g as %s.",
-              highest, "HIGHEST");
+    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
+              highest, highest, "HIGHEST");
 
-  printf ("\tlowest: %g\n", lowest);
-  if (lowest != LOWEST)
-    sys_warn (r, "File specifies unexpected value %g as %s.",
-              lowest, "LOWEST");
+  printf ("\tlowest: %g (%a)\n", lowest, lowest);
+  if (lowest != LOWEST && lowest != SYSMIS)
+    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
+              lowest, lowest, "LOWEST");
+}
+
+static void
+read_extra_product_info (struct sfm_reader *r,
+                         size_t size, size_t count)
+{
+  struct text_record *text;
+  const char *s;
+
+  printf ("%08llx: extra product info\n", (long long int) ftello (r->file));
+  text = open_text_record (r, size * count);
+  s = text_get_all (text);
+  print_string (s, strlen (s));
+  close_text_record (text);
 }
 
 /* Read record type 7, subtype 7. */
@@ -1014,6 +1083,56 @@ read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
 }
 
 static void
+read_long_string_missing_values (struct sfm_reader *r,
+                                 size_t size, size_t count)
+{
+  long long int start = ftello (r->file);
+
+  printf ("%08llx: long string missing values\n", start);
+  while (ftello (r->file) - start < size * count)
+    {
+      long long posn = ftello (r->file);
+      char var_name[ID_MAX_LEN + 1];
+      uint8_t n_missing_values;
+      int var_name_len;
+      int i;
+
+      /* Read variable name. */
+      var_name_len = read_int (r);
+      if (var_name_len > ID_MAX_LEN)
+        sys_error (r, "Variable name length in long string value label "
+                   "record (%d) exceeds %d-byte limit.",
+                   var_name_len, ID_MAX_LEN);
+      read_string (r, var_name, var_name_len + 1);
+
+      /* Read number of values. */
+      read_bytes (r, &n_missing_values, 1);
+
+      printf ("\t%08llx: %s, %d missing values:",
+              posn, var_name, n_missing_values);
+
+      /* Read values. */
+      for (i = 0; i < n_missing_values; i++)
+	{
+          char *value;
+          int value_length;
+
+          posn = ftello (r->file);
+
+          /* Read value. */
+          value_length = read_int (r);
+          value = xmalloc (value_length + 1);
+          read_string (r, value, value_length + 1);
+
+          printf (" \"%s\"", value);
+
+          free (value);
+	}
+      printf ("\n");
+    }
+}
+
+static void
 hex_dump (size_t offset, const void *buffer_, size_t buffer_size)
 {
   const uint8_t *buffer = buffer_;
@@ -1069,20 +1188,7 @@ read_unknown_extension (struct sfm_reader *r, size_t size, size_t count)
     {
       buffer = xmalloc (count);
       read_bytes (r, buffer, count);
-      if (memchr (buffer, 0, count) == 0)
-        for (i = 0; i < count; i++)
-          {
-            unsigned char c = buffer[i];
-
-            if (c == '\\')
-              printf ("\\\\");
-            else if (c == '\n' || isprint (c))
-              putchar (c);
-            else
-              printf ("\\%02x", c);
-          }
-      else
-        hex_dump (0, buffer, count);
+      print_string (CHAR_CAST (char *, buffer), count);
       free (buffer);
     }
 }
@@ -1104,7 +1210,7 @@ read_variable_attributes (struct sfm_reader *r, size_t size, size_t count)
 }
 
 static void
-read_compressed_data (struct sfm_reader *r, int max_cases)
+read_simple_compressed_data (struct sfm_reader *r, int max_cases)
 {
   enum { N_OPCODES = 8 };
   uint8_t opcodes[N_OPCODES];
@@ -1190,6 +1296,87 @@ read_compressed_data (struct sfm_reader *r, int max_cases)
 
           opcode_idx++;
         }
+    }
+}
+
+static void
+read_zlib_compressed_data (struct sfm_reader *r)
+{
+  long long int ofs;
+  long long int this_ofs, next_ofs, next_len;
+  long long int bias, zero;
+  long long int expected_uncmp_ofs, expected_cmp_ofs;
+  unsigned int block_size, n_blocks;
+  unsigned int i;
+
+  read_int (r);
+  ofs = ftello (r->file);
+  printf ("\n%08llx: ZLIB compressed data header:\n", ofs);
+
+  this_ofs = read_int64 (r);
+  next_ofs = read_int64 (r);
+  next_len = read_int64 (r);
+
+  printf ("\tzheader_ofs: 0x%llx\n", this_ofs);
+  if (this_ofs != ofs)
+    printf ("\t\t(Expected 0x%llx.)\n", ofs);
+  printf ("\tztrailer_ofs: 0x%llx\n", next_ofs);
+  printf ("\tztrailer_len: %lld\n", next_len);
+  if (next_len < 24 || next_len % 24)
+    printf ("\t\t(Trailer length is not a positive multiple of 24.)\n");
+
+  printf ("\n%08llx: 0x%llx bytes of ZLIB compressed data\n",
+          ofs + 8 * 3, next_ofs - (ofs + 8 * 3));
+
+  skip_bytes (r, next_ofs - (ofs + 8 * 3));
+
+  printf ("\n%08llx: ZLIB trailer fixed header:\n", next_ofs);
+  bias = read_int64 (r);
+  zero = read_int64 (r);
+  block_size = read_int (r);
+  n_blocks = read_int (r);
+  printf ("\tbias: %lld\n", bias);
+  printf ("\tzero: 0x%llx\n", zero);
+  if (zero != 0)
+    printf ("\t\t(Expected 0.)\n");
+  printf ("\tblock_size: 0x%x\n", block_size);
+  if (block_size != 0x3ff000)
+    printf ("\t\t(Expected 0x3ff000.)\n");
+  printf ("\tn_blocks: %u\n", n_blocks);
+  if (n_blocks != next_len / 24 - 1)
+    printf ("\t\t(Expected %llu.)\n", next_len / 24 - 1);
+
+  expected_uncmp_ofs = ofs;
+  expected_cmp_ofs = ofs + 24;
+  for (i = 0; i < n_blocks; i++)
+    {
+      long long int blockinfo_ofs = ftello (r->file);
+      unsigned long long int uncompressed_ofs = read_int64 (r);
+      unsigned long long int compressed_ofs = read_int64 (r);
+      unsigned int uncompressed_size = read_int (r);
+      unsigned int compressed_size = read_int (r);
+
+      printf ("\n%08llx: ZLIB block descriptor %d\n", blockinfo_ofs, i + 1);
+
+      printf ("\tuncompressed_ofs: 0x%llx\n", uncompressed_ofs);
+      if (uncompressed_ofs != expected_uncmp_ofs)
+        printf ("\t\t(Expected 0x%llx.)\n", ofs);
+
+      printf ("\tcompressed_ofs: 0x%llx\n", compressed_ofs);
+      if (compressed_ofs != expected_cmp_ofs)
+        printf ("\t\t(Expected 0x%llx.)\n", ofs + 24);
+
+      printf ("\tuncompressed_size: 0x%x\n", uncompressed_size);
+      if (i < n_blocks - 1 && uncompressed_size != block_size)
+        printf ("\t\t(Expected 0x%x.)\n", block_size);
+
+      printf ("\tcompressed_size: 0x%x\n", compressed_size);
+      if (i == n_blocks - 1 && compressed_ofs + compressed_size != next_ofs)
+        printf ("\t\t(This was expected to be 0x%llx.)\n",
+                next_ofs - compressed_size);
+
+      expected_uncmp_ofs += uncompressed_size;
+      expected_cmp_ofs += compressed_size;
     }
 }
 
@@ -1329,6 +1516,12 @@ static size_t
 text_pos (const struct text_record *text)
 {
   return text->pos;
+}
+
+static const char *
+text_get_all (const struct text_record *text)
+{
+  return text->buffer;
 }
 
 static void
@@ -1481,4 +1674,28 @@ trim_spaces (char *s)
   while (end > s && end[-1] == ' ')
     end--;
   *end = '\0';
+}
+
+static void
+print_string (const char *s, size_t len)
+{
+  if (memchr (s, 0, len) == 0)
+    {
+      size_t i;
+
+      for (i = 0; i < len; i++)
+        {
+          unsigned char c = s[i];
+
+          if (c == '\\')
+            printf ("\\\\");
+          else if (c == '\n' || isprint (c))
+            putchar (c);
+          else
+            printf ("\\%02x", c);
+        }
+      putchar ('\n');
+    }
+  else
+    hex_dump (0, s, len);
 }

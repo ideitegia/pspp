@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -338,35 +338,55 @@ var_icon_cell_data_func (GtkTreeViewColumn *col,
 		       gpointer data)
 {
   struct variable *var;
+
   gtk_tree_model_get (model, iter, DICT_TVM_COL_VAR, &var, -1);
 
-  if ( var_is_alpha (var))
-    {
-      g_object_set (cell, "stock-id", "var-string", NULL);
-    }
-  else
-    {
-      const struct fmt_spec *fs = var_get_print_format (var);
-      int cat = fmt_get_category (fs->type);
-      switch ( var_get_measure (var))
-	{
-	case MEASURE_NOMINAL:
-	  g_object_set (cell, "stock-id", "var-nominal", NULL);
-	  break;
-	case MEASURE_ORDINAL:
-	  g_object_set (cell, "stock-id", "var-ordinal", NULL);
-	  break;
-	case MEASURE_SCALE:
-	  if ( ( FMT_CAT_DATE | FMT_CAT_TIME ) & cat )
-	    g_object_set (cell, "stock-id", "var-date-scale", NULL);
-	  else
-	    g_object_set (cell, "stock-id", "var-scale", NULL);
-	  break;
-	default:
-	  g_assert_not_reached ();
-	};
-    }
+  g_object_set (cell, "stock_id",
+                get_var_measurement_stock_id (var_get_print_format (var)->type,
+                                              var_get_measure (var)),
+                NULL);
 }
+
+const char *
+get_var_measurement_stock_id (enum fmt_type type, enum measure measure)
+{
+  switch (fmt_get_category (type))
+    {
+    case FMT_CAT_STRING:
+      switch (measure)
+	{
+	case MEASURE_NOMINAL: return "measure-string-nominal";
+	case MEASURE_ORDINAL: return "measure-string-ordinal";
+	case MEASURE_SCALE:   return "role-none";
+        case n_MEASURES: break;
+	}
+      break;
+
+    case FMT_CAT_DATE:
+    case FMT_CAT_TIME:
+      switch (measure)
+        {
+        case MEASURE_NOMINAL: return "measure-date-nominal";
+        case MEASURE_ORDINAL: return "measure-date-ordinal";
+        case MEASURE_SCALE:   return "measure-date-scale";
+        case n_MEASURES: break;
+        }
+      break;
+
+    default:
+      switch (measure)
+        {
+        case MEASURE_NOMINAL: return "measure-nominal";
+        case MEASURE_ORDINAL: return "measure-ordinal";
+        case MEASURE_SCALE:   return "measure-scale";
+        case n_MEASURES: break;
+	}
+      break;
+    }
+
+  g_return_val_if_reached ("");
+}
+
 
 
 /* Sets the tooltip to be the name of the variable under the cursor */
@@ -526,26 +546,18 @@ psppire_dict_view_new (void)
   return GTK_WIDGET (g_object_new (psppire_dict_view_get_type (), NULL));
 }
 
-
-
-struct variable *
-psppire_dict_view_get_selected_variable (PsppireDictView *treeview)
+static struct variable *
+psppire_dict_view_iter_to_var (PsppireDictView *dict_view,
+                               GtkTreeIter *top_iter)
 {
-  struct variable *var;
-  GtkTreeModel *top_model;
-  GtkTreeIter top_iter;
+  GtkTreeView *treeview = GTK_TREE_VIEW (dict_view);
+  GtkTreeModel *top_model = gtk_tree_view_get_model (treeview);
 
+  struct variable *var;
   GtkTreeModel *model;
   GtkTreeIter iter;
 
-  GtkTreeSelection *selection =
-    gtk_tree_view_get_selection (GTK_TREE_VIEW (treeview));
-
-  if (! gtk_tree_selection_get_selected (selection,
-					 &top_model, &top_iter))
-    return NULL;
-
-  dv_get_base_model (top_model, &top_iter, &model, &iter);
+  dv_get_base_model (top_model, top_iter, &model, &iter);
 
   g_assert (PSPPIRE_IS_DICT (model));
 
@@ -553,6 +565,58 @@ psppire_dict_view_get_selected_variable (PsppireDictView *treeview)
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
 
   return var;
+}
+
+struct get_vars_aux
+  {
+    PsppireDictView *dict_view;
+    struct variable **vars;
+    size_t idx;
+  };
+
+static void
+get_vars_cb (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter,
+             gpointer data)
+{
+  struct get_vars_aux *aux = data;
+  struct variable *var = psppire_dict_view_iter_to_var (aux->dict_view, iter);
+
+  g_return_if_fail (var != NULL);
+  aux->vars[aux->idx++] = var;
+}
+
+void
+psppire_dict_view_get_selected_variables (PsppireDictView *dict_view,
+                                          struct variable ***vars,
+                                          size_t *n_varsp)
+{
+  GtkTreeView *tree_view = GTK_TREE_VIEW (dict_view);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (tree_view);
+  gint n_vars = gtk_tree_selection_count_selected_rows (selection);
+  struct get_vars_aux aux;
+
+  *vars = g_malloc_n (n_vars, sizeof **vars);
+
+  aux.dict_view = dict_view;
+  aux.vars = *vars;
+  aux.idx = 0;
+  gtk_tree_selection_selected_foreach (selection, get_vars_cb, &aux);
+
+  *n_varsp = aux.idx;
+  g_return_if_fail (aux.idx >= n_vars);
+}
+
+struct variable *
+psppire_dict_view_get_selected_variable (PsppireDictView *dict_view)
+{
+  GtkTreeView *tree_view = GTK_TREE_VIEW (dict_view);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (tree_view);
+  GtkTreeIter iter;
+
+  if (gtk_tree_selection_get_selected (selection, NULL, &iter))
+    return psppire_dict_view_iter_to_var (dict_view, &iter);
+  else
+    return NULL;
 }
 
 

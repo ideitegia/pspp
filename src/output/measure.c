@@ -30,7 +30,7 @@
 #include "libpspp/str.h"
 
 #include "gl/c-strcase.h"
-#include "gl/error.h"
+#include "libpspp/message.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -64,7 +64,7 @@ measure_dimension (const char *dimen)
   return raw * factor;
 
 syntax_error:
-  error (0, 0, _("`%s' is not a valid length."), dimen);
+  msg (ME, _("`%s' is not a valid length."), dimen);
   return -1;
 }
 
@@ -92,7 +92,7 @@ measure_paper (const char *size, int *h, int *v)
       /* Treat string that starts with digit as explicit size. */
       ok = parse_paper_size (size, h, v);
       if (!ok)
-        error (0, 0, _("syntax error in paper size `%s'"), size);
+        msg (ME, _("syntax error in paper size `%s'"), size);
     }
   else
     {
@@ -229,7 +229,7 @@ get_standard_paper_size (struct substring name, int *h, int *v)
         assert (ok);
         return ok;
       }
-  error (0, 0, _("unknown paper type `%.*s'"),
+  msg (ME, _("unknown paper type `%.*s'"),
          (int) ss_length (name), ss_data (name));
   return false;
 }
@@ -247,7 +247,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
   file = fopen (file_name, "r");
   if (file == NULL)
     {
-      error (0, errno, _("error opening input file `%s'"), file_name);
+      msg_error (errno, _("error opening input file `%s'"), file_name);
       return false;
     }
 
@@ -258,7 +258,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
       if (!ds_read_config_line (&line, &line_number, file))
 	{
 	  if (ferror (file))
-	    error (0, errno, _("error reading file `%s'"), file_name);
+	    msg_error (errno, _("error reading file `%s'"), file_name);
 	  break;
 	}
 
@@ -275,7 +275,7 @@ read_paper_conf (const char *file_name, int *h, int *v)
 
   fclose (file);
   ds_destroy (&line);
-  error (0, 0, _("paper size file `%s' does not state a paper size"),
+  msg (ME, _("paper size file `%s' does not state a paper size"),
          file_name);
   return false;
 }

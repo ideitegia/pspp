@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
 
 
    This program is free software: you can redistribute it and/or modify
@@ -62,50 +62,63 @@ treeview_item_selected (gpointer data)
 {
   PsppireDialogAction *pda = data;
   GtkTreeView *tv = GTK_TREE_VIEW (pda->source);
-  GtkTreeModel *model = gtk_tree_view_get_model (tv);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (tv);
 
-  gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
-
-  if ( n_rows == 0 )
-    return FALSE;
-
-  return TRUE;
+  return gtk_tree_selection_count_selected_rows (selection) > 0;
 }
 
 static gchar *
 generate_syntax (PsppireDialogAction *act)
 
 {
-  const struct variable *var =
-    psppire_dict_view_get_selected_variable (PSPPIRE_DICT_VIEW (act->source));
+  struct variable **vars;
+  size_t n_vars;
+  size_t line_len;
+  GString *s;
+  char *str;
+  size_t i;
 
-  if ( NULL == var)
-    return g_strdup ("");
+  psppire_dict_view_get_selected_variables (PSPPIRE_DICT_VIEW (act->source),
+                                            &vars, &n_vars);
 
-  return g_strdup (var_get_name (var));
+  s = g_string_new ("");
+  line_len = 0;
+  for (i = 0; i < n_vars; i++)
+    {
+      const char *name = var_get_name (vars[i]);
+      size_t name_len = strlen (name);
+
+      if (line_len > 0)
+        {
+          if (line_len + 1 + name_len > 69)
+            {
+              g_string_append_c (s, '\n');
+              line_len = 0;
+            }
+          else
+            {
+              g_string_append_c (s, ' ');
+              line_len++;
+            }
+        }
+
+      g_string_append (s, name);
+      line_len += name_len;
+    }
+
+  g_free (vars);
+
+  str = s->str;
+  g_string_free (s, FALSE);
+  return str;
 }
 
-
-
 static void
-populate_text (PsppireDictView *treeview, gpointer data)
+populate_text_var (GString *gstring, const struct variable *var)
 {
   gchar *text = NULL;
-  GString *gstring;
-  PsppireDict *dict;
 
-  GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (data));
-  const struct variable *var =
-    psppire_dict_view_get_selected_variable (treeview);
-
-  if ( var == NULL)
-    return;
-
-  g_object_get (treeview, "model", &dict,
-		NULL);
-
-  gstring = g_string_sized_new (200);
-  g_string_assign (gstring, var_get_name (var));
+  g_string_append (gstring, var_get_name (var));
   g_string_append (gstring, "\n");
 
 
@@ -119,7 +132,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
     g_string_append_printf (gstring, _("Type: %s\n"), buffer);
   }
 
-  text = missing_values_to_string (dict, var, NULL);
+  text = missing_values_to_string (var, NULL);
   g_string_append_printf (gstring, _("Missing Values: %s\n"),
 			  text);
   g_free (text);
@@ -153,6 +166,35 @@ populate_text (PsppireDictView *treeview, gpointer data)
 	}
       free (labels);
     }
+}
+
+
+static void
+populate_text (GtkTreeSelection *selection, gpointer data)
+{
+  GtkTreeView *treeview = gtk_tree_selection_get_tree_view (selection);
+  GString *gstring;
+  PsppireDict *dict;
+  size_t n_vars;
+  size_t i;
+
+  GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (data));
+  struct variable **vars;
+
+  g_object_get (treeview, "model", &dict,
+		NULL);
+
+  gstring = g_string_sized_new (200);
+
+  psppire_dict_view_get_selected_variables (PSPPIRE_DICT_VIEW (treeview),
+                                            &vars, &n_vars);
+  for (i = 0; i < n_vars; i++)
+    {
+      if (i > 0)
+        g_string_append_c (gstring, '\n');
+      populate_text_var (gstring, vars[i]);
+    }
+  g_free (vars);
 
   gtk_text_buffer_set_text (textbuffer, gstring->str, gstring->len);
 
@@ -165,20 +207,22 @@ jump_to (PsppireDialog *d, gint response, gpointer data)
 {
   PsppireDataWindow *dw;
   PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (data);
-  const struct variable *var;
+  struct variable **vars;
+  size_t n_vars;
 
   if (response !=  PSPPIRE_RESPONSE_GOTO)
     return;
 
-  var = psppire_dict_view_get_selected_variable (PSPPIRE_DICT_VIEW (pda->source));
+  psppire_dict_view_get_selected_variables (PSPPIRE_DICT_VIEW (pda->source),
+                                            &vars, &n_vars);
+  if (n_vars > 0)
+    {
+      g_object_get (pda, "top-level", &dw, NULL);
 
-  if ( NULL == var)
-    return;
-
-  g_object_get (pda, "top-level", &dw, NULL);
-
-  psppire_data_editor_goto_variable (dw->data_editor,
-                                     var_get_dict_index (var));
+      psppire_data_editor_goto_variable (dw->data_editor,
+                                         var_get_dict_index (vars[0]));
+    }
+  g_free (vars);
 }
 
 static void
@@ -193,10 +237,11 @@ psppire_dialog_action_var_info_activate (GtkAction *a)
   pda->source = get_widget_assert (xml, "treeview2");
 
   g_object_set (pda->source,
-		"selection-mode", GTK_SELECTION_SINGLE,
+		"selection-mode", GTK_SELECTION_MULTIPLE,
 		NULL);
 
-  g_signal_connect (pda->source, "cursor-changed", G_CALLBACK (populate_text),
+  g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (pda->source)),
+                    "changed", G_CALLBACK (populate_text),
 		    textview);
 
 

@@ -1,0 +1,73 @@
+@node Invoking pspp-convert
+@chapter Invoking @command{pspp-convert}
+@cindex Invocation
+@cindex @command{pspp-convert}
+
+@command{pspp-convert} is a command-line utility accompanying
+@pspp{}. It reads an SPSS system or portable file @var{input} and
+writes a copy of it to another @var{output} in a different format.
+Synopsis:
+
+@display
+@t{pspp-convert} [@var{options}] @var{input} @var{output}
+
+@t{pspp-convert -@w{-}help}
+
+@t{pspp-convert -@w{-}version}
+@end display
+
+The format of @var{Iinput} is automatically detected, except that the
+character encoding of old system files cannot always be guessed
+correctly.  Use @code{-e @var{encoding}} to specify the encoding in this
+case.
+
+By default, the intended format for @var{output} is inferred based on its
+extension:
+
+@table @code
+@item csv
+@itemx txt
+Comma-separated value.  Each value is formatted according to its
+variable's print format.  The first line in the file contains variable
+names.
+
+@item sav
+@item sys
+SPSS system file.
+
+@item por
+SPSS portable file.
+@end table
+
+Use @code{-O @var{extension}} to override the inferred format or to
+specify the format for unrecognized extensions.
+
+The following options are accepted:
+
+@table @code
+@item -O @var{format}
+@itemx --output-format=@var{format}
+Specifies the desired output format.  @var{format} must be one of the
+extensions listed above, e.g. @code{-O csv} requests comma-separated
+value output.
+
+@item -c @var{maxcases}
+@itemx --cases=@var{maxcases}
+By default, all cases are copied from @var{input} to @var{output}.
+Specifying this option to limit the number of cases written to
+@var{output} to @var{maxcases}.
+
+@item -e @var{charset}
+@itemx --encoding=@var{charset}
+Overrides the encoding in which character strings in @var{input} are
+interpreted.  This option is necessary because old SPSS system files
+do not self-identify their encoding.
+
+@item -h
+@itemx --help
+Prints a usage message on stdout and exits.
+
+@item -v
+@itemx --version
+Prints version information on stdout and exits.
+@end table

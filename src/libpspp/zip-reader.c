@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -65,9 +65,7 @@ stored_finish (struct zip_member *zm UNUSED)
 static struct decompressor decompressors[n_COMPRESSION] = 
   {
     {stored_init, stored_read, stored_finish},
-#if HAVE_ZLIB_H
     {inflate_init, inflate_read, inflate_finish}
-#endif
   };
 
 static enum compression
@@ -79,11 +77,9 @@ comp_code (struct zip_member *zm, uint16_t c)
     case 0:
       which = COMPRESSION_STORED;
       break;
-#if HAVE_ZLIB_H
     case 8:
       which = COMPRESSION_INFLATE;
       break;
-#endif
     default:
       ds_put_format (zm->errs, _("Unsupported compression type (%d)"), c);
       which = n_COMPRESSION;

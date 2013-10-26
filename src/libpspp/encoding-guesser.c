@@ -43,19 +43,15 @@
 const char *
 encoding_guess_parse_encoding (const char *encoding)
 {
-  const char *fallback;
-
   if (encoding == NULL
       || !c_strcasecmp (encoding, "auto")
       || !c_strcasecmp (encoding, "auto,locale")
       || !c_strcasecmp (encoding, "locale"))
-    fallback = locale_charset ();
+    return locale_charset ();
   else if (!c_strncasecmp (encoding, "auto,", 5))
-    fallback = encoding + 5;
+    return encoding + 5;
   else
     return encoding;
-
-  return is_encoding_utf8 (fallback) ? "windows-1252" : fallback;
 }
 
 /* Returns true if ENCODING, which must be in one of the forms described at the
@@ -277,9 +273,24 @@ encoding_guess_head_encoding (const char *encoding,
   if (is_utf32 (data, n, get_le32))
     return "UTF-32LE";
 
-  if (!is_encoding_ascii_compatible (fallback_encoding)
-      || !encoding_guess_tail_is_utf8 (data, n))
+  /* We've tried all the "giveaways" that make the encoding obvious.  That
+     rules out, incidentally, all the encodings with multibyte units
+     (e.g. UTF-16, UTF-32).  Our remaining goal is to try to distinguish UTF-8
+     from some ASCII-based fallback encoding. */
+
+  /* If the fallback encoding isn't ASCII compatible, give up. */
+  if (!is_encoding_ascii_compatible (fallback_encoding))
     return fallback_encoding;
+
+  /* If the data we have clearly is not UTF-8, give up. */
+  if (!encoding_guess_tail_is_utf8 (data, n))
+    {
+      /* If the fallback encoding is UTF-8, fall back on something else.*/
+      if (is_encoding_utf8 (fallback_encoding))
+        return "windows-1252";
+
+      return fallback_encoding;
+    }
 
   return "ASCII";
 }
@@ -333,9 +344,21 @@ const char *
 encoding_guess_tail_encoding (const char *encoding,
                               const void *data, size_t n)
 {
-  return (encoding_guess_tail_is_utf8 (data, n) != 0
-          ? "UTF-8"
-          : encoding_guess_parse_encoding (encoding));
+
+  if (encoding_guess_tail_is_utf8 (data, n) != 0)
+    return "UTF-8";
+  else
+    {
+      /* The data is not UTF-8. */
+      const char *fallback_encoding = encoding_guess_parse_encoding (encoding);
+
+      /* If the fallback encoding is UTF-8, fall back on something else.*/
+      if (is_encoding_utf8 (fallback_encoding))
+        return "windows-1252";
+
+      return fallback_encoding;
+    }
+
 }
 
 /* Returns an encoding guess based on ENCODING and the N bytes of text starting

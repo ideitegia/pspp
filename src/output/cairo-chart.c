@@ -22,7 +22,6 @@
 #include <cairo/cairo.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
-#include <errno.h>
 #include <float.h>
 #include <math.h>
 #include <stdarg.h>
@@ -35,7 +34,6 @@
 #include "output/cairo.h"
 #include "output/chart-item.h"
 
-#include "gl/error.h"
 #include "gl/xalloc.h"
 #include "gl/xvasprintf.h"
 
@@ -62,9 +60,7 @@ xrchart_geometry_init (cairo_t *cr, struct xrchart_geometry *geom,
   geom->dataset = NULL;
   geom->n_datasets = 0;
 
-  geom->fill_colour.red = 255;
-  geom->fill_colour.green = 0;
-  geom->fill_colour.blue = 0;
+  geom->fill_colour = data_colour[0];
 
   cairo_set_line_width (cr, 1.0);
 
@@ -102,19 +98,42 @@ pango_layout_get_baseline (PangoLayout    *layout)
 }
 #endif
 
-
-
+/*  
+    These colours come from: 
+    http://tango.freedesktop.org/static/cvs/tango-art-tools/palettes/Tango-Palette.gpl */
 const struct xrchart_colour data_colour[XRCHART_N_COLOURS] =
   {
-    { 165, 42, 42 },            /* brown */
-    { 255, 0, 0 },              /* red */
-    { 255, 165, 0 },            /* orange */
-    { 255, 255, 0 },            /* yellow */
-    { 0, 255, 0 },              /* green */
-    { 0, 0, 255 },              /* blue */
-    { 238, 130, 238 },          /* violet */
-    { 190, 190, 190 },          /* grey */
-    { 255, 192, 203 },          /* pink */
+    {252, 233,  79},	/* Butter 1 */
+    {138, 226,  52},	/* Chameleon 1 */
+    {252, 175,  62},	/* Orange 1 */
+    {114, 159, 207},	/* Sky Blue 1 */
+    {173, 127, 168},	/* Plum 1 */
+    {233, 185, 110},	/* Chocolate 1 */
+    {239,  41,  41},	/* Scarlet Red 1 */
+    {238, 238, 236},	/* Aluminium 1 */
+
+    {237, 212,   0},	/* Butter 2 */
+    {115, 210,  22},	/* Chameleon 2 */
+    {245, 121,   0},	/* Orange 2 */
+    {52,  101, 164},	/* Sky Blue 2 */
+    {117,  80, 123},	/* Plum 2 */
+    {193, 125,  17},	/* Chocolate 2 */
+    {204,   0,   0},	/* Scarlet Red 2 */
+
+    {136, 138, 133},	/* Aluminium 4 */
+
+    {196, 160,   0},	/* Butter 3 */
+    {78,  154,   6},	/* Chameleon 3 */
+    {206,  92,   0},	/* Orange 3 */
+    {32,   74, 135},	/* Sky Blue 3 */
+    {92,   53, 102},	/* Plum 3 */
+    {143,  89,   2},	/* Chocolate 3 */
+    {164,   0,   0},	/* Scarlet Red 3 */
+    {85,   87,  83},	/* Aluminium 5 */
+
+    {211, 215, 207},	/* Aluminium 2 */
+    {186, 189, 182},	/* Aluminium 3 */
+    {46,   52,  54},	/* Aluminium 6 */
   };
 
 void

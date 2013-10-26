@@ -53,7 +53,6 @@
 #include <pango/pangocairo.h>
 #include <stdlib.h>
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
@@ -131,8 +130,8 @@ struct xr_driver
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
 
-    double bg_red, bg_green, bg_blue; /* Background color */
-    double fg_red, fg_green, fg_blue; /* Foreground color */
+    struct xr_color bg;    /* Background color */
+    struct xr_color fg;    /* Foreground color */
 
     /* Internal state. */
     struct render_params *params;
@@ -185,10 +184,10 @@ opt (struct output_driver *d, struct string_map *options, const char *key,
    Future implementations might allow things like "yellow" and
    "sky-blue-ultra-brown"
 */
-static void
+void
 parse_color (struct output_driver *d, struct string_map *options,
-	      const char *key, const char *default_value,
-	      double *dred, double *dgreen, double *dblue)
+	     const char *key, const char *default_value,
+	     struct xr_color *color)
 {
   int red, green, blue;
   char *string = parse_string (opt (d, options, key, default_value));
@@ -206,9 +205,9 @@ parse_color (struct output_driver *d, struct string_map *options,
   free (string);
 
   /* Convert 16 bit ints to float */
-  *dred = red / (double) 0xFFFF;
-  *dgreen = green / (double) 0xFFFF;
-  *dblue = blue / (double) 0xFFFF;
+  color->red = red / (double) 0xFFFF;
+  color->green = green / (double) 0xFFFF;
+  color->blue = blue / (double) 0xFFFF;
 }
 
 static PangoFontDescription *
@@ -224,7 +223,7 @@ parse_font (struct output_driver *d, struct string_map *options,
   desc = pango_font_description_from_string (string);
   if (desc == NULL)
     {
-      error (0, 0, _("`%s': bad font specification"), string);
+      msg (MW, _("`%s': bad font specification"), string);
 
       /* Fall back to DEFAULT_VALUE, which had better be a valid font
          description. */
@@ -272,8 +271,8 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
 
-  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &xr->bg_red, &xr->bg_green, &xr->bg_blue);
-  parse_color (d, o, "foreground-color", "#000000000000", &xr->fg_red, &xr->fg_green, &xr->fg_blue);
+  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &xr->bg);
+  parse_color (d, o, "foreground-color", "#000000000000", &xr->fg);
 
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
   xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
@@ -348,7 +347,7 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
         }
     }
 
-  cairo_set_source_rgb (xr->cairo, xr->fg_red, xr->fg_green, xr->fg_blue);
+  cairo_set_source_rgb (xr->cairo, xr->fg.red, xr->fg.green, xr->fg.blue);
 
   return true;
 }
@@ -379,7 +378,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
   status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
     {
-      error (0, 0, _("error opening output file `%s': %s"),
+      msg (ME, _("error opening output file `%s': %s"),
              file_name, cairo_status_to_string (status));
       cairo_surface_destroy (surface);
       goto error;
@@ -396,7 +395,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   if (xr->width / xr->char_width < MIN_WIDTH)
     {
-      error (0, 0, _("The defined page is not wide enough to hold at least %d "
+      msg (ME, _("The defined page is not wide enough to hold at least %d "
                      "characters in the default font.  In fact, there's only "
                      "room for %d characters."),
              MIN_WIDTH,
@@ -406,7 +405,7 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   if (xr->length / xr->char_height < MIN_LENGTH)
     {
-      error (0, 0, _("The defined page is not long enough to hold at least %d "
+      msg (ME, _("The defined page is not long enough to hold at least %d "
                      "lines in the default font.  In fact, there's only "
                      "room for %d lines."),
              MIN_LENGTH,
@@ -457,7 +456,7 @@ xr_destroy (struct output_driver *driver)
       cairo_surface_finish (cairo_get_target (xr->cairo));
       status = cairo_status (xr->cairo);
       if (status != CAIRO_STATUS_SUCCESS)
-        error (0, 0, _("error drawing output for %s driver: %s"),
+        msg (ME, _("error drawing output for %s driver: %s"),
                output_driver_get_name (driver),
                cairo_status_to_string (status));
       cairo_destroy (xr->cairo);
@@ -552,7 +551,7 @@ xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
   if (cairo != NULL)
     {
       cairo_save (cairo);
-      cairo_set_source_rgb (cairo, xr->bg_red, xr->bg_green, xr->bg_blue);
+      cairo_set_source_rgb (cairo, xr->bg.red, xr->bg.green, xr->bg.blue);
       cairo_rectangle (cairo, 0, 0, xr->width, xr->length);
       cairo_fill (cairo);
       cairo_restore (cairo);
@@ -1086,7 +1085,10 @@ xr_draw_chart (const struct chart_item *chart_item, cairo_t *cr,
 
 char *
 xr_draw_png_chart (const struct chart_item *item,
-                   const char *file_name_template, int number)
+                   const char *file_name_template, int number,
+		   const struct xr_color *fg,
+		   const struct xr_color *bg
+		   )
 {
   const int width = 640;
   const int length = 480;
@@ -1107,13 +1109,16 @@ xr_draw_png_chart (const struct chart_item *item,
   surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, length);
   cr = cairo_create (surface);
 
-  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+  cairo_set_source_rgb (cr, bg->red, bg->green, bg->blue);
+  cairo_paint (cr);
+
+  cairo_set_source_rgb (cr, fg->red, fg->green, fg->blue);
 
   xr_draw_chart (item, cr, 0.0, 0.0, width, length);
 
   status = cairo_surface_write_to_png (surface, file_name);
   if (status != CAIRO_STATUS_SUCCESS)
-    error (0, 0, _("error writing output file `%s': %s"),
+    msg (ME, _("error writing output file `%s': %s"),
            file_name, cairo_status_to_string (status));
 
   cairo_destroy (cr);

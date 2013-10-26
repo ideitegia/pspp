@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -89,57 +89,75 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   casereader_destroy (reader);
 
-  t = tab_create (2, 11);
+  t = tab_create (2, 11 + (info.product_ext != NULL));
+  r = 0;
   tab_vline (t, TAL_GAP, 1, 0, 8);
-  tab_text (t, 0, 0, TAB_LEFT, _("File:"));
-  tab_text (t, 1, 0, TAB_LEFT, fh_get_file_name (h));
-  tab_text (t, 0, 1, TAB_LEFT, _("Label:"));
+
+  tab_text (t, 0, r, TAB_LEFT, _("File:"));
+  tab_text (t, 1, r++, TAB_LEFT, fh_get_file_name (h));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Label:"));
   {
     const char *label = dict_get_label (d);
     if (label == NULL)
       label = _("No label.");
-    tab_text (t, 1, 1, TAB_LEFT, label);
+    tab_text (t, 1, r++, TAB_LEFT, label);
   }
-  tab_text (t, 0, 2, TAB_LEFT, _("Created:"));
-  tab_text_format (t, 1, 2, TAB_LEFT, "%s %s by %s",
+
+  tab_text (t, 0, r, TAB_LEFT, _("Created:"));
+  tab_text_format (t, 1, r++, TAB_LEFT, "%s %s by %s",
                    info.creation_date, info.creation_time, info.product);
-  tab_text (t, 0, 3, TAB_LEFT, _("Integer Format:"));
-  tab_text (t, 1, 3, TAB_LEFT,
+
+  if (info.product_ext)
+    {
+      tab_text (t, 0, r, TAB_LEFT, _("Product:"));
+      tab_text (t, 1, r++, TAB_LEFT, info.product_ext);
+    }
+
+  tab_text (t, 0, r, TAB_LEFT, _("Integer Format:"));
+  tab_text (t, 1, r++, TAB_LEFT,
             info.integer_format == INTEGER_MSB_FIRST ? _("Big Endian")
             : info.integer_format == INTEGER_LSB_FIRST ? _("Little Endian")
             : _("Unknown"));
-  tab_text (t, 0, 4, TAB_LEFT, _("Real Format:"));
-  tab_text (t, 1, 4, TAB_LEFT,
+
+  tab_text (t, 0, r, TAB_LEFT, _("Real Format:"));
+  tab_text (t, 1, r++, TAB_LEFT,
             info.float_format == FLOAT_IEEE_DOUBLE_LE ? _("IEEE 754 LE.")
             : info.float_format == FLOAT_IEEE_DOUBLE_BE ? _("IEEE 754 BE.")
             : info.float_format == FLOAT_VAX_D ? _("VAX D.")
             : info.float_format == FLOAT_VAX_G ? _("VAX G.")
             : info.float_format == FLOAT_Z_LONG ? _("IBM 390 Hex Long.")
             : _("Unknown"));
-  tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
-  tab_text_format (t, 1, 5, TAB_LEFT, "%zu", dict_get_var_cnt (d));
-  tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Variables:"));
+  tab_text_format (t, 1, r++, TAB_LEFT, "%zu", dict_get_var_cnt (d));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Cases:"));
   if (info.case_cnt == -1)
-    tab_text (t, 1, 6, TAB_LEFT, _("Unknown"));
+    tab_text (t, 1, r, TAB_LEFT, _("Unknown"));
   else
-    tab_text_format (t, 1, 6, TAB_LEFT, "%ld", (long int) info.case_cnt);
-  tab_text (t, 0, 7, TAB_LEFT, _("Type:"));
-  tab_text (t, 1, 7, TAB_LEFT, _("System File"));
-  tab_text (t, 0, 8, TAB_LEFT, _("Weight:"));
+    tab_text_format (t, 1, r, TAB_LEFT, "%ld", (long int) info.case_cnt);
+  r++;
+
+  tab_text (t, 0, r, TAB_LEFT, _("Type:"));
+  tab_text (t, 1, r++, TAB_LEFT, _("System File"));
+
+  tab_text (t, 0, r, TAB_LEFT, _("Weight:"));
   {
     struct variable *weight_var = dict_get_weight (d);
-    tab_text (t, 1, 8, TAB_LEFT,
+    tab_text (t, 1, r++, TAB_LEFT,
               (weight_var != NULL
                ? var_get_name (weight_var) : _("Not weighted.")));
   }
-  tab_text (t, 0, 9, TAB_LEFT, _("Mode:"));
-  tab_text_format (t, 1, 9, TAB_LEFT,
-                   _("Compression %s."), info.compressed ? _("on") : _("off"));
 
+  tab_text (t, 0, r, TAB_LEFT, _("Compression:"));
+  tab_text_format (t, 1, r++, TAB_LEFT,
+                   info.compression == SFM_COMP_NONE ? _("None")
+                   : info.compression == SFM_COMP_SIMPLE ? "SAV"
+                   : "ZSAV");
 
-  tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
-  tab_text (t, 1, 10, TAB_LEFT, dict_get_encoding (d));
-
+  tab_text (t, 0, r, TAB_LEFT, _("Charset:"));
+  tab_text (t, 1, r++, TAB_LEFT, dict_get_encoding (d));
 
   tab_submit (t);
 
@@ -442,7 +460,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
   /* Make sure that enough rows are allocated. */
   need_rows = 1;
   if (flags & ~(DF_DICT_INDEX | DF_VARIABLE_LABELS))
-    need_rows += 15;
+    need_rows += 16;
   if (flags & DF_VALUE_LABELS)
     need_rows += val_labs_count (var_get_value_labels (v));
   if (flags & (DF_ATTRIBUTES | DF_AT_ATTRIBUTES))
@@ -494,24 +512,28 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
         }
     }
   
-  /* Measurement level, display width, alignment. */
+  /* Measurement level, role, display width, alignment. */
   if (flags & DF_MISC) 
     {
-      enum measure m = var_get_measure (v);
-      enum alignment a = var_get_alignment (v);
+      enum var_role role = var_get_role (v);
 
       tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
                              _("Measure: %s"),
-                             m == MEASURE_NOMINAL ? _("Nominal")
-                             : m == MEASURE_ORDINAL ? _("Ordinal")
-                             : _("Scale"));
+                             measure_to_string (var_get_measure (v)));
       r++;
+
+      if (role != ROLE_INPUT)
+        {
+          tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                                 _("Role: %s"), var_role_to_string (role));
+          r++;
+        }
+
       tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
                              _("Display Alignment: %s"),
-                             a == ALIGN_LEFT ? _("Left")
-                             : a == ALIGN_CENTRE ? _("Center")
-                             : _("Right"));
+                             alignment_to_string (var_get_alignment (v)));
       r++;
+
       tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
                              _("Display Width: %d"),
                              var_get_display_width (v));

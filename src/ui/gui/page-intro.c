@@ -37,7 +37,6 @@
 #include "libpspp/i18n.h"
 #include "libpspp/line-reader.h"
 #include "libpspp/message.h"
-#include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/dialog-common.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/helper.h"
@@ -50,7 +49,6 @@
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 
@@ -132,16 +130,16 @@ intro_page_create (struct import_assistant *ia)
                      "commas, or other delimiters.\n\n"));
   if (ia->file.total_is_exact)
     ds_put_format (
-      &s, ngettext ("The selected file contains %zu line of text.  ",
-                    "The selected file contains %zu lines of text.  ",
+      &s, ngettext ("The selected file contains %'zu line of text.  ",
+                    "The selected file contains %'zu lines of text.  ",
                     ia->file.line_cnt),
       ia->file.line_cnt);
   else if (ia->file.total_lines > 0)
     {
       ds_put_format (
         &s, ngettext (
-          "The selected file contains approximately %lu line of text.  ",
-          "The selected file contains approximately %lu lines of text.  ",
+          "The selected file contains approximately %'lu line of text.  ",
+          "The selected file contains approximately %'lu lines of text.  ",
           ia->file.total_lines),
         ia->file.total_lines);
       ds_put_format (

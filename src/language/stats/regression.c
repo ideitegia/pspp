@@ -22,6 +22,7 @@
 #include <gsl/gsl_matrix.h>
 
 #include <data/dataset.h>
+#include <data/casewriter.h>
 
 #include "language/command.h"
 #include "language/lexer/lexer.h"
@@ -69,111 +70,34 @@ struct regression
 
   bool resid;
   bool pred;
-
-  linreg **models;
 };
 
+struct regression_workspace
+{
+  /* The new variables which will be introduced by /SAVE */
+  const struct variable **predvars; 
+  const struct variable **residvars;
+
+  /* A reader/writer pair to temporarily hold the 
+     values of the new variables */
+  struct casewriter *writer;
+  struct casereader *reader;
+
+  /* Indeces of the new values in the reader/writer (-1 if not applicable) */
+  int res_idx;
+  int pred_idx;
+
+  /* 0, 1 or 2 depending on what new variables are to be created */
+  int extras;
+};
 
 static void run_regression (const struct regression *cmd,
+                            struct regression_workspace *ws,
                             struct casereader *input);
 
 
-
-/*
-  Transformations for saving predicted values
-  and residuals, etc.
-*/
-struct reg_trns
-{
-  int n_trns;                   /* Number of transformations. */
-  int trns_id;                  /* Which trns is this one? */
-  linreg *c;                    /* Linear model for this trns. */
-};
-
-/*
-  Gets the predicted values.
-*/
-static int
-regression_trns_pred_proc (void *t_, struct ccase **c,
-                           casenumber case_idx UNUSED)
-{
-  size_t i;
-  size_t n_vals;
-  struct reg_trns *trns = t_;
-  linreg *model;
-  union value *output = NULL;
-  const union value *tmp;
-  double *vals;
-  const struct variable **vars = NULL;
-
-  assert (trns != NULL);
-  model = trns->c;
-  assert (model != NULL);
-  assert (model->depvar != NULL);
-  assert (model->pred != NULL);
-
-  vars = linreg_get_vars (model);
-  n_vals = linreg_n_coeffs (model);
-  vals = xnmalloc (n_vals, sizeof (*vals));
-  *c = case_unshare (*c);
-
-  output = case_data_rw (*c, model->pred);
-
-  for (i = 0; i < n_vals; i++)
-    {
-      tmp = case_data (*c, vars[i]);
-      vals[i] = tmp->f;
-    }
-  output->f = linreg_predict (model, vals, n_vals);
-  free (vals);
-  return TRNS_CONTINUE;
-}
-
-/*
-  Gets the residuals.
-*/
-static int
-regression_trns_resid_proc (void *t_, struct ccase **c,
-                            casenumber case_idx UNUSED)
-{
-  size_t i;
-  size_t n_vals;
-  struct reg_trns *trns = t_;
-  linreg *model;
-  union value *output = NULL;
-  const union value *tmp;
-  double *vals = NULL;
-  double obs;
-  const struct variable **vars = NULL;
-
-  assert (trns != NULL);
-  model = trns->c;
-  assert (model != NULL);
-  assert (model->depvar != NULL);
-  assert (model->resid != NULL);
-
-  vars = linreg_get_vars (model);
-  n_vals = linreg_n_coeffs (model);
-
-  vals = xnmalloc (n_vals, sizeof (*vals));
-  *c = case_unshare (*c);
-  output = case_data_rw (*c, model->resid);
-  assert (output != NULL);
-
-  for (i = 0; i < n_vals; i++)
-    {
-      tmp = case_data (*c, vars[i]);
-      vals[i] = tmp->f;
-    }
-  tmp = case_data (*c, model->depvar);
-  obs = tmp->f;
-  output->f = linreg_residual (model, obs, vals, n_vals);
-  free (vals);
-
-  return TRNS_CONTINUE;
-}
-
-
+/* Return a string based on PREFIX which may be used as the name
+   of a new variable in DICT */
 static char *
 reg_get_name (const struct dictionary *dict, const char *prefix)
 {
@@ -190,87 +114,75 @@ reg_get_name (const struct dictionary *dict, const char *prefix)
     }
 }
 
-/*
-  Free the transformation. Free its linear model if this
-  transformation is the last one.
-*/
-static bool
-regression_trns_free (void *t_)
+
+static const struct variable *
+create_aux_var (struct dataset *ds, const char *prefix)
 {
-  struct reg_trns *t = t_;
+  struct variable *var;
+  struct dictionary *dict = dataset_dict (ds);
+  char *name = reg_get_name (dict, prefix);
+  var = dict_create_var_assert (dict, name, 0);
+  free (name);
+  return var;
+}
 
-  if (t->trns_id == t->n_trns)
-    {
-      linreg_unref (t->c);
-    }
-  free (t);
+/* Auxilliary data for transformation when /SAVE is entered */
+struct save_trans_data
+{
+  int n_dep_vars;
+  struct regression_workspace *ws;
+};
 
+static bool
+save_trans_free (void *aux)
+{
+  struct save_trans_data *save_trans_data = aux;
+  free (save_trans_data->ws->predvars);
+  free (save_trans_data->ws->residvars);
+
+  casereader_destroy (save_trans_data->ws->reader);
+  free (save_trans_data->ws);
+  free (save_trans_data);
   return true;
 }
 
-static void
-reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
-              linreg * c, struct variable **v, int n_trns)
+static int 
+save_trans_func (void *aux, struct ccase **c, casenumber x UNUSED)
 {
-  struct dictionary *dict = dataset_dict (ds);
-  static int trns_index = 1;
-  char *name;
-  struct variable *new_var;
-  struct reg_trns *t = NULL;
+  struct save_trans_data *save_trans_data = aux;
+  struct regression_workspace *ws = save_trans_data->ws;
+  struct ccase *in =  casereader_read (ws->reader);
 
-  t = xmalloc (sizeof (*t));
-  t->trns_id = trns_index;
-  t->n_trns = n_trns;
-  t->c = c;
-
-  name = reg_get_name (dict, prefix);
-  new_var = dict_create_var_assert (dict, name, 0);
-  free (name);
-
-  *v = new_var;
-  add_transformation (ds, f, regression_trns_free, t);
-  trns_index++;
-}
-
-static void
-subcommand_save (const struct regression *cmd)
-{
-  linreg **lc;
-  int n_trns = 0;
-
-  if (cmd->resid)
-    n_trns++;
-  if (cmd->pred)
-    n_trns++;
-
-  n_trns *= cmd->n_dep_vars;
-
-  for (lc = cmd->models; lc < cmd->models + cmd->n_dep_vars; lc++)
+  if (in)
     {
-      if (*lc != NULL)
+      int k;
+      *c = case_unshare (*c);
+
+      for (k = 0; k < save_trans_data->n_dep_vars; ++k)
         {
-          if ((*lc)->depvar != NULL)
+          if (ws->pred_idx != -1)
             {
-              (*lc)->refcnt++;
-              if (cmd->resid)
-                {
-                  reg_save_var (cmd->ds, "RES", regression_trns_resid_proc,
-                                *lc, &(*lc)->resid, n_trns);
-                }
-              if (cmd->pred)
-                {
-                  reg_save_var (cmd->ds, "PRED", regression_trns_pred_proc,
-                                *lc, &(*lc)->pred, n_trns);
-                }
+              double pred = case_data_idx (in, ws->extras * k + ws->pred_idx)->f;
+              case_data_rw (*c, ws->predvars[k])->f = pred;
+            }
+          
+          if (ws->res_idx != -1)
+            {
+              double resid = case_data_idx (in, ws->extras * k + ws->res_idx)->f;
+              case_data_rw (*c, ws->residvars[k])->f = resid;
             }
         }
+      case_unref (in);
     }
+
+  return TRNS_CONTINUE;
 }
+
 
 int
 cmd_regression (struct lexer *lexer, struct dataset *ds)
 {
-  int k;
+  struct regression_workspace workspace;
   struct regression regression;
   const struct dictionary *dict = dataset_dict (ds);
   bool save;
@@ -309,6 +221,9 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
           if (!lex_force_match (lexer, T_EQUALS))
             goto error;
 
+	  free (regression.dep_vars);
+	  regression.n_dep_vars = 0;
+	  
           if (!parse_variables_const (lexer, dict,
                                       &regression.dep_vars,
                                       &regression.n_dep_vars,
@@ -390,57 +305,97 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
       dict_get_vars (dict, &regression.vars, &regression.n_vars, 0);
     }
 
-
-  regression.models =
-    xcalloc (regression.n_dep_vars, sizeof *regression.models);
-
   save = regression.pred || regression.resid;
+  workspace.extras = 0;
+  workspace.res_idx = -1;
+  workspace.pred_idx = -1;
+  workspace.writer = NULL;                      
+  workspace.reader = NULL;
   if (save)
     {
+      int i;
+      struct caseproto *proto = caseproto_create ();
+
+      if (regression.resid)
+        {
+          workspace.extras ++;
+          workspace.res_idx = 0;
+          workspace.residvars = xcalloc (regression.n_dep_vars, sizeof (*workspace.residvars));
+
+          for (i = 0; i < regression.n_dep_vars; ++i)
+            {
+              workspace.residvars[i] = create_aux_var (ds, "RES");
+              proto = caseproto_add_width (proto, 0);
+            }
+        }
+
+      if (regression.pred)
+        {
+          workspace.extras ++;
+          workspace.pred_idx = 1;
+          workspace.predvars = xcalloc (regression.n_dep_vars, sizeof (*workspace.predvars));
+
+          for (i = 0; i < regression.n_dep_vars; ++i)
+            {
+              workspace.predvars[i] = create_aux_var (ds, "PRED");
+              proto = caseproto_add_width (proto, 0);
+            }
+        }
+
       if (proc_make_temporary_transformations_permanent (ds))
         msg (SW, _("REGRESSION with SAVE ignores TEMPORARY.  "
                    "Temporary transformations will be made permanent."));
+
+      workspace.writer = autopaging_writer_create (proto);
+      caseproto_unref (proto);
     }
+
 
   {
     struct casegrouper *grouper;
     struct casereader *group;
     bool ok;
 
-    grouper = casegrouper_create_splits (proc_open_filtering (ds, !save),
-                                         dict);
+    grouper = casegrouper_create_splits (proc_open_filtering (ds, !save), dict);
+
+
     while (casegrouper_get_next_group (grouper, &group))
-      run_regression (&regression, group);
+      {
+	run_regression (&regression,
+                        &workspace,
+                        group);
+
+      }
     ok = casegrouper_destroy (grouper);
     ok = proc_commit (ds) && ok;
   }
 
-  if (save)
+  if (workspace.writer)
     {
-      subcommand_save (&regression);
+      struct save_trans_data *save_trans_data = xmalloc (sizeof *save_trans_data);
+      struct casereader *r = casewriter_make_reader (workspace.writer);
+      workspace.writer = NULL;
+      workspace.reader = r;
+      save_trans_data->ws = xmalloc (sizeof (workspace));
+      memcpy (save_trans_data->ws, &workspace, sizeof (workspace));
+      save_trans_data->n_dep_vars = regression.n_dep_vars;
+          
+      add_transformation (ds, save_trans_func, save_trans_free, save_trans_data);
     }
 
 
-  for (k = 0; k < regression.n_dep_vars; k++)
-    linreg_unref (regression.models[k]);
-  free (regression.models);
   free (regression.vars);
   free (regression.dep_vars);
   return CMD_SUCCESS;
 
 error:
-  if (regression.models)
-    {
-      for (k = 0; k < regression.n_dep_vars; k++)
-        linreg_unref (regression.models[k]);
-      free (regression.models);
-    }
+
   free (regression.vars);
   free (regression.dep_vars);
   return CMD_FAILURE;
 }
 
-
+/* Return the size of the union of dependent and independent variables */
 static size_t
 get_n_all_vars (const struct regression *cmd)
 {
@@ -462,20 +417,21 @@ get_n_all_vars (const struct regression *cmd)
   return result;
 }
 
+/* Fill VARS with the union of dependent and independent variables */
 static void
 fill_all_vars (const struct variable **vars, const struct regression *cmd)
 {
+  size_t x = 0;
   size_t i;
-  size_t j;
-  bool absent;
-
   for (i = 0; i < cmd->n_vars; i++)
     {
       vars[i] = cmd->vars[i];
     }
+
   for (i = 0; i < cmd->n_dep_vars; i++)
     {
-      absent = true;
+      size_t j;
+      bool absent = true;
       for (j = 0; j < cmd->n_vars; j++)
         {
           if (cmd->dep_vars[i] == cmd->vars[j])
@@ -486,7 +442,7 @@ fill_all_vars (const struct variable **vars, const struct regression *cmd)
         }
       if (absent)
         {
-          vars[i + cmd->n_vars] = cmd->dep_vars[i];
+          vars[cmd->n_vars + x++] = cmd->dep_vars[i];
         }
     }
 }
@@ -548,7 +504,7 @@ fill_covariance (gsl_matrix * cov, struct covariance *all_cov,
   const gsl_matrix *ssize_matrix;
   double result = 0.0;
 
-  gsl_matrix *cm = covariance_calculate_unnormalized (all_cov);
+  const gsl_matrix *cm = covariance_calculate_unnormalized (all_cov);
 
   if (cm == NULL)
     return 0;
@@ -599,58 +555,56 @@ fill_covariance (gsl_matrix * cov, struct covariance *all_cov,
   gsl_matrix_set (cov, cov->size1 - 1, cov->size1 - 1,
                   gsl_matrix_get (cm, dep_subscript, dep_subscript));
   free (rows);
-  gsl_matrix_free (cm);
   return result;
 }
 
+
 
 /*
   STATISTICS subcommand output functions.
 */
-static void reg_stats_r (linreg *, void *, const struct variable *);
-static void reg_stats_coeff (linreg *, void *, const struct variable *);
-static void reg_stats_anova (linreg *, void *, const struct variable *);
-static void reg_stats_bcov (linreg *, void *, const struct variable *);
-
-static void
-statistics_keyword_output (void (*)
-                           (linreg *, void *, const struct variable *), bool,
-                           linreg *, void *, const struct variable *);
-
+static void reg_stats_r (const linreg *,     const struct variable *);
+static void reg_stats_coeff (const linreg *, const gsl_matrix *, const struct variable *);
+static void reg_stats_anova (const linreg *, const struct variable *);
+static void reg_stats_bcov (const linreg *,  const struct variable *);
 
 
 static void
-subcommand_statistics (const struct regression *cmd, linreg * c, void *aux,
+subcommand_statistics (const struct regression *cmd, const linreg * c, const gsl_matrix * cm,
                        const struct variable *var)
 {
-  statistics_keyword_output (reg_stats_r, cmd->r, c, aux, var);
-  statistics_keyword_output (reg_stats_anova, cmd->anova, c, aux, var);
-  statistics_keyword_output (reg_stats_coeff, cmd->coeff, c, aux, var);
-  statistics_keyword_output (reg_stats_bcov, cmd->bcov, c, aux, var);
+  if (cmd->r) 
+    reg_stats_r     (c, var);
+
+  if (cmd->anova) 
+    reg_stats_anova (c, var);
+
+  if (cmd->coeff)
+    reg_stats_coeff (c, cm, var);
+
+  if (cmd->bcov)
+    reg_stats_bcov  (c, var);
 }
 
 
 static void
-run_regression (const struct regression *cmd, struct casereader *input)
+run_regression (const struct regression *cmd, 
+                struct regression_workspace *ws,
+                struct casereader *input)
 {
   size_t i;
-  int n_indep = 0;
+  linreg **models;
+
   int k;
-  double *means;
   struct ccase *c;
   struct covariance *cov;
-  const struct variable **vars;
-  const struct variable **all_vars;
   struct casereader *reader;
-  size_t n_all_vars;
+  size_t n_all_vars = get_n_all_vars (cmd);
+  const struct variable **all_vars = xnmalloc (n_all_vars, sizeof (*all_vars));
 
-  linreg **models = cmd->models;
+  double *means = xnmalloc (n_all_vars, sizeof (*means));
 
-  n_all_vars = get_n_all_vars (cmd);
-  all_vars = xnmalloc (n_all_vars, sizeof (*all_vars));
   fill_all_vars (all_vars, cmd);
-  vars = xnmalloc (cmd->n_vars, sizeof (*vars));
-  means = xnmalloc (n_all_vars, sizeof (*means));
   cov = covariance_1pass_create (n_all_vars, all_vars,
                                  dict_get_weight (dataset_dict (cmd->ds)),
                                  MV_ANY);
@@ -660,24 +614,26 @@ run_regression (const struct regression *cmd, struct casereader *input)
                                              MV_ANY, NULL, NULL);
 
 
-  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
-    {
-      covariance_accumulate (cov, c);
-    }
+  {
+    struct casereader *r = casereader_clone (reader);
 
+    for (; (c = casereader_read (r)) != NULL; case_unref (c))
+      {
+        covariance_accumulate (cov, c);
+      }
+    casereader_destroy (r);
+  }
+
+  models = xcalloc (cmd->n_dep_vars, sizeof (*models));
   for (k = 0; k < cmd->n_dep_vars; k++)
     {
-      double n_data;
+      const struct variable **vars = xnmalloc (cmd->n_vars, sizeof (*vars));
       const struct variable *dep_var = cmd->dep_vars[k];
-      gsl_matrix *this_cm;
-
-      n_indep = identify_indep_vars (cmd, vars, dep_var);
-
-      this_cm = gsl_matrix_alloc (n_indep + 1, n_indep + 1);
-      n_data = fill_covariance (this_cm, cov, vars, n_indep,
+      int n_indep = identify_indep_vars (cmd, vars, dep_var);
+      gsl_matrix *this_cm = gsl_matrix_alloc (n_indep + 1, n_indep + 1);
+      double n_data = fill_covariance (this_cm, cov, vars, n_indep,
                                 dep_var, all_vars, n_all_vars, means);
-      models[k] = linreg_alloc (dep_var, (const struct variable **) vars,
-                                n_data, n_indep);
+      models[k] = linreg_alloc (dep_var, vars,  n_data, n_indep);
       models[k]->depvar = dep_var;
       for (i = 0; i < n_indep; i++)
         {
@@ -707,26 +663,70 @@ run_regression (const struct regression *cmd, struct casereader *input)
       else
         {
           msg (SE, _("No valid data found. This command was skipped."));
-          linreg_unref (models[k]);
-          models[k] = NULL;
         }
       gsl_matrix_free (this_cm);
+      free (vars);
+    }
+
+
+  if (ws->extras > 0)
+   {
+      struct casereader *r = casereader_clone (reader);
+      
+      for (; (c = casereader_read (r)) != NULL; case_unref (c))
+        {
+          struct ccase *outc = case_clone (c);
+          for (k = 0; k < cmd->n_dep_vars; k++)
+            {
+              const struct variable **vars = xnmalloc (cmd->n_vars, sizeof (*vars));
+              const struct variable *dep_var = cmd->dep_vars[k];
+              int n_indep = identify_indep_vars (cmd, vars, dep_var);
+              double *vals = xnmalloc (n_indep, sizeof (*vals));
+              for (i = 0; i < n_indep; i++)
+                {
+                  const union value *tmp = case_data (c, vars[i]);
+                  vals[i] = tmp->f;
+                }
+
+              if (cmd->pred)
+                {
+                  double pred = linreg_predict (models[k], vals, n_indep);
+                  case_data_rw_idx (outc, k * ws->extras + ws->pred_idx)->f = pred;
+                }
+
+              if (cmd->resid)
+                {
+                  double obs = case_data (c, models[k]->depvar)->f;
+                  double res = linreg_residual (models[k], obs,  vals, n_indep);
+                  case_data_rw_idx (outc, k * ws->extras + ws->res_idx)->f = res;
+                }
+	      free (vals);
+	      free (vars);
+            }          
+          casewriter_write (ws->writer, outc);
+        }
+      casereader_destroy (r);
     }
 
   casereader_destroy (reader);
-  free (vars);
+
+  for (k = 0; k < cmd->n_dep_vars; k++)
+    {
+      linreg_unref (models[k]);
+    }
+  free (models);
+
   free (all_vars);
   free (means);
   casereader_destroy (input);
   covariance_destroy (cov);
 }
+
 
 
 
-
-
 static void
-reg_stats_r (linreg * c, void *aux UNUSED, const struct variable *var)
+reg_stats_r (const linreg * c, const struct variable *var)
 {
   struct tab_table *t;
   int n_rows = 2;
@@ -763,7 +763,7 @@ reg_stats_r (linreg * c, void *aux UNUSED, const struct variable *var)
   Table showing estimated regression coefficients.
 */
 static void
-reg_stats_coeff (linreg * c, void *aux_, const struct variable *var)
+reg_stats_coeff (const linreg * c, const gsl_matrix *cov, const struct variable *var)
 {
   size_t j;
   int n_cols = 7;
@@ -777,7 +777,6 @@ reg_stats_coeff (linreg * c, void *aux_, const struct variable *var)
 
   const struct variable *v;
   struct tab_table *t;
-  gsl_matrix *cov = aux_;
 
   assert (c != NULL);
   n_rows = linreg_n_coeffs (c) + 3;
@@ -857,7 +856,7 @@ reg_stats_coeff (linreg * c, void *aux_, const struct variable *var)
   Display the ANOVA table.
 */
 static void
-reg_stats_anova (linreg * c, void *aux UNUSED, const struct variable *var)
+reg_stats_anova (const linreg * c, const struct variable *var)
 {
   int n_cols = 7;
   int n_rows = 4;
@@ -913,7 +912,7 @@ reg_stats_anova (linreg * c, void *aux UNUSED, const struct variable *var)
 
 
 static void
-reg_stats_bcov (linreg * c, void *aux UNUSED, const struct variable *var)
+reg_stats_bcov (const linreg * c, const struct variable *var)
 {
   int n_cols;
   int n_rows;
@@ -953,14 +952,3 @@ reg_stats_bcov (linreg * c, void *aux UNUSED, const struct variable *var)
   tab_submit (t);
 }
 
-static void
-statistics_keyword_output (void (*function)
-                           (linreg *, void *, const struct variable * var),
-                           bool keyword, linreg * c, void *aux,
-                           const struct variable *var)
-{
-  if (keyword)
-    {
-      (*function) (c, aux, var);
-    }
-}

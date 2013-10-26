@@ -38,7 +38,6 @@
 #include "output/output-item.h"
 #include "output/text-item.h"
 
-#include "gl/error.h"
 #include "gl/xalloc.h"
 #include "gl/xmemdup0.h"
 
@@ -322,7 +321,7 @@ output_driver_create (struct string_map *options)
     device_type = SETTINGS_DEVICE_LISTING;
   else
     {
-      error (0, 0, _("%s is not a valid device type (the choices are `%s' and `%s')"),
+      msg (MW, _("%s is not a valid device type (the choices are `%s' and `%s')"),
                      device_string, "terminal", "listing");
       device_type = default_device_type (file_name);
     }
@@ -334,7 +333,7 @@ output_driver_create (struct string_map *options)
       const char *key;
 
       STRING_MAP_FOR_EACH_KEY (key, node, options)
-        error (0, 0, _("%s: unknown option `%s'"), file_name, key);
+        msg (MW, _("%s: unknown option `%s'"), file_name, key);
     }
   string_map_clear (options);
 

@@ -12,14 +12,14 @@
         <child>
           <object class="GtkAction" id="file_print">
             <property name="name">file_print</property>
-            <property name="stock-id">gtk-print</property>
+            <property name="stock-id">file-print</property>
             <property name="label" translatable="yes">_Print...</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="file_export">
             <property name="name">file_export</property>
-            <property name="stock-id">gtk-convert</property>
+            <property name="stock-id">file-export-data</property>
             <property name="label" translatable="yes">_Export...</property>
           </object>
         </child>
@@ -32,13 +32,15 @@
         <child>
           <object class="GtkAction" id="edit_select-all">
             <property name="name">edit_select-all</property>
-            <property name="stock-id">gtk-select-all</property>
+            <property name="stock-id">edit-select-all</property>
+	    <property name="label" translatable="yes">Select _All</property>
           </object>
         </child>
         <child>
           <object class="GtkAction" id="edit_copy">
-            <property name="stock-id">gtk-copy</property>
+            <property name="stock-id">edit-copy</property>
             <property name="name">edit_copy</property>
+	    <property name="label" translatable="yes">_Copy</property>
           </object>
         </child>
         <child>
@@ -49,6 +51,7 @@
         </child>
         <child>
           <object class="GtkAction" id="windows_minimise-all">
+	    <property name="stock-id">windows-minimize-all</property>
             <property name="name">windows_minimise-all</property>
             <property name="label" translatable="yes">_Minimize All Windows</property>
           </object>

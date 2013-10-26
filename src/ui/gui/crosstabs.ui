@@ -355,7 +355,7 @@
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
                 <child>
-                  <object class="GtkTreeView" id="cell-view">
+                  <object class="PsppireCheckboxTreeview" id="cell-view">
                     <property name="visible">True</property>
                     <property name="headers_visible">False</property>
                   </object>
@@ -415,7 +415,7 @@
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
                 <child>
-                  <object class="GtkTreeView" id="stats-view">
+                  <object class="PsppireCheckboxTreeview" id="stats-view">
                     <property name="width_request">128</property>
                     <property name="height_request">150</property>
                     <property name="visible">True</property>

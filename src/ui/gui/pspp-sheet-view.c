@@ -3834,21 +3834,24 @@ pspp_sheet_view_draw_vertical_grid_lines (PsppSheetView    *tree_view,
   for (list = tree_view->priv->columns; list; list = list->next, i++)
     {
       PsppSheetViewColumn *column = list->data;
-
-      /* We don't want a line for the last column */
-      if (i == n_visible_columns - 1)
-	break;
+      gint x;
 
       if (! column->visible)
 	continue;
 
       current_x += column->width;
 
+      /* Generally the grid lines should fit within the column, but for the
+         last visible column we put it just past the end of the column.
+         (Otherwise horizontal grid lines sometimes stick out by one pixel.) */
+      x = current_x;
+      if (i != n_visible_columns - 1)
+        x--;
+
       cairo_set_line_width (cr, 1.0);
       cairo_set_line_cap (cr, CAIRO_LINE_CAP_SQUARE);
-      cairo_move_to (cr, current_x - 0.5, min_y);
-      cairo_line_to (cr, current_x - 0.5 , max_y - min_y);
-      
+      cairo_move_to (cr, x + 0.5, min_y);
+      cairo_line_to (cr, x + 0.5, max_y - min_y);
       cairo_stroke (cr);
     }
 }
@@ -4259,7 +4262,7 @@ pspp_sheet_view_bin_expose (GtkWidget      *widget,
 #endif
 		}
 
-	      if (y_offset + max_height >= Zarea.height - 0.5)
+	      if (y_offset + max_height <= Zarea.height - 0.5)
 		{
 #if GTK3_TRANSITION
 		  gdk_draw_line (event->window,

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,6 +52,12 @@ typedef struct _PsppireDataWindow       PsppireDataWindow;
 typedef struct _PsppireDataWindowClass  PsppireDataWindowClass;
 
 
+enum PsppireDataWindowFormat {
+  PSPPIRE_DATA_WINDOW_SAV,
+  PSPPIRE_DATA_WINDOW_ZSAV,
+  PSPPIRE_DATA_WINDOW_POR
+};
+
 struct _PsppireDataWindow
 {
   PsppireWindow parent;
@@ -65,7 +71,7 @@ struct _PsppireDataWindow
   struct dataset *dataset;
   PsppireDataStore *data_store;
 
-  gboolean save_as_portable;
+  enum PsppireDataWindowFormat format;
 
   struct ll ll;                 /* In global 'all_data_windows' list. */
   unsigned long int lazy_serial;

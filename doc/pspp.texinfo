@@ -54,7 +54,7 @@
 This manual is for GNU PSPP version @value{VERSION},
 software for statistical analysis.
 
-Copyright @copyright{} 1997, 1998, 2004, 2005, 2009, 2012 Free Software Foundation, Inc.
+Copyright @copyright{} 1997, 1998, 2004, 2005, 2009, 2012, 2013 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -112,6 +112,7 @@ in the production of this manual.
 * Statistics::                  Basic statistical procedures.
 * Utilities::                   Other commands.
 
+* Invoking pspp-convert::       Utility for converting among file formats.
 * Not Implemented::             What's not here yet
 * Bugs::                        Known problems; submitting bug reports.
 
@@ -138,6 +139,8 @@ in the production of this manual.
 @include flow-control.texi
 @include statistics.texi
 @include utilities.texi
+
+@include pspp-convert.texi
 @include not-implemented.texi
 @include bugs.texi
 

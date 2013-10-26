@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010  Free Software Foundation
+   Copyright (C) 2009, 2010, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
+#include "data/format.h"
 #include "psppire-dict.h"
 #include "dict-display.h"
 
@@ -60,8 +61,12 @@ struct _PsppireDictViewClass
 };
 
 GType      psppire_dict_view_get_type        (void);
+void psppire_dict_view_get_selected_variables (PsppireDictView *,
+                                               struct variable ***vars,
+                                               size_t *n_varsp);
 struct variable * psppire_dict_view_get_selected_variable (PsppireDictView *);
 
+const char *get_var_measurement_stock_id (enum fmt_type, enum measure);
 
 G_END_DECLS
 

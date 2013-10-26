@@ -39,7 +39,6 @@
 #include "output/table-item.h"
 #include "output/text-item.h"
 
-#include "error.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -49,6 +48,9 @@ struct html_driver
   {
     struct output_driver driver;
 
+    struct xr_color fg;
+    struct xr_color bg;
+    
     char *file_name;
     char *chart_file_name;
 
@@ -103,10 +105,13 @@ html_create (const char *file_name, enum settings_output_devices device_type,
   html->file = NULL;
   html->chart_cnt = 1;
 
+  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &html->bg);
+  parse_color (d, o, "foreground-color", "#000000000000", &html->fg);
+
   html->file = fn_open (html->file_name, "w");
   if (html->file == NULL)
     {
-      error (0, errno, _("error opening output file `%s'"), html->file_name);
+      msg_error (errno, _("error opening output file `%s'"), html->file_name);
       goto error;
     }
 
@@ -239,7 +244,10 @@ html_submit (struct output_driver *driver,
       char *file_name;
 
       file_name = xr_draw_png_chart (chart_item, html->chart_file_name,
-                                     html->chart_cnt++);
+                                     html->chart_cnt++,
+				     &html->fg,
+				     &html->bg
+				     );
       if (file_name != NULL)
         {
 	  const char *title = chart_item_get_title (chart_item);

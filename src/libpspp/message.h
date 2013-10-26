@@ -80,6 +80,7 @@ struct msg
     int first_column;           /* 1-based first column, or 0 if none. */
     int last_column;            /* 1-based exclusive last column (0=none). */
     char *text;                 /* Error text. */
+    bool shipped;               /* True if this message has been emitted */
   };
 
 /* Initialization. */
@@ -95,6 +96,9 @@ char *msg_to_string (const struct msg *, const char *command_name);
 void msg (enum msg_class, const char *format, ...)
      PRINTF_FORMAT (2, 3);
 void msg_emit (struct msg *);
+
+void msg_error (int errnum, const char *format, ...);
+
 
 /* Enable and disable messages. */
 void msg_enable (void);

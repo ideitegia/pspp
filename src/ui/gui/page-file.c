@@ -39,7 +39,6 @@
 #include "libpspp/i18n.h"
 #include "libpspp/line-reader.h"
 #include "libpspp/message.h"
-#include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/dialog-common.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/helper.h"
@@ -52,7 +51,6 @@
 #include "ui/gui/psppire-scanf.h"
 #include "ui/syntax-gen.h"
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 
@@ -97,8 +95,8 @@ init_file (struct import_assistant *ia, GtkWindow *parent_window)
     struct line_reader *reader = line_reader_for_file (file->encoding, file->file_name, O_RDONLY);
     if (reader == NULL)
       {
-	msg (ME, _("Could not open `%s': %s"),
-	     file->file_name, strerror (errno));
+	msg_error (errno, _("Could not open `%s'"),
+	     file->file_name);
 	return false;
       }
 

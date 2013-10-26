@@ -40,7 +40,7 @@
 	    <property name="name">edit_insert-variable</property>
 	    <property name="label" translatable="yes">Insert Variable</property>
 	    <property name="tooltip" translatable="yes">Create a new variable at the current position</property>
-	    <property name="stock-id">pspp-insert-variable</property>
+	    <property name="stock-id">edit-insert-variable</property>
 	  </object>
 	</child>
         <child>
@@ -48,24 +48,24 @@
             <property name="name">edit_goto-variable</property>
             <property name="label" translatable="yes">Go To Variable...</property>
 	    <property name="tooltip" translatable="yes">Jump to variable</property>
-	    <property name="stock-id">pspp-goto-variable</property>
+	    <property name="stock-id">edit-go-to-variable</property>
           </object>
         </child>
 	<child>
 	  <object class="GtkAction" id="edit_cut">
-	    <property name="stock-id">gtk-cut</property>
+	    <property name="stock-id">edit-cut</property>
 	    <property name="name">edit_cut</property>
 	  </object>
 	</child>
 	<child>
 	  <object class="GtkAction" id="edit_copy">
-	    <property name="stock-id">gtk-copy</property>
+	    <property name="stock-id">edit-copy</property>
 	    <property name="name">edit_copy</property>
 	  </object>
 	</child>
 	<child>
 	  <object class="GtkAction" id="edit_paste">
-	    <property name="stock-id">gtk-paste</property>
+	    <property name="stock-id">edit-paste</property>
 	    <property name="name">edit_paste</property>
 	  </object>
 	</child>
@@ -74,7 +74,7 @@
 	    <property name="name">edit_clear-variables</property>
 	    <property name="label" translatable="yes">Cl_ear Variables</property>
 	    <property name="tooltip" translatable="yes">Delete the variables at the selected position(s)</property>
-	    <property name="stock-id">gtk-clear</property>
+	    <property name="stock-id">edit-clear</property>
 	  </object>
 	</child>
       </object>

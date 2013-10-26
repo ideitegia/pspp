@@ -27,7 +27,6 @@
 
 #include "psppire-dialog.h"
 #include "builder-wrapper.h"
-#include "checkbox-treeview.h"
 #include "psppire-dict.h"
 #include "libpspp/str.h"
 

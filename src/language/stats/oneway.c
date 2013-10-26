@@ -815,6 +815,7 @@ run_oneway (const struct oneway_spec *cmd,
 
   for (v = 0; v < cmd->n_vars; ++v)
     {
+      const gsl_matrix *ucm;
       gsl_matrix *cm;
       struct per_var_ws *pvw = &ws.vws[v];
       const struct categoricals *cats = covariance_get_categoricals (pvw->cov);
@@ -828,7 +829,10 @@ run_oneway (const struct oneway_spec *cmd,
 	  continue;
 	}
 
-      cm = covariance_calculate_unnormalized (pvw->cov);
+      ucm = covariance_calculate_unnormalized (pvw->cov);
+
+      cm = gsl_matrix_alloc (ucm->size1, ucm->size2);
+      gsl_matrix_memcpy (cm, ucm);
 
       moments1_calculate (ws.dd_total[v]->mom, &pvw->n, NULL, NULL, NULL, NULL);
 
@@ -837,14 +841,13 @@ run_oneway (const struct oneway_spec *cmd,
       reg_sweep (cm, 0);
 
       pvw->sse = gsl_matrix_get (cm, 0, 0);
+      gsl_matrix_free (cm);
 
       pvw->ssa = pvw->sst - pvw->sse;
 
       pvw->n_groups = categoricals_n_total (cats);
 
       pvw->mse = (pvw->sst - pvw->ssa) / (pvw->n - pvw->n_groups);
-
-      gsl_matrix_free (cm);
     }
 
   for (v = 0; v < cmd->n_vars; ++v)

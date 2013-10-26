@@ -26,7 +26,6 @@
 #include "libpspp/taint.h"
 #include "libpspp/ext-array.h"
 
-#include "gl/error.h"
 #include "gl/xalloc.h"
 
 /* A temporary file that stores an array of cases. */

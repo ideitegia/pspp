@@ -1868,3 +1868,56 @@ TRAIT4,.97,.21,-.04,.00
 TRAIT5,.70,-.67,-.23,.00
 ])
 AT_CLEANUP
+
+
+
+dnl Fixes a bug in the way that the /CRITERIA = ITERATE option was interpreted.
+dnl http://lists.gnu.org/archive/html/bug-gnu-pspp/2013-09/msg00036.html
+AT_SETUP([FACTOR /CRITERIA=ITERATE])
+AT_DATA([factor-iterate.sps], [dnl
+set format = F20.3.
+data list notable list /x y z *.
+begin data.
+1.00    5.00    3.00
+2.00    2.00    2.00
+3.00    1.00    1.00
+4.00    4.00    5.00
+5.00    3.00    9.00
+6.00    6.00    4.00
+7.00    7.00    6.00
+8.00    8.00    8.00
+9.00    9.00    7.00
+end data.
+
+FACTOR
+ /VARIABLES= x y z
+ /CRITERIA = MINEIGEN (1) ITERATE (25)
+ /EXTRACTION =PAF
+ /METHOD = CORRELATION
+ /PRINT = INITIAL EXTRACTION
+ /CRITERIA = ITERATE (0)
+ /ROTATION = NOROTATE.
+])
+
+AT_CHECK([pspp -O format=csv factor-iterate.sps], [0], [dnl
+Table: Communalities
+,Initial,Extraction
+x,.735,.979
+y,.640,.653
+z,.514,.523
+
+Table: Total Variance Explained
+,Initial Eigenvalues,,,Extraction Sums of Squared Loadings,,
+Factor,Total,% of Variance,Cumulative %,Total,% of Variance,Cumulative %
+1,2.404,80.124,80.124,2.155,71.847,71.847
+2,.425,14.166,94.290,,,
+3,.171,5.710,100.000,,,
+
+Table: Factor Matrix
+,Factor
+,1
+x,.990
+y,.808
+z,.723
+])
+AT_CLEANUP

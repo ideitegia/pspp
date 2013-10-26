@@ -28,7 +28,7 @@
 
 #include "spreadsheet-reader.h"
 
-#if !GNM_SUPPORT
+#if !GNM_READ_SUPPORT
 
 struct casereader *
 gnumeric_open_reader (const struct spreadsheet_read_options *opts, struct dictionary **dict)
@@ -953,4 +953,4 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 }
 
 
-#endif /* GNM_SUPPORT */
+#endif /* GNM_READ_SUPPORT */

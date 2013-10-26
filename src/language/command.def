@@ -95,6 +95,7 @@ DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VARIABLE ALIGNMENT", cmd_variable_alignme
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VARIABLE ATTRIBUTE", cmd_variable_attribute)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VARIABLE LABELS", cmd_variable_labels)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VARIABLE LEVEL", cmd_variable_level)
+DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VARIABLE ROLE", cmd_variable_role)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VARIABLE WIDTH", cmd_variable_width)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "VECTOR", cmd_vector)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "WEIGHT", cmd_weight)

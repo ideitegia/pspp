@@ -34,7 +34,7 @@ static const struct table_class table_transpose_class;
 static struct table_transpose *
 table_transpose_cast (const struct table *table)
 {
-  assert (table->class == &table_transpose_class);
+  assert (table->klass == &table_transpose_class);
   return UP_CAST (table, struct table_transpose, table);
 }
 
@@ -46,7 +46,7 @@ table_transpose (struct table *subtable)
   if (subtable->n[TABLE_HORZ] == subtable->n[TABLE_VERT]
       && subtable->n[TABLE_HORZ] <= 1)
     return subtable;
-  else if (subtable->class == &table_transpose_class)
+  else if (subtable->klass == &table_transpose_class)
     {
       struct table_transpose *tt = table_transpose_cast (subtable);
       struct table *table = table_ref (tt->subtable);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -77,10 +77,12 @@ main (int argc, char *argv[])
       printf ("%s", scan_type_to_string (token.type));
       if (token.number != 0.0)
         {
-          char s[DBL_BUFSIZE_BOUND];
+          double x = token.number;
 
-          dtoastr (s, sizeof s, 0, 0, token.number);
-          printf (" %s", s);
+          if (x > LONG_MIN && x <= LONG_MAX && floor (x) == x)
+            printf (" %ld", (long int) x);
+          else
+            printf (" %.3g", x);
         }
       if (token.string.string != NULL || token.string.length > 0)
         printf (" \"%.*s\"", (int) token.string.length, token.string.string);

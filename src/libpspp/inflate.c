@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,8 +18,6 @@
 #include <config.h>
 
 #include "inflate.h"
-
-#if HAVE_ZLIB_H
 
 #include <xalloc.h>
 #include <zlib.h>
@@ -145,5 +143,3 @@ inflate_read (struct zip_member *zm, void *buf, size_t n)
 
   return -1;
 }
-
-#endif

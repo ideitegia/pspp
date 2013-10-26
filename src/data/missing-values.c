@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 #include "data/variable.h"
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/str.h"
 
 /* Types of user-missing values.
@@ -158,19 +159,23 @@ mv_add_value (struct missing_values *mv, const union value *v)
   NOT_REACHED ();
 }
 
-/* Attempts to add S to the set of string missing values MV.  S
-   must contain exactly as many characters as MV's width.
-   Returns true if successful, false if MV has no more room for
+/* Attempts to add S, which is LEN bytes long, to the set of string missing
+   values MV.  Returns true if successful, false if MV has no more room for
    missing values or if S is not an acceptable missing value. */
 bool
-mv_add_str (struct missing_values *mv, const uint8_t s[])
+mv_add_str (struct missing_values *mv, const uint8_t s[], size_t len)
 {
   union value v;
   bool ok;
 
   assert (mv->width > 0);
+  while (len > mv->width)
+    if (s[--len] != ' ')
+      return false;
+
   value_init (&v, mv->width);
-  memcpy (value_str_rw (&v, mv->width), s, mv->width);
+  buf_copy_rpad (CHAR_CAST (char *, value_str_rw (&v, mv->width)), mv->width,
+                 CHAR_CAST (char *, s), len, ' ');
   ok = mv_add_value (mv, &v);
   value_destroy (&v, mv->width);
 

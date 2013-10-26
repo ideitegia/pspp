@@ -45,14 +45,9 @@ struct _PsppireVarView
   GtkTreeView parent;
 
   /* Private */
-  GtkListStore **list;
-  
   GType *cols;
   gint *nums;
   gint n_cols;
-
-  gint n_lists;
-  gint l_idx;
 };
 
 struct _PsppireVarViewClass
@@ -72,16 +67,14 @@ gboolean psppire_var_view_get_iter_first (PsppireVarView *vv, GtkTreeIter *iter)
 gboolean psppire_var_view_get_iter_next (PsppireVarView *vv, GtkTreeIter *iter);
 
 const struct variable * psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *iter);
+const struct variable * psppire_var_view_get_var_from_model (GtkTreeModel *, gint column, GtkTreeIter *iter);
 
-void     psppire_var_view_push_model (PsppireVarView *vv);
 
-gboolean psppire_var_view_set_current_model (PsppireVarView *vv, gint n);
+GtkTreeModel *psppire_var_view_get_current_model (PsppireVarView *vv);
 
 void psppire_var_view_clear (PsppireVarView *vv);
 
 GtkWidget* psppire_var_view_new (void);
-
-
 
 G_END_DECLS
 

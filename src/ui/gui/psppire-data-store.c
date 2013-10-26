@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2008, 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2006, 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -205,6 +205,7 @@ delete_variable_callback (GObject *obj, const struct variable *var UNUSED,
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
+  g_return_if_fail (store->datasheet);
 
   datasheet_delete_columns (store->datasheet, case_index, 1);
   datasheet_insert_column (store->datasheet, NULL, -1, case_index);
@@ -225,7 +226,10 @@ resize_datum (const union value *old, union value *new, const void *aux_)
   const char *enc = dict_get_encoding (aux->dict);
   const struct fmt_spec *newfmt = var_get_print_format (aux->new_variable);
   char *s = data_out (old, enc, var_get_print_format (aux->old_variable));
-  free (data_in (ss_cstr (s), enc, newfmt->type, new, new_width, enc));
+  enum fmt_type type = (fmt_usable_for_input (newfmt->type)
+                        ? newfmt->type
+                        : FMT_DOLLAR);
+  free (data_in (ss_cstr (s), enc, type, new, new_width, enc));
   free (s);
 }
 
@@ -389,6 +393,7 @@ psppire_data_store_dispose (GObject *object)
   if (ds->dispose_has_run)
     return;
 
+  psppire_data_store_set_dictionary (ds, NULL);
 
   /* must chain up */
   (* parent_class->dispose) (object);
@@ -431,6 +436,7 @@ psppire_data_store_get_string (PsppireDataStore *store,
   int width;
 
   g_return_val_if_fail (store != NULL, NULL);
+  g_return_val_if_fail (store->datasheet != NULL, NULL);
   g_return_val_if_fail (var != NULL, NULL);
 
   if (row < 0 || row >= datasheet_get_n_rows (store->datasheet))

@@ -162,7 +162,7 @@ argv_parser_run (struct argv_parser *ap, int argc, char **argv)
           retval = false;
           break;
         }
-      else if (c >= LONGOPT_VAL_BASE && c < LONGOPT_VAL_BASE + n_longopts)
+      else if (c >= LONGOPT_VAL_BASE && c < LONGOPT_VAL_BASE + n_longopts + 1)
         {
           struct argv_option_plus *aop = &ap->options[c - LONGOPT_VAL_BASE];
           aop->cb (aop->base.id, aop->aux);

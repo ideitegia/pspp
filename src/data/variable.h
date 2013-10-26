@@ -27,7 +27,7 @@
 
 #define VAR_TRAIT_NAME             0x0001
 #define VAR_TRAIT_WIDTH            0x0002
-/* Available for reuse: 0x0004 */
+#define VAR_TRAIT_ROLE             0x0004
 #define VAR_TRAIT_LABEL            0x0008
 #define VAR_TRAIT_VALUE_LABELS     0x0010
 #define VAR_TRAIT_MISSING_VALUES   0x0020
@@ -135,11 +135,30 @@ enum measure
 
 bool measure_is_valid (enum measure);
 const char *measure_to_string (enum measure);
+const char *measure_to_syntax (enum measure);
 
 enum measure var_get_measure (const struct variable *);
 void var_set_measure (struct variable *, enum measure);
 
 enum measure var_default_measure (enum val_type);
+
+/* Intended usage of a variable, for populating dialogs. */
+enum var_role
+  {
+    ROLE_INPUT,
+    ROLE_TARGET,
+    ROLE_BOTH,
+    ROLE_NONE,
+    ROLE_PARTITION,
+    ROLE_SPLIT
+  };
+
+bool var_role_is_valid (enum var_role);
+const char *var_role_to_string (enum var_role);
+const char *var_role_to_syntax (enum var_role);
+
+enum var_role var_get_role (const struct variable *);
+void var_set_role (struct variable *, enum var_role);
 
 /* GUI display width. */
 int var_get_display_width (const struct variable *);
@@ -157,6 +176,7 @@ enum alignment
 
 bool alignment_is_valid (enum alignment);
 const char *alignment_to_string (enum alignment);
+const char *alignment_to_syntax (enum alignment);
 
 enum alignment var_get_alignment (const struct variable *);
 void var_set_alignment (struct variable *, enum alignment);

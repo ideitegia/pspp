@@ -14,7 +14,8 @@ POFILES = \
 	po/lt.po \
 	po/nl.po \
 	po/sl.po \
-	po/pt_BR.po
+	po/pt_BR.po \
+	po/uk.po
 
 POTFILE=po/$(DOMAIN).pot
 

@@ -1,6 +1,6 @@
-AT_BANNER([REGRESSION])
+AT_BANNER([LINEAR REGRESSION])
 
-AT_SETUP([REGRESSION])
+AT_SETUP([LINEAR REGRESSION - basic])
 AT_DATA([regression.sps], [dnl
 set format = F22.3.
 data list notable list / v0 to v2.
@@ -53,8 +53,135 @@ v0,v1,v2,RES1,PRED1
 ])
 AT_CLEANUP
 
+
+# Test to ensure that the /SAVE subcommand works properly when SPLIT is active
+AT_SETUP([LINEAR REGRESSION - SAVE vs SPLITS])
+
+# Generate some test data based on a linear model
+AT_DATA([gen-data.sps], [dnl
+set seed = 1.
+input program.
+loop #c = 1 to 20.
+     compute x0 = rv.normal (0,1).
+     compute x1 = rv.normal (0,2).
+     compute err = rv.normal (0,0.1).
+     compute y = 4 - 2 * x0 + 3 * x1 + err.
+     compute g = (#c > 10).
+     end case.
+end loop.
+end file.
+end input program.
+
+print outfile='regdata.txt' /g x0 x1 y err *.
+execute.
+])
+
+AT_CHECK([pspp -O format=csv gen-data.sps], [0], [ignore])
+
+# Use our test data to create a predictor and a residual variable
+# for G == 0
+AT_DATA([regression0.sps], [dnl
+data list notable file='regdata.txt' list /g x0 x1 y err *.
+
+select if (g = 0).
+
+regression 
+	   /variables = x0 x1
+	   /dependent = y
+	   /statistics = all
+	   /save = pred resid.
+	   .
+
+print outfile='outdata-g0.txt' /g x0 x1 y err res1 pred1 *.
+execute.
+])
+
+
+AT_CHECK([pspp -O format=csv regression0.sps], [0], [ignore])
+
+# Use our test data to create a predictor and a residual variable
+# for G == 1
+AT_DATA([regression1.sps], [dnl
+data list notable file='regdata.txt' list /g x0 x1 y err *.
+
+select if (g = 1).
+
+regression 
+	   /variables = x0 x1
+	   /dependent = y
+	   /statistics = all
+	   /save = pred resid.
+	   .
+
+print outfile='outdata-g1.txt' /g x0 x1 y err res1 pred1 *.
+execute.
+])
+
+
+AT_CHECK([pspp -O format=csv regression1.sps], [0], [ignore])
+
+# Use our test data to create a predictor and a residual variable
+# The data is split on G
+AT_DATA([regression-split.sps], [dnl
+data list notable file='regdata.txt' list /g x0 x1 y err *.
+
+split file by g.
+
+regression 
+	   /variables = x0 x1
+	   /dependent = y
+	   /statistics = all
+	   /save = pred resid.
+	   .
+
+print outfile='outdata-split.txt' /g x0 x1 y err res1 pred1 *.
+execute.
+])
+
+AT_CHECK([pspp -O format=csv regression-split.sps], [0], [ignore])
+
+# The concatenation of G==0 and G==1 should be identical to the SPLIT data
+AT_CHECK([cat outdata-g0.txt outdata-g1.txt | diff outdata-split.txt - ], [0], [])
+
+AT_CLEANUP
+
+
+# Test that the procedure behaves sensibly when presented with
+# multiple dependent variables
+AT_SETUP([LINEAR REGRESSION multiple dependent variables])
+AT_DATA([regression.sps], [dnl
+set seed = 2.
+input program.
+loop #c = 1 to 200.
+     compute x0 = rv.normal (0, 1).
+     compute x1 = rv.normal (0, 2).
+     compute err = rv.normal (0, 0.8).
+     compute y = 2 - 1.5 * x0 + 8.4 * x1 + err.
+     compute ycopy = y.
+     end case.
+end loop.
+end file.
+end input program.
+
+regression 
+	   /variables = x0 x1
+	   /dependent = y ycopy
+	   /statistics = all
+])
+
+AT_CHECK([pspp -O format=csv regression.sps > output], [0], [ignore])
+
+
+AT_CHECK([head -16 output > first], [0], [])
+AT_CHECK([tail -16 output > second], [0], [])
+
+AT_CHECK([sed -e 's/ycopy/y/g' second | diff first -], [0], [])
+
+
+AT_CLEANUP
+
 # Tests the QR decomposition used by the REGRESSION command.
-AT_SETUP([REGRESSION test of QR decomposition])
+AT_SETUP([LINEAR REGRESSION test of QR decomposition])
 AT_DATA([regression.sps], [dnl
 data list list / v0 to v1.
 begin data
@@ -1586,7 +1713,7 @@ Table: Coefficients (v0)
 ])
 AT_CLEANUP
 
-AT_SETUP([REGRESSION no crash on all missing])
+AT_SETUP([LINEAR REGRESSION no crash on all missing])
 AT_DATA([regcrash.sps], [dnl
 data list list /x * y.
 begin data.
@@ -1612,7 +1739,7 @@ AT_CLEANUP
 
 
 
-AT_SETUP([REGRESSION missing dependent variable])
+AT_SETUP([LINEAR REGRESSION missing dependent variable])
 
 dnl Test for a bug where missing values in the dependent variable were not being
 dnl ignored like they should have been.
@@ -1669,7 +1796,7 @@ AT_CHECK([diff pspp.csv pspp-ref.csv])
 
 AT_CLEANUP
 
-AT_SETUP([REGRESSION with invalid syntax (and empty dataset)])
+AT_SETUP([LINEAR REGRESSION with invalid syntax (and empty dataset)])
 
 AT_DATA([ss.sps], [dnl
 data list notable list / v0 to v2.

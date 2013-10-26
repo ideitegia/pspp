@@ -1729,7 +1729,7 @@ dump_parser (int persistent)
   dump (0, "static int");
   dump (0, "parse_%s (struct lexer *lexer, struct dataset *ds%s, struct cmd_%s *p, void *aux UNUSED)",
         make_identifier (cmdname),
-	(def && ( def->type == SBC_VARLIST && def->type == SBC_CUSTOM))?"":" UNUSED",
+	(def && ( def->type == SBC_VARLIST || def->type == SBC_CUSTOM))?"":" UNUSED",
 	make_identifier (cmdname));
   dump (1, "{");
 

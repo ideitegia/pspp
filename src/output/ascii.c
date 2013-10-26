@@ -48,7 +48,6 @@
 #include "output/table-item.h"
 #include "output/text-item.h"
 
-#include "gl/error.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 
@@ -150,6 +149,11 @@ struct ascii_driver
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
     enum emphasis_style emphasis; /* How to emphasize text. */
     char *chart_file_name;      /* Name of files used for charts. */
+
+    /* Colours for charts */
+    struct xr_color fg;
+    struct xr_color bg;
+
 
     int width;                  /* Page width. */
     int length;                 /* Page length minus margins and header. */
@@ -258,6 +262,9 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
   a->auto_length = paper_length < 0;
   a->length = paper_length - vertical_margins (a);
 
+  parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &a->bg);
+  parse_color (d, o, "foreground-color", "#000000000000", &a->fg);
+
   box = parse_enum (opt (d, o, "box", "ascii"),
                     "ascii", BOX_ASCII,
                     "unicode", BOX_UNICODE,
@@ -304,7 +311,7 @@ parse_page_size (struct driver_option *option)
           if (dim >= 1 && errno != ERANGE && *tail == '\0')
             dim = value;
           else
-            error (0, 0, _("%s: %s must be positive integer or `auto'"),
+            msg (MW, _("%s: %s must be positive integer or `auto'"),
                    option->driver_name, option->name);
         }
     }
@@ -336,7 +343,7 @@ update_page_size (struct ascii_driver *a, bool issue_error)
   if (a->width < MIN_WIDTH || a->length < MIN_LENGTH)
     {
       if (issue_error)
-        error (0, 0,
+        msg (ME,
                _("ascii: page excluding margins and headers "
                  "must be at least %d characters wide by %d lines long, but "
                  "as configured is only %d characters by %d lines"),
@@ -385,8 +392,7 @@ ascii_flush (struct output_driver *driver)
       ascii_close_page (a);
 
       if (fn_close (a->file_name, a->file) != 0)
-        error (0, errno, _("ascii: closing output file `%s'"),
-               a->file_name);
+        msg_error (errno, _("ascii: closing output file `%s'"), a->file_name);
       a->file = NULL;
     }
 }
@@ -522,7 +528,9 @@ ascii_submit (struct output_driver *driver,
       char *file_name;
 
       file_name = xr_draw_png_chart (chart_item, a->chart_file_name,
-                                     a->chart_cnt++);
+                                     a->chart_cnt++,
+				     &a->fg, 
+				     &a->bg);
       if (file_name != NULL)
         {
           struct text_item *text_item;
@@ -1002,7 +1010,7 @@ ascii_open_page (struct ascii_driver *a)
         }
       else
         {
-          error (0, errno, _("ascii: opening output file `%s'"),
+          msg_error (errno, _("ascii: opening output file `%s'"),
                  a->file_name);
           a->error = true;
           return false;

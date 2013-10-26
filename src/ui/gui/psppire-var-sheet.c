@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "ui/gui/psppire-data-editor.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog-action-var-info.h"
+#include "ui/gui/psppire-dictview.h"
 #include "ui/gui/psppire-empty-list-store.h"
 #include "ui/gui/psppire-marshal.h"
 #include "ui/gui/val-labs-dialog.h"
@@ -53,7 +54,8 @@ enum vs_column
     VS_MISSING,
     VS_COLUMNS,
     VS_ALIGN,
-    VS_MEASURE
+    VS_MEASURE,
+    VS_ROLE
   };
 
 G_DEFINE_TYPE (PsppireVarSheet, psppire_var_sheet, PSPP_TYPE_SHEET_VIEW);
@@ -141,6 +143,19 @@ scroll_to_bottom (GtkWidget      *widget,
     }
 }
 
+static struct variable *
+path_string_to_var (PsppireVarSheet *var_sheet, gchar *path_string)
+{
+  GtkTreePath *path;
+  gint row;
+
+  path = gtk_tree_path_new_from_string (path_string);
+  row = gtk_tree_path_get_indices (path)[0];
+  gtk_tree_path_free (path);
+
+  return psppire_dict_get_variable (var_sheet->dict, row);
+}
+
 static void
 on_var_column_edited (GtkCellRendererText *cell,
                       gchar               *path_string,
@@ -153,17 +168,11 @@ on_var_column_edited (GtkCellRendererText *cell,
   enum vs_column column_id;
   struct variable *var;
   int width, decimals;
-  GtkTreePath *path;
-  gint row;
-
-  path = gtk_tree_path_new_from_string (path_string);
-  row = gtk_tree_path_get_indices (path)[0];
-  gtk_tree_path_free (path);
 
   column_id = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell),
                                                   "column-id"));
 
-  var = psppire_dict_get_variable (var_sheet->dict, row);
+  var = path_string_to_var (var_sheet, path_string);
   if (var == NULL)
     {
       g_return_if_fail (column_id == VS_NAME);
@@ -273,6 +282,21 @@ on_var_column_edited (GtkCellRendererText *cell,
       else if (!strcmp (new_text, measure_to_string (MEASURE_SCALE)))
         var_set_measure (var, MEASURE_SCALE);
       break;
+
+    case VS_ROLE:
+      if (!strcmp (new_text, var_role_to_string (ROLE_INPUT)))
+        var_set_role (var, ROLE_INPUT);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_TARGET)))
+        var_set_role (var, ROLE_TARGET);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_BOTH)))
+        var_set_role (var, ROLE_BOTH);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_NONE)))
+        var_set_role (var, ROLE_NONE);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_PARTITION)))
+        var_set_role (var, ROLE_PARTITION);
+      else if (!strcmp (new_text, var_role_to_string (ROLE_SPLIT)))
+        var_set_role (var, ROLE_SPLIT);
+      break;
     }
 }
 
@@ -290,6 +314,35 @@ render_popup_cell (PsppSheetViewColumn *tree_column,
   g_object_set (cell,
                 "editable", row < psppire_dict_get_var_cnt (var_sheet->dict),
                 NULL);
+}
+
+const char *
+get_var_align_stock_id (enum alignment alignment)
+{
+  switch (alignment)
+    {
+    case ALIGN_LEFT: return "align-left";
+    case ALIGN_CENTRE: return "align-center";
+    case ALIGN_RIGHT: return "align-right";
+    default:
+      g_return_val_if_reached ("");
+    }
+}
+
+const char *
+get_var_role_stock_id (enum var_role role)
+{
+  switch (role)
+    {
+    case ROLE_INPUT: return "role-input";
+    case ROLE_TARGET: return "role-target";
+    case ROLE_BOTH: return "role-both";
+    case ROLE_NONE: return "role-none";
+    case ROLE_PARTITION: return "role-partition";
+    case ROLE_SPLIT: return "role-split";
+    default:
+      g_return_val_if_reached ("");
+    }
 }
 
 static void
@@ -311,14 +364,19 @@ render_var_cell (PsppSheetViewColumn *tree_column,
 
   if (row >= psppire_dict_get_var_cnt (var_sheet->dict))
     {
-      g_object_set (cell,
-                    "text", "",
-                    "editable", column_id == VS_NAME,
-                    NULL);
-      if (column_id == VS_WIDTH
-          || column_id == VS_DECIMALS
-          || column_id == VS_COLUMNS)
-        g_object_set (cell, "adjustment", NULL, NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        {
+          g_object_set (cell,
+                        "text", "",
+                        "editable", column_id == VS_NAME,
+                        NULL);
+          if (column_id == VS_WIDTH
+              || column_id == VS_DECIMALS
+              || column_id == VS_COLUMNS)
+            g_object_set (cell, "adjustment", NULL, NULL);
+        }
+      else
+        g_object_set (cell, "stock-id", "", NULL);
       return;
     }
 
@@ -393,7 +451,7 @@ render_var_cell (PsppSheetViewColumn *tree_column,
 
     case VS_MISSING:
       {
-        char *text = missing_values_to_string (var_sheet->dict, var, NULL);
+        char *text = missing_values_to_string (var, NULL);
         g_object_set (cell,
                       "text", text,
                       "editable", FALSE,
@@ -407,17 +465,42 @@ render_var_cell (PsppSheetViewColumn *tree_column,
       break;
 
     case VS_ALIGN:
-      g_object_set (cell,
-                    "text", alignment_to_string (var_get_alignment (var)),
-                    "editable", TRUE,
-                    NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        g_object_set (cell,
+                      "text", alignment_to_string (var_get_alignment (var)),
+                      "editable", TRUE,
+                      NULL);
+      else
+        g_object_set (cell, "stock-id",
+                      get_var_align_stock_id (var_get_alignment (var)), NULL);
       break;
 
     case VS_MEASURE:
-      g_object_set (cell,
-                    "text", measure_to_string (var_get_measure (var)),
-                    "editable", TRUE,
-                    NULL);
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        g_object_set (cell,
+                      "text", measure_to_string (var_get_measure (var)),
+                      "editable", TRUE,
+                      NULL);
+      else
+        {
+          enum fmt_type type = var_get_print_format (var)->type;
+          enum measure measure = var_get_measure (var);
+
+          g_object_set (cell, "stock-id",
+                        get_var_measurement_stock_id (type, measure),
+                        NULL);
+        }
+      break;
+
+    case VS_ROLE:
+      if (GTK_IS_CELL_RENDERER_TEXT (cell))
+        g_object_set (cell,
+                      "text", var_role_to_string (var_get_role (var)),
+                      "editable", TRUE,
+                      NULL);
+      else
+        g_object_set (cell, "stock-id",
+                      get_var_role_stock_id (var_get_role (var)), NULL);
       break;
     }
 }
@@ -576,18 +659,85 @@ add_spin_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                                column_id, title, width);
 }
 
-static PsppSheetViewColumn *
+static const char *
+measure_to_stock_id (enum fmt_type type, int measure)
+{
+  return get_var_measurement_stock_id (type, measure);
+}
+
+static const char *
+alignment_to_stock_id (enum fmt_type type, int alignment)
+{
+  return get_var_align_stock_id (alignment);
+}
+
+static const char *
+role_to_stock_id (enum fmt_type type, int role)
+{
+  return get_var_role_stock_id (role);
+}
+
+static void
+render_var_pixbuf (GtkCellLayout *cell_layout,
+                   GtkCellRenderer *cell,
+                   GtkTreeModel *tree_model,
+                   GtkTreeIter *iter,
+                   gpointer data)
+{
+  const char *(*value_to_stock_id) (enum fmt_type, int value);
+  enum fmt_type type = GPOINTER_TO_INT (data);
+  gint value;
+
+  value_to_stock_id = g_object_get_data (G_OBJECT (cell), "value-to-stock-id");
+
+  gtk_tree_model_get (tree_model, iter, 0, &value, -1);
+  g_object_set (cell, "stock-id", value_to_stock_id (type, value), NULL);
+}
+
+static void
+on_combo_editing_started (GtkCellRenderer *renderer,
+                          GtkCellEditable *editable,
+                          gchar           *path_string,
+                          gpointer         user_data)
+{
+  PsppireVarSheet *var_sheet = user_data;
+
+  if (GTK_IS_COMBO_BOX (editable))
+    {
+      struct variable *var = path_string_to_variable (var_sheet, path_string);
+      const struct fmt_spec *format = var_get_print_format (var);
+      const char *(*value_to_stock_id) (enum fmt_type, int value);
+      GtkCellRenderer *cell;
+
+      value_to_stock_id = g_object_get_data (G_OBJECT (renderer),
+                                             "value-to-stock-id");
+
+      cell = gtk_cell_renderer_pixbuf_new ();
+      g_object_set (cell, "width", 16, "height", 16, NULL);
+      g_object_set_data (G_OBJECT (cell),
+                         "value-to-stock-id", value_to_stock_id);
+      gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (editable), cell, FALSE);
+      gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT (editable), cell,
+                                          render_var_pixbuf,
+                                          GINT_TO_POINTER (format->type),
+                                          NULL);
+    }
+}
+
+static void
 add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                   const char *title, int width,
+                  const char *(*value_to_stock_id) (enum fmt_type, int value),
                   ...)
 {
+  PsppSheetViewColumn *column;
   GtkCellRenderer *cell;
   GtkListStore *store;
   const char *name;
   va_list args;
 
   store = gtk_list_store_new (2, G_TYPE_INT, G_TYPE_STRING);
-  va_start (args, width);
+  va_start (args, value_to_stock_id);
   while ((name = va_arg (args, const char *)) != NULL)
     {
       int value = va_arg (args, int);
@@ -604,9 +754,22 @@ add_combo_column (PsppireVarSheet *var_sheet, enum vs_column column_id,
                 "model", GTK_TREE_MODEL (store),
                 "text-column", 1,
                 NULL);
+  if (value_to_stock_id != NULL)
+    {
+      g_object_set_data (G_OBJECT (cell),
+                         "value-to-stock-id", value_to_stock_id);
+      g_signal_connect (cell, "editing-started",
+                        G_CALLBACK (on_combo_editing_started),
+                        var_sheet);
+    }
 
-  return add_var_sheet_column (var_sheet, cell, column_id, title, width);
+  column = add_var_sheet_column (var_sheet, cell, column_id, title, width);
 
+  cell = gtk_cell_renderer_pixbuf_new ();
+  g_object_set (cell, "width", 16, "height", 16, NULL);
+  pspp_sheet_view_column_pack_end (column, cell, FALSE);
+  pspp_sheet_view_column_set_cell_data_func (
+    column, cell, render_var_cell, var_sheet, NULL);
 }
 
 static void
@@ -1218,16 +1381,25 @@ psppire_var_sheet_init (PsppireVarSheet *obj)
 
   add_spin_column (obj, VS_COLUMNS, _("Columns"), 3);
 
-  add_combo_column (obj, VS_ALIGN, _("Align"), 6,
+  add_combo_column (obj, VS_ALIGN, _("Align"), 8, alignment_to_stock_id,
                     alignment_to_string (ALIGN_LEFT), ALIGN_LEFT,
                     alignment_to_string (ALIGN_CENTRE), ALIGN_CENTRE,
                     alignment_to_string (ALIGN_RIGHT), ALIGN_RIGHT,
                     NULL);
 
-  add_combo_column (obj, VS_MEASURE, _("Measure"), 10,
+  add_combo_column (obj, VS_MEASURE, _("Measure"), 11, measure_to_stock_id,
                     measure_to_string (MEASURE_NOMINAL), MEASURE_NOMINAL,
                     measure_to_string (MEASURE_ORDINAL), MEASURE_ORDINAL,
                     measure_to_string (MEASURE_SCALE), MEASURE_SCALE,
+                    NULL);
+
+  add_combo_column (obj, VS_ROLE, _("Role"), 11, role_to_stock_id,
+                    var_role_to_string (ROLE_INPUT), ROLE_INPUT,
+                    var_role_to_string (ROLE_TARGET), ROLE_TARGET,
+                    var_role_to_string (ROLE_BOTH), ROLE_BOTH,
+                    var_role_to_string (ROLE_NONE), ROLE_NONE,
+                    var_role_to_string (ROLE_PARTITION), ROLE_PARTITION,
+                    var_role_to_string (ROLE_SPLIT), ROLE_SPLIT,
                     NULL);
 
   pspp_sheet_view_set_rubber_banding (sheet_view, TRUE);

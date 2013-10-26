@@ -1,0 +1,83 @@
+.\" -*- nroff -*-
+.de IQ
+.  br
+.  ns
+.  IP "\\$1"
+..
+.TH pspp\-convert 1 "October 2013" "PSPP" "PSPP Manual"
+.
+.SH NAME
+pspp\-convert \- convert SPSS system and portable files to other formats
+.
+.SH SYNOPSIS
+\fBpspp\-convert\fR [\fIoptions\fR] \fIinput\fR \fIoutput\fR
+.br
+\fBpspp\-convert \-\-help\fR | \fB\-h\fR
+.br
+\fBpspp\-convert \-\-version\fR | \fB\-v\fR
+.
+.SH DESCRIPTION
+The \fBpspp\-convert\fR program reads SPSS system or portable file
+\fIinput\fR and writes it to \fIoutput\fR, performing format
+conversion as necessary.
+.PP
+The format of \fIinput\fR is automatically detected, except that the
+character encoding of old system files cannot always be guessed
+correctly.  Use \fB\-e \fIencoding\fR to specify the encoding in this
+case.
+.PP
+By default, the intended format for \fIoutput\fR is inferred from its
+extension:
+.
+.IP \fBcsv\fR
+.IQ \fBtxt\fR
+Comma-separated value.  Each value is formatted according to its
+variable's print format.  The first line in the file contains variable
+names.
+.
+.IP \fBsav\fR
+.IQ \fBsys\fR
+SPSS system file.
+.
+.IP \fBpor\fR
+SPSS portable file.
+.
+.PP
+Use \fB\-O \fIextension\fR to override the inferred format or to
+specify the format for unrecognized extensions.
+.
+.SH "OPTIONS"
+.
+.IP "\fB\-O format\fR"
+.IQ "\fB\-\-output\-format=\fIformat\fR"
+Specifies the desired output format.  \fIformat\fR must be one of the
+extensions listed above, e.g. \fB\-O csv\fR requests comma-separated
+value output.
+.
+.IP "\fB\-c \fImaxcases\fR"
+.IQ "\fB\-\-cases=\fImaxcases\fR"
+By default, all cases are copied from \fIinput\fR to \fIoutput\fR.
+Specifying this option to limit the number of cases written to
+\fIoutput\fR to \fImaxcases\fR.
+.
+.IP "\fB\-e \fIcharset\fR"
+.IQ "\fB\-\-encoding=\fIcharset\fR"
+Overrides the encoding in which character strings in \fIinput\fR are
+interpreted.  This option is necessary because old SPSS system files
+do not self-identify their encoding.
+.
+.IP "\fB\-h\fR"
+.IQ "\fB\-\-help\fR"
+Prints a usage message on stdout and exits.
+.
+.IP "\fB\-v\fR"
+.IQ "\fB\-\-version\fR"
+Prints version information on stdout and exits.
+.
+.SH "AUTHORS"
+Ben Pfaff.
+.
+.SH "SEE ALSO"
+.
+.BR pspp (1),
+.BR psppire (1).

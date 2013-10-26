@@ -1831,3 +1831,32 @@ AT_CHECK([render-test --width=15 --length=15 input], [0], [dnl
 +-+-+-----+
 ])
 AT_CLEANUP
+
+# There was a bug that, when multiple cells spanned a single column
+# (or row), only the dimensions of the cell nearest the bottom of the
+# table were actually considered.  This checks for regression.  (This
+# problem was most easily observed with SYSFILE INFO, which uses lots
+# of spanned cells).
+#
+# Without the fix, the output looks like this:
+# +-------+
+# | A long|
+# |   text|
+# |string.|
+# +-------+
+# |shorter|
+AT_SETUP([multiple spanned cells all contribute to dimensions])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [dnl
+2 2
+1*2 @A long text string.
+1*2 @shorter
+])
+AT_CHECK([render-test --width=30 --length=15 input], [0], [dnl
++-------------------+
+|A long text string.|
++-------------------+
+|            shorter|
++-------------------+
+])
+AT_CLEANUP

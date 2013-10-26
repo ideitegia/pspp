@@ -1,4 +1,4 @@
-# translation of pspp-0.7.10.po to Dutch
+# translation of pspp-0.7.11.po to Dutch
 # Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 # This file is distributed under the same licence as the PSPP package.
 #
@@ -26,14 +26,14 @@
 #  Window     = venster
 #  Weighting  = Weging
 #
-# filename: pspp-0.7.10.nl.po
+# filename: pspp-0.7.11.nl.po
 # Harry Thijssen <pspp@sjpaes.nl>, 2009, 2010, 2011, 2012, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: pspp-0.7.10\n"
+"Project-Id-Version: pspp-0.7.11\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2013-03-26 21:38-0700\n"
-"PO-Revision-Date: 2013-04-06 17:25+0100\n"
+"POT-Creation-Date: 2013-07-13 08:39-0700\n"
+"PO-Revision-Date: 2013-07-24 17:25+0100\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -54,9 +54,10 @@ msgstr "Verder"
 #: src/language/dictionary/sys-file-info.c:148
 #: src/language/dictionary/sys-file-info.c:332
 #: src/language/dictionary/sys-file-info.c:650
-#: src/language/stats/descriptives.c:970
+#: src/language/stats/descriptives.c:982
 #: src/language/data-io/data-parser.c:691
 #: src/language/data-io/data-parser.c:730 src/language/data-io/print.c:446
+#: src/ui/gui/psppire-var-sheet.c:1079
 msgid "Variable"
 msgstr "Variabele"
 
@@ -231,12 +232,12 @@ msgstr "Niet-herkende weekdagnaam.  Tenminste de eerste 2 letters van een Engels
 msgid "`%c' expected in date field."
 msgstr "'%c' verwacht in datumveld."
 
-#: src/data/data-out.c:544
+#: src/data/data-out.c:566
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
 msgstr "Weekdagnummer %f ligt niet tussen 1 en 7."
 
-#: src/data/data-out.c:569
+#: src/data/data-out.c:591
 #, c-format
 msgid "Month number %f is not between 1 and 12."
 msgstr "Maandnummer %f is niet tussen 1 en 12."
@@ -264,11 +265,11 @@ msgstr "systeem"
 msgid "scratch"
 msgstr "scratch"
 
-#: src/data/dictionary.c:1005
+#: src/data/dictionary.c:1010
 msgid "At least one case in the data file had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
 msgstr "Op zijn minst een case in het gegevensbestand heeft een gewichtwaarde user-missing, system-missing, nul, of negatief.  Deze case(s) zijn genegeerd."
 
-#: src/data/dictionary.c:1334
+#: src/data/dictionary.c:1339
 #, c-format
 msgid "Truncating document line to %d bytes."
 msgstr "Documentregel afgekapt tot %d bytes."
@@ -346,29 +347,29 @@ msgstr[1] "%s %s specificeert %d decimalen, maar de opgegeven breedte staat geen
 msgid "%s variables are not compatible with %s format %s."
 msgstr "%s variabelen zijn niet overeenkomstig met %s opmaak %s."
 
-#: src/data/format.c:415 src/data/format.c:1006
-#: src/ui/gui/var-type-dialog.ui:143
+#: src/data/format.c:415 src/data/format.c:1010
+#: src/ui/gui/var-type-dialog.ui:142
 msgid "String"
 msgstr "Tekenreeks"
 
-#: src/data/format.c:415 src/data/format.c:969
-#: src/ui/gui/var-type-dialog.ui:31
+#: src/data/format.c:415 src/data/format.c:973
+#: src/ui/gui/var-type-dialog.ui:30
 msgid "Numeric"
 msgstr "Numeriek"
 
 #: src/data/format.c:416 src/data/sys-file-reader.c:1719
-#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:506
-#: src/language/xforms/recode.c:507 src/language/xforms/recode.c:519
-#: src/language/xforms/recode.c:520
+#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:512
+#: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
+#: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
 msgid "numeric"
 msgstr "numeriek"
 
 #: src/data/format.c:416 src/data/sys-file-reader.c:1719
-#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:506
-#: src/language/xforms/recode.c:507 src/language/xforms/recode.c:519
-#: src/language/xforms/recode.c:520
+#: src/data/sys-file-reader.c:1721 src/language/xforms/recode.c:512
+#: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
+#: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
 msgid "string"
@@ -379,27 +380,27 @@ msgstr "tekenreeks"
 msgid "String variable with width %d is not compatible with format %s."
 msgstr "Tekenreeksvariabele met breedte %d is niet overeenkomstig met opmaaak %s."
 
-#: src/data/format.c:972 src/ui/gui/var-type-dialog.ui:47
+#: src/data/format.c:976 src/ui/gui/var-type-dialog.ui:46
 msgid "Comma"
 msgstr "Komma"
 
-#: src/data/format.c:975 src/ui/gui/var-type-dialog.ui:63
+#: src/data/format.c:979 src/ui/gui/var-type-dialog.ui:62
 msgid "Dot"
 msgstr "Punt"
 
-#: src/data/format.c:978
+#: src/data/format.c:982
 msgid "Scientific"
 msgstr "Wetenschappelijk"
 
-#: src/data/format.c:993 src/ui/gui/var-type-dialog.ui:95
+#: src/data/format.c:997 src/ui/gui/var-type-dialog.ui:94
 msgid "Date"
 msgstr "Datum"
 
-#: src/data/format.c:996 src/ui/gui/var-type-dialog.ui:111
+#: src/data/format.c:1000 src/ui/gui/var-type-dialog.ui:110
 msgid "Dollar"
 msgstr "Euro"
 
-#: src/data/format.c:1003
+#: src/data/format.c:1007
 msgid "Custom"
 msgstr "Aangepast"
 
@@ -408,23 +409,28 @@ msgstr "Aangepast"
 msgid "Support for %s files was not compiled into this installation of PSPP"
 msgstr "Ondersteuning voor %s-bestanden is niet gecompileerd in deze installatie van PSPP"
 
-#: src/data/gnumeric-reader.c:448 src/data/ods-reader.c:538
+#: src/data/gnumeric-reader.c:490 src/data/ods-reader.c:517
+#, c-format
+msgid "Cannot convert the value in the spreadsheet cell %s to format (%s): %s"
+msgstr "Kan de waarde in de rekenblad cel %s niet converteren naar het formaat (%s): %s"
+
+#: src/data/gnumeric-reader.c:513 src/data/ods-reader.c:572
 #, c-format
 msgid "There was a problem whilst reading the %s file `%s' (near line %d): `%s'"
-msgstr ""
+msgstr "Er was een probleem tijdens het lezen het %s bestand `%s' (nabij regel %d): `%s'"
 
-#: src/data/gnumeric-reader.c:536
+#: src/data/gnumeric-reader.c:608
 #, c-format
 msgid "The gnumeric file `%s' is encoded as %s instead of the usual UTF-8 encoding. Any non-ascii characters will be incorrectly imported."
-msgstr ""
+msgstr "Het gnumeric bestand `%s' is gecodeerd als %s inplaats van de gebruikelijke UTF-8 codering. Alle niet-ascii karakters zullen foutief geimporteerd worden."
 
-#: src/data/gnumeric-reader.c:582 src/data/ods-reader.c:655
+#: src/data/gnumeric-reader.c:652 src/data/ods-reader.c:703
 #, c-format
 msgid "Invalid cell range `%s'"
 msgstr "Ongeldig celbereik '%s'"
 
-#: src/data/gnumeric-reader.c:728 src/data/ods-reader.c:686
-#: src/data/ods-reader.c:822
+#: src/data/gnumeric-reader.c:824 src/data/ods-reader.c:731
+#: src/data/ods-reader.c:864
 #, c-format
 msgid "Selected sheet or range of spreadsheet `%s' is empty."
 msgstr "Geselecteerd blad of bereik van werkblad '%s' is leeg."
@@ -498,7 +504,7 @@ msgstr "Verwijderen %s: %s."
 msgid "%s is not a valid name for a multiple response set.  Multiple response set names must begin with `$'."
 msgstr "%s is geen geldige naam voor meervoudige response set.  Meervoudige response set namen moeten beginnen met `$'."
 
-#: src/data/ods-reader.c:593
+#: src/data/ods-reader.c:624
 #, c-format
 msgid "Cannot open %s as a OpenDocument file: %s"
 msgstr "Kan %s niet openen als een OpenDocument bestand: %s"
@@ -732,7 +738,7 @@ msgstr "Niet-herkend type 7, subtype %d.  Stuur s.v.p. een kopie van dit bestand
 #: src/data/sys-file-reader.c:442
 #, c-format
 msgid "Record type 7, subtype %d found here has the same type as the record found near offset 0x%llx.  Please send a copy of this file, and the syntax which created it to %s."
-msgstr ""
+msgstr "Hier gevonden recordtype 7, subtype %d heeft hetzelfde type als het record gevonden nabij offset 0x%llx.  Stuur svp een copy van dit bestand en de syntax waarmee het gecreëerd is naar %s."
 
 #: src/data/sys-file-reader.c:455
 #, c-format
@@ -1069,127 +1075,122 @@ msgstr "Onbekende systeembestand versie %d. Behandeld als versie %d."
 msgid "An I/O error occurred writing system file `%s'."
 msgstr "Een I/O fout is opgetreden tijdens het schrijven van systeembestand '%s'."
 
-#: src/data/variable.c:599
+#: src/data/variable.c:669
 #, c-format
 msgid "%s (%s)"
-msgstr ""
+msgstr "%s (%s)"
 
-#: src/data/variable.c:671
+#: src/data/variable.c:741
 #, c-format
 msgid "Truncating variable label for variable `%s' to %d bytes."
 msgstr "Afkappen variabelelabel voor variabele `%s' tot %d bytes."
 
-#: src/data/variable.c:719 src/language/dictionary/sys-file-info.c:505
-#: src/ui/gui/psppire-var-sheet.c:113
+#: src/data/variable.c:810 src/language/dictionary/sys-file-info.c:505
 msgid "Nominal"
 msgstr "Nominaal"
 
-#: src/data/variable.c:722 src/language/dictionary/sys-file-info.c:506
-#: src/ui/gui/psppire-var-sheet.c:114
+#: src/data/variable.c:813 src/language/dictionary/sys-file-info.c:506
 msgid "Ordinal"
 msgstr "Ordinaal"
 
-#: src/data/variable.c:725 src/language/dictionary/sys-file-info.c:507
-#: src/language/stats/ks-one-sample.c:327 src/ui/gui/psppire-var-sheet.c:115
+#: src/data/variable.c:816 src/language/dictionary/sys-file-info.c:507
+#: src/language/stats/ks-one-sample.c:327
 msgid "Scale"
 msgstr "Schaal"
 
-#: src/data/variable.c:801 src/language/dictionary/sys-file-info.c:511
-#: src/ui/gui/psppire-var-sheet.c:106
+#: src/data/variable.c:909 src/language/dictionary/sys-file-info.c:511
 msgid "Left"
 msgstr "Links"
 
-#: src/data/variable.c:804 src/language/dictionary/sys-file-info.c:513
-#: src/ui/gui/psppire-var-sheet.c:107
+#: src/data/variable.c:912 src/language/dictionary/sys-file-info.c:513
 msgid "Right"
 msgstr "Rechts"
 
-#: src/data/variable.c:807 src/language/dictionary/sys-file-info.c:512
-#: src/ui/gui/psppire-var-sheet.c:108
+#: src/data/variable.c:915 src/language/dictionary/sys-file-info.c:512
 msgid "Center"
 msgstr "Centreer"
 
-#: src/language/command.c:195 src/language/expressions/parse.c:1295
+#: src/language/command.c:207 src/language/expressions/parse.c:1295
 #: src/language/utilities/set.q:227
 #, c-format
 msgid "%s is not yet implemented."
 msgstr "%s is nog niet geïmplementeerd."
 
-#: src/language/command.c:200
+#: src/language/command.c:212
 #, c-format
 msgid "%s may be used only in testing mode."
 msgstr "%s mag alleen in testmodus gebruikt worden."
 
-#: src/language/command.c:205
+#: src/language/command.c:217
 #, c-format
 msgid "%s may be used only in enhanced syntax mode."
 msgstr "%s mag alleen in uitgebreide syntaxmodus gebruikt worden."
 
-#: src/language/command.c:333
+#: src/language/command.c:345
 msgid "expecting command name"
 msgstr "opdrachtnaam verwacht"
 
-#: src/language/command.c:335
+#: src/language/command.c:347
 #, c-format
 msgid "Unknown command `%s'."
 msgstr "Onbekende opdracht `%s'."
 
-#: src/language/command.c:368
+#: src/language/command.c:380
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined."
 msgstr "%s is alleen toegestaan voordat de actieve dataset is gedefinieerd."
 
-#: src/language/command.c:372
+#: src/language/command.c:384
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined."
 msgstr "%s is alleen toegestaan nadat de actieve dataset is gedefinieerd."
 
-#: src/language/command.c:376
+#: src/language/command.c:388
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM."
 msgstr "%s is alleen toegestaan binnen INPUT PROGRAM."
 
-#: src/language/command.c:380
+#: src/language/command.c:392
 #, c-format
 msgid "%s is allowed only inside FILE TYPE."
 msgstr "%s is alleen toegestaan binnen FILE TYPE."
 
-#: src/language/command.c:387 src/language/command.c:391
+#: src/language/command.c:399 src/language/command.c:403
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined or inside %s."
 msgstr "%s is alleen toegestaan voordat de actieve dataset is gedefinieerd of binnen %s."
 
-#: src/language/command.c:395 src/language/command.c:399
+#: src/language/command.c:407 src/language/command.c:411
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined or inside %s."
 msgstr "%s is alleen toegestaan nadat het actieve dataset is gedefinieerd of binnen %s."
 
-#: src/language/command.c:403
+#: src/language/command.c:415
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM or inside FILE TYPE."
 msgstr "%s is alleen toegestaan binnen INPUT PROGRAM of binnen FILE TYPE."
 
-#: src/language/command.c:408
+#: src/language/command.c:420
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
 msgstr "%s is alleen toegestaan nadat de actieve dataset is gedefinieerd, binnen INPUT PROGRAM, of binnen FILE TYPE."
 
-#: src/language/command.c:413
+#: src/language/command.c:425
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
 msgstr "%s is alleen toegestaan voordat de actieve dataset is gedefinieerd, binnen INPUT PROGRAM, of binnen FILE TYPE."
 
-#: src/language/command.c:431 src/language/command.c:434
+#: src/language/command.c:443 src/language/command.c:446
 #, c-format
 msgid "%s is not allowed inside %s."
 msgstr "%s is niet toegestaan binnen %s."
 
-#: src/language/command.c:516 src/language/utilities/host.c:130
+#: src/language/command.c:528 src/language/utilities/host.c:130
 #: src/language/utilities/permissions.c:105
 msgid "This command not allowed when the SAFER option is set."
 msgstr "Deze opdracht is niet toegestaan als de SAFER optie is gezet."
 
-#: src/language/command.c:532
+#: src/language/command.c:544
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr "Fout bij verwijderen '%s': %s."
@@ -1259,7 +1260,7 @@ msgid "Syntax error at end of input"
 msgstr "Syntaxfout bij het einde van de invoer"
 
 #: src/language/lexer/lexer.c:419 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:217 src/language/stats/npar.c:504
+#: src/language/stats/autorecode.c:216 src/language/stats/npar.c:504
 #: src/language/data-io/print-space.c:83
 msgid "expecting end of command"
 msgstr "verwacht einde-van-opdracht "
@@ -1349,7 +1350,7 @@ msgstr "Fout bij sluiten `%s': %s."
 #: src/language/lexer/subcommand-list.c:118
 #, c-format
 msgid "No more than %d %s subcommands allowed."
-msgstr ""
+msgstr "Niet meer dan %d %s subopdrachten toegestaan."
 
 #: src/language/lexer/format-parser.c:77
 msgid "expecting valid format specifier"
@@ -1357,7 +1358,7 @@ msgstr "verwacht geldige indelingsspecificator"
 
 #: src/language/lexer/format-parser.c:116
 #: src/language/lexer/format-parser.c:143 src/language/data-io/data-list.c:439
-#: src/language/data-io/get-data.c:618
+#: src/language/data-io/get-data.c:626
 #: src/language/data-io/placement-parser.c:236
 #, c-format
 msgid "Unknown format type `%s'."
@@ -1494,41 +1495,46 @@ msgstr "De steekproef factor moet exclusief tussen 0 en 1 liggen."
 msgid "Cannot sample %d observations from a population of %d."
 msgstr "Kan niet %d observaties bemonsteren van een populatie van %d."
 
-#: src/language/xforms/recode.c:255
+#: src/language/xforms/recode.c:261
 msgid "Inconsistent target variable types.  Target variables must be all numeric or all string."
 msgstr "Inconsistent doelvariabelen-types.  Doelvariabelen moeten allemaal numeriek of allemaal tekenreeks zijn."
 
-#: src/language/xforms/recode.c:276
+#: src/language/xforms/recode.c:282
 msgid "CONVERT requires string input values and numeric output values."
 msgstr "CONVERT vereist tekenreeks invoerwaardes en numerieke uitvoerwaardes."
 
-#: src/language/xforms/recode.c:333
+#: src/language/xforms/recode.c:339
 msgid "THRU is not allowed with string variables."
 msgstr "THRU is niet toegestaan met tekenreeksvariabelen."
 
-#: src/language/xforms/recode.c:416
+#: src/language/xforms/recode.c:422
 msgid "expecting output value"
 msgstr "verwacht uitvoerwaarde"
 
-#: src/language/xforms/recode.c:473
+#: src/language/xforms/recode.c:479
 #, c-format
 msgid "%zu variable(s) cannot be recoded into %zu variable(s).  Specify the same number of variables as source and target variables."
 msgstr "%zu variabel(en) kunnen niet gehercodeerd worden in %zu variabel(en).  Specificeer hetzelfde aantal variabelen als bron- en als doelvariabelen."
 
-#: src/language/xforms/recode.c:488
+#: src/language/xforms/recode.c:494
 #, c-format
 msgid "There is no variable named %s.  (All string variables specified on INTO must already exist.  Use the STRING command to create a string variable.)"
 msgstr "Er is geen variabele genaamd %s.  (Alle tekenreeksvariabelen gespecificeerd bij INTO dienen al te bestaan.  Gebruik de STRING opdracht om een tekenreeks variabele aan te maken.)"
 
-#: src/language/xforms/recode.c:504
+#: src/language/xforms/recode.c:510
 #, c-format
 msgid "INTO is required with %s input values and %s output values."
 msgstr "INTO is vereist met %s invoerwaardes en %s uitvoerwaardes."
 
-#: src/language/xforms/recode.c:517
+#: src/language/xforms/recode.c:523
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
 msgstr "Type fout. Kan %s gegevens niet in %s variabele %s opslaan."
+
+#: src/language/xforms/recode.c:566
+#, c-format
+msgid "Cannot recode because the variable %s would require a width of %d bytes or greater, but it has a width of only %d bytes."
+msgstr ""
 
 #: src/language/xforms/select-if.c:100
 msgid "Syntax error expecting OFF or BY.  Turning off case filtering."
@@ -1726,8 +1732,7 @@ msgstr "Het actieve dataset-woordenboek bevat geen meerdere-antwoord-sets."
 msgid "Multiple Response Sets"
 msgstr "Meervoudige Response Sets"
 
-#: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:551
-#: src/ui/gui/psppire-var-store.c:773
+#: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:1198
 msgid "Name"
 msgstr "Naam"
 
@@ -1751,8 +1756,7 @@ msgstr "Meervoudige categorie set"
 #: src/language/dictionary/split-file.c:84
 #: src/language/dictionary/sys-file-info.c:336
 #: src/language/dictionary/sys-file-info.c:579
-#: src/ui/gui/psppire-var-sheet.c:555 src/ui/gui/psppire-var-store.c:777
-#: src/ui/gui/compute.ui:479
+#: src/ui/gui/psppire-var-sheet.c:1211 src/ui/gui/compute.ui:479
 msgid "Label"
 msgstr "Label"
 
@@ -1812,9 +1816,9 @@ msgstr "Hernoemen zou variabelennaam %s dupliceren."
 #: src/language/dictionary/sys-file-info.c:425
 #: src/language/dictionary/sys-file-info.c:578
 #: src/language/stats/cochran.c:170 src/language/stats/examine.c:1130
-#: src/language/stats/reliability.c:780 src/language/stats/reliability.c:791
-#: src/language/stats/crosstabs.q:1263 src/language/stats/crosstabs.q:1290
-#: src/language/stats/crosstabs.q:1313 src/language/stats/crosstabs.q:1338
+#: src/language/stats/reliability.c:794 src/language/stats/reliability.c:805
+#: src/language/stats/crosstabs.q:1277 src/language/stats/crosstabs.q:1304
+#: src/language/stats/crosstabs.q:1327 src/language/stats/crosstabs.q:1352
 #: src/language/stats/frequencies.q:826 src/ui/gui/count.ui:244
 msgid "Value"
 msgstr "Waarde"
@@ -1891,7 +1895,7 @@ msgid "Type:"
 msgstr "Type:"
 
 #: src/language/dictionary/sys-file-info.c:127
-#: src/ui/gui/psppire-data-window.c:516
+#: src/ui/gui/psppire-data-window.c:496
 msgid "System File"
 msgstr "Systeembestand"
 
@@ -2225,12 +2229,12 @@ msgstr "De volgorde van de geldige argumenten doorgegeven aan de %s functie klop
 msgid "Variable name %s is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
 msgstr "Variabelennaam %s is niet uniek binnen het aggregate-bestandwoordenboek, dat de aggregate- en break-variabelen bevat."
 
-#: src/language/stats/autorecode.c:164
+#: src/language/stats/autorecode.c:163
 #, c-format
 msgid "Source variable count (%zu) does not match target variable count (%zu)."
 msgstr "Bron-variabelenteller (%zu) komt niet overeen met doel-variabelenteller (%zu)."
 
-#: src/language/stats/autorecode.c:176
+#: src/language/stats/autorecode.c:175
 #, c-format
 msgid "Target variable %s duplicates existing variable %s."
 msgstr "Doelvariabele %s dupliceert bestaande variabele %s."
@@ -2255,19 +2259,19 @@ msgstr "Groep2"
 #: src/language/stats/binomial.c:219 src/language/stats/chisquare.c:180
 #: src/language/stats/chisquare.c:239 src/language/stats/examine.c:1335
 #: src/language/stats/factor.c:1513 src/language/stats/glm.c:849
-#: src/language/stats/kruskal-wallis.c:325 src/language/stats/logistic.c:1390
-#: src/language/stats/mann-whitney.c:188 src/language/stats/means.c:1057
-#: src/language/stats/oneway.c:993 src/language/stats/oneway.c:1164
-#: src/language/stats/reliability.c:560 src/language/stats/regression.c:863
+#: src/language/stats/kruskal-wallis.c:325 src/language/stats/logistic.c:1409
+#: src/language/stats/mann-whitney.c:188 src/language/stats/means.c:1079
+#: src/language/stats/oneway.c:998 src/language/stats/oneway.c:1169
+#: src/language/stats/reliability.c:574 src/language/stats/regression.c:907
 #: src/language/stats/sign.c:95 src/language/stats/wilcoxon.c:255
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:91
-#: src/language/stats/crosstabs.q:861 src/language/stats/crosstabs.q:1205
-#: src/language/stats/crosstabs.q:1588 src/language/stats/frequencies.q:884
+#: src/language/stats/crosstabs.q:874 src/language/stats/crosstabs.q:1219
+#: src/language/stats/crosstabs.q:1604 src/language/stats/frequencies.q:884
 msgid "Total"
 msgstr "Totaal"
 
 #: src/language/stats/binomial.c:252 src/language/stats/chisquare.c:202
-#: src/language/stats/crosstabs.q:1288 src/language/stats/crosstabs.q:1335
+#: src/language/stats/crosstabs.q:1302 src/language/stats/crosstabs.q:1349
 msgid "Category"
 msgstr "Categorie"
 
@@ -2275,17 +2279,17 @@ msgstr "Categorie"
 #: src/language/stats/correlations.c:120 src/language/stats/correlations.c:229
 #: src/language/stats/examine.c:1340 src/language/stats/friedman.c:275
 #: src/language/stats/kruskal-wallis.c:273
-#: src/language/stats/ks-one-sample.c:293 src/language/stats/logistic.c:1384
+#: src/language/stats/ks-one-sample.c:293 src/language/stats/logistic.c:1403
 #: src/language/stats/jonckheere-terpstra.c:380
 #: src/language/stats/mann-whitney.c:190 src/language/stats/means.c:408
-#: src/language/stats/means.c:1066 src/language/stats/mcnemar.c:259
+#: src/language/stats/means.c:1088 src/language/stats/mcnemar.c:259
 #: src/language/stats/median.c:417 src/language/stats/npar-summary.c:123
-#: src/language/stats/oneway.c:1063 src/language/stats/reliability.c:563
+#: src/language/stats/oneway.c:1068 src/language/stats/reliability.c:577
 #: src/language/stats/sign.c:74 src/language/stats/t-test-indep.c:211
 #: src/language/stats/t-test-one-sample.c:158
 #: src/language/stats/t-test-paired.c:179
 #: src/language/stats/t-test-paired.c:233 src/language/stats/wilcoxon.c:238
-#: src/language/stats/crosstabs.q:868 src/language/stats/frequencies.q:1046
+#: src/language/stats/crosstabs.q:881 src/language/stats/frequencies.q:1046
 msgid "N"
 msgstr "N"
 
@@ -2297,8 +2301,8 @@ msgstr "Observed Prop."
 msgid "Test Prop."
 msgstr "Test Prop."
 
-#: src/language/stats/binomial.c:258 src/language/stats/crosstabs.q:1268
-#: src/language/stats/crosstabs.q:1270
+#: src/language/stats/binomial.c:258 src/language/stats/crosstabs.q:1282
+#: src/language/stats/crosstabs.q:1284
 #, c-format
 msgid "Exact Sig. (%d-tailed)"
 msgstr ""
@@ -2317,7 +2321,7 @@ msgid "Expected N"
 msgstr "Verwacht N"
 
 #: src/language/stats/chisquare.c:166 src/language/stats/chisquare.c:205
-#: src/language/stats/regression.c:862
+#: src/language/stats/regression.c:906
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:93
 msgid "Residual"
 msgstr "Overblijvend"
@@ -2344,11 +2348,11 @@ msgstr "Chi-Square"
 #: src/language/stats/chisquare.c:267 src/language/stats/cochran.c:217
 #: src/language/stats/factor.c:1880 src/language/stats/friedman.c:285
 #: src/language/stats/glm.c:750 src/language/stats/kruskal-wallis.c:349
-#: src/language/stats/logistic.c:1204 src/language/stats/median.c:426
-#: src/language/stats/oneway.c:970 src/language/stats/oneway.c:1375
-#: src/language/stats/regression.c:856 src/language/stats/t-test-indep.c:291
+#: src/language/stats/logistic.c:1223 src/language/stats/median.c:426
+#: src/language/stats/oneway.c:975 src/language/stats/oneway.c:1380
+#: src/language/stats/regression.c:900 src/language/stats/t-test-indep.c:291
 #: src/language/stats/t-test-one-sample.c:95
-#: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1264
+#: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1278
 msgid "df"
 msgstr "df"
 
@@ -2384,7 +2388,7 @@ msgstr "Descriptieve Statistieken"
 #: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:106
 #: src/language/stats/examine.c:886 src/language/stats/factor.c:1806
 #: src/language/stats/ks-one-sample.c:302 src/language/stats/means.c:407
-#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:1064
+#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:1069
 #: src/language/stats/t-test-indep.c:212
 #: src/language/stats/t-test-one-sample.c:159
 #: src/language/stats/t-test-paired.c:180
@@ -2398,7 +2402,7 @@ msgstr "Gemiddelde "
 #: src/language/stats/correlations.c:119 src/language/stats/examine.c:978
 #: src/language/stats/factor.c:1807 src/language/stats/ks-one-sample.c:304
 #: src/language/stats/means.c:409 src/language/stats/npar-summary.c:129
-#: src/language/stats/oneway.c:1065 src/language/stats/t-test-indep.c:213
+#: src/language/stats/oneway.c:1070 src/language/stats/t-test-indep.c:213
 #: src/language/stats/t-test-one-sample.c:160
 #: src/language/stats/t-test-paired.c:181
 #: src/language/stats/t-test-paired.c:309
@@ -2413,7 +2417,7 @@ msgstr "Correlatie"
 msgid "Pearson Correlation"
 msgstr "Pearson Correlatie"
 
-#: src/language/stats/correlations.c:220 src/language/stats/oneway.c:1376
+#: src/language/stats/correlations.c:220 src/language/stats/oneway.c:1381
 #: src/language/stats/t-test-indep.c:292
 #: src/language/stats/t-test-one-sample.c:96
 #: src/language/stats/t-test-paired.c:307
@@ -2433,7 +2437,7 @@ msgid "Covariance"
 msgstr "Covariantie"
 
 #: src/language/stats/correlations.c:458 src/language/stats/descriptives.c:371
-#: src/language/data-io/list.q:90
+#: src/language/data-io/list.c:167
 msgid "No variables specified."
 msgstr "Geen variabelen gespecificeerd."
 
@@ -2492,7 +2496,7 @@ msgstr "Bereik"
 
 #: src/language/stats/descriptives.c:115 src/language/stats/examine.c:990
 #: src/language/stats/ks-one-sample.c:311
-#: src/language/stats/npar-summary.c:132 src/language/stats/oneway.c:1078
+#: src/language/stats/npar-summary.c:132 src/language/stats/oneway.c:1083
 #: src/ui/gui/psppire-dialog-action-descriptives.c:41
 #: src/ui/gui/psppire-dialog-action-frequencies.c:42
 #: src/language/stats/frequencies.q:118
@@ -2501,7 +2505,7 @@ msgstr "Minimum"
 
 #: src/language/stats/descriptives.c:116 src/language/stats/examine.c:1004
 #: src/language/stats/ks-one-sample.c:313
-#: src/language/stats/npar-summary.c:135 src/language/stats/oneway.c:1079
+#: src/language/stats/npar-summary.c:135 src/language/stats/oneway.c:1084
 #: src/ui/gui/psppire-dialog-action-descriptives.c:42
 #: src/ui/gui/psppire-dialog-action-frequencies.c:43
 #: src/language/stats/frequencies.q:119
@@ -2520,44 +2524,48 @@ msgstr "Som"
 msgid "Z-score variable name %s would be a duplicate variable name."
 msgstr "Z-score-variabelennaam %s zou een dubbele variabelennaam zijn."
 
-#: src/language/stats/descriptives.c:474
+#: src/language/stats/descriptives.c:404
+msgid "DESCRIPTIVES with Z scores ignores TEMPORARY.  Temporary transformations will be made permanent."
+msgstr "DESCRIPTIVES met Z scores negeert TEMPORARY. Tijdelijke transformaties worden permanent gemaakt."
+
+#: src/language/stats/descriptives.c:482
 msgid "expecting statistic name: reverting to default"
 msgstr "statistische naam verwacht: teruggezet op standaardwaarde"
 
-#: src/language/stats/descriptives.c:557
+#: src/language/stats/descriptives.c:565
 msgid "Ran out of generic names for Z-score variables.  There are only 126 generic names: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
 msgstr "Generieke namen voor Z-score-variabelen zijn uitgeput.  Er zijn slechts 126 generieke namen: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
 
-#: src/language/stats/descriptives.c:586
+#: src/language/stats/descriptives.c:594
 msgid "Mapping of variables to corresponding Z-scores."
 msgstr "Mappen van variabelen naar corresponderende Z-scores."
 
-#: src/language/stats/descriptives.c:590 src/language/stats/glm.c:744
+#: src/language/stats/descriptives.c:598 src/language/stats/glm.c:744
 msgid "Source"
 msgstr "Bron"
 
-#: src/language/stats/descriptives.c:591
+#: src/language/stats/descriptives.c:599
 msgid "Target"
 msgstr "Doel"
 
-#: src/language/stats/descriptives.c:643
+#: src/language/stats/descriptives.c:651
 msgid "Internal error processing Z scores"
 msgstr ""
 
-#: src/language/stats/descriptives.c:738
+#: src/language/stats/descriptives.c:749
 #, c-format
 msgid "Z-score of %s"
 msgstr "Z-score van %s"
 
-#: src/language/stats/descriptives.c:973
+#: src/language/stats/descriptives.c:985
 msgid "Valid N"
 msgstr "Geldige N"
 
-#: src/language/stats/descriptives.c:974
+#: src/language/stats/descriptives.c:986
 msgid "Missing N"
 msgstr "Missende N"
 
-#: src/language/stats/descriptives.c:1002
+#: src/language/stats/descriptives.c:1014
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
 msgstr "Geldige cases = %g; cases met ontbrekende-waarde(s) = %g."
@@ -2603,35 +2611,35 @@ msgstr "%g"
 msgid "Tukey's Hinges"
 msgstr "Tukey's Hinges"
 
-#: src/language/stats/examine.c:787 src/language/stats/oneway.c:1081
+#: src/language/stats/examine.c:787 src/language/stats/oneway.c:1086
 #: src/ui/gui/descriptives.ui:8
 msgid "Descriptives"
 msgstr "Descriptieve"
 
 #: src/language/stats/examine.c:804 src/ui/gui/checkbox-treeview.c:94
-#: src/language/stats/crosstabs.q:1262 src/language/stats/crosstabs.q:1289
-#: src/language/stats/crosstabs.q:1312 src/language/stats/crosstabs.q:1336
+#: src/language/stats/crosstabs.q:1276 src/language/stats/crosstabs.q:1303
+#: src/language/stats/crosstabs.q:1326 src/language/stats/crosstabs.q:1350
 msgid "Statistic"
 msgstr "Statistiek"
 
-#: src/language/stats/examine.c:807 src/language/stats/oneway.c:1066
-#: src/language/stats/oneway.c:1373 src/language/stats/oneway.c:1578
-#: src/language/stats/roc.c:975 src/language/stats/regression.c:770
+#: src/language/stats/examine.c:807 src/language/stats/oneway.c:1071
+#: src/language/stats/oneway.c:1378 src/language/stats/oneway.c:1583
+#: src/language/stats/roc.c:978 src/language/stats/regression.c:811
 msgid "Std. Error"
 msgstr "Std. Fout"
 
-#: src/language/stats/examine.c:903 src/language/stats/oneway.c:1072
+#: src/language/stats/examine.c:903 src/language/stats/oneway.c:1077
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/language/stats/examine.c:911 src/language/stats/oneway.c:1075
-#: src/language/stats/oneway.c:1585 src/language/stats/roc.c:978
+#: src/language/stats/examine.c:911 src/language/stats/oneway.c:1080
+#: src/language/stats/oneway.c:1590 src/language/stats/roc.c:981
 msgid "Lower Bound"
 msgstr "Benedengrens"
 
-#: src/language/stats/examine.c:924 src/language/stats/oneway.c:1076
-#: src/language/stats/oneway.c:1586 src/language/stats/roc.c:979
+#: src/language/stats/examine.c:924 src/language/stats/oneway.c:1081
+#: src/language/stats/oneway.c:1591 src/language/stats/roc.c:982
 msgid "Upper Bound"
 msgstr "Bovengrens"
 
@@ -2654,7 +2662,7 @@ msgstr "Interquartile Range"
 msgid "Extreme Values"
 msgstr "Extreme Waardes"
 
-#: src/language/stats/examine.c:1127 src/language/data-io/list.q:157
+#: src/language/stats/examine.c:1127 src/language/data-io/list.c:114
 msgid "Case Number"
 msgstr "Case Nummer"
 
@@ -2666,44 +2674,43 @@ msgstr "Hoogste"
 msgid "Lowest"
 msgstr "Laagste"
 
-#: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1374
-#: src/language/stats/means.c:1042 src/language/stats/reliability.c:528
+#: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1393
+#: src/language/stats/means.c:1064 src/language/stats/reliability.c:542
 msgid "Case Processing Summary"
 msgstr "Case Bewerkingsoverzicht"
 
-#: src/language/stats/examine.c:1321 src/language/stats/means.c:1053
-#: src/language/stats/reliability.c:551 src/language/stats/crosstabs.q:858
+#: src/language/stats/examine.c:1321 src/language/stats/means.c:1075
+#: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:871
 msgid "Cases"
 msgstr "Cases"
 
 #: src/language/stats/examine.c:1325 src/language/stats/quick-cluster.c:475
-#: src/language/stats/reliability.c:554 src/language/stats/crosstabs.q:859
+#: src/language/stats/reliability.c:568 src/language/stats/crosstabs.q:872
 #: src/language/stats/frequencies.q:1047
 msgid "Valid"
 msgstr "Geldig"
 
-#: src/language/stats/examine.c:1330 src/ui/gui/psppire-var-sheet.c:557
-#: src/ui/gui/psppire-var-store.c:779 src/language/stats/crosstabs.q:860
+#: src/language/stats/examine.c:1330 src/language/stats/crosstabs.q:873
 #: src/language/stats/frequencies.q:877 src/language/stats/frequencies.q:1048
 msgid "Missing"
 msgstr "Ontbrekend"
 
-#: src/language/stats/examine.c:1342 src/language/stats/logistic.c:1385
-#: src/language/stats/means.c:1068 src/language/stats/crosstabs.q:869
+#: src/language/stats/examine.c:1342 src/language/stats/logistic.c:1404
+#: src/language/stats/means.c:1090 src/language/stats/crosstabs.q:882
 #: src/language/stats/frequencies.q:828
 msgid "Percent"
 msgstr "Percentage"
 
-#: src/language/stats/examine.c:1982
+#: src/language/stats/examine.c:1980
 #, c-format
 msgid "%s may not be negative. Using default value (%g)."
-msgstr ""
+msgstr "%s mag niet negatief zijn. Gebruik verstekwaarde (%g)."
 
-#: src/language/stats/examine.c:2019
+#: src/language/stats/examine.c:2017
 msgid "Percentiles must lie in the range (0, 100)"
-msgstr ""
+msgstr "Percentiles dienen in de range (0, 100) te liggen"
 
-#: src/language/stats/examine.c:2213
+#: src/language/stats/examine.c:2211
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr "%s en %s zijn wederzijds exclusief"
@@ -2740,9 +2747,7 @@ msgstr "Component"
 msgid "Factor"
 msgstr "Factor"
 
-#: src/language/stats/factor.c:1398 src/ui/gui/psppire-data-store.c:755
-#: src/ui/gui/psppire-var-store.c:635 src/ui/gui/psppire-var-store.c:645
-#: src/ui/gui/psppire-var-store.c:655 src/ui/gui/psppire-var-store.c:766
+#: src/language/stats/factor.c:1398
 #, c-format
 msgid "%d"
 msgstr "%d"
@@ -2810,7 +2815,7 @@ msgid "Approx. Chi-Square"
 msgstr "Approx. Chi-Square"
 
 #: src/language/stats/factor.c:1881 src/language/stats/glm.c:753
-#: src/language/stats/logistic.c:1205 src/language/stats/oneway.c:1579
+#: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:1584
 #: src/language/stats/t-test-indep.c:289
 #: src/language/stats/t-test-paired.c:235
 msgid "Sig."
@@ -2840,7 +2845,7 @@ msgstr "Geroteerde componentmatrix"
 msgid "Rotated Factor Matrix"
 msgstr "Geroteerde factormatrix:"
 
-#: src/language/stats/flip.c:99
+#: src/language/stats/flip.c:100
 msgid "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
 msgstr "FLIP negeert TEMPORARY. Tijdelijke transformaties worden permanent gemaakt."
 
@@ -2848,45 +2853,45 @@ msgstr "FLIP negeert TEMPORARY. Tijdelijke transformaties worden permanent gemaa
 msgid "Could not create temporary file for FLIP."
 msgstr "Kon geen tijdelijk bestand voor FLIP aanmaken."
 
-#: src/language/stats/flip.c:326
+#: src/language/stats/flip.c:333
 #, c-format
 msgid "Error rewinding FLIP file: %s."
 msgstr "Fout tijdens terugdraaien FLIP bestand: %s."
 
-#: src/language/stats/flip.c:333
+#: src/language/stats/flip.c:340
 msgid "Error creating FLIP source file."
 msgstr "Fout tijdens het creëren van FLIP bronbestand."
 
-#: src/language/stats/flip.c:346
+#: src/language/stats/flip.c:353
 #, c-format
 msgid "Error reading FLIP file: %s."
 msgstr "Fout tijdens lezen FLIP bestand: %s."
 
-#: src/language/stats/flip.c:348
+#: src/language/stats/flip.c:355
 msgid "Unexpected end of file reading FLIP file."
 msgstr "Onverwacht einde-bestand tijdens lezen FLIP bestand."
 
-#: src/language/stats/flip.c:364
+#: src/language/stats/flip.c:371
 #, c-format
 msgid "Error seeking FLIP source file: %s."
 msgstr "Fout tijdens zoeken FLIP bronbestand: %s."
 
-#: src/language/stats/flip.c:372
+#: src/language/stats/flip.c:379
 #, c-format
 msgid "Error writing FLIP source file: %s."
 msgstr "Fout tijdens schrijven FLIP bronbestand: %s."
 
-#: src/language/stats/flip.c:387
+#: src/language/stats/flip.c:394
 #, c-format
 msgid "Error rewinding FLIP source file: %s."
 msgstr "Fout tijdens terugdraaien FLIP bronbestand: %s."
 
-#: src/language/stats/flip.c:420
+#: src/language/stats/flip.c:425
 #, c-format
 msgid "Error reading FLIP temporary file: %s."
 msgstr "Fout tijdens lezen FLIP tijdelijk bestand: %s."
 
-#: src/language/stats/flip.c:423
+#: src/language/stats/flip.c:428
 msgid "Unexpected end of file reading FLIP temporary file."
 msgstr "Onverwacht einde-bestand tijdens lezen FLIP tijdelijk bestand."
 
@@ -2921,13 +2926,13 @@ msgstr ""
 msgid "Type %s Sum of Squares"
 msgstr "Type %s Sum of Squares"
 
-#: src/language/stats/glm.c:751 src/language/stats/oneway.c:971
-#: src/language/stats/regression.c:857
+#: src/language/stats/glm.c:751 src/language/stats/oneway.c:976
+#: src/language/stats/regression.c:901
 msgid "Mean Square"
 msgstr "Mean Square"
 
-#: src/language/stats/glm.c:752 src/language/stats/oneway.c:972
-#: src/language/stats/regression.c:858 src/language/stats/t-test-indep.c:288
+#: src/language/stats/glm.c:752 src/language/stats/oneway.c:977
+#: src/language/stats/regression.c:902 src/language/stats/t-test-indep.c:288
 msgid "F"
 msgstr "F"
 
@@ -2935,7 +2940,7 @@ msgstr "F"
 msgid "Corrected Model"
 msgstr "Gecorrigeerd model "
 
-#: src/language/stats/glm.c:763 src/language/stats/regression.c:910
+#: src/language/stats/glm.c:763 src/language/stats/regression.c:954
 msgid "Model"
 msgstr "Model"
 
@@ -2969,7 +2974,7 @@ msgstr ""
 
 #: src/language/stats/ks-one-sample.c:320
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:74
-#: src/language/stats/crosstabs.q:1972
+#: src/language/stats/crosstabs.q:1988
 msgid "Lambda"
 msgstr "Lambda"
 
@@ -2985,11 +2990,11 @@ msgstr "Meest extreme verschillen"
 msgid "Absolute"
 msgstr "Absolute"
 
-#: src/language/stats/ks-one-sample.c:390 src/language/stats/roc.c:1076
+#: src/language/stats/ks-one-sample.c:390 src/language/stats/roc.c:1079
 msgid "Positive"
 msgstr "Positief"
 
-#: src/language/stats/ks-one-sample.c:393 src/language/stats/roc.c:1077
+#: src/language/stats/ks-one-sample.c:393 src/language/stats/roc.c:1080
 msgid "Negative"
 msgstr "Negatief"
 
@@ -3000,161 +3005,160 @@ msgstr "Kolmogorov-Smirnov Z"
 #: src/language/stats/ks-one-sample.c:399
 #: src/language/stats/jonckheere-terpstra.c:385
 #: src/language/stats/mann-whitney.c:267 src/language/stats/runs.c:399
-#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1266
+#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1280
 msgid "Asymp. Sig. (2-tailed)"
 msgstr "Asymp. Sig. (2-tailed)"
 
 #: src/language/stats/logistic.c:327
 msgid "All predicted values are either 1 or 0"
-msgstr ""
+msgstr "Alle voorspelde waardes zijn of 1 of 0."
 
 #: src/language/stats/logistic.c:525
 #, fuzzy
 msgid "Dependent variable's values are not dichotomous."
 msgstr "Afhankelijke variabele moet numeriek zijn."
 
-#: src/language/stats/logistic.c:612
+#: src/language/stats/logistic.c:614
 #, c-format
 msgid "Category %s does not have at least two distinct values. Logistic regression will not be run."
 msgstr ""
 
-#: src/language/stats/logistic.c:672
+#: src/language/stats/logistic.c:674
 #, c-format
 msgid "Estimation terminated at iteration number %d because parameter estimates changed by less than %g"
 msgstr ""
 
-#: src/language/stats/logistic.c:684
+#: src/language/stats/logistic.c:686
 #, c-format
 msgid "Estimation terminated at iteration number %d because Log Likelihood decreased by less than %g%%"
 msgstr ""
 
-#: src/language/stats/logistic.c:699
+#: src/language/stats/logistic.c:701
 #, c-format
 msgid "Estimation terminated at iteration number %d because maximum iterations has been reached"
 msgstr ""
 
-#: src/language/stats/logistic.c:984
+#: src/language/stats/logistic.c:995
 msgid "Cut point value must be in the range [0,1]"
-msgstr ""
+msgstr "Snijpunt waarde dient in the range [0,1] te zijn"
 
-#: src/language/stats/logistic.c:1129
-#, fuzzy
+#: src/language/stats/logistic.c:1148
 msgid "Dependent Variable Encoding"
-msgstr "_Afhankelijke variabele:"
+msgstr "Afhankelijke variabele codering"
 
-#: src/language/stats/logistic.c:1138
+#: src/language/stats/logistic.c:1157
 msgid "Original Value"
 msgstr "Oorspronkelijke Waarde"
 
-#: src/language/stats/logistic.c:1139
+#: src/language/stats/logistic.c:1158
 msgid "Internal Value"
 msgstr "Interne Waarde"
 
-#: src/language/stats/logistic.c:1190
+#: src/language/stats/logistic.c:1209
 msgid "Variables in the Equation"
 msgstr "Variabelen in de vergelijking"
 
-#: src/language/stats/logistic.c:1199 src/language/stats/logistic.c:1345
-#: src/language/stats/logistic.c:1540
+#: src/language/stats/logistic.c:1218 src/language/stats/logistic.c:1364
+#: src/language/stats/logistic.c:1559
 msgid "Step 1"
 msgstr "Stap 1"
 
-#: src/language/stats/logistic.c:1201 src/language/stats/regression.c:769
+#: src/language/stats/logistic.c:1220 src/language/stats/regression.c:810
 msgid "B"
 msgstr "B"
 
-#: src/language/stats/logistic.c:1202
+#: src/language/stats/logistic.c:1221
 msgid "S.E."
 msgstr "S.E."
 
-#: src/language/stats/logistic.c:1203
+#: src/language/stats/logistic.c:1222
 msgid "Wald"
 msgstr "Wald"
 
-#: src/language/stats/logistic.c:1206
+#: src/language/stats/logistic.c:1225
 msgid "Exp(B)"
 msgstr "Exp(B)"
 
-#: src/language/stats/logistic.c:1211
+#: src/language/stats/logistic.c:1230
 #, c-format
 msgid "%d%% CI for Exp(B)"
-msgstr ""
+msgstr "%d%% CI voor Exp(B)"
 
-#: src/language/stats/logistic.c:1213 src/language/stats/t-test-indep.c:295
+#: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:295
 #: src/language/stats/t-test-one-sample.c:98
-#: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1314
+#: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1328
 msgid "Lower"
 msgstr "Lager"
 
-#: src/language/stats/logistic.c:1214 src/language/stats/t-test-indep.c:296
+#: src/language/stats/logistic.c:1233 src/language/stats/t-test-indep.c:296
 #: src/language/stats/t-test-one-sample.c:99
-#: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1315
+#: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1329
 msgid "Upper"
 msgstr "Hoger"
 
-#: src/language/stats/logistic.c:1291
+#: src/language/stats/logistic.c:1310
 msgid "Constant"
 msgstr "Constant"
 
-#: src/language/stats/logistic.c:1336
+#: src/language/stats/logistic.c:1355
 msgid "Model Summary"
 msgstr "Model Summary"
 
-#: src/language/stats/logistic.c:1346
+#: src/language/stats/logistic.c:1365
 msgid "-2 Log likelihood"
 msgstr "-2 Log Waarschijnlijkheid"
 
-#: src/language/stats/logistic.c:1350
+#: src/language/stats/logistic.c:1369
 msgid "Cox & Snell R Square"
-msgstr ""
+msgstr "Cox & Snell R Square"
 
-#: src/language/stats/logistic.c:1354
+#: src/language/stats/logistic.c:1373
 msgid "Nagelkerke R Square"
-msgstr ""
+msgstr "Nagelkerke R Square"
 
-#: src/language/stats/logistic.c:1383
+#: src/language/stats/logistic.c:1402
 msgid "Unweighted Cases"
 msgstr "Ongewogen cases"
 
-#: src/language/stats/logistic.c:1388
+#: src/language/stats/logistic.c:1407
 msgid "Included in Analysis"
 msgstr "In analyse meegenomen"
 
-#: src/language/stats/logistic.c:1389
+#: src/language/stats/logistic.c:1408
 msgid "Missing Cases"
 msgstr "Ontbrekende Cases"
 
-#: src/language/stats/logistic.c:1438
+#: src/language/stats/logistic.c:1457
 msgid "Categorical Variables' Codings"
 msgstr ""
 
-#: src/language/stats/logistic.c:1448 src/output/charts/plot-hist-cairo.c:119
+#: src/language/stats/logistic.c:1467 src/output/charts/plot-hist-cairo.c:119
 #: src/language/stats/frequencies.q:827
 msgid "Frequency"
 msgstr "Frequenties"
 
-#: src/language/stats/logistic.c:1451
+#: src/language/stats/logistic.c:1470
 msgid "Parameter coding"
 msgstr "Parameter codering"
 
-#: src/language/stats/logistic.c:1457
+#: src/language/stats/logistic.c:1476
 #, c-format
 msgid "(%d)"
 msgstr "(%d)"
 
-#: src/language/stats/logistic.c:1530
+#: src/language/stats/logistic.c:1549
 msgid "Classification Table"
 msgstr "Classificatie Tabel"
 
-#: src/language/stats/logistic.c:1544
+#: src/language/stats/logistic.c:1563
 msgid "Predicted"
 msgstr "Voorspeld"
 
-#: src/language/stats/logistic.c:1550
+#: src/language/stats/logistic.c:1569
 msgid "Observed"
 msgstr "Waargenomen"
 
-#: src/language/stats/logistic.c:1556
+#: src/language/stats/logistic.c:1575
 msgid ""
 "Percentage\n"
 "Correct"
@@ -3162,7 +3166,7 @@ msgstr ""
 "Percentage\n"
 "Correct"
 
-#: src/language/stats/logistic.c:1560
+#: src/language/stats/logistic.c:1579
 msgid "Overall Percentage"
 msgstr "Overall Percentage"
 
@@ -3254,27 +3258,27 @@ msgstr "Harmonic Mean"
 msgid "Geom. Mean"
 msgstr "Geom. Mean"
 
-#: src/language/stats/means.c:1055
+#: src/language/stats/means.c:1077
 msgid "Included"
 msgstr "Opgenomen"
 
-#: src/language/stats/means.c:1056 src/language/stats/reliability.c:557
+#: src/language/stats/means.c:1078 src/language/stats/reliability.c:571
 msgid "Excluded"
 msgstr "Uitgesloten"
 
-#: src/language/stats/means.c:1098 src/language/stats/means.c:1107
-#: src/language/stats/means.c:1116
+#: src/language/stats/means.c:1120 src/language/stats/means.c:1129
+#: src/language/stats/means.c:1138
 #, c-format
 msgid "%g%%"
 msgstr "%g%%"
 
-#: src/language/stats/means.c:1148
+#: src/language/stats/means.c:1170
 msgid "Report"
-msgstr ""
+msgstr "Rapport"
 
 #: src/language/stats/mcnemar.c:143
 msgid "The McNemar test is appropriate only for dichotomous variables"
-msgstr ""
+msgstr "De McNemar test is allen zinvol voor dichotome variabelen "
 
 #: src/language/stats/mcnemar.c:265 src/language/stats/sign.c:136
 #: src/language/stats/wilcoxon.c:323
@@ -3324,142 +3328,143 @@ msgstr "50ste (Mediaan)"
 msgid "75th"
 msgstr "75ste"
 
-#: src/language/stats/oneway.c:358
+#: src/language/stats/oneway.c:359
 msgid "LSD"
 msgstr "LSD"
 
-#: src/language/stats/oneway.c:359
+#: src/language/stats/oneway.c:360
 msgid "Tukey HSD"
 msgstr "Tukey HSD"
 
-#: src/language/stats/oneway.c:360
+#: src/language/stats/oneway.c:361
 msgid "Bonferroni"
 msgstr "Bonferroni"
 
-#: src/language/stats/oneway.c:361
+#: src/language/stats/oneway.c:362
 msgid "Scheffé"
 msgstr "Scheffé"
 
-#: src/language/stats/oneway.c:362
+#: src/language/stats/oneway.c:363
 msgid "Games-Howell"
 msgstr "Games-Howell"
 
-#: src/language/stats/oneway.c:363
+#: src/language/stats/oneway.c:364
 msgid "Šidák"
 msgstr "Šidák"
 
-#: src/language/stats/oneway.c:511
+#: src/language/stats/oneway.c:512
 #, c-format
 msgid "The post hoc analysis method %s is not supported."
-msgstr ""
+msgstr "De post hoc analysis methode %s is niet gesupport."
 
-#: src/language/stats/oneway.c:826
+#: src/language/stats/oneway.c:827
 #, c-format
 msgid "Dependent variable %s has no non-missing values.  No analysis for this variable will be done."
 msgstr ""
 
-#: src/language/stats/oneway.c:904
+#: src/language/stats/oneway.c:909
 #, c-format
 msgid "In contrast list %zu, the number of coefficients (%zu) does not equal the number of groups (%d). This contrast list will be ignored."
 msgstr ""
 
-#: src/language/stats/oneway.c:916
+#: src/language/stats/oneway.c:921
 #, c-format
 msgid "Coefficients for contrast %zu do not total zero"
 msgstr ""
 
-#: src/language/stats/oneway.c:969 src/language/stats/regression.c:855
+#: src/language/stats/oneway.c:974 src/language/stats/regression.c:899
 msgid "Sum of Squares"
 msgstr "Sum of Squares"
 
-#: src/language/stats/oneway.c:973 src/language/stats/oneway.c:1220
-#: src/language/stats/regression.c:773 src/language/stats/regression.c:859
+#: src/language/stats/oneway.c:978 src/language/stats/oneway.c:1225
+#: src/language/stats/regression.c:814 src/language/stats/regression.c:903
 msgid "Significance"
 msgstr "Significantie "
 
-#: src/language/stats/oneway.c:991
+#: src/language/stats/oneway.c:996
 msgid "Between Groups"
 msgstr "Tussen groepen"
 
-#: src/language/stats/oneway.c:992
+#: src/language/stats/oneway.c:997
 msgid "Within Groups"
 msgstr "Binnen groepen"
 
-#: src/language/stats/oneway.c:1025
+#: src/language/stats/oneway.c:1030
 msgid "ANOVA"
 msgstr "ANOVA"
 
-#: src/language/stats/oneway.c:1217
+#: src/language/stats/oneway.c:1222
 msgid "Levene Statistic"
 msgstr "Levene Statistiek"
 
-#: src/language/stats/oneway.c:1218
+#: src/language/stats/oneway.c:1223
 msgid "df1"
 msgstr "df1"
 
-#: src/language/stats/oneway.c:1219
+#: src/language/stats/oneway.c:1224
 msgid "df2"
 msgstr "df2"
 
-#: src/language/stats/oneway.c:1222
+#: src/language/stats/oneway.c:1227
 msgid "Test of Homogeneity of Variances"
 msgstr ""
 
-#: src/language/stats/oneway.c:1295
+#: src/language/stats/oneway.c:1300
 msgid "Contrast Coefficients"
 msgstr "Contrastcoëfficiënten"
 
-#: src/language/stats/oneway.c:1297 src/language/stats/oneway.c:1371
+#: src/language/stats/oneway.c:1302 src/language/stats/oneway.c:1376
 msgid "Contrast"
 msgstr "Contrast"
 
-#: src/language/stats/oneway.c:1369
+#: src/language/stats/oneway.c:1374
 msgid "Contrast Tests"
 msgstr "Contrasttesten"
 
-#: src/language/stats/oneway.c:1372
+#: src/language/stats/oneway.c:1377
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/language/stats/oneway.c:1374 src/language/stats/regression.c:772
+#: src/language/stats/oneway.c:1379 src/language/stats/regression.c:813
 #: src/language/stats/t-test-indep.c:290
 #: src/language/stats/t-test-one-sample.c:94
 #: src/language/stats/t-test-paired.c:305
 msgid "t"
 msgstr "t"
 
-#: src/language/stats/oneway.c:1426
+#: src/language/stats/oneway.c:1431
 msgid "Assume equal variances"
 msgstr "Veronderstelt gelijke variantie"
 
-#: src/language/stats/oneway.c:1430
+#: src/language/stats/oneway.c:1435
 msgid "Does not assume equal"
 msgstr "Veronderstelt niet gelijk"
 
-#: src/language/stats/oneway.c:1572
-msgid "Multiple Comparisons"
-msgstr "Meervoudige Vergelijkingen"
+#: src/language/stats/oneway.c:1577
+#, c-format
+msgid "Multiple Comparisons (%s)"
+msgstr "Meerdere Vergelijkingen (%s)"
 
-#: src/language/stats/oneway.c:1574
+#: src/language/stats/oneway.c:1579
 #, c-format
 msgid "(I) %s"
 msgstr "(I) %s"
 
-#: src/language/stats/oneway.c:1575
+#: src/language/stats/oneway.c:1580
 #, c-format
 msgid "(J) %s"
 msgstr "(J) %s"
 
-#: src/language/stats/oneway.c:1576 src/language/stats/t-test-indep.c:293
+#: src/language/stats/oneway.c:1581 src/language/stats/t-test-indep.c:293
 #: src/language/stats/t-test-one-sample.c:97
 msgid "Mean Difference"
 msgstr "Gemiddeld verschil"
 
-#: src/language/stats/oneway.c:1577
+#: src/language/stats/oneway.c:1582
 msgid "(I - J)"
 msgstr "(I - J)"
 
-#: src/language/stats/oneway.c:1582
+#: src/language/stats/oneway.c:1587
 #, c-format
 msgid "%g%% Confidence Interval"
 msgstr "%g%% Betrouwbaarheidsinterval"
@@ -3470,11 +3475,11 @@ msgstr "Aantal clusters mag niet groter dan aantal cases zijn."
 
 #: src/language/stats/quick-cluster.c:402
 msgid "Final Cluster Centers"
-msgstr ""
+msgstr "Final Cluster Centers"
 
 #: src/language/stats/quick-cluster.c:406
 msgid "Initial Cluster Centers"
-msgstr ""
+msgstr "Initial Cluster Centers"
 
 #: src/language/stats/quick-cluster.c:409
 #: src/language/stats/quick-cluster.c:463
@@ -3538,157 +3543,160 @@ msgstr "%s in %s(%s van %s gebruikt %s"
 msgid "%s into %s(%s of %s)"
 msgstr "%s in %s(%s van %s)"
 
-#: src/language/stats/reliability.c:163
+#: src/language/stats/reliability.c:164
 msgid "Reliability on a single variable is not useful."
 msgstr "Betrouwbaarheidsanalyse op een enkele variabele is niet zinvol."
 
-#: src/language/stats/reliability.c:290
-#, fuzzy
+#: src/language/stats/reliability.c:291
 msgid "The split point must be less than the number of variables"
-msgstr "Aantal clusters mag niet groter dan aantal cases zijn."
+msgstr "Het splitspunt moet kleiner dan het aantal variabelen zijn"
 
-#: src/language/stats/reliability.c:502
-#, fuzzy, c-format
+#: src/language/stats/reliability.c:516
+#, c-format
 msgid "Scale: %s"
-msgstr "Schaal: "
+msgstr "Schaal: %s"
 
-#: src/language/stats/reliability.c:565 src/ui/gui/logistic.ui:288
+#: src/language/stats/reliability.c:579 src/ui/gui/logistic.ui:288
 msgid "%"
 msgstr "%"
 
-#: src/language/stats/reliability.c:610
+#: src/language/stats/reliability.c:624
 msgid "Item-Total Statistics"
 msgstr "Item-Totaal Statistieken"
 
-#: src/language/stats/reliability.c:632
+#: src/language/stats/reliability.c:646
 msgid "Scale Mean if Item Deleted"
 msgstr ""
 
-#: src/language/stats/reliability.c:635
+#: src/language/stats/reliability.c:649
 msgid "Scale Variance if Item Deleted"
 msgstr ""
 
-#: src/language/stats/reliability.c:638
+#: src/language/stats/reliability.c:652
 msgid "Corrected Item-Total Correlation"
 msgstr ""
 
-#: src/language/stats/reliability.c:641
+#: src/language/stats/reliability.c:655
 msgid "Cronbach's Alpha if Item Deleted"
 msgstr "Cronbach's Alpha if Item Deleted"
 
-#: src/language/stats/reliability.c:715
+#: src/language/stats/reliability.c:729
 msgid "Reliability Statistics"
 msgstr "Betrouwbaarheids Statistieken"
 
-#: src/language/stats/reliability.c:755 src/language/stats/reliability.c:774
+#: src/language/stats/reliability.c:769 src/language/stats/reliability.c:788
 msgid "Cronbach's Alpha"
 msgstr "Cronbach's Alpha"
 
-#: src/language/stats/reliability.c:758 src/language/stats/reliability.c:783
-#: src/language/stats/reliability.c:794
+#: src/language/stats/reliability.c:772 src/language/stats/reliability.c:797
+#: src/language/stats/reliability.c:808
 msgid "N of Items"
 msgstr "N van Items"
 
-#: src/language/stats/reliability.c:777
+#: src/language/stats/reliability.c:791
 msgid "Part 1"
 msgstr "Deel 1"
 
-#: src/language/stats/reliability.c:788
+#: src/language/stats/reliability.c:802
 msgid "Part 2"
 msgstr "Deel 2"
 
-#: src/language/stats/reliability.c:799
+#: src/language/stats/reliability.c:813
 msgid "Total N of Items"
 msgstr "Totaal N van Items"
 
-#: src/language/stats/reliability.c:802
+#: src/language/stats/reliability.c:816
 msgid "Correlation Between Forms"
 msgstr "Correlatie Tussen Formulieren"
 
-#: src/language/stats/reliability.c:806
+#: src/language/stats/reliability.c:820
 msgid "Spearman-Brown Coefficient"
 msgstr "Spearman-Brown Coefficient"
 
-#: src/language/stats/reliability.c:809
+#: src/language/stats/reliability.c:823
 msgid "Equal Length"
 msgstr "Gelijke lengte"
 
-#: src/language/stats/reliability.c:812
+#: src/language/stats/reliability.c:826
 msgid "Unequal Length"
 msgstr "Ongelijke lengte"
 
-#: src/language/stats/reliability.c:816
+#: src/language/stats/reliability.c:830
 msgid "Guttman Split-Half Coefficient"
 msgstr "Guttman Split-Half Coëfficiënt"
 
-#: src/language/stats/roc.c:955
+#: src/language/stats/roc.c:958
 msgid "Area Under the Curve"
 msgstr "Area Under the Curve"
 
-#: src/language/stats/roc.c:957
+#: src/language/stats/roc.c:960
 #, c-format
 msgid "Area Under the Curve (%s)"
 msgstr "Area Under the Curve (%s"
 
-#: src/language/stats/roc.c:962
+#: src/language/stats/roc.c:965
 msgid "Area"
 msgstr "Gebied"
 
-#: src/language/stats/roc.c:976
+#: src/language/stats/roc.c:979
 msgid "Asymptotic Sig."
 msgstr "Asymptotic Sig."
 
-#: src/language/stats/roc.c:983
+#: src/language/stats/roc.c:986
 #, c-format
 msgid "Asymp. %g%% Confidence Interval"
 msgstr "Asymp. %g%% Betrouwbaarheidsinterval"
 
-#: src/language/stats/roc.c:989
+#: src/language/stats/roc.c:992
 msgid "Variable under test"
 msgstr "Variabele die wordt getest"
 
-#: src/language/stats/roc.c:1048
+#: src/language/stats/roc.c:1051
 msgid "Case Summary"
 msgstr "Case Overzicht"
 
-#: src/language/stats/roc.c:1068
+#: src/language/stats/roc.c:1071
 msgid "Unweighted"
 msgstr "Niet gewogen"
 
-#: src/language/stats/roc.c:1069
+#: src/language/stats/roc.c:1072
 msgid "Weighted"
 msgstr "Gewicht"
 
-#: src/language/stats/roc.c:1073
+#: src/language/stats/roc.c:1076
 msgid "Valid N (listwise)"
 msgstr "Valid N (listwise)"
 
-#: src/language/stats/roc.c:1105
+#: src/language/stats/roc.c:1108
 msgid "Coordinates of the Curve"
 msgstr "Coordinates of the Curve"
 
-#: src/language/stats/roc.c:1107
+#: src/language/stats/roc.c:1110
 #, c-format
 msgid "Coordinates of the Curve (%s)"
 msgstr "Coordinates of the Curve (%s)"
 
-#: src/language/stats/roc.c:1115
+#: src/language/stats/roc.c:1118
 msgid "Test variable"
 msgstr "Testvariabele(n)"
 
-#: src/language/stats/roc.c:1117
+#: src/language/stats/roc.c:1120
 msgid "Positive if greater than or equal to"
 msgstr "Positief als grote dan of gelijk aan"
 
-#: src/language/stats/roc.c:1118 src/output/charts/roc-chart-cairo.c:38
+#: src/language/stats/roc.c:1121 src/output/charts/roc-chart-cairo.c:38
 msgid "Sensitivity"
 msgstr "Gevoeligheid"
 
-#: src/language/stats/roc.c:1119 src/output/charts/roc-chart-cairo.c:37
+#: src/language/stats/roc.c:1122 src/output/charts/roc-chart-cairo.c:37
 msgid "1 - Specificity"
 msgstr "1 - Specificity"
 
-#: src/language/stats/regression.c:506
+#: src/language/stats/regression.c:354
+msgid "REGRESSION with SAVE ignores TEMPORARY.  Temporary transformations will be made permanent."
+msgstr "REGRESSION met SAVE negeert TEMPORARY. Tijdelijke transformaties worden permanent gemaakt."
+
+#: src/language/stats/regression.c:503
 msgid "The dependent variable is equal to the independent variable.The least squares line is therefore Y=X.Standard errors and related statistics may be meaningless."
 msgstr ""
 
@@ -3696,55 +3704,55 @@ msgstr ""
 msgid "No valid data found. This command was skipped."
 msgstr "Geen geldige gegevens gevonden. Deze opdracht is overgeslagen."
 
-#: src/language/stats/regression.c:727
+#: src/language/stats/regression.c:769
 #: src/ui/gui/psppire-dialog-action-regression.c:41
 msgid "R"
 msgstr "R"
 
-#: src/language/stats/regression.c:728
+#: src/language/stats/regression.c:770
 msgid "R Square"
 msgstr "R Square"
 
-#: src/language/stats/regression.c:729
+#: src/language/stats/regression.c:771
 msgid "Adjusted R Square"
 msgstr "Adjusted R Square"
 
-#: src/language/stats/regression.c:730
+#: src/language/stats/regression.c:772
 msgid "Std. Error of the Estimate"
 msgstr "Std. Error of the Estimate"
 
-#: src/language/stats/regression.c:735
+#: src/language/stats/regression.c:777
 #, c-format
 msgid "Model Summary (%s)"
 msgstr "Model Summary (%s)"
 
-#: src/language/stats/regression.c:771
+#: src/language/stats/regression.c:812
 msgid "Beta"
 msgstr "Beta"
 
-#: src/language/stats/regression.c:774
+#: src/language/stats/regression.c:815
 msgid "(Constant)"
 msgstr "(Constante)"
 
-#: src/language/stats/regression.c:826
+#: src/language/stats/regression.c:870
 #, c-format
 msgid "Coefficients (%s)"
 msgstr "Coëfficiënten  (%s)"
 
-#: src/language/stats/regression.c:861 src/ui/gui/regression.ui:7
+#: src/language/stats/regression.c:905 src/ui/gui/regression.ui:7
 msgid "Regression"
 msgstr "Regressie"
 
-#: src/language/stats/regression.c:884
+#: src/language/stats/regression.c:928
 #, c-format
 msgid "ANOVA (%s)"
 msgstr "ANOVA (%s)"
 
-#: src/language/stats/regression.c:911
+#: src/language/stats/regression.c:955
 msgid "Covariances"
 msgstr "Covarianties"
 
-#: src/language/stats/regression.c:926
+#: src/language/stats/regression.c:970
 #, c-format
 msgid "Coefficient Correlations (%s)"
 msgstr "Coëfficiëntcorrelaties (%s)"
@@ -3937,57 +3945,57 @@ msgstr "Deze opdracht mag niet gebruikt worden na TEMPORARY als het actieve best
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr "Meerdere IN subopdrachten voor een enkele FILE of TABLE."
 
-#: src/language/data-io/combine-files.c:306
+#: src/language/data-io/combine-files.c:307
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr "Bestand %s mist BY variabele %s."
 
-#: src/language/data-io/combine-files.c:309
+#: src/language/data-io/combine-files.c:310
 #, c-format
 msgid "Active dataset lacks BY variable %s."
 msgstr "Actieve dataset mist BY variabele %s."
 
-#: src/language/data-io/combine-files.c:386
-#: src/language/data-io/combine-files.c:391
+#: src/language/data-io/combine-files.c:387
+#: src/language/data-io/combine-files.c:392
 #, c-format
 msgid "BY is required when %s is specified."
 msgstr "BY is noodzakelijk als %s is gespecificeerd."
 
-#: src/language/data-io/combine-files.c:519
+#: src/language/data-io/combine-files.c:520
 msgid "Combining files with incompatible encodings. String data may not be represented correctly."
 msgstr "Combineren van bestanden met incompatibele codering. Tekenreeks gegevens worden mogelijk niet correct weergegeven."
 
-#: src/language/data-io/combine-files.c:560
+#: src/language/data-io/combine-files.c:563
 #, c-format
 msgid "Variable %s in file %s has different type or width from the same variable in earlier file."
 msgstr "Variabele %s in bestand %s heeft een ander type of breedte dan dezelfde variabele in eerder bestand."
 
-#: src/language/data-io/combine-files.c:566
+#: src/language/data-io/combine-files.c:569
 #, c-format
 msgid "In file %s, %s is numeric."
 msgstr "In bestand %s, %s is numeriek."
 
-#: src/language/data-io/combine-files.c:569
+#: src/language/data-io/combine-files.c:572
 #, c-format
 msgid "In file %s, %s is a string variable with width %d."
 msgstr "In bestand %s, %s is een tekenreeksvariabele met breedte %d."
 
-#: src/language/data-io/combine-files.c:574
+#: src/language/data-io/combine-files.c:577
 #, c-format
 msgid "In an earlier file, %s was numeric."
 msgstr "In een eerder bestand, %s was numeriek."
 
-#: src/language/data-io/combine-files.c:577
+#: src/language/data-io/combine-files.c:580
 #, c-format
 msgid "In an earlier file, %s was a string variable with width %d."
 msgstr "In een eerder bestand, %s was een tekenreeks met breedte %d."
 
-#: src/language/data-io/combine-files.c:617
+#: src/language/data-io/combine-files.c:620
 #, c-format
 msgid "Variable name %s specified on %s subcommand duplicates an existing variable name."
 msgstr "Variabelennaam %s gespecificeerd in %s-subopdracht dupliceert een bestaande variabelennaam."
 
-#: src/language/data-io/combine-files.c:789
+#: src/language/data-io/combine-files.c:792
 #, c-format
 msgid "Encountered %zu sets of duplicate cases in the master file."
 msgstr "Gevonden% zu sets van dubbele cases in het master-bestand."
@@ -4017,7 +4025,7 @@ msgid "At least one variable must be specified."
 msgstr "Tenminste 1 variabele moet gespecificeerd worden."
 
 #: src/language/data-io/data-list.c:369 src/language/data-io/data-list.c:477
-#: src/language/data-io/get-data.c:645
+#: src/language/data-io/get-data.c:653
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr "%s is een dubbele variabelennaam."
@@ -4075,7 +4083,7 @@ msgid "Record"
 msgstr "Record"
 
 #: src/language/data-io/data-parser.c:693 src/language/data-io/print.c:448
-#: src/ui/gui/psppire-var-sheet.c:558 src/ui/gui/psppire-var-store.c:780
+#: src/ui/gui/psppire-var-sheet.c:1219
 msgid "Columns"
 msgstr "Kolommen"
 
@@ -4187,68 +4195,92 @@ msgstr "naamloze dataset"
 msgid "(active dataset)"
 msgstr "(actieve dataset)"
 
-#: src/language/data-io/get-data.c:120
+#: src/language/data-io/get-data.c:128
 #, c-format
 msgid "Unsupported TYPE %s."
 msgstr "Niet ondersteund TYPE %s."
 
-#: src/language/data-io/get-data.c:255
+#: src/language/data-io/get-data.c:263
 msgid "The sheet index must be greater than or equal to 1"
 msgstr "De blad index moet groter dan of geijk aan 1 zijn"
 
-#: src/language/data-io/get-data.c:262 src/language/data-io/get-data.c:285
-#: src/language/data-io/get-data.c:304
+#: src/language/data-io/get-data.c:270 src/language/data-io/get-data.c:293
+#: src/language/data-io/get-data.c:312
 #, c-format
 msgid "%s must be followed by either \"%s\" or \"%s\"."
-msgstr ""
+msgstr "%s dient gevolgd te worden door \"%s\" of \"%s\"."
 
-#: src/language/data-io/get-data.c:334
+#: src/language/data-io/get-data.c:342
 #, c-format
 msgid "%s is allowed only with %s arrangement, but %s arrangement was stated or implied earlier in this command."
 msgstr "%s is alleen toegestaan met %s regeling, maar %s regeling was eerder opgegeven of geïmpliceerd in deze opdracht."
 
-#: src/language/data-io/get-data.c:415
+#: src/language/data-io/get-data.c:423
 msgid "Value of FIRSTCASE must be 1 or greater."
 msgstr "Waarde van FIRSTCASE moet 1 of groter zijn."
 
-#: src/language/data-io/get-data.c:453
+#: src/language/data-io/get-data.c:461
 msgid "Value of FIXCASE must be at least 1."
 msgstr "Waarde van FIXCASE moet tenminste 1 zijn."
 
-#: src/language/data-io/get-data.c:473
+#: src/language/data-io/get-data.c:481
 msgid "Value of FIRST must be at least 1."
 msgstr "Waarde van FIRST moet tenminste 1 zijn."
 
-#: src/language/data-io/get-data.c:485
+#: src/language/data-io/get-data.c:493
 msgid "Value of PERCENT must be between 1 and 100."
 msgstr "Waarde van PERCENT moet tussen 1 en 100 zijn."
 
-#: src/language/data-io/get-data.c:536
+#: src/language/data-io/get-data.c:544
 msgid "In compatible syntax mode, the QUALIFIER string must contain exactly one character."
 msgstr "In compatibele syntaxmodus, dient de QUALIFIER tekenreeks precies één teken te bevatten."
 
-#: src/language/data-io/get-data.c:571
+#: src/language/data-io/get-data.c:579
 #: src/language/data-io/placement-parser.c:406
 #, c-format
 msgid "The record number specified, %ld, is at or before the previous record, %d.  Data fields must be listed in order of increasing record number."
 msgstr "Het opgegeven recordnummer, %ld, is op of voor het huidige record, %d. Gegevensvelden dienen opgegeven te worden in oplopende recordnummer volgorde."
 
-#: src/language/data-io/get-data.c:580
+#: src/language/data-io/get-data.c:588
 #, c-format
 msgid "The record number specified, %ld, exceeds the number of records per case specified on FIXCASE, %d."
 msgstr "Het gespecificeerde recordnummer, %ld, overschrijdt het aantal records per case zoals gespecificeerd in FIXCASE, %d."
 
-#: src/language/data-io/inpt-pgm.c:120
+#: src/language/data-io/inpt-pgm.c:133
 msgid "Unexpected end-of-file within INPUT PROGRAM."
 msgstr "Onverwacht einde-bestand binnen INPUT PROGRAM."
 
-#: src/language/data-io/inpt-pgm.c:133
+#: src/language/data-io/inpt-pgm.c:146
+msgid "Input program must contain DATA LIST or END FILE."
+msgstr "Invoerprogramma moet DATA LIST of END FILE bevatten."
+
+#: src/language/data-io/inpt-pgm.c:152
 msgid "Input program did not create any variables."
 msgstr "Invoerprogramma heeft geen variabelen gecreëerd."
 
-#: src/language/data-io/inpt-pgm.c:345
+#: src/language/data-io/inpt-pgm.c:365
 msgid "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr "REREAD: Kolomnummers moeten positieve eindige nummers zijn. Kolom is op 1 gezet."
+
+#: src/language/data-io/list.c:227
+#, c-format
+msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
+msgstr "De eerste gespecificeerde case (%ld) gaat vooraf aan de laatste gespecificeerde case (%ld). De waardes worden verwisseld."
+
+#: src/language/data-io/list.c:236
+#, c-format
+msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
+msgstr "De eerste case (%ld) om weer te geven is kleiner dan 1. De waarde is op 1 gezet."
+
+#: src/language/data-io/list.c:243
+#, c-format
+msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
+msgstr "De laatste case (%ld) om weer te geven is kleiner dan 1. De waarde is op 1 gezet."
+
+#: src/language/data-io/list.c:250
+#, c-format
+msgid "The step value %ld is less than 1.  The value is being reset to 1."
+msgstr "De stap waarde %ld is kleiner dan 1. De waarde is op 1 gezet."
 
 #: src/language/data-io/placement-parser.c:96
 #, c-format
@@ -4371,9 +4403,9 @@ msgid "The year argument to YRMODA is greater than 47516.  The result will be sy
 msgstr "Het jaar argument voor YRMODA is groter dan 47516.  Het resultaat zal system-missing zijn."
 
 #: src/language/expressions/helpers.c:178
-#, fuzzy, c-format
+#, c-format
 msgid "Unrecognized date unit `%.*s'.  Valid date units are `%s', `%s', `%s', `%s', `%s', `%s', `%s', and `%s'."
-msgstr "Niet-herkende datum eenheid '%.*s'.  Geldige datum eenheden zijn 'years', 'quarters', 'months', 'weeks', 'days', 'hours', 'minutes', en 'seconds'."
+msgstr "Niet-herkende datumeenheid `%.*s'.  Geldige datumeenheden zijn `%s', `%s', `%s', `%s', `%s', `%s', `%s', and `%s'."
 
 #: src/language/expressions/helpers.c:331
 #, c-format
@@ -4643,7 +4675,7 @@ msgstr "Fouten (%d) overschrijdt limiet (%d).  Syntax bewerking wordt gestopt."
 #: src/libpspp/zip-reader.c:88
 #, c-format
 msgid "Unsupported compression type (%d)"
-msgstr ""
+msgstr "Niet ondersteund compressie type (%d)"
 
 #: src/libpspp/zip-reader.c:201
 #, c-format
@@ -4708,32 +4740,32 @@ msgstr "Empirisch"
 msgid "Empirical with averaging"
 msgstr "Empirisch met gemiddelde"
 
-#: src/output/ascii.c:306
+#: src/output/ascii.c:307
 #, c-format
 msgid "%s: %s must be positive integer or `auto'"
 msgstr "%s: %s dient positief integer of 'auto' te zijn"
 
-#: src/output/ascii.c:339
+#: src/output/ascii.c:340
 #, c-format
 msgid "ascii: page excluding margins and headers must be at least %d characters wide by %d lines long, but as configured is only %d characters by %d lines"
 msgstr "ascii: pagina exclusief marges en koppen moet tenminste %d tekens breed en %d regels lang zijn, maar geconfigureerd is slechts %d tekens bij %d regels"
 
-#: src/output/ascii.c:387
+#: src/output/ascii.c:388
 #, c-format
 msgid "ascii: closing output file `%s'"
 msgstr "ascii: sluiten uitvoerbestand '%s'"
 
-#: src/output/ascii.c:530
+#: src/output/ascii.c:531
 #, c-format
 msgid "See %s for a chart."
 msgstr "Zie %s voor een diagram."
 
-#: src/output/ascii.c:1001
+#: src/output/ascii.c:1005
 #, c-format
 msgid "ascii: opening output file `%s'"
 msgstr "ascii: openen uitvoerbestand '%s'"
 
-#: src/output/ascii.c:1058
+#: src/output/ascii.c:1062
 #, c-format
 msgid "%s - Page %d"
 msgstr "%s - Pagina %d"
@@ -4907,12 +4939,12 @@ msgstr "Dev van Normal"
 #: src/output/charts/plot-hist-cairo.c:41
 #, c-format
 msgid "N = %.2f"
-msgstr ""
+msgstr "N = %.2f"
 
 #: src/output/charts/plot-hist-cairo.c:50
 #, c-format
 msgid "Mean = %.1f"
-msgstr ""
+msgstr "Mean = %.1f"
 
 #: src/output/charts/plot-hist-cairo.c:59
 #, c-format
@@ -4942,11 +4974,11 @@ msgstr ""
 
 #: src/output/charts/spreadlevel-cairo.c:38
 msgid "Level"
-msgstr ""
+msgstr "Level"
 
 #: src/output/charts/spreadlevel-cairo.c:39
 msgid "Spread"
-msgstr ""
+msgstr "Spreiding"
 
 #: src/output/odt.c:94
 msgid "error creating temporary file"
@@ -4968,17 +5000,17 @@ msgstr "Fout tegengekomen terwijl ERROR=STOP is actief."
 msgid "Stopping syntax file processing here to avoid a cascade of dependent command failures."
 msgstr "Stop syntaxbestand uitvoering hier om een cascade van afhankelijke opdrachtfouten te voorkomen."
 
-#: src/ui/terminal/terminal-opts.c:122
+#: src/ui/terminal/terminal-opts.c:125
 #, c-format
 msgid "%s: output option missing `='"
 msgstr "%s: ontbrekende uitvoer-optie '='"
 
-#: src/ui/terminal/terminal-opts.c:129
+#: src/ui/terminal/terminal-opts.c:132
 #, c-format
 msgid "%s: output option specified more than once"
 msgstr "%s: uitvoer-optie meer dan 1 keer gespecificeerd"
 
-#: src/ui/terminal/terminal-opts.c:171
+#: src/ui/terminal/terminal-opts.c:174
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -5022,31 +5054,29 @@ msgstr ""
 msgid "could not access definition for terminal `%s'"
 msgstr "kon definitie voor terminal '%s' niet benaderen"
 
-#: src/ui/gui/psppire-button-editable.c:160
+#: src/ui/gui/psppire-button-editable.c:135
 msgid "TreeView path"
 msgstr ""
 
-#: src/ui/gui/psppire-button-editable.c:161
+#: src/ui/gui/psppire-button-editable.c:136
 msgid "The path to the row in the GtkTreeView, as a string"
 msgstr ""
 
-#: src/ui/gui/psppire-button-editable.c:168
-#: src/ui/gui/psppire-cell-renderer-button.c:519
+#: src/ui/gui/psppire-cell-renderer-button.c:498
 msgid "Diagonal slash"
 msgstr ""
 
-#: src/ui/gui/psppire-button-editable.c:169
-#: src/ui/gui/psppire-cell-renderer-button.c:520
+#: src/ui/gui/psppire-cell-renderer-button.c:499
 msgid "Whether to draw a diagonal slash across the button."
 msgstr ""
 
-#: src/ui/gui/autorecode-dialog.c:293 src/ui/gui/recode-dialog.c:662
-#: src/ui/gui/recode-dialog.c:747
+#: src/ui/gui/autorecode-dialog.c:292 src/ui/gui/recode-dialog.c:658
+#: src/ui/gui/recode-dialog.c:743
 msgid "New"
 msgstr "Nieuw"
 
-#: src/ui/gui/autorecode-dialog.c:307 src/ui/gui/recode-dialog.c:677
-#: src/ui/gui/recode-dialog.c:739
+#: src/ui/gui/autorecode-dialog.c:306 src/ui/gui/recode-dialog.c:673
+#: src/ui/gui/recode-dialog.c:735
 msgid "Old"
 msgstr "Oud"
 
@@ -5054,22 +5084,22 @@ msgstr "Oud"
 msgid "Aggregate destination file"
 msgstr "Aggregatie doelbestand"
 
-#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:498
-#: src/ui/gui/psppire-window.c:733
+#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:478
+#: src/ui/gui/psppire-window.c:731
 msgid "System Files (*.sav)"
 msgstr "Systeembestanden (*.sav)"
 
-#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:503
-#: src/ui/gui/psppire-window.c:738
+#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:483
+#: src/ui/gui/psppire-window.c:736
 msgid "Portable Files (*.por) "
 msgstr "Overdraagbaar (Portable) bestanden (*.por)"
 
-#: src/ui/gui/comments-dialog.c:58
+#: src/ui/gui/comments-dialog.c:57
 #, c-format
 msgid "Column Number: %d"
 msgstr "Kolomnummer: %d"
 
-#: src/ui/gui/find-dialog.c:650
+#: src/ui/gui/find-dialog.c:644
 #, c-format
 msgid "Bad regular expression: %s"
 msgstr "Onjuiste regulaire expressie: %s"
@@ -5136,7 +5166,7 @@ msgstr "Onjuiste waarde voor variabelentype"
 msgid "Incorrect range specification"
 msgstr "Onjuiste bereikspecificatie"
 
-#: src/ui/gui/oneway-anova-dialog.c:301
+#: src/ui/gui/oneway-anova-dialog.c:296
 #, c-format
 msgid "Contrast %d of %d"
 msgstr "Contrast %d van %d"
@@ -5149,84 +5179,110 @@ msgstr "_Herstel"
 msgid "_Select"
 msgstr "_Selecteer"
 
-#: src/ui/gui/psppire-data-editor.c:978
+#: src/ui/gui/psppire-data-editor.c:441
+#, c-format
+msgid "%'d case"
+msgid_plural "%'d cases"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/ui/gui/psppire-data-editor.c:446
+#, c-format
+msgid "%'d variable"
+msgid_plural "%'d variables"
+msgstr[0] "%'d variabele"
+msgstr[1] "%'d variabelen"
+
+#: src/ui/gui/psppire-data-editor.c:734
 msgid "Data View"
 msgstr "Gegevensweergave"
 
-#: src/ui/gui/psppire-data-editor.c:981
+#: src/ui/gui/psppire-data-editor.c:747
 msgid "Variable View"
 msgstr "Variabelenweergave"
 
-#: src/ui/gui/psppire-data-store.c:744
+#: src/ui/gui/psppire-data-sheet.c:138
+msgid "Enter a number to add a new variable."
+msgstr "Voer een getal in om een nieuwe variabele toe te voegen."
+
+#: src/ui/gui/psppire-data-sheet.c:143
+msgid "Enter a number to add a new case."
+msgstr "Voer een getal in om een nieuwe case toe te voegen."
+
+#: src/ui/gui/psppire-data-sheet.c:229
+msgid "Case"
+msgstr "Case"
+
+#: src/ui/gui/psppire-data-store.c:544
 msgid "var"
 msgstr "var"
 
-#: src/ui/gui/psppire-data-window.c:198
+#: src/ui/gui/psppire-data-window.c:183
 msgid "Transformations Pending"
 msgstr "Transformaties uitstaand"
 
-#: src/ui/gui/psppire-data-window.c:214
+#: src/ui/gui/psppire-data-window.c:199
 msgid "Filter off"
 msgstr "Filter uit"
 
-#: src/ui/gui/psppire-data-window.c:228
+#: src/ui/gui/psppire-data-window.c:211
 #, c-format
 msgid "Filter by %s"
 msgstr "Filter op %s"
 
-#: src/ui/gui/psppire-data-window.c:249
+#: src/ui/gui/psppire-data-window.c:232
 msgid "No Split"
 msgstr "Geen splits"
 
-#: src/ui/gui/psppire-data-window.c:258
+#: src/ui/gui/psppire-data-window.c:241
 msgid "Split by "
 msgstr "Splits op "
 
-#: src/ui/gui/psppire-data-window.c:286
+#: src/ui/gui/psppire-data-window.c:269
 msgid "Weights off"
 msgstr "Weging uit"
 
-#: src/ui/gui/psppire-data-window.c:300
+#: src/ui/gui/psppire-data-window.c:281
 #, c-format
 msgid "Weight by %s"
 msgstr "Weeg op %s"
 
-#: src/ui/gui/psppire-data-window.c:489 src/ui/gui/aggregate.ui:450
+#: src/ui/gui/psppire-data-window.c:469 src/ui/gui/aggregate.ui:450
 msgid "Save"
 msgstr "Opslaan"
 
-#: src/ui/gui/psppire-data-window.c:508 src/ui/gui/psppire-syntax-window.c:605
-#: src/ui/gui/psppire-window.c:749 src/ui/gui/page-file.c:238
+#: src/ui/gui/psppire-data-window.c:488 src/ui/gui/psppire-syntax-window.c:605
+#: src/ui/gui/psppire-window.c:747 src/ui/gui/page-file.c:251
 msgid "All Files"
 msgstr "Alle bestanden"
 
-#: src/ui/gui/psppire-data-window.c:521
+#: src/ui/gui/psppire-data-window.c:501
 msgid "Portable File"
 msgstr "Overdraagbaar bestand"
 
-#: src/ui/gui/psppire-data-window.c:578
+#: src/ui/gui/psppire-data-window.c:558
 msgid "Delete Existing Dataset?"
 msgstr "Verwijder bestaande dataset?"
 
-#: src/ui/gui/psppire-data-window.c:582
+#: src/ui/gui/psppire-data-window.c:562
 #, c-format
 msgid "Renaming \"%s\" to \"%s\" will destroy the existing dataset named \"%s\".  Are you sure that you want to do this?"
-msgstr ""
+msgstr "Hernoemen van \"%s\" naar \"%s\" zal de bestaande dataset genaamd \"%s\" vernietigen.  Bent u zeker dat u dit wilt?"
 
-#: src/ui/gui/psppire-data-window.c:610
+#: src/ui/gui/psppire-data-window.c:590
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
 msgstr "Voer aub een nieuwe naam voor de dateset \"%s\" in:"
 
-#: src/ui/gui/psppire-data-window.c:612
+#: src/ui/gui/psppire-data-window.c:592
 msgid "Rename Dataset"
 msgstr "Hernoem dataset"
 
-#: src/ui/gui/psppire-data-window.c:691
+#: src/ui/gui/psppire-data-window.c:650
 msgid "Font Selection"
 msgstr "Font selectie"
 
-#: src/ui/gui/psppire-data-window.c:1338
+#: src/ui/gui/psppire-data-window.c:1255
 msgid "Data Editor"
 msgstr "Gegevensbewerker"
 
@@ -5235,7 +5291,7 @@ msgid "Chisq"
 msgstr "Chisq"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:72
-#: src/language/stats/crosstabs.q:1834
+#: src/language/stats/crosstabs.q:1850
 msgid "Phi"
 msgstr "Phi"
 
@@ -5260,7 +5316,7 @@ msgid "Risk"
 msgstr "Risk"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:79
-#: src/language/stats/crosstabs.q:1839
+#: src/language/stats/crosstabs.q:1855
 msgid "Gamma"
 msgstr "Gamma"
 
@@ -5269,12 +5325,12 @@ msgid "D"
 msgstr "D"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:81
-#: src/language/stats/crosstabs.q:1842
+#: src/language/stats/crosstabs.q:1858
 msgid "Kappa"
 msgstr "Kappa"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:82
-#: src/language/stats/crosstabs.q:1976
+#: src/language/stats/crosstabs.q:1992
 msgid "Eta"
 msgstr "Eta"
 
@@ -5286,8 +5342,8 @@ msgstr "Corr"
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:96
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:131
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:139
-#: src/ui/gui/psppire-dialog-action-var-info.c:47
-#: src/ui/gui/psppire-var-store.c:613 src/ui/gui/var-display.c:16
+#: src/ui/gui/psppire-dialog-action-var-info.c:46
+#: src/ui/gui/psppire-var-sheet.c:377 src/ui/gui/var-display.c:16
 msgid "None"
 msgstr "Geen"
 
@@ -5353,31 +5409,31 @@ msgstr "Anova"
 msgid "Bcov"
 msgstr "Bcov"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:113
+#: src/ui/gui/psppire-dialog-action-var-info.c:112
 #, c-format
 msgid "Label: %s\n"
 msgstr "Label: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:120
+#: src/ui/gui/psppire-dialog-action-var-info.c:119
 #, c-format
 msgid "Type: %s\n"
 msgstr "Type: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:124
+#: src/ui/gui/psppire-dialog-action-var-info.c:123
 #, c-format
 msgid "Missing Values: %s\n"
 msgstr "Ontbrekende-Waardes: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:128
+#: src/ui/gui/psppire-dialog-action-var-info.c:127
 #, c-format
 msgid "Measurement Level: %s\n"
 msgstr "Meetniveau: %s\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:141
+#: src/ui/gui/psppire-dialog-action-var-info.c:140
 msgid "Value Labels:\n"
 msgstr "Waardelabels:\n"
 
-#: src/ui/gui/psppire-dialog-action-var-info.c:150
+#: src/ui/gui/psppire-dialog-action-var-info.c:149
 #, c-format
 msgid "%s %s\n"
 msgstr "%s %s\n"
@@ -5389,12 +5445,12 @@ msgstr "%s %s\n"
 #. - The first character may not be a digit
 #. - The final charactor may not be '.' or '_'
 #.
-#: src/ui/gui/psppire-dict.c:371
+#: src/ui/gui/psppire-dict.c:332
 #, c-format
 msgid "Var%04d"
 msgstr "Var%04d"
 
-#: src/ui/gui/psppire-dict.c:555
+#: src/ui/gui/psppire-dict.c:516
 msgid "Duplicate variable name."
 msgstr "Dubbele variabelennaam."
 
@@ -5411,9 +5467,9 @@ msgid "Character Encoding: "
 msgstr "Tekencodering:"
 
 #: src/ui/gui/psppire-means-layer.c:45
-#, fuzzy, c-format
+#, c-format
 msgid "Layer %d of %d"
-msgstr "Contrast %d van %d"
+msgstr "Laag %d van %d"
 
 #: src/ui/gui/psppire-output-window.c:347
 msgid "Message"
@@ -5466,7 +5522,7 @@ msgstr "Uitvoer Viewer"
 
 #: src/ui/gui/psppire-spreadsheet-model.c:268
 msgid "(empty)"
-msgstr ""
+msgstr "(leeg)"
 
 #: src/ui/gui/psppire-syntax-window.c:568
 #, c-format
@@ -5477,7 +5533,7 @@ msgstr "Opslaan bestand '%s'"
 msgid "Save Syntax"
 msgstr "Sla Syntax op"
 
-#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:743
+#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:741
 msgid "Syntax Files (*.sps) "
 msgstr "Syntaxbestanden (*.sps)"
 
@@ -5495,7 +5551,6 @@ msgid "through"
 msgstr "tot"
 
 #: src/ui/gui/psppire-val-chooser.c:329
-#, fuzzy
 msgid "_Value:"
 msgstr "_Waarde:"
 
@@ -5525,72 +5580,103 @@ msgstr "Bereik, waarde tot HOOGSTE"
 msgid "_All other values"
 msgstr "_Alle andere waardes"
 
-#: src/ui/gui/psppire-var-sheet.c:552 src/ui/gui/psppire-var-store.c:774
-#: src/language/stats/crosstabs.q:1337 src/ui/gui/compute.ui:618
+#: src/ui/gui/psppire-var-sheet.c:173 src/ui/gui/psppire-var-sheet.c:178
+msgid "Cannot create variable."
+msgstr "Kan variabele niet aanmaken"
+
+#: src/ui/gui/psppire-var-sheet.c:174 src/ui/gui/psppire-var-sheet.c:203
+#, c-format
+msgid "\"%s\" is not a valid variable name."
+msgstr "\"%s\" is geen geldige variabelennaam."
+
+#: src/ui/gui/psppire-var-sheet.c:179 src/ui/gui/psppire-var-sheet.c:209
+#, c-format
+msgid "This dictionary already contains a variable named \"%s\"."
+msgstr "Dit woordenboek bevat al een variabele genaamd \"%s\"."
+
+#: src/ui/gui/psppire-var-sheet.c:202 src/ui/gui/psppire-var-sheet.c:208
+msgid "Cannot rename variable."
+msgstr "Kan variabele niet hernoemen."
+
+#: src/ui/gui/psppire-var-sheet.c:384
+#, c-format
+msgid "{%s, %s}..."
+msgstr "{%s, %s}..."
+
+#: src/ui/gui/psppire-var-sheet.c:711
+msgid "Enter a variable name to add a new variable."
+msgstr "Voer een variablennaam in om een nieuwe variabele toe te voegen."
+
+#: src/ui/gui/psppire-var-sheet.c:751
+#, c-format
+msgid "{%s, %s}\n"
+msgstr "{%s, %s}\n"
+
+#: src/ui/gui/psppire-var-sheet.c:1204 src/language/stats/crosstabs.q:1351
+#: src/ui/gui/compute.ui:618
 msgid "Type"
 msgstr "Type"
 
-#: src/ui/gui/psppire-var-sheet.c:553 src/ui/gui/psppire-var-store.c:775
-#: src/ui/gui/compute.ui:532
+#: src/ui/gui/psppire-var-sheet.c:1207 src/ui/gui/compute.ui:532
 msgid "Width"
 msgstr "Breedte"
 
-#: src/ui/gui/psppire-var-sheet.c:554 src/ui/gui/psppire-var-store.c:776
+#: src/ui/gui/psppire-var-sheet.c:1209
 msgid "Decimals"
 msgstr "Decimalen"
 
-#: src/ui/gui/psppire-var-sheet.c:556 src/ui/gui/psppire-var-store.c:778
-msgid "Values"
-msgstr "Waardes"
+#: src/ui/gui/psppire-var-sheet.c:1213 src/ui/gui/val-labs-dialog.ui:190
+msgid "Value Labels"
+msgstr "Waardelabels"
 
-#: src/ui/gui/psppire-var-sheet.c:559 src/ui/gui/psppire-var-store.c:781
+#: src/ui/gui/psppire-var-sheet.c:1216 src/ui/gui/examine.ui:469
+#: src/ui/gui/t-test.ui:81
+msgid "Missing Values"
+msgstr "Ontbrekende waardes"
+
+#: src/ui/gui/psppire-var-sheet.c:1221
 msgid "Align"
 msgstr "Uitlijnen"
 
-#: src/ui/gui/psppire-var-sheet.c:560 src/ui/gui/psppire-var-store.c:782
+#: src/ui/gui/psppire-var-sheet.c:1227
 msgid "Measure"
 msgstr "Meting"
 
-#: src/ui/gui/psppire-var-store.c:692
-#, c-format
-msgid "{%s,`%s'}_"
-msgstr "{%s,`%s'}_"
-
-#: src/ui/gui/psppire-window.c:505
+#: src/ui/gui/psppire-window.c:503
 #, c-format
 msgid "Save the changes to `%s' before closing?"
 msgstr "Opslaan van de aanpassingen in '%s' voor het afsluiten?"
 
-#: src/ui/gui/psppire-window.c:512
+#: src/ui/gui/psppire-window.c:510
 #, c-format
 msgid "If you don't save, changes from the last %ld seconds will be permanently lost."
 msgstr "Als u niet opslaat zullen de aanpassingen van de laatste %ld seconden permanent verloren gaan."
 
-#: src/ui/gui/psppire-window.c:516
+#: src/ui/gui/psppire-window.c:514
 msgid "Close _without saving"
 msgstr "Sluit _zonder opslaan"
 
-#: src/ui/gui/psppire-window.c:716
+#: src/ui/gui/psppire-window.c:714
 msgid "Open"
 msgstr "Open"
 
-#: src/ui/gui/psppire-window.c:725
+#: src/ui/gui/psppire-window.c:723
 msgid "Data and Syntax Files"
 msgstr "Gegevens- en Syntax-bestanden"
 
-#: src/ui/gui/recode-dialog.c:645
+#: src/ui/gui/recode-dialog.c:641
 msgid "Recode into Different Variables"
 msgstr "Hercodeer in Andere Variabelen"
 
-#: src/ui/gui/recode-dialog.c:648 src/ui/gui/recode.ui:332
+#: src/ui/gui/recode-dialog.c:644 src/ui/gui/recode.ui:332
 msgid "Recode into Same Variables"
 msgstr "Hercodeer in Zelfde Variabelen"
 
-#: src/ui/gui/recode-dialog.c:909
+#: src/ui/gui/recode-dialog.c:905
 msgid "Recode into Different Variables: Old and New Values "
 msgstr "Hercodeer in Andere Variabelen: Oude en Nieuwe Waardes "
 
-#: src/ui/gui/recode-dialog.c:910
+#: src/ui/gui/recode-dialog.c:906
 msgid "Recode into Same Variables: Old and New Values"
 msgstr "Hercodeer in Zelfde Variabelen: Oude en Nieuwe Waardes "
 
@@ -5609,110 +5695,126 @@ msgstr "Precies %3d cases van de eerste %3d cases."
 msgid "%d thru %d"
 msgstr "%d tot %d"
 
-#: src/ui/gui/page-assistant.c:98
+#: src/ui/gui/page-assistant.c:96
 msgid "Importing Delimited Text Data"
 msgstr "Importeren Gescheiden Tekstgegevens"
 
-#: src/ui/gui/page-intro.c:96
+#: src/ui/gui/page-intro.c:94
 #, c-format
 msgid "Only the first %4d cases"
 msgstr "Alleen de eerste %4d cases"
 
-#: src/ui/gui/page-intro.c:106
+#: src/ui/gui/page-intro.c:104
 #, c-format
 msgid "Only the first %3d %% of file (approximately)"
 msgstr "Alleen de eerste %3d %% van bestand (ongeveer)"
 
-#: src/ui/gui/page-intro.c:131
+#: src/ui/gui/page-intro.c:129
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
 msgstr "De assistent zal je begeleiden door het proces van het importeren van gegevens in PSPP van een tekstbestand met 1 regel per case, waarin velden zijn gescheiden door tabs, komma's of andere scheidingstekens.\n"
 
-#: src/ui/gui/page-intro.c:137
+#: src/ui/gui/page-intro.c:135
 #, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
 msgstr[0] "Het geselecteerde bestand bevat %zu regel tekst.  "
 msgstr[1] "Het geselecteerde bestand bevat %zu regels tekst. "
 
-#: src/ui/gui/page-intro.c:145
+#: src/ui/gui/page-intro.c:143
 #, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
 msgstr[0] "Het geselecteerde bestand bevat ongeveer %lu regel tekst. "
 msgstr[1] "Het geselecteerde bestand bevat ongeveer %lu regels tekst. "
 
-#: src/ui/gui/page-intro.c:151
+#: src/ui/gui/page-intro.c:149
 #, c-format
 msgid "Only the first %zu line of the file will be shown for preview purposes in the following screens.  "
 msgid_plural "Only the first %zu lines of the file will be shown for preview purposes in the following screens.  "
 msgstr[0] "Alleen de eerste %zu regel van het bestand worden getoond voor voorbeeld doeleinden in de volgende schermen.  "
 msgstr[1] "Alleen de eerste %zu regels van het bestand worden getoond voor voorbeeld doeleinden in de volgende schermen.  "
 
-#: src/ui/gui/page-intro.c:158
+#: src/ui/gui/page-intro.c:156
 msgid "You may choose below how much of the file should actually be imported."
 msgstr "Hieronder kunt u kiezen hoeveel van het bestand daadwerkelijk geïmporteerd moet worden."
 
-#: src/ui/gui/page-file.c:102
+#: src/ui/gui/page-file.c:100
 #, c-format
 msgid "Could not open `%s': %s"
 msgstr "Kon '%s': %s niet openen"
 
-#: src/ui/gui/page-file.c:118
+#: src/ui/gui/page-file.c:116
 #, c-format
 msgid "Error reading `%s': %s"
 msgstr "Fout bij lezen '%s': %s"
 
-#: src/ui/gui/page-file.c:121
+#: src/ui/gui/page-file.c:119
 #, c-format
 msgid "Failed to read `%s', because it contains a line over %d bytes long and therefore appears not to be a text file."
 msgstr "Lezen van '%s' mislukt omdat het een regel bevat die meer dan %d bytes lang is en daarom is het geen tekstbestand."
 
-#: src/ui/gui/page-file.c:139
+#: src/ui/gui/page-file.c:137
 #, c-format
 msgid "`%s' is empty."
 msgstr "'%s' is leeg."
 
-#: src/ui/gui/page-file.c:196
+#: src/ui/gui/page-file.c:194
 msgid "Import Delimited Text Data"
 msgstr "Importeer Gescheiden Tekstgegevens"
 
-#: src/ui/gui/page-file.c:206
-msgid "Text files"
-msgstr "Tekstbestand"
+#: src/ui/gui/page-file.c:204
+msgid "Text Files"
+msgstr "Tekstbestanden"
 
-#: src/ui/gui/page-file.c:211
+#: src/ui/gui/page-file.c:209
 msgid "Text (*.txt) Files"
 msgstr "Text (*.txt) Bestand"
 
-#: src/ui/gui/page-file.c:217
+#: src/ui/gui/page-file.c:215
 msgid "Plain Text (ASCII) Files"
 msgstr "Plattetekst (ASCII) bestand"
 
-#: src/ui/gui/page-file.c:222
+#: src/ui/gui/page-file.c:220
 msgid "Comma Separated Value Files"
 msgstr "Komma-Gescheiden-Waarde bestand"
 
-#: src/ui/gui/page-file.c:229
+#: src/ui/gui/page-file.c:227
 msgid "Tab Separated Value Files"
 msgstr "Tab-Gescheiden-Waarde bestand"
 
-#: src/ui/gui/page-first-line.c:144
+#: src/ui/gui/page-file.c:232
+msgid "Gnumeric Spreadsheet Files"
+msgstr "Gnumeric-werkbladbestanden"
+
+#: src/ui/gui/page-file.c:237
+msgid "OpenDocument Spreadsheet Files"
+msgstr "OpenDocument-rekenbladbestand (*.ods)"
+
+#: src/ui/gui/page-file.c:242
+msgid "All Spreadsheet Files"
+msgstr "Alle rekenbladbestanden"
+
+#: src/ui/gui/page-first-line.c:146
 msgid "Text"
 msgstr "Tekst"
 
-#: src/ui/gui/text-data-import-dialog.c:321
-#: src/ui/gui/text-data-import-dialog.c:369
+#: src/ui/gui/page-sheet-spec.c:254
+msgid "An error occurred reading the spreadsheet file."
+msgstr "Een fout opgetreden tijdens het lezen van rekenbladbestand."
+
+#: src/ui/gui/text-data-import-dialog.c:338
+#: src/ui/gui/text-data-import-dialog.c:386
 msgid "This input line has too few separators to fill in this field."
 msgstr "Deze invoerregel heeft te weinig scheidingstekens om dit veld te vullen."
 
-#: src/ui/gui/text-data-import-dialog.c:360
+#: src/ui/gui/text-data-import-dialog.c:377
 #, c-format
 msgid "Cannot parse field content `%.*s' as format %s: %s"
 msgstr "Kan veldinhoud `%.*s' niet ontleden als opmaak %s: %s"
 
-#: src/ui/gui/text-data-import-dialog.c:533
+#: src/ui/gui/text-data-import-dialog.c:551
 msgid "Line"
 msgstr "Regel"
 
@@ -5721,32 +5823,32 @@ msgstr "Regel"
 msgid "Con_fidence Interval: %2d %%"
 msgstr "Betrouwbaarheidsinterval: %2d %%"
 
-#: src/ui/gui/t-test-paired-samples.c:93 src/ui/gui/examine.ui:266
+#: src/ui/gui/t-test-paired-samples.c:92 src/ui/gui/examine.ui:266
 #: src/ui/gui/indep-samples.ui:69 src/ui/gui/t-test.ui:250
 msgid "O_ptions..."
 msgstr "O_pties..."
 
-#: src/ui/gui/t-test-paired-samples.c:105
+#: src/ui/gui/t-test-paired-samples.c:104
 msgid "Paired Samples T Test"
 msgstr "Paired Samples T Test"
 
-#: src/ui/gui/npar-two-sample-related.c:129 src/ui/gui/k-related.ui:183
+#: src/ui/gui/npar-two-sample-related.c:128 src/ui/gui/k-related.ui:183
 msgid "Test Type"
 msgstr "Testtype"
 
-#: src/ui/gui/npar-two-sample-related.c:136
+#: src/ui/gui/npar-two-sample-related.c:135
 msgid "_Wilcoxon"
 msgstr "_Wilcoxon"
 
-#: src/ui/gui/npar-two-sample-related.c:137
+#: src/ui/gui/npar-two-sample-related.c:136
 msgid "_Sign"
 msgstr "_Teken"
 
-#: src/ui/gui/npar-two-sample-related.c:138
+#: src/ui/gui/npar-two-sample-related.c:137
 msgid "_McNemar"
 msgstr "_McNemar"
 
-#: src/ui/gui/npar-two-sample-related.c:153
+#: src/ui/gui/npar-two-sample-related.c:152
 msgid "Two-Related-Samples Tests"
 msgstr "Two-Related-Samples Tests"
 
@@ -5755,12 +5857,12 @@ msgstr "Two-Related-Samples Tests"
 msgid "%s = `%s'"
 msgstr "%s = `%s'"
 
-#: src/ui/gui/weight-cases-dialog.c:81 src/ui/gui/psppire.ui:52
+#: src/ui/gui/weight-cases-dialog.c:79 src/ui/gui/psppire.ui:52
 #: src/ui/gui/psppire.ui:155
 msgid "Do not weight cases"
 msgstr "Weeg cases niet"
 
-#: src/ui/gui/weight-cases-dialog.c:87
+#: src/ui/gui/weight-cases-dialog.c:85
 #, c-format
 msgid "Weight cases by %s"
 msgstr "Weeg cases per %s"
@@ -5890,188 +5992,188 @@ msgstr "VARIABLES dient voor TABLES gespecificeerd te worden."
 msgid "Maximum value (%ld) less than minimum value (%ld)."
 msgstr "Maximumwaarde (%ld) is kleiner dan minimumwaarde (%ld)."
 
-#: src/language/stats/crosstabs.q:856
+#: src/language/stats/crosstabs.q:869
 msgid "Summary."
 msgstr "Overzicht."
 
 #. TRANSLATORS: The %s here describes a crosstabulation.  It takes the
 #. form "var1 * var2 * var3 * ...".
-#: src/language/stats/crosstabs.q:965
+#: src/language/stats/crosstabs.q:978
 #, c-format
 msgid "Crosstabulation %s contained no non-missing cases."
 msgstr "Kruistabulatie %s bevat geen non-missing cases."
 
-#: src/language/stats/crosstabs.q:1163
+#: src/language/stats/crosstabs.q:1177
 msgid "count"
 msgstr "aantal"
 
-#: src/language/stats/crosstabs.q:1164
+#: src/language/stats/crosstabs.q:1178
 msgid "row %"
 msgstr "rij %"
 
-#: src/language/stats/crosstabs.q:1165
+#: src/language/stats/crosstabs.q:1179
 msgid "column %"
 msgstr "kolom %"
 
-#: src/language/stats/crosstabs.q:1166
+#: src/language/stats/crosstabs.q:1180
 msgid "total %"
 msgstr "totaal %"
 
-#: src/language/stats/crosstabs.q:1167
+#: src/language/stats/crosstabs.q:1181
 msgid "expected"
 msgstr "verwacht"
 
-#: src/language/stats/crosstabs.q:1168
+#: src/language/stats/crosstabs.q:1182
 msgid "residual"
 msgstr "overblijvend"
 
-#: src/language/stats/crosstabs.q:1169
+#: src/language/stats/crosstabs.q:1183
 msgid "std. resid."
 msgstr "std. resid."
 
-#: src/language/stats/crosstabs.q:1170
+#: src/language/stats/crosstabs.q:1184
 msgid "adj. resid."
 msgstr "adj. resid."
 
-#: src/language/stats/crosstabs.q:1259
+#: src/language/stats/crosstabs.q:1273
 msgid "Chi-square tests."
 msgstr "Chi-square tests."
 
-#: src/language/stats/crosstabs.q:1285
+#: src/language/stats/crosstabs.q:1299
 msgid "Symmetric measures."
 msgstr "Symmetrische metingen."
 
-#: src/language/stats/crosstabs.q:1291 src/language/stats/crosstabs.q:1339
+#: src/language/stats/crosstabs.q:1305 src/language/stats/crosstabs.q:1353
 msgid "Asymp. Std. Error"
 msgstr "Asymp. Std. Error"
 
-#: src/language/stats/crosstabs.q:1292 src/language/stats/crosstabs.q:1340
+#: src/language/stats/crosstabs.q:1306 src/language/stats/crosstabs.q:1354
 msgid "Approx. T"
 msgstr "Approx. T"
 
-#: src/language/stats/crosstabs.q:1293 src/language/stats/crosstabs.q:1341
+#: src/language/stats/crosstabs.q:1307 src/language/stats/crosstabs.q:1355
 msgid "Approx. Sig."
 msgstr "Approx. Sig."
 
-#: src/language/stats/crosstabs.q:1307
+#: src/language/stats/crosstabs.q:1321
 msgid "Risk estimate."
 msgstr "Risk estimate."
 
-#: src/language/stats/crosstabs.q:1311
+#: src/language/stats/crosstabs.q:1325
 #, c-format
 msgid "95%% Confidence Interval"
 msgstr "95%% Betrouwbaarheidsinterval"
 
-#: src/language/stats/crosstabs.q:1332
+#: src/language/stats/crosstabs.q:1346
 msgid "Directional measures."
 msgstr "Directionele metingen."
 
-#: src/language/stats/crosstabs.q:1768
+#: src/language/stats/crosstabs.q:1784
 msgid "Pearson Chi-Square"
 msgstr "Pearson Chi-Square"
 
-#: src/language/stats/crosstabs.q:1769
+#: src/language/stats/crosstabs.q:1785
 msgid "Likelihood Ratio"
 msgstr "Waarschijnlijkheidsratio"
 
-#: src/language/stats/crosstabs.q:1770
+#: src/language/stats/crosstabs.q:1786
 msgid "Fisher's Exact Test"
 msgstr "Fisher's Exact Test"
 
-#: src/language/stats/crosstabs.q:1771
+#: src/language/stats/crosstabs.q:1787
 msgid "Continuity Correction"
 msgstr "Continuïteitscorrectie"
 
-#: src/language/stats/crosstabs.q:1772
+#: src/language/stats/crosstabs.q:1788
 msgid "Linear-by-Linear Association"
 msgstr "Linear-by-Linear Association"
 
-#: src/language/stats/crosstabs.q:1807 src/language/stats/crosstabs.q:1882
-#: src/language/stats/crosstabs.q:1947
+#: src/language/stats/crosstabs.q:1823 src/language/stats/crosstabs.q:1898
+#: src/language/stats/crosstabs.q:1963
 msgid "N of Valid Cases"
 msgstr "N van Geldige Cases"
 
-#: src/language/stats/crosstabs.q:1826 src/language/stats/crosstabs.q:1965
+#: src/language/stats/crosstabs.q:1842 src/language/stats/crosstabs.q:1981
 msgid "Nominal by Nominal"
 msgstr "Nominal by Nominal"
 
-#: src/language/stats/crosstabs.q:1827 src/language/stats/crosstabs.q:1966
+#: src/language/stats/crosstabs.q:1843 src/language/stats/crosstabs.q:1982
 msgid "Ordinal by Ordinal"
 msgstr "Ordinal by Ordinal"
 
-#: src/language/stats/crosstabs.q:1828
+#: src/language/stats/crosstabs.q:1844
 msgid "Interval by Interval"
 msgstr "Interval by Interval"
 
-#: src/language/stats/crosstabs.q:1829
+#: src/language/stats/crosstabs.q:1845
 msgid "Measure of Agreement"
 msgstr "Mate van overeenkomst"
 
-#: src/language/stats/crosstabs.q:1835
+#: src/language/stats/crosstabs.q:1851
 msgid "Cramer's V"
 msgstr "Cramer's V"
 
-#: src/language/stats/crosstabs.q:1836
+#: src/language/stats/crosstabs.q:1852
 msgid "Contingency Coefficient"
 msgstr "Contingency Coefficient"
 
-#: src/language/stats/crosstabs.q:1837
+#: src/language/stats/crosstabs.q:1853
 msgid "Kendall's tau-b"
 msgstr "Kendall's tau-b"
 
-#: src/language/stats/crosstabs.q:1838
+#: src/language/stats/crosstabs.q:1854
 msgid "Kendall's tau-c"
 msgstr "Kendall's tau-c"
 
-#: src/language/stats/crosstabs.q:1840
+#: src/language/stats/crosstabs.q:1856
 msgid "Spearman Correlation"
 msgstr "Spearman Correlatie"
 
-#: src/language/stats/crosstabs.q:1841
+#: src/language/stats/crosstabs.q:1857
 msgid "Pearson's R"
 msgstr "Pearson's R"
 
-#: src/language/stats/crosstabs.q:1920
+#: src/language/stats/crosstabs.q:1936
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
 msgstr "Odds Ratio voor %s (%g / %g)"
 
-#: src/language/stats/crosstabs.q:1923
+#: src/language/stats/crosstabs.q:1939
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
 msgstr "Odds Ratio for %s (%.*s / %.*s)"
 
-#: src/language/stats/crosstabs.q:1931
+#: src/language/stats/crosstabs.q:1947
 #, c-format
 msgid "For cohort %s = %g"
 msgstr "Voor cohort %s = %g"
 
-#: src/language/stats/crosstabs.q:1934
+#: src/language/stats/crosstabs.q:1950
 #, c-format
 msgid "For cohort %s = %.*s"
 msgstr "Voor cohort %s = %.*s"
 
-#: src/language/stats/crosstabs.q:1967
+#: src/language/stats/crosstabs.q:1983
 msgid "Nominal by Interval"
 msgstr "Nominal by Interval"
 
-#: src/language/stats/crosstabs.q:1973
+#: src/language/stats/crosstabs.q:1989
 msgid "Goodman and Kruskal tau"
 msgstr "Goodman and Kruskal tau"
 
-#: src/language/stats/crosstabs.q:1974
+#: src/language/stats/crosstabs.q:1990
 msgid "Uncertainty Coefficient"
 msgstr "Onzekerheidscoëfficiënt"
 
-#: src/language/stats/crosstabs.q:1975
+#: src/language/stats/crosstabs.q:1991
 msgid "Somers' d"
 msgstr "Somers' d"
 
-#: src/language/stats/crosstabs.q:1981
+#: src/language/stats/crosstabs.q:1997
 msgid "Symmetric"
 msgstr "Symmetrisch"
 
-#: src/language/stats/crosstabs.q:1982 src/language/stats/crosstabs.q:1983
+#: src/language/stats/crosstabs.q:1998 src/language/stats/crosstabs.q:1999
 #, c-format
 msgid "%s Dependent"
 msgstr "%s Afhankelijk"
@@ -6166,26 +6268,6 @@ msgstr "bestands- of handle-naam verwacht"
 #, c-format
 msgid "Handle for %s not allowed here."
 msgstr "Handle voor %s is hier niet toegestaan."
-
-#: src/language/data-io/list.q:98
-#, c-format
-msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
-msgstr "De eerste gespecificeerde case (%ld) gaat vooraf aan de laatste gespecificeerde case (%ld). De waardes worden verwisseld."
-
-#: src/language/data-io/list.q:106
-#, c-format
-msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr "De eerste case (%ld) om weer te geven is kleiner dan 1. De waarde is op 1 gezet."
-
-#: src/language/data-io/list.q:112
-#, c-format
-msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr "De laatste case (%ld) om weer te geven is kleiner dan 1. De waarde is op 1 gezet."
-
-#: src/language/data-io/list.q:118
-#, c-format
-msgid "The step value %ld is less than 1.  The value is being reset to 1."
-msgstr "De stap waarde %ld is kleiner dan 1. De waarde is op 1 gezet."
 
 #: src/ui/gui/aggregate.ui:7
 msgid "Aggregate Data"
@@ -6507,6 +6589,66 @@ msgstr "Verwachte waardes:"
 msgid "Test _Variables"
 msgstr "Test_variabelen"
 
+# Standaard snelleter voor Bewerken is de w.
+#: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:103
+#: src/ui/gui/output-viewer.ui:29 src/ui/gui/syntax-editor.ui:66
+#: src/ui/gui/var-sheet.ui:35
+msgid "_Edit"
+msgstr "Be_werken"
+
+#: src/ui/gui/data-sheet.ui:57 src/ui/gui/var-sheet.ui:41
+msgid "Insert Variable"
+msgstr "Invoegen variabele"
+
+#: src/ui/gui/data-sheet.ui:58 src/ui/gui/var-sheet.ui:42
+msgid "Create a new variable at the current position"
+msgstr "Creëer een nieuwe variabele op de huidige positie"
+
+#: src/ui/gui/data-sheet.ui:65
+msgid "Insert Cases"
+msgstr "Invoegen cases"
+
+#: src/ui/gui/data-sheet.ui:66
+msgid "Create a new case at the current position"
+msgstr "Creëer een nieuwe case op de huidige positie"
+
+#: src/ui/gui/data-sheet.ui:73 src/ui/gui/var-sheet.ui:49
+msgid "Go To Variable..."
+msgstr "Ga naar Variabele..."
+
+#: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:450
+#: src/ui/gui/var-sheet.ui:50
+msgid "Jump to variable"
+msgstr "Spring naar variabele"
+
+#: src/ui/gui/data-sheet.ui:80
+msgid "Go To Case..."
+msgstr "Ga naar case..."
+
+#: src/ui/gui/data-sheet.ui:82
+msgid "Jump to a case in the data sheet"
+msgstr "Spring naar een Case in het Gegevensblad"
+
+#: src/ui/gui/data-sheet.ui:108 src/ui/gui/var-sheet.ui:75
+msgid "Cl_ear Variables"
+msgstr "Wis _variabelen"
+
+#: src/ui/gui/data-sheet.ui:109 src/ui/gui/var-sheet.ui:76
+msgid "Delete the variables at the selected position(s)"
+msgstr "Verwijder de variabele op de geselecteerde positie(s)"
+
+#: src/ui/gui/data-sheet.ui:117
+msgid "_Clear Cases"
+msgstr "Wis _cases"
+
+#: src/ui/gui/data-sheet.ui:118
+msgid "Delete the cases at the selected position(s)"
+msgstr "Verwijder de cases op de geselecteerde positie(s)"
+
+#: src/ui/gui/data-sheet.ui:125
+msgid "_Find..."
+msgstr "Zoek..."
+
 #: src/ui/gui/descriptives.ui:115 src/ui/gui/factor.ui:183
 #: src/ui/gui/recode.ui:606
 msgid "_Variables:"
@@ -6580,10 +6722,6 @@ msgstr "Sluit cases _pairwise uit"
 msgid "_Report values"
 msgstr "_Rapport waardes"
 
-#: src/ui/gui/examine.ui:469 src/ui/gui/t-test.ui:81
-msgid "Missing Values"
-msgstr "Ontbrekende waardes"
-
 #: src/ui/gui/goto-case.ui:8
 msgid "Goto Case"
 msgstr "Ga naar case"
@@ -6604,7 +6742,7 @@ msgstr "Principal Axis Factoring"
 msgid "Factor Analysis"
 msgstr "Factoranalyse"
 
-#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:359
+#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:279
 msgid "_Descriptives..."
 msgstr "_Descriptieven..."
 
@@ -6805,7 +6943,6 @@ msgid "Draw _histograms"
 msgstr "Teken _histogrammen"
 
 #: src/ui/gui/frequencies.ui:653
-#, fuzzy
 msgid "Superimpose _normal curve"
 msgstr "Superimpose normal curve"
 
@@ -6926,7 +7063,6 @@ msgid "Logistic Regression"
 msgstr "Logistieke Regressie"
 
 #: src/ui/gui/logistic.ui:32
-#, fuzzy
 msgid "_Options..."
 msgstr "Opties..."
 
@@ -6948,7 +7084,7 @@ msgstr "Logistieke Regressie: Opties"
 
 #: src/ui/gui/logistic.ui:259
 msgid "CI for _exp(B): "
-msgstr ""
+msgstr "CI voor _exp(B): "
 
 #: src/ui/gui/logistic.ui:336
 msgid "Classification cu_toff: "
@@ -6967,7 +7103,6 @@ msgid "Means"
 msgstr "Gemiddelde"
 
 #: src/ui/gui/means.ui:139
-#, fuzzy
 msgid "_Independent List:"
 msgstr "Onafhankelijkelijst:"
 
@@ -7268,7 +7403,6 @@ msgid "Old Value"
 msgstr "Oude Waarde"
 
 #: src/ui/gui/recode.ui:97
-#, fuzzy
 msgid "System _Missing"
 msgstr "Ontbrekende waarde"
 
@@ -7598,6 +7732,30 @@ msgstr "<b>Variabelen</b>"
 msgid "<b>Data Preview</b>"
 msgstr "<b>Gegevensvoorbeeld</b>"
 
+#: src/ui/gui/text-data-import.ui:659
+msgid "Importing Spreadsheet Data"
+msgstr "Importeren Rekenbladgegevens"
+
+#: src/ui/gui/text-data-import.ui:670
+msgid "Enter below the sheet number and the cell range which you wish to import."
+msgstr "Voor hieronder het bladnummer en de cel range die u wilt importeren in."
+
+#: src/ui/gui/text-data-import.ui:728
+msgid "_Cells: "
+msgstr "_Cellen: "
+
+#: src/ui/gui/text-data-import.ui:741
+msgid "_Sheet Index: "
+msgstr "Bladnummer: "
+
+#: src/ui/gui/text-data-import.ui:754
+msgid "Use first row as _variable names"
+msgstr "Gebruik de eerst rij als variabelennaam."
+
+#: src/ui/gui/text-data-import.ui:776
+msgid "<b>Cells to Import</b>"
+msgstr "<b>Cellen te Importeren </b>"
+
 #: src/ui/gui/univariate.ui:7
 msgid "Univariate"
 msgstr "Univariatie"
@@ -7622,374 +7780,316 @@ msgstr "Univariatie: Statistieken"
 msgid "Value Label:"
 msgstr "Waardelabel:"
 
-#: src/ui/gui/val-labs-dialog.ui:190
-msgid "Value Labels"
-msgstr "Waardelabels"
-
 #: src/ui/gui/variable-info.ui:50
 msgid "Variable Information:"
 msgstr "Variabeleninformatie:"
 
-#: src/ui/gui/data-editor.ui:23 src/ui/gui/output-viewer.ui:9
+#: src/ui/gui/data-editor.ui:9 src/ui/gui/output-viewer.ui:9
 #: src/ui/gui/syntax-editor.ui:10
 msgid "_File"
 msgstr "_Bestand"
 
-#: src/ui/gui/data-editor.ui:35 src/ui/gui/syntax-editor.ui:22
+#: src/ui/gui/data-editor.ui:21 src/ui/gui/syntax-editor.ui:22
 msgid "_Syntax"
 msgstr "_Syntax"
 
-#: src/ui/gui/data-editor.ui:41 src/ui/gui/data-editor.ui:224
-#: src/ui/gui/data-editor.ui:237 src/ui/gui/syntax-editor.ui:28
+#: src/ui/gui/data-editor.ui:27 src/ui/gui/data-editor.ui:144
+#: src/ui/gui/data-editor.ui:157 src/ui/gui/syntax-editor.ui:28
 msgid "_Data"
 msgstr "_Gegevens"
 
-#: src/ui/gui/data-editor.ui:48 src/ui/gui/syntax-editor.ui:35
+#: src/ui/gui/data-editor.ui:34 src/ui/gui/syntax-editor.ui:35
 msgid "_Open..."
 msgstr "_Open..."
 
-#: src/ui/gui/data-editor.ui:54
+#: src/ui/gui/data-editor.ui:40
 msgid "I_mport Data..."
 msgstr "I_mporteer Data..."
 
-#: src/ui/gui/data-editor.ui:61
+#: src/ui/gui/data-editor.ui:47
 msgid "_Rename Dataset..."
 msgstr "Hernoem Dataset..."
 
-#: src/ui/gui/data-editor.ui:74 src/ui/gui/syntax-editor.ui:48
+#: src/ui/gui/data-editor.ui:60 src/ui/gui/syntax-editor.ui:48
 msgid "Save _As..."
 msgstr "Opslaan _als..."
 
-#: src/ui/gui/data-editor.ui:80
+#: src/ui/gui/data-editor.ui:66
 msgid "D_isplay Data File Information"
 msgstr "Gegevensbestand_informatie tonen"
 
-#: src/ui/gui/data-editor.ui:87
+#: src/ui/gui/data-editor.ui:73
 msgid "Working File"
 msgstr "Werkbestand"
 
-#: src/ui/gui/data-editor.ui:93
+#: src/ui/gui/data-editor.ui:79
 msgid "External File..."
 msgstr "Extern bestand..."
 
-#: src/ui/gui/data-editor.ui:99
+#: src/ui/gui/data-editor.ui:85
 msgid "Recently Used Da_ta"
 msgstr "Recent gebruikte _gegevens"
 
-#: src/ui/gui/data-editor.ui:105
+#: src/ui/gui/data-editor.ui:91
 msgid "Recently Used _Files"
 msgstr "Recent gebruikte _bestanden"
 
-# Standaard snelleter voor Bewerken is de w.
-#: src/ui/gui/data-editor.ui:117 src/ui/gui/output-viewer.ui:29
-#: src/ui/gui/syntax-editor.ui:66
-msgid "_Edit"
-msgstr "Be_werken"
-
-#: src/ui/gui/data-editor.ui:123
-msgid "Insert Variable"
-msgstr "Invoegen variabele"
-
-#: src/ui/gui/data-editor.ui:124
-msgid "Create a new variable at the current position"
-msgstr "Creëer een nieuwe variabele op de huidige positie"
-
-#: src/ui/gui/data-editor.ui:131
-msgid "Insert Cases"
-msgstr "Invoegen cases"
-
-#: src/ui/gui/data-editor.ui:132
-msgid "Create a new case at the current position"
-msgstr "Creëer een nieuwe case op de huidige positie"
-
-#: src/ui/gui/data-editor.ui:138
-msgid "Go To Case..."
-msgstr "Ga naar case..."
-
-#: src/ui/gui/data-editor.ui:140
-msgid "Jump to a case in the data sheet"
-msgstr "Spring naar een Case in het Gegevensblad"
-
-#: src/ui/gui/data-editor.ui:166
-msgid "Cl_ear Variables"
-msgstr "Wis _variabelen"
-
-#: src/ui/gui/data-editor.ui:167
-msgid "Delete the variables at the selected position(s)"
-msgstr "Verwijder de variabele op de geselecteerde positie(s)"
-
-#: src/ui/gui/data-editor.ui:175
-msgid "_Clear Cases"
-msgstr "Wis _cases"
-
-#: src/ui/gui/data-editor.ui:176
-msgid "Delete the cases at the selected position(s)"
-msgstr "Verwijder de cases op de geselecteerde positie(s)"
-
-#: src/ui/gui/data-editor.ui:183
-msgid "_Find..."
-msgstr "Zoek..."
-
-#: src/ui/gui/data-editor.ui:189
+#: src/ui/gui/data-editor.ui:109
 msgid "_View"
 msgstr "Beeld"
 
-#: src/ui/gui/data-editor.ui:196
+#: src/ui/gui/data-editor.ui:116
 msgid "_Status Bar"
 msgstr "_Statusbalk"
 
-#: src/ui/gui/data-editor.ui:203
+#: src/ui/gui/data-editor.ui:123
 msgid "_Font..."
 msgstr "_Font..."
 
-#: src/ui/gui/data-editor.ui:210
+#: src/ui/gui/data-editor.ui:130
 msgid "_Grid Lines"
 msgstr "_Rasterlijnen"
 
-#: src/ui/gui/data-editor.ui:216
+#: src/ui/gui/data-editor.ui:136
 msgid "Value _Labels"
 msgstr "Waarde_labels"
 
-#: src/ui/gui/data-editor.ui:217
+#: src/ui/gui/data-editor.ui:137
 msgid "Show/hide value labels"
 msgstr "Toon/verberg waardelabels"
 
-#: src/ui/gui/data-editor.ui:230
+#: src/ui/gui/data-editor.ui:150
 msgid "_Variables"
 msgstr "_Variabelen"
 
-#: src/ui/gui/data-editor.ui:242
+#: src/ui/gui/data-editor.ui:162
 msgid "_Sort Cases..."
 msgstr "_Sorteer cases..."
 
-#: src/ui/gui/data-editor.ui:246
+#: src/ui/gui/data-editor.ui:166
 msgid "Sort cases in the active dataset"
 msgstr "Sorteer cases in de actieve dataset"
 
-#: src/ui/gui/data-editor.ui:253
+#: src/ui/gui/data-editor.ui:173
 msgid "_Transpose..."
 msgstr "_Herschikken..."
 
-#: src/ui/gui/data-editor.ui:254
+#: src/ui/gui/data-editor.ui:174
 msgid "Transpose the cases with the variables"
 msgstr "Herschik de cases met de variabelen"
 
-#: src/ui/gui/data-editor.ui:261
+#: src/ui/gui/data-editor.ui:181
 msgid "_Aggregate..."
 msgstr "_Aggregeer..."
 
-#: src/ui/gui/data-editor.ui:267
+#: src/ui/gui/data-editor.ui:187
 msgid "S_plit File..."
 msgstr "S_plits bestand..."
 
-#: src/ui/gui/data-editor.ui:268
+#: src/ui/gui/data-editor.ui:188
 msgid "Split the active dataset"
 msgstr "Splits de actieve dataset"
 
-#: src/ui/gui/data-editor.ui:275
+#: src/ui/gui/data-editor.ui:195
 msgid "Select _Cases..."
 msgstr "Selecteer _cases..."
 
-#: src/ui/gui/data-editor.ui:281
+#: src/ui/gui/data-editor.ui:201
 msgid "_Weight Cases..."
 msgstr "_Weeg cases..."
 
-#: src/ui/gui/data-editor.ui:282
+#: src/ui/gui/data-editor.ui:202
 msgid "Weight cases by variable"
 msgstr "Weeg cases per variabele"
 
-#: src/ui/gui/data-editor.ui:289
+#: src/ui/gui/data-editor.ui:209
 msgid "_Transform"
 msgstr "_Transformeren"
 
-#: src/ui/gui/data-editor.ui:295
+#: src/ui/gui/data-editor.ui:215
 msgid "_Compute..."
 msgstr "_Berekenen..."
 
-#: src/ui/gui/data-editor.ui:301
+#: src/ui/gui/data-editor.ui:221
 msgid "Cou_nt..."
 msgstr "Tel..."
 
-#: src/ui/gui/data-editor.ui:308
+#: src/ui/gui/data-editor.ui:228
 msgid "Ran_k Cases..."
 msgstr "Rangschi_k cases..."
 
-#: src/ui/gui/data-editor.ui:314
+#: src/ui/gui/data-editor.ui:234
 msgid "Auto_matic Recode..."
 msgstr "Auto_matische herkodering..."
 
-#: src/ui/gui/data-editor.ui:320
+#: src/ui/gui/data-editor.ui:240
 msgid "Recode into _Same Variables..."
 msgstr "Hercodeer in _zelfde variabelen..."
 
-#: src/ui/gui/data-editor.ui:326
+#: src/ui/gui/data-editor.ui:246
 msgid "Recode into _Different Variables..."
 msgstr "Hercodeer in _andere variabelen..."
 
-#: src/ui/gui/data-editor.ui:332
+#: src/ui/gui/data-editor.ui:252
 msgid "_Run Pending Transforms"
 msgstr "_Uitvoeren uitstaande transformaties"
 
-#: src/ui/gui/data-editor.ui:339
+#: src/ui/gui/data-editor.ui:259
 msgid "_Analyze"
 msgstr "_Analyseer"
 
-#: src/ui/gui/data-editor.ui:345
+#: src/ui/gui/data-editor.ui:265
 msgid "_Descriptive Statistics"
 msgstr "_Descriptieve statistieken"
 
-#: src/ui/gui/data-editor.ui:352
+#: src/ui/gui/data-editor.ui:272
 msgid "_Frequencies..."
 msgstr "_Frequenties..."
 
-#: src/ui/gui/data-editor.ui:366
+#: src/ui/gui/data-editor.ui:286
 msgid "_Explore..."
 msgstr "_Onderzoek..."
 
-#: src/ui/gui/data-editor.ui:373
+#: src/ui/gui/data-editor.ui:293
 msgid "_Crosstabs..."
 msgstr "_Kruistabellen..."
 
-#: src/ui/gui/data-editor.ui:379
+#: src/ui/gui/data-editor.ui:299
 msgid "Compare _Means"
 msgstr "Compare _Means"
 
-#: src/ui/gui/data-editor.ui:386
+#: src/ui/gui/data-editor.ui:306
 msgid "_Means..."
 msgstr ""
 
-#: src/ui/gui/data-editor.ui:392
+#: src/ui/gui/data-editor.ui:312
 msgid "_One Sample T Test..."
 msgstr "_One Sample T Test..."
 
-#: src/ui/gui/data-editor.ui:399
+#: src/ui/gui/data-editor.ui:319
 msgid "_Independent Samples T Test..."
 msgstr "_Independent Samples T Test..."
 
-#: src/ui/gui/data-editor.ui:405
+#: src/ui/gui/data-editor.ui:325
 msgid "_Paired Samples T Test..."
 msgstr "_Paired Samples T Test..."
 
-#: src/ui/gui/data-editor.ui:411
+#: src/ui/gui/data-editor.ui:331
 msgid "One Way _ANOVA..."
 msgstr "One Way _ANOVA..."
 
-#: src/ui/gui/data-editor.ui:417
+#: src/ui/gui/data-editor.ui:337
 msgid "_Univariate Analysis..."
 msgstr "_Univariatie Analyse..."
 
-#: src/ui/gui/data-editor.ui:425
+#: src/ui/gui/data-editor.ui:345
 msgid "Bivariate _Correlation..."
 msgstr "Bivariate _correlatie..."
 
-#: src/ui/gui/data-editor.ui:432
+#: src/ui/gui/data-editor.ui:352
 msgid "_K-Means Cluster..."
 msgstr "_K-Means Cluster..."
 
-#: src/ui/gui/data-editor.ui:439
+#: src/ui/gui/data-editor.ui:359
 msgid "Factor _Analysis..."
 msgstr "Factor _Analyses..."
 
-#: src/ui/gui/data-editor.ui:446
+#: src/ui/gui/data-editor.ui:366
 msgid "Re_liability..."
 msgstr "Betrouwbaarheid..."
 
-#: src/ui/gui/data-editor.ui:452
+#: src/ui/gui/data-editor.ui:372
 msgid "_Regression"
 msgstr "_Regressie"
 
-#: src/ui/gui/data-editor.ui:459
+#: src/ui/gui/data-editor.ui:379
 msgid "_Linear..."
 msgstr ""
 
-#: src/ui/gui/data-editor.ui:466
+#: src/ui/gui/data-editor.ui:386
 #, fuzzy
 msgid "_Binary Logistic..."
 msgstr "_Statistieken..."
 
-#: src/ui/gui/data-editor.ui:472
+#: src/ui/gui/data-editor.ui:392
 msgid "_Non-Parametric Statistics"
 msgstr "_Non-Parametric Statistics"
 
-#: src/ui/gui/data-editor.ui:478
+#: src/ui/gui/data-editor.ui:398
 msgid "_Chi-Square..."
 msgstr "_Chi-Square..."
 
-#: src/ui/gui/data-editor.ui:485
+#: src/ui/gui/data-editor.ui:405
 msgid "_Binomial..."
 msgstr "_Binomiaal..."
 
-#: src/ui/gui/data-editor.ui:491
+#: src/ui/gui/data-editor.ui:411
 msgid "R_uns..."
 msgstr "R_uns..."
 
-#: src/ui/gui/data-editor.ui:497
+#: src/ui/gui/data-editor.ui:417
 msgid "1-Sample _K-S..."
 msgstr "1-Sample _K-S..."
 
-#: src/ui/gui/data-editor.ui:503
+#: src/ui/gui/data-editor.ui:423
 msgid "2 _Related Samples..."
 msgstr "2 _Related Samples..."
 
-#: src/ui/gui/data-editor.ui:509
+#: src/ui/gui/data-editor.ui:429
 msgid "K Related _Samples..."
 msgstr "K Related _Samples..."
 
-#: src/ui/gui/data-editor.ui:516
+#: src/ui/gui/data-editor.ui:436
 msgid "ROC Cur_ve..."
 msgstr "ROC Cur_ve..."
 
-#: src/ui/gui/data-editor.ui:522
+#: src/ui/gui/data-editor.ui:442
 msgid "_Utilities"
 msgstr "E_xtra"
 
-#: src/ui/gui/data-editor.ui:529
+#: src/ui/gui/data-editor.ui:449
 msgid "_Variables..."
 msgstr "_Variabelen..."
 
-#: src/ui/gui/data-editor.ui:530
-msgid "Jump to variable"
-msgstr "Spring naar variabele"
-
-#: src/ui/gui/data-editor.ui:537
+#: src/ui/gui/data-editor.ui:457
 msgid "Data File _Comments..."
 msgstr "Gegevensbestand _commentaren..."
 
-#: src/ui/gui/data-editor.ui:543 src/ui/gui/output-viewer.ui:47
+#: src/ui/gui/data-editor.ui:463 src/ui/gui/output-viewer.ui:47
 #: src/ui/gui/syntax-editor.ui:143
 msgid "_Windows"
 msgstr "_Vensters"
 
-#: src/ui/gui/data-editor.ui:549 src/ui/gui/output-viewer.ui:53
+#: src/ui/gui/data-editor.ui:469 src/ui/gui/output-viewer.ui:53
 #: src/ui/gui/syntax-editor.ui:149
 msgid "_Minimize All Windows"
 msgstr "_Minimaliseer alle vensters"
 
-#: src/ui/gui/data-editor.ui:555
+#: src/ui/gui/data-editor.ui:475
 msgid "_Split"
 msgstr "_Splitsen"
 
-#: src/ui/gui/data-editor.ui:743
+#: src/ui/gui/data-editor.ui:618
 msgid "Information Area"
 msgstr "Informatiegebied"
 
-#: src/ui/gui/data-editor.ui:765
+#: src/ui/gui/data-editor.ui:640
 msgid "Processor Area"
 msgstr "Processorgebied"
 
-#: src/ui/gui/data-editor.ui:790
+#: src/ui/gui/data-editor.ui:665
 msgid "Case Counter Area"
 msgstr "Case-tellergebied"
 
-#: src/ui/gui/data-editor.ui:815
+#: src/ui/gui/data-editor.ui:690
 msgid "Filter Use Status Area"
 msgstr "Filtergebruik statusgebied"
 
-#: src/ui/gui/data-editor.ui:841
+#: src/ui/gui/data-editor.ui:716
 msgid "Weight Status Area"
 msgstr "Weging statusgebied"
 
-#: src/ui/gui/data-editor.ui:867
+#: src/ui/gui/data-editor.ui:742
 msgid "Split File Status Area"
 msgstr "Splitsbestand statusgebied"
 
@@ -8021,38 +8121,38 @@ msgstr "Huidige regel"
 msgid "To End"
 msgstr "Naar einde"
 
-#: src/ui/gui/var-type-dialog.ui:79
+#: src/ui/gui/var-type-dialog.ui:78
 msgid "Scientific notation"
 msgstr "Wetenschappelijke notatie"
 
-#: src/ui/gui/var-type-dialog.ui:127
+#: src/ui/gui/var-type-dialog.ui:126
 msgid "Custom currency"
 msgstr "Aangepaste waarde"
 
-#: src/ui/gui/var-type-dialog.ui:229
+#: src/ui/gui/var-type-dialog.ui:226
 msgid "positive"
 msgstr "positief"
 
-#: src/ui/gui/var-type-dialog.ui:238
+#: src/ui/gui/var-type-dialog.ui:235
 msgid "negative"
 msgstr "negatief"
 
-#: src/ui/gui/var-type-dialog.ui:251
+#: src/ui/gui/var-type-dialog.ui:248
 msgid "Sample"
 msgstr "Steekproef"
 
-#: src/ui/gui/var-type-dialog.ui:298
+#: src/ui/gui/var-type-dialog.ui:295
 msgid "Width:"
 msgstr "Breedte:"
 
-#: src/ui/gui/var-type-dialog.ui:349
+#: src/ui/gui/var-type-dialog.ui:344
 msgid "Decimal Places:"
 msgstr "Decimalen:"
 
 #: src/ui/gui/gen-dot-desktop.sh:14
 msgid "Statistical Software"
-msgstr "Statistische Software"
+msgstr "Statistische software"
 
 #: src/ui/gui/gen-dot-desktop.sh:15
 msgid "Analyze statistical data with a free alternative to SPSS"
-msgstr ""
+msgstr "Analyseer statistische data met een vrij alternatief van SPSS"

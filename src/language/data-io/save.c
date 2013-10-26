@@ -234,10 +234,13 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
         }
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "COMPRESSED"))
-	sysfile_opts.compress = true;
+	sysfile_opts.compression = SFM_COMP_SIMPLE;
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "UNCOMPRESSED"))
-	sysfile_opts.compress = false;
+	sysfile_opts.compression = SFM_COMP_NONE;
+      else if (writer_type == SYSFILE_WRITER
+               && lex_match_id (lexer, "ZCOMPRESSED"))
+	sysfile_opts.compression = SFM_COMP_ZLIB;
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "VERSION"))
 	{

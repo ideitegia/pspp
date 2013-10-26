@@ -98,54 +98,14 @@ src_ui_gui_spreadsheet_test_SOURCES = src/ui/gui/spreadsheet-test.c src/ui/gui/p
 src_ui_gui_psppiredir = $(pkgdatadir)
 
 
-themedir = $(DESTDIR)$(datadir)/icons/hicolor
-context = pspp
-
-
 install-lang:
 	$(INSTALL_DATA) $(top_srcdir)/src/ui/gui/pspp.lang $(DESTDIR)$(pkgdatadir)
 
-install-icons:
-	for size in 16x16 ; do \
-	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
-          $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/icons/$$size/* $(themedir)/$$size/$(context) ; \
-	  $(MKDIR_P) $(themedir)/$$size/apps ; \
-	  $(INSTALL_DATA) $(top_srcdir)/src/ui/gui/app-icons/$$size/pspp.png $(themedir)/$$size/apps ; \
-	done 
-	if test -z "$(DESTDIR)" ; then \
-		gtk-update-icon-cache --ignore-theme-index $(themedir); \
-	fi
-
-INSTALL_DATA_HOOKS += install-icons install-lang
-
-uninstall-icons:
-	for size in 16x16 ; do \
-          rm -r -f $(themedir)/$$size/$(context); \
-          rm -f $(themedir)/$$size/apps/pspp.png; \
-	done 
-	gtk-update-icon-cache --ignore-theme-index $(themedir)
-
-UNINSTALL_DATA_HOOKS += uninstall-icons
+INSTALL_DATA_HOOKS += install-lang
 
 dist_src_ui_gui_psppire_DATA = \
 	$(UI_FILES) \
-	$(top_srcdir)/src/ui/gui/app-icons/16x16/pspp.png \
 	$(top_srcdir)/src/ui/gui/pspp.lang \
-	$(top_srcdir)/src/ui/gui/pspplogo.png \
-	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
-	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
-	$(top_srcdir)/src/ui/gui/icons/insert-case.png \
-	$(top_srcdir)/src/ui/gui/icons/insert-variable.png \
-	$(top_srcdir)/src/ui/gui/icons/recent-dialogs.png \
-	$(top_srcdir)/src/ui/gui/icons/split-file.png \
-	$(top_srcdir)/src/ui/gui/icons/select-cases.png \
-	$(top_srcdir)/src/ui/gui/icons/weight-cases.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/nominal.png  \
-	$(top_srcdir)/src/ui/gui/icons/16x16/ordinal.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png \
-	$(top_srcdir)/src/ui/gui/icons/splash.png \
 	$(top_srcdir)/src/ui/gui/psppire.gtkrc
 
 src_ui_gui_psppire_SOURCES = \
@@ -177,16 +137,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/aggregate-dialog.h \
 	src/ui/gui/builder-wrapper.c \
 	src/ui/gui/builder-wrapper.h \
-	src/ui/gui/checkbox-treeview.c \
-	src/ui/gui/checkbox-treeview.h \
 	src/ui/gui/comments-dialog.c \
 	src/ui/gui/comments-dialog.h \
-	src/ui/gui/compute-dialog.c \
-	src/ui/gui/compute-dialog.h \
-	src/ui/gui/chi-square-dialog.c \
-	src/ui/gui/chi-square-dialog.h \
-	src/ui/gui/count-dialog.c \
-	src/ui/gui/count-dialog.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.h \
@@ -203,21 +155,15 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/help-menu.c \
 	src/ui/gui/help-menu.h \
 	src/ui/gui/helper.h \
-	src/ui/gui/k-related-dialog.c \
-	src/ui/gui/k-related-dialog.h \
-	src/ui/gui/ks-one-sample-dialog.c \
-	src/ui/gui/ks-one-sample-dialog.h \
 	src/ui/gui/main.c \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
-        src/ui/gui/oneway-anova-dialog.c \
-        src/ui/gui/oneway-anova-dialog.h \
-	src/ui/gui/paired-dialog.c \
-	src/ui/gui/paired-dialog.h \
 	src/ui/gui/psppire.c \
 	src/ui/gui/psppire.h \
 	src/ui/gui/psppire-acr.h \
 	src/ui/gui/psppire-buttonbox.h \
+	src/ui/gui/psppire-checkbox-treeview.c \
+	src/ui/gui/psppire-checkbox-treeview.h \
 	src/ui/gui/psppire-conf.c \
 	src/ui/gui/psppire-conf.h \
 	src/ui/gui/psppire-data-editor.c \
@@ -231,8 +177,16 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-dialog-action.c \
 	src/ui/gui/psppire-dialog-action.h \
+	src/ui/gui/psppire-dialog-action-1sks.c \
+	src/ui/gui/psppire-dialog-action-1sks.h \
 	src/ui/gui/psppire-dialog-action-binomial.c \
 	src/ui/gui/psppire-dialog-action-binomial.h \
+	src/ui/gui/psppire-dialog-action-chisquare.c \
+	src/ui/gui/psppire-dialog-action-chisquare.h \
+	src/ui/gui/psppire-dialog-action-compute.c \
+	src/ui/gui/psppire-dialog-action-compute.h \
+	src/ui/gui/psppire-dialog-action-count.c \
+	src/ui/gui/psppire-dialog-action-count.h \
 	src/ui/gui/psppire-dialog-action-correlation.c \
 	src/ui/gui/psppire-dialog-action-correlation.h \
 	src/ui/gui/psppire-dialog-action-crosstabs.c \
@@ -243,6 +197,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-examine.h \
 	src/ui/gui/psppire-dialog-action-factor.c \
 	src/ui/gui/psppire-dialog-action-factor.h \
+	src/ui/gui/psppire-dialog-action-flip.c \
+	src/ui/gui/psppire-dialog-action-flip.h \
 	src/ui/gui/psppire-dialog-action-frequencies.c \
 	src/ui/gui/psppire-dialog-action-frequencies.h \
 	src/ui/gui/psppire-dialog-action-indep-samps.c \
@@ -251,8 +207,14 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-kmeans.h \
 	src/ui/gui/psppire-dialog-action-logistic.c \
 	src/ui/gui/psppire-dialog-action-logistic.h \
+	src/ui/gui/psppire-dialog-action-k-related.c \
+	src/ui/gui/psppire-dialog-action-k-related.h \
 	src/ui/gui/psppire-dialog-action-means.c \
 	src/ui/gui/psppire-dialog-action-means.h \
+	src/ui/gui/psppire-dialog-action-oneway.c \
+	src/ui/gui/psppire-dialog-action-oneway.h \
+	src/ui/gui/psppire-dialog-action-paired.c \
+	src/ui/gui/psppire-dialog-action-paired.h \
 	src/ui/gui/psppire-dialog-action-rank.c \
 	src/ui/gui/psppire-dialog-action-rank.h \
 	src/ui/gui/psppire-dialog-action-regression.c \
@@ -261,8 +223,16 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog-action-reliability.h \
 	src/ui/gui/psppire-dialog-action-roc.c \
 	src/ui/gui/psppire-dialog-action-roc.h \
+	src/ui/gui/psppire-dialog-action-runs.c \
+	src/ui/gui/psppire-dialog-action-runs.h \
 	src/ui/gui/psppire-dialog-action-sort.c \
 	src/ui/gui/psppire-dialog-action-sort.h \
+	src/ui/gui/psppire-dialog-action-tt1s.c \
+	src/ui/gui/psppire-dialog-action-tt1s.h \
+	src/ui/gui/psppire-dialog-action-two-sample.c \
+	src/ui/gui/psppire-dialog-action-two-sample.h \
+	src/ui/gui/psppire-dialog-action-univariate.c \
+	src/ui/gui/psppire-dialog-action-univariate.h \
 	src/ui/gui/psppire-dialog-action-var-info.c \
 	src/ui/gui/psppire-dialog-action-var-info.h \
 	src/ui/gui/psppire-dict.c \
@@ -309,8 +279,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-window-register.h \
 	src/ui/gui/recode-dialog.c \
 	src/ui/gui/recode-dialog.h \
-	src/ui/gui/runs-dialog.c \
-	src/ui/gui/runs-dialog.h \
 	src/ui/gui/select-cases-dialog.c \
 	src/ui/gui/select-cases-dialog.h \
 	src/ui/gui/split-file-dialog.c \
@@ -329,18 +297,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/page-sheet-spec.h \
 	src/ui/gui/text-data-import-dialog.c \
 	src/ui/gui/text-data-import-dialog.h \
-	src/ui/gui/transpose-dialog.c \
-	src/ui/gui/transpose-dialog.h \
-	src/ui/gui/t-test-one-sample.c \
-	src/ui/gui/t-test-one-sample.h \
 	src/ui/gui/t-test-options.c \
 	src/ui/gui/t-test-options.h \
-	src/ui/gui/t-test-paired-samples.c \
-	src/ui/gui/t-test-paired-samples.h \
-	src/ui/gui/npar-two-sample-related.c \
-	src/ui/gui/npar-two-sample-related.h \
-	src/ui/gui/univariate-dialog.c \
-	src/ui/gui/univariate-dialog.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \
@@ -412,4 +370,9 @@ src/ui/gui/include/gtk/gtk.h: src/ui/gui/include/gtk/gtk.in.h
 	mv $@-t $@
 CLEANFILES += src/ui/gui/include/gtk/gtk.h
 EXTRA_DIST += src/ui/gui/include/gtk/gtk.in.h
+
+include $(top_srcdir)/src/ui/gui/icons/automake.mk
+
+UNINSTALL_DATA_HOOKS += update-icon-cache
+INSTALL_DATA_HOOKS += update-icon-cache
 

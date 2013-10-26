@@ -31,6 +31,7 @@
 
 #include "libpspp/assertion.h"
 #include "libpspp/cast.h"
+#include "libpspp/message.h"
 #include "libpspp/str.h"
 #include "libpspp/temp-file.h"
 #include "libpspp/version.h"
@@ -44,7 +45,6 @@
 #include "output/text-item.h"
 
 #include "gl/xalloc.h"
-#include "gl/error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -91,7 +91,7 @@ create_mimetype (struct zip_writer *zip)
   fp = create_temp_file ();
   if (fp == NULL)
     {
-      error (0, errno, _("error creating temporary file"));
+      msg_error (errno, _("error creating temporary file"));
       return false;
     }
 

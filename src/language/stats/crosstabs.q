@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -737,12 +737,25 @@ postcalc (struct crosstabs_proc *proc)
 
       pt->missing = 0.0;
 
-      /* Free only the members that were allocated in this
-         function.  The other pointer members are either both
-         allocated and destroyed at a lower level (in
-         output_pivot_table), or both allocated and destroyed at
-         a higher level (in crs_custom_tables and free_proc,
+      /* Free the members that were allocated in this function(and the values
+         owned by the entries.
+
+         The other pointer members are either both allocated and destroyed at a
+         lower level (in output_pivot_table), or both allocated and destroyed
+         at a higher level (in crs_custom_tables and free_proc,
          respectively). */
+      for (i = 0; i < pt->n_vars; i++)
+        {
+          int width = var_get_width (pt->vars[i]);
+          if (value_needs_init (width))
+            {
+              size_t j;
+
+              for (j = 0; j < pt->n_entries; j++)
+                value_destroy (&pt->entries[j]->values[i], width);
+            }
+        }
+
       for (i = 0; i < pt->n_entries; i++)
         free (pt->entries[i]);
       free (pt->entries);
@@ -966,6 +979,7 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
            ds_cstr (&vars));
 
       ds_destroy (&vars);
+      free (pt->cols);
       return;
     }
 
@@ -1447,7 +1461,9 @@ compare_value_3way_inv (const void *a_, const void *b_, const void *width_)
    with index VAR_IDX takes on.  The values are returned as a
    malloc()'d array stored in *VALUES, with the number of values
    stored in *VALUE_CNT.
-   */
+
+   The caller must eventually free *VALUES, but each pointer in *VALUES points
+   to existing data not owned by *VALUES itself. */
 static void
 enum_var_values (const struct pivot_table *pt, int var_idx,
                  union value **valuesp, int *n_values, bool descending)
@@ -2074,16 +2090,17 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 
 /* Statistical calculations. */
 
-/* Returns the value of the gamma (factorial) function for an integer
+/* Returns the value of the logarithm of gamma (factorial) function for an integer
    argument PT. */
 static double
-gamma_int (double pt)
+log_gamma_int (double pt)
 {
-  double r = 1;
+  double r = 0;
   int i;
 
   for (i = 2; i < pt; i++)
-    r *= i;
+    r += log(i);
+
   return r;
 }
 
@@ -2092,11 +2109,11 @@ gamma_int (double pt)
 static inline double
 Pr (int a, int b, int c, int d)
 {
-  return (gamma_int (a + b + 1.) / gamma_int (a + 1.)
-	  * gamma_int (c + d + 1.) / gamma_int (b + 1.)
-	  * gamma_int (a + c + 1.) / gamma_int (c + 1.)
-	  * gamma_int (b + d + 1.) / gamma_int (d + 1.)
-	  / gamma_int (a + b + c + d + 1.));
+  return exp (log_gamma_int (a + b + 1.) -  log_gamma_int (a + 1.)
+	    + log_gamma_int (c + d + 1.) - log_gamma_int (b + 1.)
+	    + log_gamma_int (a + c + 1.) - log_gamma_int (c + 1.)
+	    + log_gamma_int (b + d + 1.) - log_gamma_int (d + 1.)
+	    - log_gamma_int (a + b + c + d + 1.));
 }
 
 /* Swap the contents of A and B. */
@@ -2114,6 +2131,7 @@ static void
 calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
 {
   int pt;
+  double pn1;
 
   if (MIN (c, d) < MIN (a, b))
     swap (&a, &c), swap (&b, &d);
@@ -2127,13 +2145,21 @@ calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
 	swap (&a, &c), swap (&b, &d);
     }
 
-  *fisher1 = 0.;
-  for (pt = 0; pt <= a; pt++)
-    *fisher1 += Pr (a - pt, b + pt, c + pt, d - pt);
+  pn1 = Pr (a, b, c, d);
+  *fisher1 = pn1;
+  for (pt = 1; pt <= a; pt++)
+    {
+      *fisher1 += Pr (a - pt, b + pt, c + pt, d - pt);
+    }
 
   *fisher2 = *fisher1;
+
   for (pt = 1; pt <= b; pt++)
-    *fisher2 += Pr (a + pt, b - pt, c - pt, d + pt);
+    {
+      double p = Pr (a + pt, b - pt, c - pt, d + pt);
+      if (p < pn1)
+	*fisher2 += p;
+    }
 }
 
 /* Calculates chi-squares into CHISQ.  MAT is a matrix with N_COLS
@@ -2218,8 +2244,7 @@ calc_chisq (struct pivot_table *pt,
       }
 
       /* Fisher. */
-      if (f11 < 5. || f12 < 5. || f21 < 5. || f22 < 5.)
-	calc_fisher (f11 + .5, f12 + .5, f21 + .5, f22 + .5, fisher1, fisher2);
+      calc_fisher (f11 + .5, f12 + .5, f21 + .5, f22 + .5, fisher1, fisher2);
     }
 
   /* Calculate Mantel-Haenszel. */

@@ -35,7 +35,6 @@
 #include "libpspp/i18n.h"
 #include "libpspp/line-reader.h"
 #include "libpspp/message.h"
-#include "ui/gui/checkbox-treeview.h"
 #include "ui/gui/dialog-common.h"
 #include "ui/gui/executor.h"
 #include "ui/gui/helper.h"
@@ -47,7 +46,6 @@
 #include "ui/gui/psppire-var-sheet.h"
 #include "ui/gui/psppire-scanf.h"
 
-#include "gl/error.h"
 #include "gl/intprops.h"
 #include "gl/xalloc.h"
 
@@ -68,7 +66,10 @@ struct formats_page
 /* The "formats" page of the assistant. */
 
 static void on_variable_change (PsppireDict *dict, int idx,
+				unsigned int what,
+				const struct variable *oldvar,
                                 struct import_assistant *);
+
 static void clear_modified_vars (struct import_assistant *);
 
 /* Initializes IA's formats substructure. */
@@ -163,7 +164,7 @@ prepare_formats_page (struct import_assistant *ia)
   fmt_guesser_destroy (fg);
 
   psppire_dict = psppire_dict_new_from_dict (dict);
-  g_signal_connect (psppire_dict, "variable_changed",
+  g_signal_connect (psppire_dict, "variable-changed",
                     G_CALLBACK (on_variable_change), ia);
   ia->dict = dict;
   ia->formats->psppire_dict = psppire_dict;
@@ -231,6 +232,7 @@ reset_formats_page (struct import_assistant *ia)
    dictionary. */
 static void
 on_variable_change (PsppireDict *dict, int dict_idx,
+		    unsigned int what, const struct variable *oldvar,
                     struct import_assistant *ia)
 {
   struct formats_page *p = ia->formats;

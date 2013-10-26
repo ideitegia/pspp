@@ -31,7 +31,7 @@ Variables:,2
 Cases:,3
 Type:,System File
 Weight:,Not weighted.
-Mode:,Compression on.
+Compression:,SAV
 
 Variable,Description,,Position
 x,Format: F8.2,,1

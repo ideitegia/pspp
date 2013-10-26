@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="32"
+   height="32"
+   id="svg3991"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="view-value-labels.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="12.257418"
+     inkscape:cy="10.294756"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="683"
+     inkscape:window-height="708"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,32"
+       id="guide6413" />
+    <sodipodi:guide
+       position="32,0"
+       orientation="-32,0"
+       id="guide6415" />
+    <sodipodi:guide
+       position="32,32"
+       orientation="0,-32"
+       id="guide6417" />
+    <sodipodi:guide
+       position="0,32"
+       orientation="32,0"
+       id="guide6419" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3996">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>GNU PSPP flat icon set</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1020.3622)">
+    <g
+       transform="matrix(2,0,0,1.9999997,190,777.63788)"
+       style="display:inline"
+       id="g6351-6">
+      <rect
+         y="121.36218"
+         x="-95"
+         height="16"
+         width="16"
+         id="rect5559-7"
+         style="fill:none;stroke:none" />
+      <rect
+         y="121.36218"
+         x="-95"
+         height="16"
+         width="16"
+         id="rect5744-3"
+         style="fill:none;stroke:none" />
+      <path
+         inkscape:connector-curvature="0"
+         id="rect6314-8"
+         d="m -87,121.36218 c -2.76142,0 -5,2.68629 -5,6 l 0,1.65625 0,0.34375 0,6.3125 c 0,0.92333 0.73292,1.6875 1.65625,1.6875 l 6.6875,0 c 0.923333,0 1.65625,-0.76417 1.65625,-1.6875 l 0,-6.3125 0,-0.34375 0,-1.65625 c 0,-3.31371 -2.238576,-6 -5,-6 z m 0,2 c 0.828427,0 1.5,0.67157 1.5,1.5 0,0.82843 -0.671573,1.5 -1.5,1.5 -0.82843,0 -1.5,-0.67157 -1.5,-1.5 0,-0.82843 0.67157,-1.5 1.5,-1.5 z m 0,5 c 1.65685,0 3,1.34315 3,3 l 0,4 -2,0 0,-2 -2,0 0,2 -2,0 0,-4 c 0,-1.65685 1.34315,-3 3,-3 z m 0,2 c -0.55228,0 -1,0.44772 -1,1 l 0,1 2,0 0,-1 c 0,-0.55228 -0.44772,-1 -1,-1 z"
+         style="fill:#555753;fill-opacity:1;stroke:none" />
+    </g>
+  </g>
+</svg>

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <zlib.h>
 
 #include "data/attributes.h"
 #include "data/case.h"
@@ -72,27 +73,40 @@ struct sfm_writer
     FILE *file;			/* File stream. */
     struct replace_file *rf;    /* Ticket for replacing output file. */
 
-    bool compress;		/* 1=compressed, 0=not compressed. */
+    enum sfm_compression compression;
     casenumber case_cnt;	/* Number of cases written so far. */
     uint8_t space;              /* ' ' in the file's character encoding. */
 
-    /* Compression buffering.
+    /* Simple compression buffering.
 
-       Compressed data is output as groups of 8 1-byte opcodes
-       followed by up to 8 (depending on the opcodes) 8-byte data
-       items.  Data items and opcodes arrive at the same time but
-       must be reordered for writing to disk, thus a small amount
-       of buffering here. */
-    uint8_t opcodes[8];         /* Buffered opcodes. */
-    int opcode_cnt;             /* Number of buffered opcodes. */
-    uint8_t data[8][8];         /* Buffered data. */
-    int data_cnt;               /* Number of buffered data items. */
+       Compressed data is output as a series of 8-byte elements, with 1 to 9
+       such elements clustered together.  The first element in a cluster is 8
+       1-byte opcodes.  Some opcodes call for an additional element in the
+       cluster (hence, if there are eight such opcodes, then the cluster
+       contains a full 9 elements).
+
+       cbuf[] holds a cluster at a time. */
+    uint8_t cbuf[9][8];
+    int n_opcodes;              /* Number of opcodes in cbuf[0] so far. */
+    int n_elements;             /* Number of elements in cbuf[] so far. */
+
+    /* ZLIB compression. */
+    z_stream zstream;           /* ZLIB deflater. */
+    off_t zstart;
+    struct zblock *blocks;
+    size_t n_blocks, allocated_blocks;
 
     /* Variables. */
     struct sfm_var *sfm_vars;   /* Variables. */
     size_t sfm_var_cnt;         /* Number of variables. */
     size_t segment_cnt;         /* Number of variables including extra segments
                                    for long string variables. */
+  };
+
+struct zblock
+  {
+    unsigned int uncompressed_size;
+    unsigned int compressed_size;
   };
 
 static const struct casewriter_class sys_file_casewriter_class;
@@ -116,6 +130,8 @@ static void write_vls_length_table (struct sfm_writer *w,
 
 static void write_long_string_value_labels (struct sfm_writer *,
                                             const struct dictionary *);
+static void write_long_string_missing_values (struct sfm_writer *,
+                                              const struct dictionary *);
 
 static void write_mrsets (struct sfm_writer *, const struct dictionary *,
                           bool pre_v14);
@@ -131,6 +147,7 @@ static void write_variable_attributes (struct sfm_writer *,
                                        const struct dictionary *);
 
 static void write_int (struct sfm_writer *, int32_t);
+static void write_int64 (struct sfm_writer *, int64_t);
 static inline void convert_double_to_output_format (double, uint8_t[8]);
 static void write_float (struct sfm_writer *, double);
 static void write_string (struct sfm_writer *, const char *, size_t);
@@ -153,6 +170,10 @@ static void put_cmp_opcode (struct sfm_writer *, uint8_t);
 static void put_cmp_number (struct sfm_writer *, double);
 static void put_cmp_string (struct sfm_writer *, const void *, size_t);
 
+static bool start_zstream (struct sfm_writer *);
+static void finish_zstream (struct sfm_writer *);
+static void write_ztrailer (struct sfm_writer *);
+
 static bool write_error (const struct sfm_writer *);
 static bool close_writer (struct sfm_writer *);
 
@@ -161,8 +182,10 @@ struct sfm_write_options
 sfm_writer_default_options (void)
 {
   struct sfm_write_options opts;
+  opts.compression = (settings_get_scompression ()
+                      ? SFM_COMP_SIMPLE
+                      : SFM_COMP_NONE);
   opts.create_writeable = true;
-  opts.compress = settings_get_scompression ();
   opts.version = 3;
   return opts;
 }
@@ -191,16 +214,24 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     }
 
   /* Create and initialize writer. */
-  w = xmalloc (sizeof *w);
+  w = xzalloc (sizeof *w);
   w->fh = fh_ref (fh);
   w->lock = NULL;
   w->file = NULL;
   w->rf = NULL;
 
-  w->compress = opts.compress;
+  /* Use the requested compression, except that no EBCDIC-based ZLIB compressed
+     files have been observed, so drop back to simple compression for those
+     files. */
+  w->compression = opts.compression;
+  if (w->compression == SFM_COMP_ZLIB
+      && is_encoding_ebcdic_compatible (dict_get_encoding (d)))
+    w->compression = SFM_COMP_SIMPLE;
+
   w->case_cnt = 0;
 
-  w->opcode_cnt = w->data_cnt = 0;
+  w->n_opcodes = w->n_elements = 0;
+  memset (w->cbuf[0], 0, 8);
 
   /* Figure out how to map in-memory case data to on-disk case
      data.  Also count the number of segments.  Very long strings
@@ -258,10 +289,14 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_vls_length_table (w, d);
 
   write_long_string_value_labels (w, d);
+  write_long_string_missing_values (w, d);
 
-  if (attrset_count (dict_get_attributes (d)))
-    write_data_file_attributes (w, d);
-  write_variable_attributes (w, d);
+  if (opts.version >= 3)
+    {
+      if (attrset_count (dict_get_attributes (d)))
+        write_data_file_attributes (w, d);
+      write_variable_attributes (w, d);
+    }
 
   write_mrsets (w, d, false);
 
@@ -270,6 +305,20 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   /* Write end-of-headers record. */
   write_int (w, 999);
   write_int (w, 0);
+
+  if (w->compression == SFM_COMP_ZLIB)
+    {
+      w->zstream.zalloc = Z_NULL;
+      w->zstream.zfree = Z_NULL;
+      w->zstream.opaque = Z_NULL;
+      w->zstart = ftello (w->file);
+
+      write_int64 (w, w->zstart);
+      write_int64 (w, 0);
+      write_int64 (w, 0);
+
+      start_zstream (w);
+    }
 
   if (write_error (w))
     goto error;
@@ -328,6 +377,8 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   /* Record-type code. */
   if (is_encoding_ebcdic_compatible (dict_encoding))
     write_string (w, EBCDIC_MAGIC, 4);
+  else if (w->compression == SFM_COMP_ZLIB)
+    write_string (w, ASCII_ZMAGIC, 4);
   else
     write_string (w, ASCII_MAGIC, 4);
 
@@ -343,7 +394,9 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   write_int (w, calc_oct_idx (d, NULL));
 
   /* Compressed? */
-  write_int (w, w->compress);
+  write_int (w, (w->compression == SFM_COMP_NONE ? 0
+                 : w->compression == SFM_COMP_SIMPLE ? 1
+                 : 2));
 
   /* Weight variable. */
   weight = dict_get_weight (d);
@@ -439,7 +492,6 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   int segment_cnt = sfm_width_to_segments (width);
   int seg0_width = sfm_segment_alloc_width (width, 0);
   const char *encoding = var_get_encoding (v);
-  struct missing_values mv;
   int i;
 
   /* Record type. */
@@ -453,14 +505,20 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
   /* Number of missing values.  If there is a range, then the
      range counts as 2 missing values and causes the number to be
-     negated. */
-  mv_copy (&mv, var_get_missing_values (v));
-  if (mv_get_width (&mv) > 8)
-    mv_resize (&mv, 8);
-  if (mv_has_range (&mv))
-    write_int (w, -2 - mv_n_values (&mv));
+     negated.
+
+     Missing values for long string variables are written in a separate
+     record. */
+  if (width <= MAX_SHORT_STRING)
+    {
+      const struct missing_values *mv = var_get_missing_values (v);
+      if (mv_has_range (mv))
+        write_int (w, -2 - mv_n_values (mv));
+      else
+        write_int (w, mv_n_values (mv));
+    }
   else
-    write_int (w, mv_n_values (&mv));
+    write_int (w, 0);
 
   /* Print and write formats. */
   write_format (w, *var_get_print_format (v), seg0_width);
@@ -483,15 +541,19 @@ write_variable (struct sfm_writer *w, const struct variable *v)
     }
 
   /* Write the missing values, if any, range first. */
-  if (mv_has_range (&mv))
+  if (width <= MAX_SHORT_STRING)
     {
-      double x, y;
-      mv_get_range (&mv, &x, &y);
-      write_float (w, x);
-      write_float (w, y);
+      const struct missing_values *mv = var_get_missing_values (v);
+      if (mv_has_range (mv))
+        {
+          double x, y;
+          mv_get_range (mv, &x, &y);
+          write_float (w, x);
+          write_float (w, y);
+        }
+      for (i = 0; i < mv_n_values (mv); i++)
+        write_value (w, mv_get_value (mv, i), width);
     }
-  for (i = 0; i < mv_n_values (&mv); i++)
-    write_value (w, mv_get_value (&mv, i), mv_get_width (&mv));
 
   write_variable_continuation_records (w, seg0_width);
 
@@ -511,8 +573,6 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
       write_variable_continuation_records (w, seg_width);
     }
-
-  mv_destroy (&mv);
 }
 
 /* Writes the value labels to system file W.
@@ -681,6 +741,46 @@ write_data_file_attributes (struct sfm_writer *w,
 }
 
 static void
+add_role_attribute (enum var_role role, struct attrset *attrs)
+{
+  struct attribute *attr;
+  const char *s;
+
+  switch (role)
+    {
+    case ROLE_INPUT:
+    default:
+      s = "0";
+      break;
+
+    case ROLE_TARGET:
+      s = "1";
+      break;
+
+    case ROLE_BOTH:
+      s = "2";
+      break;
+
+    case ROLE_NONE:
+      s = "3";
+      break;
+
+    case ROLE_PARTITION:
+      s = "4";
+      break;
+
+    case ROLE_SPLIT:
+      s = "5";
+      break;
+    }
+  attrset_delete (attrs, "$@Role");
+
+  attr = attribute_create ("$@Role");
+  attribute_add_value (attr, s);
+  attrset_add (attrs, attr);
+}
+
+static void
 write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
 {
   struct string s = DS_EMPTY_INITIALIZER;
@@ -691,14 +791,16 @@ write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
   for (i = 0; i < n_vars; i++)
     { 
       struct variable *v = dict_get_var (d, i);
-      struct attrset *attrs = var_get_attributes (v);
-      if (attrset_count (attrs)) 
-        {
-          if (n_attrsets++)
-            ds_put_byte (&s, '/');
-          ds_put_format (&s, "%s:", var_get_name (v));
-          put_attrset (&s, attrs);
-        }
+      struct attrset attrs;
+
+      attrset_clone (&attrs, var_get_attributes (v));
+
+      add_role_attribute (var_get_role (v), &attrs);
+      if (n_attrsets++)
+        ds_put_byte (&s, '/');
+      ds_put_format (&s, "%s:", var_get_name (v));
+      put_attrset (&s, &attrs);
+      attrset_destroy (&attrs);
     }
   if (n_attrsets)
     write_utf8_record (w, dict_get_encoding (d), &s, 18);
@@ -846,11 +948,11 @@ write_vls_length_table (struct sfm_writer *w,
   ds_destroy (&map);
 }
 
-
 static void
 write_long_string_value_labels (struct sfm_writer *w,
                                 const struct dictionary *dict)
 {
+  const char *encoding = dict_get_encoding (dict);
   size_t n_vars = dict_get_var_cnt (dict);
   size_t size, i;
   off_t start UNUSED;
@@ -861,7 +963,6 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
-      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
 
@@ -891,7 +992,6 @@ write_long_string_value_labels (struct sfm_writer *w,
     {
       struct variable *var = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (var);
-      const char *encoding = var_get_encoding (var);
       int width = var_get_width (var);
       const struct val_lab *val_lab;
       char *var_name;
@@ -922,6 +1022,71 @@ write_long_string_value_labels (struct sfm_writer *w,
           write_int (w, len);
           write_bytes (w, label, len);
           free (label);
+        }
+    }
+  assert (ftello (w->file) == start + size);
+}
+
+static void
+write_long_string_missing_values (struct sfm_writer *w,
+                                  const struct dictionary *dict)
+{
+  const char *encoding = dict_get_encoding (dict);
+  size_t n_vars = dict_get_var_cnt (dict);
+  size_t size, i;
+  off_t start UNUSED;
+
+  /* Figure out the size in advance. */
+  size = 0;
+  for (i = 0; i < n_vars; i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      const struct missing_values *mv = var_get_missing_values (var);
+      int width = var_get_width (var);
+
+      if (mv_is_empty (mv) || width < 9)
+        continue;
+
+      size += 4;
+      size += recode_string_len (encoding, "UTF-8", var_get_name (var), -1);
+      size += 1;
+      size += mv_n_values (mv) * (4 + 8);
+    }
+  if (size == 0)
+    return;
+
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 22);            /* Record subtype */
+  write_int (w, 1);             /* Data item (byte) size. */
+  write_int (w, size);          /* Number of data items. */
+
+  start = ftello (w->file);
+  for (i = 0; i < n_vars; i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      const struct missing_values *mv = var_get_missing_values (var);
+      int width = var_get_width (var);
+      uint8_t n_missing_values;
+      char *var_name;
+      int j;
+
+      if (mv_is_empty (mv) || width < 9)
+        continue;
+
+      var_name = recode_string (encoding, "UTF-8", var_get_name (var), -1);
+      write_int (w, strlen (var_name));
+      write_bytes (w, var_name, strlen (var_name));
+      free (var_name);
+
+      n_missing_values = mv_n_values (mv);
+      write_bytes (w, &n_missing_values, 1);
+
+      for (j = 0; j < n_missing_values; j++)
+        {
+          const union value *value = mv_get_value (mv, j);
+
+          write_int (w, 8);
+          write_bytes (w, value_str (value, width), 8);
         }
     }
   assert (ftello (w->file) == start + size);
@@ -1051,7 +1216,7 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
 
   w->case_cnt++;
 
-  if (!w->compress)
+  if (w->compression == SFM_COMP_NONE)
     write_case_uncompressed (w, c);
   else
     write_case_compressed (w, c);
@@ -1089,8 +1254,12 @@ close_writer (struct sfm_writer *w)
   if (w->file != NULL)
     {
       /* Flush buffer. */
-      if (w->opcode_cnt > 0)
-        flush_compressed (w);
+      flush_compressed (w);
+      if (w->compression == SFM_COMP_ZLIB)
+        {
+          finish_zstream (w);
+          write_ztrailer (w);
+        }
       fflush (w->file);
 
       ok = !write_error (w);
@@ -1114,6 +1283,8 @@ close_writer (struct sfm_writer *w)
       if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))
         ok = false;
     }
+
+  free (w->blocks);
 
   fh_unlock (w->lock);
   fh_unref (w->fh);
@@ -1173,10 +1344,7 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
                    && d == (int) d)
             put_cmp_opcode (w, (int) d + COMPRESSION_BIAS);
           else
-            {
-              put_cmp_opcode (w, 253);
-              put_cmp_number (w, d);
-            }
+            put_cmp_number (w, d);
         }
       else
         {
@@ -1194,10 +1362,7 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
               if (!memcmp (data, "        ", chunk_size))
                 put_cmp_opcode (w, 254);
               else
-                {
-                  put_cmp_opcode (w, 253);
-                  put_cmp_string (w, data, chunk_size);
-                }
+                put_cmp_string (w, data, chunk_size);
             }
 
           /* This code deals properly with padding that is not a
@@ -1211,19 +1376,145 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
     }
 }
 
-/* Flushes buffered compressed opcodes and data to W.
-   The compression buffer must not be empty. */
+static bool
+start_zstream (struct sfm_writer *w)
+{
+  int error;
+
+  error = deflateInit (&w->zstream, 1);
+  if (error != Z_OK)
+    {
+      msg (ME, _("Failed to initialize ZLIB for compression (%s)."),
+           w->zstream.msg);
+      return false;
+    }
+  return true;
+}
+
+static void
+finish_zstream (struct sfm_writer *w)
+{
+  struct zblock *block;
+  int error;
+
+  assert (w->zstream.total_in <= ZBLOCK_SIZE);
+
+  w->zstream.next_in = NULL;
+  w->zstream.avail_in = 0;
+  do
+    {
+      uint8_t buf[4096];
+
+      w->zstream.next_out = buf;
+      w->zstream.avail_out = sizeof buf;
+      error = deflate (&w->zstream, Z_FINISH);
+      write_bytes (w, buf, w->zstream.next_out - buf);
+    }
+  while (error == Z_OK);
+
+  if (error != Z_STREAM_END)
+    msg (ME, _("Failed to complete ZLIB stream compression (%s)."),
+         w->zstream.msg);
+
+  if (w->n_blocks >= w->allocated_blocks)
+    w->blocks = x2nrealloc (w->blocks, &w->allocated_blocks,
+                            sizeof *w->blocks);
+  block = &w->blocks[w->n_blocks++];
+  block->uncompressed_size = w->zstream.total_in;
+  block->compressed_size = w->zstream.total_out;
+}
+
+static void
+write_zlib (struct sfm_writer *w, const void *data_, unsigned int n)
+{
+  const uint8_t *data = data_;
+
+  while (n > 0)
+    {
+      unsigned int chunk;
+
+      if (w->zstream.total_in >= ZBLOCK_SIZE)
+        {
+          finish_zstream (w);
+          start_zstream (w);
+        }
+
+      chunk = MIN (n, ZBLOCK_SIZE - w->zstream.total_in);
+
+      w->zstream.next_in = CONST_CAST (uint8_t *, data);
+      w->zstream.avail_in = chunk;
+      do
+        {
+          uint8_t buf[4096];
+          int error;
+
+          w->zstream.next_out = buf;
+          w->zstream.avail_out = sizeof buf;
+          error = deflate (&w->zstream, Z_NO_FLUSH);
+          write_bytes (w, buf, w->zstream.next_out - buf);
+          if (error != Z_OK)
+            {
+              msg (ME, _("ZLIB stream compression failed (%s)."),
+                   w->zstream.msg);
+              return;
+            }
+        }
+      while (w->zstream.avail_in > 0 || w->zstream.avail_out == 0);
+      data += chunk;
+      n -= chunk;
+    }
+}
+
+static void
+write_ztrailer (struct sfm_writer *w)
+{
+  long long int uncompressed_ofs;
+  long long int compressed_ofs;
+  const struct zblock *block;
+
+  write_int64 (w, -COMPRESSION_BIAS);
+  write_int64 (w, 0);
+  write_int (w, ZBLOCK_SIZE);
+  write_int (w, w->n_blocks);
+
+  uncompressed_ofs = w->zstart;
+  compressed_ofs = w->zstart + 24;
+  for (block = w->blocks; block < &w->blocks[w->n_blocks]; block++)
+    {
+      write_int64 (w, uncompressed_ofs);
+      write_int64 (w, compressed_ofs);
+      write_int (w, block->uncompressed_size);
+      write_int (w, block->compressed_size);
+
+      uncompressed_ofs += block->uncompressed_size;
+      compressed_ofs += block->compressed_size;
+    }
+
+  if (!fseeko (w->file, w->zstart + 8, SEEK_SET))
+    {
+      write_int64 (w, compressed_ofs);
+      write_int64 (w, 24 + (w->n_blocks * 24));
+    }
+  else
+    msg (ME, _("%s: Seek failed (%s)."),
+         fh_get_file_name (w->fh), strerror (errno));
+}
+
+/* Flushes buffered compressed opcodes and data to W. */
 static void
 flush_compressed (struct sfm_writer *w)
 {
-  assert (w->opcode_cnt > 0 && w->opcode_cnt <= 8);
+  if (w->n_opcodes)
+    {
+      unsigned int n = 8 * (1 + w->n_elements);
+      if (w->compression == SFM_COMP_SIMPLE)
+        write_bytes (w, w->cbuf, n);
+      else
+        write_zlib (w, w->cbuf, n);
 
-  write_bytes (w, w->opcodes, w->opcode_cnt);
-  write_zeros (w, 8 - w->opcode_cnt);
-
-  write_bytes (w, w->data, w->data_cnt * sizeof *w->data);
-
-  w->opcode_cnt = w->data_cnt = 0;
+      w->n_opcodes = w->n_elements = 0;
+      memset (w->cbuf[0], 0, 8);
+    }
 }
 
 /* Appends OPCODE to the buffered set of compression opcodes in
@@ -1231,46 +1522,44 @@ flush_compressed (struct sfm_writer *w)
 static void
 put_cmp_opcode (struct sfm_writer *w, uint8_t opcode)
 {
-  if (w->opcode_cnt >= 8)
+  if (w->n_opcodes >= 8)
     flush_compressed (w);
 
-  w->opcodes[w->opcode_cnt++] = opcode;
+  w->cbuf[0][w->n_opcodes++] = opcode;
 }
 
-/* Appends NUMBER to the buffered compression data in W.  The
-   buffer must not be full; the way to assure that is to call
-   this function only just after a call to put_cmp_opcode, which
-   will flush the buffer as necessary. */
+/* Appends NUMBER to the buffered compression data in W. */
 static void
 put_cmp_number (struct sfm_writer *w, double number)
 {
-  assert (w->opcode_cnt > 0);
-  assert (w->data_cnt < 8);
-
-  convert_double_to_output_format (number, w->data[w->data_cnt++]);
+  put_cmp_opcode (w, 253);
+  convert_double_to_output_format (number, w->cbuf[++w->n_elements]);
 }
 
 /* Appends SIZE bytes of DATA to the buffered compression data in
    W, followed by enough spaces to pad the output data to exactly
-   8 bytes (thus, SIZE must be no greater than 8).  The buffer
-   must not be full; the way to assure that is to call this
-   function only just after a call to put_cmp_opcode, which will
-   flush the buffer as necessary. */
+   8 bytes (thus, SIZE must be no greater than 8). */
 static void
 put_cmp_string (struct sfm_writer *w, const void *data, size_t size)
 {
-  assert (w->opcode_cnt > 0);
-  assert (w->data_cnt < 8);
   assert (size <= 8);
 
-  memset (w->data[w->data_cnt], w->space, 8);
-  memcpy (w->data[w->data_cnt], data, size);
-  w->data_cnt++;
+  put_cmp_opcode (w, 253);
+  w->n_elements++;
+  memset (w->cbuf[w->n_elements], w->space, 8);
+  memcpy (w->cbuf[w->n_elements], data, size);
 }
 
 /* Writes 32-bit integer X to the output file for writer W. */
 static void
 write_int (struct sfm_writer *w, int32_t x)
+{
+  write_bytes (w, &x, sizeof x);
+}
+
+/* Writes 64-bit integer X to the output file for writer W. */
+static void
+write_int64 (struct sfm_writer *w, int64_t x)
 {
   write_bytes (w, &x, sizeof x);
 }

@@ -3,7 +3,7 @@ m4_define([SPREADSHEET_TEST_PREP],[dnl
  m4_if($1,[GNM],[dnl
     AT_CHECK([gzip -c $top_srcdir/tests/language/data-io/Book1.gnm.unzipped > Book1.gnumeric])dnl
     m4_define([testsheet],[Book1.gnumeric])dnl
-    AT_SKIP_IF([test n$GNM_SUPPORT != nyes])dnl
+    AT_SKIP_IF([test n$GNM_READ_SUPPORT != nyes])dnl
     ]) dnl
  m4_if($1,[ODS],[dnl
     AT_CHECK([cp $top_srcdir/tests/language/data-io/test.ods test.ods])dnl
@@ -194,6 +194,7 @@ CHECK_SPREADSHEET_READER([GNM])
 
 dnl Check for a bug where gnumeric files were interpreted incorrectly
 AT_SETUP([GET DATA /TYPE=GNM sheet index bug])
+AT_SKIP_IF([test n$GNM_READ_SUPPORT != nyes])
 AT_DATA([minimal3.gnumeric],[dnl
 <?xml version="1.0" encoding="UTF-8"?>
 <gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gnumeric.org/v9.xsd">
@@ -342,6 +343,7 @@ AT_CLEANUP
 
 dnl Check for a bug where certain gnumeric files failed an assertion
 AT_SETUP([GET DATA /TYPE=GNM assert-fail])
+AT_SKIP_IF([test n$GNM_READ_SUPPORT != nyes])
 AT_DATA([read.sps],[dnl
 GET DATA 
 	/TYPE=GNM

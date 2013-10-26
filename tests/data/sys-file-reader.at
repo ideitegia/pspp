@@ -6,7 +6,7 @@ AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
-22; dnl Nominal case size
+28; dnl Nominal case size
 0; dnl Not compressed
 0; dnl Not weighted
 1; dnl 1 case.
@@ -68,11 +68,24 @@ dnl String variable, three missing values.
 2; 4; 0; 3; 0x010400 *2; s8 "STR6"; s8 "MISS"; s8 "OTHR"; s8 "MORE";
 
 dnl Long string variable, one missing value.
+dnl (This is not how SPSS represents missing values for long strings--it
+dnl uses a separate record as shown later below--but old versions of PSPP
+dnl did use this representation so we continue supporting it for backward
+dnl compatibility.
 2; 11; 0; 1; 0x010b00 *2; s8 "STR7"; "first8by";
 2; -1; 0; 0; 0; 0; s8 "";
 
+dnl Long string variables that will have missing values added with a
+dnl later record.
+2; 9; 0; 0; 0x010900 *2; s8 "STR8";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 10; 0; 0; 0x010a00 *2; s8 "STR9";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 11; 0; 0; 0x010b00 *2; s8 "STR10";
+2; -1; 0; 0; 0; 0; s8 "";
+
 dnl Long string variable, value label.
-2; 25; 1; 0; 0x011900 *2; s8 "STR8"; 14; "25-byte string"; i8 0 * 2;
+2; 25; 1; 0; 0x011900 *2; s8 "STR11"; 14; "25-byte string"; i8 0 * 2;
 ( 2; -1; 0; 0; 0; 0; s8 ""; ) * 2;
 dnl Variable label fields on continuation records have been spotted in system
 dnl files created by "SPSS Power Macintosh Release 6.1".
@@ -84,6 +97,18 @@ dnl Machine integer info record.
 dnl Machine floating-point info record.
 7; 4; 8; 3; SYSMIS; HIGHEST; LOWEST;
 
+dnl Long string variable missing values record.
+7; 22; 1; COUNT (
+dnl One missing value for STR8.
+COUNT("STR8"); i8 1; 8; "abcdefgh";
+
+dnl Two missing values for STR9.
+COUNT("STR9"); i8 2; 8; "abcdefgh"; 8; "01234567";
+
+dnl Three missing values for STR9.
+COUNT("STR10"); i8 3; 8; "abcdefgh"; 8; "01234567"; 8; "0       ";
+);
+
 dnl Character encoding record.
 7; 20; 1; 12; "windows-1252";
 
@@ -93,11 +118,12 @@ dnl Dictionary termination record.
 dnl Data.
 1.0; 2.0; 3.0; 4.0; 5.0; 6.0; 7.0; 8.0; 9.0; 10.0;
 s8 "abcd"; s8 "efgh"; s8 "ijkl"; s8 "mnop"; s8 "qrst"; s8 "uvwx";
-s16 "yzABCDEFGHI"; s32 "JKLMNOPQRSTUVWXYZ01234567";
+s16 "yzABCDEFGHI"; s16 "JKLMNOPQR"; s16 "STUVWXYZ01";
+s16 "23456789abc"; s32 "defghijklmnopqstuvwxyzABC";
 ])
 for variant in \
-	"be 94338da4d8d44244d43f31e2ea4d0a6a" \
-	"le e3e7eefb984b81be5531b579293cb127"
+	"be ae072375af73d628a544cc2230dd72c9" \
+	"le 039a21ab64f68c65b240e782a6b0f563"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
@@ -147,12 +173,18 @@ str6,Format: A4,,16
 ,"Missing Values: ""MISS""; ""OTHR""; ""MORE""",,
 str7,Format: A11,,17
 ,"Missing Values: ""first8by""",,
-str8,25-byte string,,18
+str8,Format: A9,,18
+,"Missing Values: ""abcdefgh""",,
+str9,Format: A10,,19
+,"Missing Values: ""abcdefgh""; ""01234567""",,
+str10,Format: A11,,20
+,"Missing Values: ""abcdefgh""; ""01234567""; ""0       """,,
+str11,25-byte string,,21
 ,Format: A25,,
 
 Table: Data List
-num1,num2,num3,num4,num5,num6,num7,num8,num9,numàèìñò,str1,str2,str3,str4,str5,str6,str7,str8
-1,2,3,4,5,6,7,8,9,10,abcd,efgh,ijkl,mnop,qrst,uvwx,yzABCDEFGHI,JKLMNOPQRSTUVWXYZ01234567
+num1,num2,num3,num4,num5,num6,num7,num8,num9,numàèìñò,str1,str2,str3,str4,str5,str6,str7,str8,str9,str10,str11
+1,2,3,4,5,6,7,8,9,10,abcd,efgh,ijkl,mnop,qrst,uvwx,yzABCDEFGHI,JKLMNOPQR,STUVWXYZ01,23456789abc,defghijklmnopqstuvwxyzABC
 ])
 done
 AT_CLEANUP
@@ -640,6 +672,57 @@ Category label source: Value labels of counted value
 done
 AT_CLEANUP
 
+dnl Also checks for handling of CR-only line ends in file label and
+dnl extra product info.
+AT_SETUP([extra product info])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+4; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; "PSPP synthetic"; i8 13; s49 "test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "A";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+
+dnl Extra product info.
+7; 10; 1; COUNT ("Extra product info"; i8 13; "another line"; i8 13; "blah");
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be 0e1cac77501322b012637dcaeb3858ab" \
+	"le ecffd25cae41bbc89c29487abe192016"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+SYSFILE INFO FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([sed 7q pspp.csv], [0], [dnl
+File:,sys-file.sav
+Label:,"PSPP synthetic
+test file"
+Created:,01 Jan 11 20:53:52 by $(@%:@) SPSS DATA FILE PSPP synthetic test file
+Product:,"Extra product info
+another line
+blah"
+])
+done
+AT_CLEANUP
+
 AT_SETUP([variable display parameters, without width])
 AT_KEYWORDS([sack synthetic system file positive])
 AT_DATA([sys-file.sack], [dnl
@@ -1062,6 +1145,7 @@ dnl Variable attributes record.
 "FirstVariable:";
   "ad"; i8 232; "le('23'"; i8 10; "'34'"; i8 10; ")";
   "bert('123'"; i8 10; ")";
+  "$@Role('1'"; i8 10; ")";
 "/S"; i8 233; "condVariable:";
   "xyzzy('quux'"; i8 10; ")";
 );
@@ -1074,20 +1158,21 @@ dnl Dictionary termination record.
 999; 0;
 ])
 for variant in \
-	"be c7cae57af35662acec3b945abcf7927c" \
-	"le eb6b4ab9c27bfa0daa49bf2770bccb70"
+	"be 7fff0c04f697adf45f55d8be4aaa8712" \
+	"le 7331339199344aa58bc60d7d05d538a7"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
 ])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
-DISPLAY ATTRIBUTES.
+DISPLAY @ATTRIBUTES.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([cat pspp.csv], [0],
 [[Variable,Description,
 FirstVariable,Custom attributes:,
+,$@Role,1
 ,adèle[1],23
 ,adèle[2],34
 ,bert,123
@@ -1101,6 +1186,107 @@ Attr1[2],'déclaration'
 SécondAttr[1],123
 SécondAttr[2],456
 ]])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0],
+[[Variable,Description,,Position
+FirstVariable,Format: F8.0,,1
+,Role: Output,,
+,Custom attributes:,,
+,adèle[1],23,
+,adèle[2],34,
+,bert,123,
+SécondVariable,Format: F8.0,,2
+,Custom attributes:,,
+,xyzzy,quux,
+
+Table: Custom data file attributes.
+Attribute,Value
+Attr1[1],Value1
+Attr1[2],'déclaration'
+SécondAttr[1],123
+SécondAttr[2],456
+]])
+done
+AT_CLEANUP
+
+AT_SETUP([variable roles])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+7; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+0; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Variables.
+2; 0; 0; 0; 0x050800 *2; s8 "I";
+2; 0; 0; 0; 0x050800 *2; s8 "O";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "N";
+2; 0; 0; 0; 0x050800 *2; s8 "P";
+2; 0; 0; 0; 0x050800 *2; s8 "S";
+2; 0; 0; 0; 0x050800 *2; s8 "X";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+
+dnl Variable attributes record.
+7; 18; 1; COUNT (
+"I:$@Role('0'"; i8 10; ")";
+"/O:$@Role('1'"; i8 10; ")";
+"/B:$@Role('2'"; i8 10; ")";
+"/N:$@Role('3'"; i8 10; ")";
+"/P:$@Role('4'"; i8 10; ")";
+"/S:$@Role('5'"; i8 10; ")";
+"/X:$@Role('6'"; i8 10; ")";
+);
+
+dnl Character encoding record.
+7; 20; 1; 12; "windows-1252";
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in \
+	"be b08b39cd005682f680d132d272f5158d" \
+	"le 176e4ac91197f5cb8732258033cfabdc"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [dnl
+warning: `sys-file.sav': Invalid role for variable x.
+])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+warning: `sys-file.sav': Invalid role for variable x.
+
+Variable,Description,,Position
+i,Format: F8.0,,1
+o,Format: F8.0,,2
+,Role: Output,,
+b,Format: F8.0,,3
+,Role: Both,,
+n,Format: F8.0,,4
+,Role: None,,
+p,Format: F8.0,,5
+,Role: Partition,,
+s,Format: F8.0,,6
+,Role: Split,,
+x,Format: F8.0,,7
+])
 done
 AT_CLEANUP
 
@@ -1111,7 +1297,7 @@ dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
 6; dnl Nominal case size
-1; dnl Not compressed
+1; dnl Simple compression
 0; dnl Not weighted 
 -1; dnl Unspecified number of cases.
 100.0; dnl Bias.
@@ -1175,7 +1361,7 @@ dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
 6; dnl Nominal case size
-1; dnl Not compressed
+1; dnl Simple compression.
 0; dnl Not weighted 
 -1; dnl Unspecified number of cases.
 0.0; dnl Bias.
@@ -1239,7 +1425,7 @@ dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
 2; dnl Layout code
 6; dnl Nominal case size
-1; dnl Not compressed
+1; dnl Simple compression.
 0; dnl Not weighted 
 -1; dnl Unspecified number of cases.
 50.0; dnl Bias.
@@ -1296,6 +1482,105 @@ num1,num2,str4,str8,str15
 -49,50,,abcdefgh,0123   @&t@
 .,201,jklm,nopqrstu,vwxyzABC       @&t@
 51,52,DEFG,HIJKLMNO,PQRSTUV
+])
+done
+AT_CLEANUP
+
+m4_divert_push([PREPARE_TESTS])
+zcompressed_sack () {
+    cat <<'EOF'
+dnl File header.
+"$FL3"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+2; dnl zlib compressed
+0; dnl Not weighted
+-1; dnl Unspecified number of cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl ZLIB data header.
+i64 0x178;    # zheader_ofs
+i64 0x1e9;    # ztrailer_ofs
+i64 48;       # ztrailer_len
+
+dnl ZLIB data block.
+dnl
+dnl This is the compressed form of:
+dnl
+dnl 01 64 fe fd fe fd ff fb  61 62 63 64 65 66 67 68  |.d......abcdefgh|
+dnl 30 31 32 33 20 20 20 20  fd fd fd fe 65 66 fd fd  |0123    ....ef..|
+dnl 6a 6b 6c 6d 20 20 20 20  6e 6f 70 71 72 73 74 75  |jklm    nopqrstu|
+dnl 76 77 78 79 7a 41 42 43  44 45 46 47 20 20 20 20  |vwxyzABCDEFG    |
+dnl 48 49 4a 4b 4c 4d 4e 4f  fe fd fc 00 00 00 00 00  |HIJKLMNO........|
+dnl 50 51 52 53 54 55 56 57                           |PQRSTUVW|
+dnl
+dnl which is the data from the "compressed data" test.
+hex "78 01 63 4c f9 f7 f7 df  df ff bf 13 93 92 53 52";
+hex "d3 d2 33 0c 0c 8d 8c 15  80 e0 ef df bf ff 52 d3";
+hex "fe fe cd ca ce c9 05 f1  f3 f2 0b 0a 8b 8a 4b 4a";
+hex "cb ca 2b 2a ab 1c 9d 9c  5d 5c dd dc 41 e2 1e 9e";
+hex "5e de 3e be 7e fe ff fe  fe 61 00 81 80 c0 a0 e0";
+hex "90 d0 b0 70 00 0f 3f 23  d7";
+
+dnl ZLIB data trailer fixed header:
+i64 -100;     # ztrailer_bias
+i64 0;        # ztrailer_zero
+0x3ff000;     # block_size
+1;            # n_blocks
+
+dnl ZLIB block descriptor:
+i64 0x178;    # uncompressed_ofs
+i64 0x190;    # compressed_ofs
+88;           # uncompressed_size
+89;           # compressed_size
+EOF
+}
+m4_divert_pop([PREPARE_TESTS])
+
+AT_SETUP([zcompressed data])
+AT_KEYWORDS([sack synthetic system file positive zlib])
+zcompressed_sack > sys-file.sack
+for variant in \
+	"be 2d706c3ca0cc9be7f1721f09d0d42179" \
+	"le 3f362f338d65b0a836b3c752cc3fc5bc"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+LIST.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps])
+  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+Variable,Description,,Position
+num1,Format: F8.0,,1
+num2,Format: F8.0,,2
+str4,Format: A4,,3
+str8,Format: A8,,4
+str15,Format: A15,,5
+
+Table: Data List
+num1,num2,str4,str8,str15
+-99,0,,abcdefgh,0123   @&t@
+.,151,jklm,nopqrstu,vwxyzABC       @&t@
+1,2,DEFG,HIJKLMNO,PQRSTUV
 ])
 done
 AT_CLEANUP
@@ -1659,6 +1944,112 @@ warning: `sys-file.sav' near offset 0x104: Variable STR1 with width 4 has invali
 warning: `sys-file.sav' near offset 0x120: Variable STR2 with width 4 has invalid print format 0x10800.
 
 warning: `sys-file.sav' near offset 0x124: Variable STR2 with width 4 has invalid write format 0x20400.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([invalid long string missing values])
+AT_KEYWORDS([sack synthetic system file negative])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+7; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+1; dnl 1 case.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52";
+"PSPP synthetic test file: "; i8 244; i8 245; i8 246; i8 248; s34 "";
+i8 0 *3;
+
+dnl One numeric variable.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+
+dnl Long string variables that will have missing values added with a
+dnl later record.
+2; 9; 0; 0; 0x010900 *2; s8 "STR1";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 10; 0; 0; 0x010a00 *2; s8 "STR2";
+2; -1; 0; 0; 0; 0; s8 "";
+2; 11; 0; 0; 0x010b00 *2; s8 "STR3";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; ENDIAN; 1252;
+
+dnl Machine floating-point info record.
+7; 4; 8; 3; SYSMIS; HIGHEST; LOWEST;
+
+dnl Long string variable missing values record.
+7; 22; 1; COUNT (
+dnl Zero missing values (not allowed) for STR1 .
+COUNT("STR1"); i8 >>0<<;
+
+dnl Four missing values (not allowed) for STR2.
+COUNT("STR2"); i8 4;
+8; "abcdefgh"; 8; "ijklmnop"; 8; "qrstuvwx"; 8; "yz012345";
+
+dnl Missing values for unknown variable
+COUNT(>>"Nonexistent"<<); i8 1; 8; "abcdefgh";
+
+dnl Missing values for numeric variable
+COUNT(>>"NUM1"<<); i8 1; 8; "abcdefgh";
+
+dnl Too long missing value
+COUNT("STR3"); i8 1; >>COUNT("abcdefghijkl")<<;
+);
+
+dnl Character encoding record.
+7; 20; 1; 12; "windows-1252";
+
+dnl Dictionary termination record.
+999; 0;
+s8 "abcd"; s8 "efgh"; s8 "ijkl"; s8 "mnop"; s8 "qrst"; s8 "uvwx";
+s16 "yzABCDEFGHI"; s16 "JKLMNOPQR"; s16 "STUVWXYZ01";
+s16 "23456789abc"; s32 "defghijklmnopqstuvwxyzABC";
+])
+
+for variant in \
+	"be 26e815cfb41eaedb435ea3c81b96215c" \
+	"le 72d70456bd4dc88bb0a0fdb039ccdfa3"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0],
+   ["warning: `sys-file.sav' near offset 0x1f8: Long string missing values record says variable STR1 has 0 missing values, but only 1 to 3 missing values are allowed."
+
+"warning: `sys-file.sav' near offset 0x201: Long string missing values record says variable STR2 has 4 missing values, but only 1 to 3 missing values are allowed."
+
+warning: `sys-file.sav' near offset 0x242: Ignoring long string missing value record for unknown variable Nonexistent.
+
+warning: `sys-file.sav' near offset 0x257: Ignoring long string missing value record for numeric variable NUM1.
+
+"warning: `sys-file.sav' near offset 0x270: Ignoring long string missing value 0 for variable str3, with width 11, that has bad value width 12."
+
+Variable,Description,,Position
+num1,Format: F8.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+str1,Format: A9,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 9,,
+str2,Format: A10,,3
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 10,,
+,"Missing Values: ""abcdefgh""; ""ijklmnop""; ""qrstuvwx""",,
+str3,Format: A11,,4
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 11,,
 ])
 done
 AT_CLEANUP
@@ -2044,12 +2435,12 @@ do
 ])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 0 as SYSMIS.
+  AT_CHECK([pspp -O format=csv sys-file.sps | sed 's/ [(].*/.../'], [0], [dnl
+"warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 0...
 
-warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 1 as HIGHEST.
+"warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 1...
 
-warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 2 as LOWEST.
+"warning: `sys-file.sav' near offset 0xd8: File specifies unexpected value 2...
 ])
 done
 AT_CLEANUP
@@ -3084,13 +3475,13 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0x128: Ignoring long string value record for unknown variable STR9.
+warning: `sys-file.sav' near offset 0x128: Ignoring long string value label record for unknown variable STR9.
 
-warning: `sys-file.sav' near offset 0x164: Ignoring long string value record for numeric variable NUM1.
+warning: `sys-file.sav' near offset 0x164: Ignoring long string value label record for numeric variable NUM1.
 
-warning: `sys-file.sav' near offset 0x193: Ignoring long string value record for variable STR14 because the record's width (9) does not match the variable's width (14).
+warning: `sys-file.sav' near offset 0x193: Ignoring long string value label record for variable STR14 because the record's width (9) does not match the variable's width (14).
 
-"warning: `sys-file.sav' near offset 0x1d4: Ignoring long string value 0 for variable str14, with width 14, that has bad value width 9."
+"warning: `sys-file.sav' near offset 0x1d4: Ignoring long string value label 0 for variable str14, with width 14, that has bad value width 9."
 
 warning: `sys-file.sav' near offset 0x259: Duplicate value label for `abcdefghijklmn' on str14.
 ])
@@ -3261,3 +3652,296 @@ num1,num2,str4,str8,str15
 done
 AT_CLEANUP
 
+AT_SETUP([zcompressed data - bad zheader_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*zheader_ofs.*/>>i64 0<<;/' > sys-file.sack
+for variant in \
+	"be 6d5c32f34fa1bed6f9b8f7045d104fdc" \
+	"le 1f67fbda4f0021143e141fe8403c5a97"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Wrong ZLIB data header offset 0 (expected 0x178).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - bad ztrailer_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_ofs.*/>>i64 0<<;/' > sys-file.sack
+for variant in \
+	"be e2c8dec0c62d3d798825ad5906370634" \
+	"le c1cff4cdddeee80bf1580cbc26fa9fd5"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Impossible ZLIB trailer offset 0x0.
+])
+done
+AT_CLEANUP
+
+# ztrailer_len must be a multiple of 24 and at least 48,
+# so a value of 12 is impossible.
+AT_SETUP([zcompressed data - invalid ztrailer_len])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_len.*/>>i64 12<<;/' > sys-file.sack
+for variant in \
+	"be 27f5203463bc4c7644382f24ae87f84c" \
+	"le 0035fa6ee7690720429715150ede85f4"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Invalid ZLIB trailer length 12.
+])
+done
+AT_CLEANUP
+
+# ztrailer_ofs + ztrailer_len must be the file size.
+AT_SETUP([zcompressed data - wrong ztrailer_len])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_len.*/>>i64 72<<;/' > sys-file.sack
+for variant in \
+	"be 2ba9ae97bc0a7f5dcfe36e2463b9d7cb" \
+	"le d737ea0a53ca5c6f20be359027171d73"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [warning: `sys-file.sav' near offset 0x190: End of ZLIB trailer (0x231) is not file size (0x219).
+error: `sys-file.sav' near offset 0x201: 72-byte ZLIB trailer specifies 1 data blocks (expected 2).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong ztrailer_bias])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_bias.*/>>i64 0<<;/' > sys-file.sack
+for variant in \
+	"be a5b56ab5e799a3626de2cdd7bd8d7a03" \
+	"le d7cd584c6d5a95df10ba640eb3f1f24f"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x1f1: ZLIB trailer bias (0) differs from file header bias (100.00).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong ztrailer_zero])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*ztrailer_zero.*/>>i64 100<<;/' > sys-file.sack
+for variant in \
+	"be 8d746abedb3e74cfdc22207f3455db92" \
+	"le 79cea017365cab35d59c7a300cfa66c1"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x1f9: ZLIB trailer "zero" field has nonzero value 100.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong block_size])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*block_size.*/>>0x1000<<;/' > sys-file.sack
+for variant in \
+	"be 8d5a1caa56be8892d453faf1047005ca" \
+	"le 7daa1bd57b192893b313a351202e179b"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x1fd: ZLIB trailer specifies unexpected 4096-byte block size.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong n_blocks])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*n_blocks.*/>>2<<;/' > sys-file.sack
+for variant in \
+	"be cd29596fd6bf4a2f651febe820a7955f" \
+	"le 8fc1f718dfd2abac7c3442c1055d4cab"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: 48-byte ZLIB trailer specifies 2 data blocks (expected 1).
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong uncompressed_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*uncompressed_ofs.*/i64 >>0x177<<;/' > sys-file.sack
+for variant in \
+	"be 5546120fe6161dc6ed20aec48d8e74a4" \
+	"le 86fafd625ed5ceaa1bff4fc7f500b6ab"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported uncompressed data offset 0x177, when 0x178 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - wrong compressed_ofs])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*@%:@ compressed_ofs.*/i64 >>0x191<<;/' > sys-file.sack
+for variant in \
+	"be 652e28f8d3f8e4ce47ad18d0f30e7bb9" \
+	"le ebf2c647f2d7c47858d4f5ed683526e6"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported compressed data offset 0x191, when 0x190 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - compressed sizes don't add up])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL3"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+6; dnl Nominal case size
+2; dnl zlib compressed
+0; dnl Not weighted
+-1; dnl Unspecified number of cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+2; 0; 0; 0; 0x050800 *2; s8 "NUM2";
+
+dnl String variable.
+2; 4; 0; 0; 0x010400 *2; s8 "STR4";
+2; 8; 0; 0; 0x010800 *2; s8 "STR8";
+2; 15; 0; 0; 0x010f00 *2; s8 "STR15";
+2; -1; 0; 0; 0; 0; s8 "";
+
+dnl Dictionary termination record.
+999; 0;
+
+dnl ZLIB data header.
+i64 0x178;    # zheader_ofs
+i64 0x190;    # ztrailer_ofs
+i64 72;       # ztrailer_len
+
+dnl This is where the ZLIB data blocks would go, but we don't need any to
+dnl provoke this message so we omit them.
+
+dnl ZLIB data trailer fixed header:
+i64 -100;     # ztrailer_bias
+i64 0;        # ztrailer_zero
+0x3ff000;     # block_size
+2;            # n_blocks
+
+dnl ZLIB block descriptor 1:
+i64 0x178;    # uncompressed_ofs
+i64 0x190;    # compressed_ofs
+0x100000;     # uncompressed_size
+0x12345;      # compressed_size
+
+dnl ZLIB block descriptor 2:
+i64 0x100178; # uncompressed_ofs
+i64 0x12405;  # compressed_ofs
+0x100000;     # uncompressed_size
+0x12345;      # compressed_size
+])
+for variant in \
+	"be 72ebf57bffa340afe16ed79959faac09" \
+	"le 80b34e98f6b181dcc2e8ca4ba13f768d"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [warning: `sys-file.sav' near offset 0x1a8: ZLIB block descriptor 0 reported block size 0x100000, when 0x3ff000 was expected.
+error: `sys-file.sav' near offset 0x1c0: ZLIB block descriptor 1 reported compressed data offset 0x12405, when 0x124d5 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - uncompressed_size > block_size])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*uncompressed_size.*/>>0x400000<<;/' > sys-file.sack
+for variant in \
+	"be 9bb74ef407fe0b79e43c388eedc28212" \
+	"le 6f145fb5f820c513f50b6f81310cdad5"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported block size 0x400000, when at most 0x3ff000 was expected.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - compression expands data too much])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*uncompressed_size.*/>>50<<;/
+s/.*@%:@ compressed_size.*/>>100<<;/' > sys-file.sack
+for variant in \
+	"be e11cadde5f0855c965a1cb388dedc36e" \
+	"le 37953e71462b6554c5644fec8b539164"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reports compressed size 100 and uncompressed size 50.
+])
+done
+AT_CLEANUP
+
+AT_SETUP([zcompressed data - compressed sizes don't add up])
+AT_KEYWORDS([sack synthetic system file negative zlib])
+zcompressed_sack | sed 's/.*@%:@ compressed_size.*/>>88<<;/' > sys-file.sack
+for variant in \
+	"be 366eaf85be1f26fb6549e2f8ee393628" \
+	"le a756e5125e6a908cb4990f66cc419bef"
+do
+  set $variant
+  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
+])
+  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+])
+  AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x219: ZLIB trailer is at offset 0x1e9 but 0x1e8 would be expected from block descriptors.
+])
+done
+AT_CLEANUP

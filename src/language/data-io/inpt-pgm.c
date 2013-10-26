@@ -127,7 +127,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
 
         default:
           if (cmd_result_is_failure (result)
-              && lex_get_error_mode (lexer) != LEX_ERROR_INTERACTIVE)
+              && lex_get_error_mode (lexer) != LEX_ERROR_TERMINAL)
             {
               if (result == CMD_EOF)
                 msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));

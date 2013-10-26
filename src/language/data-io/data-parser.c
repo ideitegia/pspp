@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -423,7 +423,9 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
            int *first_column, int *last_column, struct string *tmp,
            struct substring *field)
 {
+  size_t length_before_separators;
   struct substring line, p;
+  bool quoted;
 
   if (dfm_eof (reader))
     return false;
@@ -450,7 +452,8 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
     }
 
   *first_column = dfm_column_start (reader);
-  if (ss_find_byte (parser->quotes, ss_first (p)) != SIZE_MAX)
+  quoted = ss_find_byte (parser->quotes, ss_first (p)) != SIZE_MAX;
+  if (quoted)
     {
       /* Quoted field. */
       int quote = ss_get_byte (&p);
@@ -470,39 +473,27 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
           *field = ds_ss (tmp);
         }
       *last_column = *first_column + (ss_length (line) - ss_length (p));
-
-      /* Skip trailing soft separator and a single hard separator
-         if present. */
-      if (!ss_is_empty (p))
-        {
-          size_t n_seps = ss_ltrim (&p, parser->soft_seps);
-          if (!ss_is_empty (p)
-              && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
-            {
-              ss_advance (&p, 1);
-              n_seps++;
-            }
-          if (!n_seps)
-            msg (DW, _("Missing delimiter following quoted string."));
-        }
     }
   else
     {
       /* Regular field. */
       ss_get_bytes (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
       *last_column = *first_column + ss_length (*field);
-
-      if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p)
-          || ss_find_byte (parser->hard_seps, p.string[0]) != SIZE_MAX)
-        {
-          /* Advance past a trailing hard separator,
-             regardless of whether one actually existed.  If
-             we "skip" a delimiter that was not actually
-             there, then we will return end-of-line on our
-             next call, which is what we want. */
-          dfm_forward_columns (reader, 1);
-        }
     }
+
+  /* Skip trailing soft separator and a single hard separator if present. */
+  length_before_separators = ss_length (p);
+  ss_ltrim (&p, parser->soft_seps);
+  if (!ss_is_empty (p)
+      && ss_find_byte (parser->hard_seps, ss_first (p)) != SIZE_MAX)
+    {
+      ss_advance (&p, 1);
+      ss_ltrim (&p, parser->soft_seps);
+    }
+  if (ss_is_empty (p))
+    dfm_forward_columns (reader, 1);
+  else if (quoted && length_before_separators == ss_length (p))
+    msg (DW, _("Missing delimiter following quoted string."));
   dfm_forward_columns (reader, ss_length (line) - ss_length (p));
 
   return true;

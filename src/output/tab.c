@@ -38,7 +38,6 @@
 #include "output/table-provider.h"
 #include "output/text-item.h"
 
-#include "gl/error.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 
@@ -767,6 +766,6 @@ static const struct table_class tab_table_class =
 struct tab_table *
 tab_cast (const struct table *table)
 {
-  assert (table->class == &tab_table_class);
+  assert (table->klass == &tab_table_class);
   return UP_CAST (table, struct tab_table, table);
 }

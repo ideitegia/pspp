@@ -353,6 +353,13 @@ psppire_dialog_notify_change (PsppireDialog *dialog)
 }
 
 
+static void
+remove_notify_handlers (PsppireDialog *dialog, GObject *sel)
+{
+  g_signal_handlers_disconnect_by_data (sel, dialog);
+}
+
+
 /* Descend the widget tree, connecting appropriate signals to the
    psppire_dialog_notify_change callback */
 static void
@@ -427,19 +434,22 @@ connect_notify_signal (GtkWidget *w, gpointer data)
 
       if ( model)
 	{
-      g_signal_connect_swapped (model, "row-changed",
-				G_CALLBACK (psppire_dialog_notify_change),
-				dialog);
+	  g_signal_connect_swapped (model, "row-changed",
+				    G_CALLBACK (psppire_dialog_notify_change),
+				    dialog);
 
-      g_signal_connect_swapped (model, "row-deleted",
-				G_CALLBACK (psppire_dialog_notify_change),
-				dialog);
+	  g_signal_connect_swapped (model, "row-deleted",
+				    G_CALLBACK (psppire_dialog_notify_change),
+				    dialog);
 
-      g_signal_connect_swapped (model, "row-inserted",
-				G_CALLBACK (psppire_dialog_notify_change),
-				dialog);
+	  g_signal_connect_swapped (model, "row-inserted",
+				    G_CALLBACK (psppire_dialog_notify_change),
+				    dialog);
+
+	  g_signal_connect (dialog, "destroy", G_CALLBACK (remove_notify_handlers),
+			    model);
 	}
-
+      
       g_signal_connect_swapped (selection, "changed",
 				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
@@ -464,6 +474,12 @@ connect_notify_signal (GtkWidget *w, gpointer data)
 gint
 psppire_dialog_run (PsppireDialog *dialog)
 {
+  gchar *title = NULL;
+  g_object_get (dialog, "title", &title, NULL);
+
+  if (title == NULL)
+    g_warning ("PsppireDialog %s has no title", gtk_widget_get_name (GTK_WIDGET (dialog)));
+  
   if ( dialog->contents_are_valid != NULL )
     gtk_container_foreach (GTK_CONTAINER (dialog->box),
 			   connect_notify_signal,

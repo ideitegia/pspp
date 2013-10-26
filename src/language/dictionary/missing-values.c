@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,12 +96,16 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
             }
           else
             {
+              const char *encoding = dict_get_encoding (dict);
+
               mv_init (&mv, MV_MAX_STRING);
               while (!lex_match (lexer, T_RPAREN))
                 {
-                  uint8_t value[MV_MAX_STRING];
-                  char *dict_mv;
-                  size_t length;
+                  const char *utf8_s;
+                  size_t utf8_trunc_len;
+                  size_t utf8_len;
+
+                  char *raw_s;
 
                   if (!lex_force_string (lexer))
                     {
@@ -109,24 +113,24 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                       break;
                     }
 
-                  dict_mv = recode_string (dict_get_encoding (dict), "UTF-8",
-                                           lex_tokcstr (lexer),
-                                           ss_length (lex_tokss (lexer)));
-                  length = strlen (dict_mv);
-                  if (length > MV_MAX_STRING)
-                    {
-                      /* XXX truncate graphemes not bytes */
-                      msg (SE, _("Truncating missing value to maximum "
-                                 "acceptable length (%d bytes)."),
-                           MV_MAX_STRING);
-                      length = MV_MAX_STRING;
-                    }
-                  memset (value, ' ', MV_MAX_STRING);
-                  memcpy (value, dict_mv, length);
-                  free (dict_mv);
+                  /* Truncate the string to fit in 8 bytes in the dictionary
+                     encoding. */
+                  utf8_s = lex_tokcstr (lexer);
+                  utf8_len = ss_length (lex_tokss (lexer));
+                  utf8_trunc_len = utf8_encoding_trunc_len (utf8_s, encoding,
+                                                            MV_MAX_STRING);
+                  if (utf8_trunc_len < utf8_len)
+                    msg (SE, _("Truncating missing value to maximum "
+                               "acceptable length (%d bytes)."),
+                         MV_MAX_STRING);
 
-                  if (!mv_add_str (&mv, value))
+                  /* Recode to dictionary encoding and add. */
+                  raw_s = recode_string (encoding, "UTF-8",
+                                         utf8_s, utf8_trunc_len);
+                  if (!mv_add_str (&mv, CHAR_CAST (const uint8_t *, raw_s),
+                                   strlen (raw_s)))
                     ok = false;
+                  free (raw_s);
 
                   lex_get (lexer);
                   lex_match (lexer, T_COMMA);
