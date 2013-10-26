@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-09-22 22:37-0700\n"
-"PO-Revision-Date: 2013-10-24 21:44+0300\n"
+"PO-Revision-Date: 2013-10-26 17:05+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "Language: uk\n"
@@ -230,13 +230,12 @@ msgid "dataset"
 msgstr "набір даних"
 
 #: src/data/dict-class.c:52
-#, fuzzy
 msgid "ordinary"
-msgstr "Звичайний"
+msgstr "порядковий"
 
 #: src/data/dict-class.c:54
 msgid "system"
-msgstr "система"
+msgstr "системний"
 
 #: src/data/dict-class.c:56
 #, fuzzy
@@ -943,7 +942,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:1829
 #, c-format
 msgid "Variable index %d not in valid range 1...%zu."
-msgstr ""
+msgstr "Індекс змінної %d не належить коректному діапазону 1...%zu."
 
 #: src/data/sys-file-reader.c:1838
 #, c-format
@@ -968,7 +967,7 @@ msgstr "Некоректна роль змінної %s."
 #: src/data/sys-file-reader.c:1987
 #, c-format
 msgid "%zu other variables had invalid roles."
-msgstr ""
+msgstr "%zu інші змінні належать до некоректних ролей."
 
 #: src/data/sys-file-reader.c:1999
 msgid "Long string value label record ends unexpectedly."
@@ -1001,7 +1000,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:2191
 #, c-format
 msgid "Error reading case from file %s."
-msgstr ""
+msgstr "Помилка під час читання спостереження з файла %s."
 
 #: src/data/sys-file-reader.c:2293
 msgid "Possible compressed data corruption: compressed spaces appear in numeric field."
@@ -1015,12 +1014,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:2441
 #, c-format
 msgid "Suppressed %d additional related warnings."
-msgstr ""
+msgstr "Придушено %d додаткових пов’язаних попереджень."
 
 #: src/data/sys-file-reader.c:2487 src/data/sys-file-reader.c:2504
 #, c-format
 msgid "Dictionary record refers to unknown variable %s."
-msgstr ""
+msgstr "Запис словника посилається на невідому змінну %s."
 
 #: src/data/sys-file-reader.c:2566
 #, c-format
@@ -1045,7 +1044,7 @@ msgstr ""
 #: src/data/sys-file-reader.c:2639
 #, c-format
 msgid "`%s' near offset 0x%llx: "
-msgstr ""
+msgstr "«%s» поряд з позицією 0x%llx: "
 
 #: src/data/sys-file-reader.c:2642
 #, c-format
@@ -1121,7 +1120,7 @@ msgstr "Поділ"
 
 #: src/data/variable.c:924
 msgid "Split"
-msgstr ""
+msgstr "Поділ"
 
 #: src/data/variable.c:1035
 msgid "Left"
@@ -1149,7 +1148,7 @@ msgstr "%s можна використовувати лише у режимі т
 #: src/language/command.c:217
 #, c-format
 msgid "%s may be used only in enhanced syntax mode."
-msgstr ""
+msgstr "%s можна використовувати лише у розширеному синтаксичному режимі."
 
 #: src/language/command.c:345
 msgid "expecting command name"
@@ -1163,37 +1162,37 @@ msgstr "Невідома команда: «%s»."
 #: src/language/command.c:380
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined."
-msgstr ""
+msgstr "%s можна використовувати лише перед визначенням активного набору даних."
 
 #: src/language/command.c:384
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined."
-msgstr ""
+msgstr "%s можна використовувати лише після визначення активного набору даних."
 
 #: src/language/command.c:388
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM."
-msgstr ""
+msgstr "%s можна використовувати лише всередині INPUT PROGRAM."
 
 #: src/language/command.c:392
 #, c-format
 msgid "%s is allowed only inside FILE TYPE."
-msgstr ""
+msgstr "%s можна використовувати лише всередині FILE TYPE."
 
 #: src/language/command.c:399 src/language/command.c:403
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined or inside %s."
-msgstr ""
+msgstr "%s можна використовувати лише перед визначенням активного набору даних або всередині %s."
 
 #: src/language/command.c:407 src/language/command.c:411
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined or inside %s."
-msgstr ""
+msgstr "%s можна використовувати лише після визначення активного набору даних або всередині %s."
 
 #: src/language/command.c:415
 #, c-format
 msgid "%s is allowed only inside INPUT PROGRAM or inside FILE TYPE."
-msgstr ""
+msgstr "%s можна використовувати лише всередині INPUT PROGRAM або всередині FILE TYPE."
 
 #: src/language/command.c:420
 #, c-format
@@ -1213,7 +1212,7 @@ msgstr "%s не можна використовувати всередині %s.
 #: src/language/command.c:528 src/language/utilities/host.c:130
 #: src/language/utilities/permissions.c:105
 msgid "This command not allowed when the SAFER option is set."
-msgstr ""
+msgstr "Цю команду не можна використовувати, якщо встановлено параметр SAFER."
 
 #: src/language/command.c:544
 #, c-format
@@ -1406,7 +1405,7 @@ msgstr ""
 #: src/language/lexer/value-parser.c:73
 #, c-format
 msgid "Ends of range are equal (%g)."
-msgstr ""
+msgstr "Кінці діапазону є рівними (%g)."
 
 #: src/language/lexer/value-parser.c:81
 msgid "LO or LOWEST must be part of a range."
@@ -1865,12 +1864,13 @@ msgid "Created:"
 msgstr "Створено:"
 
 #: src/language/dictionary/sys-file-info.c:113
+#, fuzzy
 msgid "Product:"
-msgstr ""
+msgstr "Продукт:"
 
 #: src/language/dictionary/sys-file-info.c:117
 msgid "Integer Format:"
-msgstr ""
+msgstr "Цілочисельний формат:"
 
 #: src/language/dictionary/sys-file-info.c:119
 msgid "Big Endian"
@@ -1889,27 +1889,27 @@ msgstr "Невідомо"
 
 #: src/language/dictionary/sys-file-info.c:123
 msgid "Real Format:"
-msgstr ""
+msgstr "Справжній формат:"
 
 #: src/language/dictionary/sys-file-info.c:125
 msgid "IEEE 754 LE."
-msgstr ""
+msgstr "IEEE 754 LE."
 
 #: src/language/dictionary/sys-file-info.c:126
 msgid "IEEE 754 BE."
-msgstr ""
+msgstr "IEEE 754 BE."
 
 #: src/language/dictionary/sys-file-info.c:127
 msgid "VAX D."
-msgstr ""
+msgstr "VAX D."
 
 #: src/language/dictionary/sys-file-info.c:128
 msgid "VAX G."
-msgstr ""
+msgstr "VAX G."
 
 #: src/language/dictionary/sys-file-info.c:129
 msgid "IBM 390 Hex Long."
-msgstr ""
+msgstr "IBM 390 шіст. довгі."
 
 #: src/language/dictionary/sys-file-info.c:132
 msgid "Variables:"
@@ -1934,7 +1934,7 @@ msgstr "Вага:"
 
 #: src/language/dictionary/sys-file-info.c:150
 msgid "Not weighted."
-msgstr ""
+msgstr "Не зважено."
 
 #: src/language/dictionary/sys-file-info.c:153
 msgid "Mode:"
@@ -2020,7 +2020,7 @@ msgstr "Міра: %s"
 #: src/language/dictionary/sys-file-info.c:527
 #, c-format
 msgid "Role: %s"
-msgstr ""
+msgstr "Роль: %s"
 
 #: src/language/dictionary/sys-file-info.c:532
 #, c-format
@@ -2030,7 +2030,7 @@ msgstr "Вирівнювання під час показу: %s"
 #: src/language/dictionary/sys-file-info.c:537
 #, c-format
 msgid "Display Width: %d"
-msgstr ""
+msgstr "Ширина показу: %d"
 
 #: src/language/dictionary/sys-file-info.c:551
 msgid "Missing Values: "
@@ -2051,42 +2051,42 @@ msgstr "Формат друку"
 #: src/language/dictionary/value-labels.c:154
 #, c-format
 msgid "Truncating value label to %d bytes."
-msgstr ""
+msgstr "Обрізаємо мітку значення до %d байтів."
 
 #: src/language/dictionary/vector.c:66
 #, c-format
 msgid "A vector named %s already exists."
-msgstr ""
+msgstr "Вектор з назвою %s вже існує."
 
 #: src/language/dictionary/vector.c:74
 #, c-format
 msgid "Vector name %s is given twice."
-msgstr ""
+msgstr "Назву вектора %s вказано двічі."
 
 #: src/language/dictionary/vector.c:98
 msgid "A slash must separate each vector specification in VECTOR's long form."
-msgstr ""
+msgstr "У розширеній формі запису VECTOR специфікації окремих векторів слід розділяти символом похилої риски."
 
 #: src/language/dictionary/vector.c:131
 msgid "Vectors must have at least one element."
-msgstr ""
+msgstr "Вектори мають складатися принаймні з одного елемента."
 
 #: src/language/dictionary/vector.c:152
 msgid "expecting vector length"
-msgstr ""
+msgstr "мало бути вказано довжину вектора"
 
 #: src/language/dictionary/vector.c:172
 #, c-format
 msgid "%s is an existing variable name."
-msgstr ""
+msgstr "%s є назвою змінної, яка вже існує."
 
 #: src/language/dictionary/variable-display.c:120
 msgid "Variable display width must be a positive integer."
-msgstr ""
+msgstr "Значення ширини показу змінної має бути додатним і цілим."
 
 #: src/language/dictionary/weight.c:49
 msgid "The weighting variable must be numeric."
-msgstr ""
+msgstr "Зважувана змінна має бути числовою."
 
 #: src/language/dictionary/weight.c:54
 msgid "The weighting variable may not be scratch."
@@ -2094,58 +2094,58 @@ msgstr ""
 
 #: src/language/tests/moments-test.c:50
 msgid "expecting weight value"
-msgstr ""
+msgstr "мало бути використано значення ваги"
 
 #: src/language/utilities/cd.c:45
 #, c-format
 msgid "Cannot change directory to %s:  %s "
-msgstr ""
+msgstr "Не вдалося змінити каталог на %s:  %s "
 
 #: src/language/utilities/date.c:33
 msgid "Only USE ALL is currently implemented."
-msgstr ""
+msgstr "У поточній версії реалізовано лише USE ALL."
 
 #: src/language/utilities/host.c:87
 #, c-format
 msgid "Couldn't fork: %s."
-msgstr ""
+msgstr "Не вдалося виконати розгалуження: %s."
 
 #: src/language/utilities/host.c:102
 msgid "Interactive shell not supported on this platform."
-msgstr ""
+msgstr "На цій платформі не передбачено підтримки інтерактивної командної оболонки."
 
 #: src/language/utilities/host.c:114
 msgid "Command shell not supported on this platform."
-msgstr ""
+msgstr "На цій платформі не передбачено підтримки командної оболонки."
 
 #: src/language/utilities/host.c:120
 #, c-format
 msgid "Error executing command: %s."
-msgstr ""
+msgstr "Помилка під час спроби виконати команду: %s."
 
 #: src/language/utilities/title.c:97
 #, c-format
 msgid "   (Entered %s)"
-msgstr ""
+msgstr "   (Введено %s)"
 
 #: src/language/utilities/include.c:71
 #, c-format
 msgid "Can't find `%s' in include file search path."
-msgstr ""
+msgstr "Не вдалося знайти «%s» у каталогах включених файлів."
 
 #: src/language/utilities/permissions.c:114
 #, c-format
 msgid "Cannot stat %s: %s"
-msgstr ""
+msgstr "Не вдалося виконати статистичну обробку %s: %s"
 
 #: src/language/utilities/permissions.c:128
 #, c-format
 msgid "Cannot change mode of %s: %s"
-msgstr ""
+msgstr "Не вдалося змінити режим доступу до %s: %s"
 
 #: src/language/stats/aggregate.c:96
 msgid "Sum of values"
-msgstr ""
+msgstr "Сума значень"
 
 #: src/language/stats/aggregate.c:97
 msgid "Mean average"
@@ -2171,19 +2171,19 @@ msgstr "Мінімальне значення"
 
 #: src/language/stats/aggregate.c:102
 msgid "Percentage greater than"
-msgstr ""
+msgstr "Відсоток, що є вищим за"
 
 #: src/language/stats/aggregate.c:103
 msgid "Percentage less than"
-msgstr ""
+msgstr "Відсоток, що є нижчим за"
 
 #: src/language/stats/aggregate.c:104
 msgid "Percentage included in range"
-msgstr ""
+msgstr "Відсоток для включення до діапазону"
 
 #: src/language/stats/aggregate.c:105
 msgid "Percentage excluded from range"
-msgstr ""
+msgstr "Відсоток для виключення до діапазону"
 
 #: src/language/stats/aggregate.c:106
 msgid "Fraction greater than"
@@ -2203,27 +2203,27 @@ msgstr ""
 
 #: src/language/stats/aggregate.c:110
 msgid "Number of cases"
-msgstr ""
+msgstr "Кількість спостережень"
 
 #: src/language/stats/aggregate.c:111
 msgid "Number of cases (unweighted)"
-msgstr ""
+msgstr "Кількість спостережень (незважена)"
 
 #: src/language/stats/aggregate.c:112
 msgid "Number of missing values"
-msgstr ""
+msgstr "Кількість пропущених значень"
 
 #: src/language/stats/aggregate.c:113
 msgid "Number of missing values (unweighted)"
-msgstr ""
+msgstr "Кількість пропущених значень (незважена)"
 
 #: src/language/stats/aggregate.c:114
 msgid "First non-missing value"
-msgstr ""
+msgstr "Перше непропущене значення"
 
 #: src/language/stats/aggregate.c:115
 msgid "Last non-missing value"
-msgstr ""
+msgstr "Останнє непропущене значення"
 
 #: src/language/stats/aggregate.c:258
 msgid "When PRESORTED is specified, specifying sorting directions with (A) or (D) has no effect.  Output data will be sorted the same way as the input data."
@@ -2231,22 +2231,22 @@ msgstr ""
 
 #: src/language/stats/aggregate.c:448
 msgid "expecting aggregation function"
-msgstr ""
+msgstr "мало бути вказано функцію агрегування"
 
 #: src/language/stats/aggregate.c:460
 #, c-format
 msgid "Unknown aggregation function %s."
-msgstr ""
+msgstr "Невідома функція агрегування %s."
 
 #: src/language/stats/aggregate.c:514
 #, c-format
 msgid "Missing argument %zu to %s."
-msgstr ""
+msgstr "Пропущено аргумент %zu функції %s."
 
 #: src/language/stats/aggregate.c:523
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
-msgstr ""
+msgstr "Аргументи %s повинні належати до того самого типу, що і початкові змінні."
 
 #: src/language/stats/aggregate.c:542
 #, c-format
@@ -2271,7 +2271,7 @@ msgstr ""
 #: src/language/stats/autorecode.c:175
 #, c-format
 msgid "Target variable %s duplicates existing variable %s."
-msgstr ""
+msgstr "Змінна призначення %s дублює вже створену змінну %s."
 
 #: src/language/stats/binomial.c:136
 #, c-format
@@ -2280,7 +2280,7 @@ msgstr ""
 
 #: src/language/stats/binomial.c:187 src/ui/gui/binomial.ui:13
 msgid "Binomial Test"
-msgstr ""
+msgstr "Біноміальна перевірка"
 
 #: src/language/stats/binomial.c:217
 msgid "Group1"
@@ -2348,11 +2348,11 @@ msgstr ""
 
 #: src/language/stats/chisquare.c:164 src/language/stats/chisquare.c:203
 msgid "Observed N"
-msgstr ""
+msgstr "N зі спостережень"
 
 #: src/language/stats/chisquare.c:165 src/language/stats/chisquare.c:204
 msgid "Expected N"
-msgstr ""
+msgstr "Очікуване N"
 
 #: src/language/stats/chisquare.c:166 src/language/stats/chisquare.c:205
 #: src/language/stats/regression.c:887
@@ -2403,21 +2403,21 @@ msgstr ""
 #: src/language/stats/cochran.c:172
 #, c-format
 msgid "Success (%g)"
-msgstr ""
+msgstr "Успіх (%g)"
 
 #: src/language/stats/cochran.c:173
 #, c-format
 msgid "Failure (%g)"
-msgstr ""
+msgstr "Помилка (%g)"
 
 #: src/language/stats/cochran.c:214
 msgid "Cochran's Q"
-msgstr ""
+msgstr "Q Кохрена"
 
 #: src/language/stats/correlations.c:97 src/language/stats/factor.c:1789
 #: src/language/stats/npar-summary.c:109
 msgid "Descriptive Statistics"
-msgstr ""
+msgstr "Описова статистика"
 
 #: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:106
 #: src/language/stats/examine.c:886 src/language/stats/factor.c:1810
@@ -2473,7 +2473,7 @@ msgstr "Коваріація"
 #: src/language/stats/correlations.c:458 src/language/stats/descriptives.c:371
 #: src/language/data-io/list.c:167
 msgid "No variables specified."
-msgstr ""
+msgstr "Не вказано змінних."
 
 #: src/language/stats/descriptives.c:107 src/language/stats/means.c:414
 #: src/language/stats/t-test-indep.c:214
@@ -2556,7 +2556,7 @@ msgstr "Сума"
 #: src/language/stats/descriptives.c:353
 #, c-format
 msgid "Z-score variable name %s would be a duplicate variable name."
-msgstr ""
+msgstr "Назва змінної Z-оцінки %s буде дублікатом назви змінної."
 
 #: src/language/stats/descriptives.c:404
 msgid "DESCRIPTIVES with Z scores ignores TEMPORARY.  Temporary transformations will be made permanent."
@@ -2564,7 +2564,7 @@ msgstr ""
 
 #: src/language/stats/descriptives.c:482
 msgid "expecting statistic name: reverting to default"
-msgstr ""
+msgstr "неочікувана назва статистики: повертаємося до типової назви"
 
 #: src/language/stats/descriptives.c:565
 msgid "Ran out of generic names for Z-score variables.  There are only 126 generic names: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
@@ -2572,7 +2572,7 @@ msgstr ""
 
 #: src/language/stats/descriptives.c:594
 msgid "Mapping of variables to corresponding Z-scores."
-msgstr ""
+msgstr "Прив’язка змінних до відповідних Z-оцінок."
 
 #: src/language/stats/descriptives.c:598 src/language/stats/glm.c:744
 msgid "Source"
@@ -2584,25 +2584,25 @@ msgstr "Призначення"
 
 #: src/language/stats/descriptives.c:651
 msgid "Internal error processing Z scores"
-msgstr ""
+msgstr "Внутрішня помилка під час обробки Z-оцінок"
 
 #: src/language/stats/descriptives.c:749
 #, c-format
 msgid "Z-score of %s"
-msgstr ""
+msgstr "Z-оцінка %s"
 
 #: src/language/stats/descriptives.c:985
 msgid "Valid N"
-msgstr ""
+msgstr "К-ть коректних"
 
 #: src/language/stats/descriptives.c:986
 msgid "Missing N"
-msgstr ""
+msgstr "К-ть пропущених"
 
 #: src/language/stats/descriptives.c:1014
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
-msgstr ""
+msgstr "Коректних спостережень = %g; спостережень з пропущеними значеннями = %g."
 
 #: src/language/stats/examine.c:74
 msgid " (missing)"
@@ -2611,12 +2611,12 @@ msgstr " (не вистачає)"
 #: src/language/stats/examine.c:269
 #, c-format
 msgid "Boxplot of %s vs. %s"
-msgstr ""
+msgstr "Скринькова діаграма залежності %s від %s"
 
 #: src/language/stats/examine.c:275 src/language/stats/examine.c:381
 #, c-format
 msgid "Boxplot of %s"
-msgstr ""
+msgstr "Скринькова діаграма %s"
 
 #: src/language/stats/examine.c:364
 msgid "Boxplot"
@@ -2634,7 +2634,7 @@ msgstr ""
 #: src/language/stats/examine.c:608 src/language/stats/examine.c:626
 #: src/language/stats/npar-summary.c:142 src/language/stats/frequencies.q:1062
 msgid "Percentiles"
-msgstr ""
+msgstr "Процентилі"
 
 #: src/language/stats/examine.c:636
 #, c-format
@@ -2648,7 +2648,7 @@ msgstr ""
 #: src/language/stats/examine.c:787 src/language/stats/oneway.c:1086
 #: src/ui/gui/descriptives.ui:8
 msgid "Descriptives"
-msgstr ""
+msgstr "Описова статистика"
 
 #: src/language/stats/examine.c:804 src/ui/gui/checkbox-treeview.c:94
 #: src/language/stats/crosstabs.q:1276 src/language/stats/crosstabs.q:1303
@@ -2660,12 +2660,12 @@ msgstr "Статистика"
 #: src/language/stats/oneway.c:1378 src/language/stats/oneway.c:1583
 #: src/language/stats/roc.c:978 src/language/stats/regression.c:792
 msgid "Std. Error"
-msgstr ""
+msgstr "Станд. похибка"
 
 #: src/language/stats/examine.c:903 src/language/stats/oneway.c:1077
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
-msgstr ""
+msgstr "%g%%-ий довірчий інтервал для середнього"
 
 #: src/language/stats/examine.c:911 src/language/stats/oneway.c:1080
 #: src/language/stats/oneway.c:1590 src/language/stats/roc.c:981
@@ -2690,11 +2690,11 @@ msgstr "Медіана"
 
 #: src/language/stats/examine.c:1032
 msgid "Interquartile Range"
-msgstr ""
+msgstr "Міжквартильний діапазон"
 
 #: src/language/stats/examine.c:1106
 msgid "Extreme Values"
-msgstr ""
+msgstr "Екстремуми"
 
 #: src/language/stats/examine.c:1127 src/language/data-io/list.c:114
 msgid "Case Number"
@@ -2711,7 +2711,7 @@ msgstr "Найнижчий"
 #: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1393
 #: src/language/stats/means.c:1064 src/language/stats/reliability.c:542
 msgid "Case Processing Summary"
-msgstr ""
+msgstr "Резюме обробки спостережень"
 
 #: src/language/stats/examine.c:1321 src/language/stats/means.c:1075
 #: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:871
@@ -2738,11 +2738,11 @@ msgstr "Відсоток"
 #: src/language/stats/examine.c:1980
 #, c-format
 msgid "%s may not be negative. Using default value (%g)."
-msgstr ""
+msgstr "%s не може бути від’ємним. Використовуємо типове значення (%g)."
 
 #: src/language/stats/examine.c:2017
 msgid "Percentiles must lie in the range (0, 100)"
-msgstr ""
+msgstr "Процентилі мають належати діапазону (0, 100)"
 
 #: src/language/stats/examine.c:2211
 #, c-format
@@ -2751,11 +2751,11 @@ msgstr "%s та %s є взаємовиключними"
 
 #: src/language/stats/factor.c:856
 msgid "Factor analysis on a single variable is not useful."
-msgstr ""
+msgstr "Факторний аналіз однієї змінної позбавлено сенсу."
 
 #: src/language/stats/factor.c:1261
 msgid "Component Number"
-msgstr ""
+msgstr "Кількість компонент"
 
 #: src/language/stats/factor.c:1261
 msgid "Factor Number"
@@ -2792,7 +2792,7 @@ msgstr ""
 
 #: src/language/stats/factor.c:1499
 msgid "Initial Eigenvalues"
-msgstr ""
+msgstr "Початкові власні значення"
 
 #: src/language/stats/factor.c:1505
 msgid "Extraction Sums of Squared Loadings"
@@ -2805,7 +2805,7 @@ msgstr ""
 #: src/language/stats/factor.c:1519
 #, no-c-format
 msgid "% of Variance"
-msgstr ""
+msgstr "% дисперсії"
 
 #: src/language/stats/factor.c:1520
 msgid "Cumulative %"
@@ -2814,11 +2814,11 @@ msgstr "Накопичуваний відсоток"
 #: src/language/stats/factor.c:1547
 #, c-format
 msgid "%zu"
-msgstr ""
+msgstr "%zu"
 
 #: src/language/stats/factor.c:1635
 msgid "Correlation Matrix"
-msgstr ""
+msgstr "Матриця кореляцій"
 
 #: src/language/stats/factor.c:1709
 msgid "Determinant"
@@ -2842,7 +2842,7 @@ msgstr ""
 
 #: src/language/stats/factor.c:1881
 msgid "Bartlett's Test of Sphericity"
-msgstr ""
+msgstr "Перевірка сферичності Бартлета"
 
 #: src/language/stats/factor.c:1883
 msgid "Approx. Chi-Square"
@@ -2865,19 +2865,19 @@ msgstr ""
 
 #: src/language/stats/factor.c:2015
 msgid "Component Matrix"
-msgstr ""
+msgstr "Матриця компонентів"
 
 #: src/language/stats/factor.c:2015
 msgid "Factor Matrix"
-msgstr ""
+msgstr "Матриця факторів"
 
 #: src/language/stats/factor.c:2021
 msgid "Rotated Component Matrix"
-msgstr ""
+msgstr "Обернута матриця компонентів"
 
 #: src/language/stats/factor.c:2021
 msgid "Rotated Factor Matrix"
-msgstr ""
+msgstr "Обернута матриця факторів"
 
 #: src/language/stats/flip.c:100
 msgid "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
@@ -2885,7 +2885,7 @@ msgstr ""
 
 #: src/language/stats/flip.c:151
 msgid "Could not create temporary file for FLIP."
-msgstr ""
+msgstr "Не вдалося створити тимчасовий файл для FLIP."
 
 #: src/language/stats/flip.c:333
 #, c-format
@@ -2894,7 +2894,7 @@ msgstr ""
 
 #: src/language/stats/flip.c:340
 msgid "Error creating FLIP source file."
-msgstr ""
+msgstr "Помилка під час спроби створити файл початкових даних FLIP."
 
 #: src/language/stats/flip.c:353
 #, c-format
@@ -2903,17 +2903,17 @@ msgstr "Помилка під час читання файла FLIP: %s."
 
 #: src/language/stats/flip.c:355
 msgid "Unexpected end of file reading FLIP file."
-msgstr ""
+msgstr "Неочікуване завершення файла під час читання файла FLIP."
 
 #: src/language/stats/flip.c:371
 #, c-format
 msgid "Error seeking FLIP source file: %s."
-msgstr ""
+msgstr "Помилка під час позиціювання у файлі початкових даних FLIP: %s."
 
 #: src/language/stats/flip.c:379
 #, c-format
 msgid "Error writing FLIP source file: %s."
-msgstr ""
+msgstr "Помилка під час запису файла початкових даних FLIP: %s."
 
 #: src/language/stats/flip.c:394
 #, c-format
@@ -2923,11 +2923,11 @@ msgstr ""
 #: src/language/stats/flip.c:425
 #, c-format
 msgid "Error reading FLIP temporary file: %s."
-msgstr ""
+msgstr "Помилка під час спроби читання тимчасового файла FLIP: %s."
 
 #: src/language/stats/flip.c:428
 msgid "Unexpected end of file reading FLIP temporary file."
-msgstr ""
+msgstr "Неочікуваний кінець файла під час читання файла тимчасових даних FLIP."
 
 #: src/language/stats/friedman.c:227 src/language/stats/kruskal-wallis.c:258
 #: src/language/stats/mann-whitney.c:171 src/language/stats/wilcoxon.c:225
@@ -2941,11 +2941,11 @@ msgstr "Середній ранг"
 
 #: src/language/stats/friedman.c:279
 msgid "Kendall's W"
-msgstr ""
+msgstr "W Кендала"
 
 #: src/language/stats/glm.c:167
 msgid "Multivariate analysis is not yet implemented"
-msgstr ""
+msgstr "Багатовимірний аналіз ще не реалізовано"
 
 #: src/language/stats/glm.c:272
 msgid "Only types 1, 2 & 3 sums of squares are currently implemented"
@@ -2967,7 +2967,6 @@ msgstr ""
 
 #: src/language/stats/glm.c:752 src/language/stats/oneway.c:977
 #: src/language/stats/regression.c:883 src/language/stats/t-test-indep.c:288
-#, fuzzy
 msgid "F"
 msgstr "F"
 
@@ -2990,7 +2989,7 @@ msgstr "Помилка"
 
 #: src/language/stats/glm.c:858
 msgid "Corrected Total"
-msgstr ""
+msgstr "Сума виправлених"
 
 #: src/language/stats/ks-one-sample.c:282 src/ui/gui/ks-one-sample.ui:7
 msgid "One-Sample Kolmogorov-Smirnov Test"
@@ -3020,7 +3019,7 @@ msgstr "Параметри експоненційного розподілу"
 
 #: src/language/stats/ks-one-sample.c:384
 msgid "Most Extreme Differences"
-msgstr ""
+msgstr "Найбільші різниці"
 
 #: src/language/stats/ks-one-sample.c:387
 #, fuzzy
@@ -3116,12 +3115,12 @@ msgstr ""
 
 #: src/language/stats/logistic.c:1225
 msgid "Exp(B)"
-msgstr ""
+msgstr "Exp(B)"
 
 #: src/language/stats/logistic.c:1230
 #, c-format
 msgid "%d%% CI for Exp(B)"
-msgstr ""
+msgstr "%d%% коеф. спряж. для Exp(B)"
 
 #: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:295
 #: src/language/stats/t-test-one-sample.c:98
@@ -3138,9 +3137,8 @@ msgid "Upper"
 msgstr "Верхній регістр"
 
 #: src/language/stats/logistic.c:1310
-#, fuzzy
 msgid "Constant"
-msgstr "Постійний"
+msgstr "Стала"
 
 #: src/language/stats/logistic.c:1355
 msgid "Model Summary"
@@ -3233,7 +3231,7 @@ msgstr ""
 
 #: src/language/stats/jonckheere-terpstra.c:384
 msgid "Std. J-T Statistic"
-msgstr ""
+msgstr "Станд. статистика Дж.-Т."
 
 #: src/language/stats/mann-whitney.c:202 src/language/stats/wilcoxon.c:240
 msgid "Sum of Ranks"
@@ -3241,7 +3239,7 @@ msgstr "Сума рангів"
 
 #: src/language/stats/mann-whitney.c:264
 msgid "Mann-Whitney U"
-msgstr ""
+msgstr "U Мана-Вітні"
 
 #: src/language/stats/mann-whitney.c:265
 msgid "Wilcoxon W"
@@ -3300,14 +3298,12 @@ msgid "Geom. Mean"
 msgstr ""
 
 #: src/language/stats/means.c:1077
-#, fuzzy
 msgid "Included"
 msgstr "Включені"
 
 #: src/language/stats/means.c:1078 src/language/stats/reliability.c:571
-#, fuzzy
 msgid "Excluded"
-msgstr "Вилучений"
+msgstr "Виключені"
 
 #: src/language/stats/means.c:1120 src/language/stats/means.c:1129
 #: src/language/stats/means.c:1138
@@ -3321,7 +3317,7 @@ msgstr "Звіт"
 
 #: src/language/stats/mcnemar.c:143
 msgid "The McNemar test is appropriate only for dichotomous variables"
-msgstr ""
+msgstr "Перевірку МакНемара можна застосовувати лише до дихотомічних змінних"
 
 #: src/language/stats/mcnemar.c:265 src/language/stats/sign.c:136
 #: src/language/stats/wilcoxon.c:323
@@ -3338,7 +3334,7 @@ msgstr "≤ медіани"
 
 #: src/language/stats/npar.c:537
 msgid "NPAR subcommand not currently implemented."
-msgstr ""
+msgstr "Підкоманду NPAR у поточній версії ще не реалізовано."
 
 #: src/language/stats/npar.c:691
 msgid "Expecting MEAN, MEDIAN, MODE or number"
@@ -3381,19 +3377,19 @@ msgstr ""
 
 #: src/language/stats/oneway.c:361
 msgid "Bonferroni"
-msgstr ""
+msgstr "Бонфероні"
 
 #: src/language/stats/oneway.c:362
 msgid "Scheffé"
-msgstr ""
+msgstr "Шеффе"
 
 #: src/language/stats/oneway.c:363
 msgid "Games-Howell"
-msgstr ""
+msgstr "Ґеймс-Гауел"
 
 #: src/language/stats/oneway.c:364
 msgid "Šidák"
-msgstr ""
+msgstr "Шидяк"
 
 #: src/language/stats/oneway.c:512
 #, c-format
@@ -3438,16 +3434,15 @@ msgstr "ANOVA"
 
 #: src/language/stats/oneway.c:1222
 msgid "Levene Statistic"
-msgstr ""
+msgstr "Статистика Лівіня"
 
 #: src/language/stats/oneway.c:1223
 msgid "df1"
 msgstr "df1"
 
 #: src/language/stats/oneway.c:1224
-#, fuzzy
 msgid "df2"
-msgstr "<command>df</command>"
+msgstr "df2"
 
 #: src/language/stats/oneway.c:1227
 msgid "Test of Homogeneity of Variances"
@@ -3459,7 +3454,7 @@ msgstr "Коефіцієнти контрастності"
 
 #: src/language/stats/oneway.c:1302 src/language/stats/oneway.c:1376
 msgid "Contrast"
-msgstr "Контрастність"
+msgstr "Контраст"
 
 #: src/language/stats/oneway.c:1374
 msgid "Contrast Tests"
@@ -3473,9 +3468,8 @@ msgstr "Значення контрастності"
 #: src/language/stats/t-test-indep.c:290
 #: src/language/stats/t-test-one-sample.c:94
 #: src/language/stats/t-test-paired.c:305
-#, fuzzy
 msgid "t"
-msgstr "т"
+msgstr "t"
 
 #: src/language/stats/oneway.c:1431
 msgid "Assume equal variances"
@@ -3488,7 +3482,7 @@ msgstr "Не припускати рівності"
 #: src/language/stats/oneway.c:1577
 #, c-format
 msgid "Multiple Comparisons (%s)"
-msgstr ""
+msgstr "Декілька порівнянь (%s)"
 
 #: src/language/stats/oneway.c:1579
 #, c-format
@@ -3516,7 +3510,7 @@ msgstr "%g%%-ий довірчий інтервал"
 
 #: src/language/stats/quick-cluster.c:361
 msgid "Number of clusters may not be larger than the number of cases."
-msgstr ""
+msgstr "Кількість кластерів не може перевищувати кількість спостережень."
 
 #: src/language/stats/quick-cluster.c:402
 msgid "Final Cluster Centers"
@@ -3524,16 +3518,16 @@ msgstr ""
 
 #: src/language/stats/quick-cluster.c:406
 msgid "Initial Cluster Centers"
-msgstr ""
+msgstr "Початкові центри кластерів"
 
 #: src/language/stats/quick-cluster.c:409
 #: src/language/stats/quick-cluster.c:463
 msgid "Cluster"
-msgstr ""
+msgstr "Кластер"
 
 #: src/language/stats/quick-cluster.c:461
 msgid "Number of Cases in each Cluster"
-msgstr ""
+msgstr "Кількість спостережень у кожному з кластерів"
 
 #: src/language/stats/rank.c:206
 #, c-format
@@ -3542,7 +3536,7 @@ msgstr ""
 
 #: src/language/stats/rank.c:321
 msgid "Too many variables in INTO clause."
-msgstr ""
+msgstr "Забагато змінних у інструкції INTO."
 
 #: src/language/stats/rank.c:323
 #, c-format
@@ -3599,7 +3593,7 @@ msgstr ""
 #: src/language/stats/reliability.c:516
 #, c-format
 msgid "Scale: %s"
-msgstr ""
+msgstr "Шкала: %s"
 
 #: src/language/stats/reliability.c:579 src/ui/gui/logistic.ui:288
 msgid "%"
@@ -3623,20 +3617,20 @@ msgstr ""
 
 #: src/language/stats/reliability.c:655
 msgid "Cronbach's Alpha if Item Deleted"
-msgstr ""
+msgstr "Альфа (Кронбаха), якщо пункт вилучено"
 
 #: src/language/stats/reliability.c:729
 msgid "Reliability Statistics"
-msgstr ""
+msgstr "Статистика придатності"
 
 #: src/language/stats/reliability.c:769 src/language/stats/reliability.c:788
 msgid "Cronbach's Alpha"
-msgstr ""
+msgstr "Альфа (Кронбаха)"
 
 #: src/language/stats/reliability.c:772 src/language/stats/reliability.c:797
 #: src/language/stats/reliability.c:808
 msgid "N of Items"
-msgstr ""
+msgstr "К-ть пунктів"
 
 #: src/language/stats/reliability.c:791
 msgid "Part 1"
@@ -3656,15 +3650,15 @@ msgstr ""
 
 #: src/language/stats/reliability.c:820
 msgid "Spearman-Brown Coefficient"
-msgstr ""
+msgstr "Коефіцієнт Спірмена-Брауна"
 
 #: src/language/stats/reliability.c:823
 msgid "Equal Length"
-msgstr ""
+msgstr "Однакова довжина"
 
 #: src/language/stats/reliability.c:826
 msgid "Unequal Length"
-msgstr ""
+msgstr "Неоднакова довжина"
 
 #: src/language/stats/reliability.c:830
 msgid "Guttman Split-Half Coefficient"
@@ -3672,15 +3666,14 @@ msgstr ""
 
 #: src/language/stats/roc.c:958
 msgid "Area Under the Curve"
-msgstr ""
+msgstr "Площа під кривою"
 
 #: src/language/stats/roc.c:960
 #, c-format
 msgid "Area Under the Curve (%s)"
-msgstr ""
+msgstr "Площа під кривою (%s)"
 
 #: src/language/stats/roc.c:965
-#, fuzzy
 msgid "Area"
 msgstr "Площа"
 
@@ -3691,15 +3684,15 @@ msgstr ""
 #: src/language/stats/roc.c:986
 #, c-format
 msgid "Asymp. %g%% Confidence Interval"
-msgstr ""
+msgstr "Асимпт. %g%%-ий довірчий інтервал"
 
 #: src/language/stats/roc.c:992
 msgid "Variable under test"
-msgstr ""
+msgstr "Змінна, перевірка якої виконується"
 
 #: src/language/stats/roc.c:1051
 msgid "Case Summary"
-msgstr ""
+msgstr "Резюме спостережень"
 
 #: src/language/stats/roc.c:1071
 msgid "Unweighted"
@@ -3724,11 +3717,11 @@ msgstr "Координати кривої (%s)"
 
 #: src/language/stats/roc.c:1118
 msgid "Test variable"
-msgstr ""
+msgstr "Змінна для перевірки"
 
 #: src/language/stats/roc.c:1120
 msgid "Positive if greater than or equal to"
-msgstr ""
+msgstr "Позитивне, якщо більше або рівне"
 
 #: src/language/stats/roc.c:1121 src/output/charts/roc-chart-cairo.c:38
 msgid "Sensitivity"
@@ -3748,13 +3741,12 @@ msgstr ""
 
 #: src/language/stats/regression.c:665
 msgid "No valid data found. This command was skipped."
-msgstr ""
+msgstr "Не знайдено коректних даних. Команду пропущено."
 
 #: src/language/stats/regression.c:750
 #: src/ui/gui/psppire-dialog-action-regression.c:41
-#, fuzzy
 msgid "R"
-msgstr "R"
+msgstr ""
 
 #: src/language/stats/regression.c:751
 msgid "R Square"
@@ -3778,9 +3770,8 @@ msgid "Beta"
 msgstr "β"
 
 #: src/language/stats/regression.c:796
-#, fuzzy
 msgid "(Constant)"
-msgstr "Постійний"
+msgstr "(Стала)"
 
 #: src/language/stats/regression.c:851
 #, c-format
@@ -3812,39 +3803,39 @@ msgstr ""
 
 #: src/language/stats/runs.c:322 src/ui/gui/runs.ui:7
 msgid "Runs Test"
-msgstr ""
+msgstr "Перевірка серій"
 
 #: src/language/stats/runs.c:367
 msgid "Test Value"
-msgstr ""
+msgstr "Значення для перевірки"
 
 #: src/language/stats/runs.c:371
 msgid "Test Value (mode)"
-msgstr ""
+msgstr "Значення для перевірки (мода)"
 
 #: src/language/stats/runs.c:375
 msgid "Test Value (mean)"
-msgstr ""
+msgstr "Значення для перевірки (середнє)"
 
 #: src/language/stats/runs.c:379
 msgid "Test Value (median)"
-msgstr ""
+msgstr "Значення для перевірки (медіана)"
 
 #: src/language/stats/runs.c:384
 msgid "Cases < Test Value"
-msgstr ""
+msgstr "Спостережень < Значення для перевірки"
 
 #: src/language/stats/runs.c:387
 msgid "Cases ≥ Test Value"
-msgstr ""
+msgstr "Спостережень ≥ Значення для перевірки"
 
 #: src/language/stats/runs.c:390
 msgid "Total Cases"
-msgstr ""
+msgstr "Сума спостережень"
 
 #: src/language/stats/runs.c:393
 msgid "Number of Runs"
-msgstr ""
+msgstr "Кількість серій"
 
 #: src/language/stats/sign.c:92
 msgid "Negative Differences"
@@ -3856,7 +3847,7 @@ msgstr "Додатні різниці"
 
 #: src/language/stats/sign.c:94 src/language/stats/wilcoxon.c:254
 msgid "Ties"
-msgstr ""
+msgstr "Збіги"
 
 #: src/language/stats/sort-cases.c:64
 msgid "Buffer limit must be at least 2."
@@ -3865,43 +3856,42 @@ msgstr ""
 #: src/language/stats/sort-criteria.c:89
 #, c-format
 msgid "Variable %s specified twice in sort criteria."
-msgstr ""
+msgstr "Змінну %s у критерії впорядковування вказано двічі."
 
 #: src/language/stats/t-test-indep.c:209
-#, fuzzy
 msgid "Group Statistics"
 msgstr "Статистика групи"
 
 #: src/language/stats/t-test-indep.c:277
 msgid "Independent Samples Test"
-msgstr ""
+msgstr "Перевірка незалежних вибірок"
 
 #: src/language/stats/t-test-indep.c:285
 msgid "Levene's Test for Equality of Variances"
-msgstr ""
+msgstr "Перевірка Лівіня рівності дисперсій"
 
 #: src/language/stats/t-test-indep.c:286
 msgid "t-test for Equality of Means"
-msgstr ""
+msgstr "t-перевірка рівності середніх"
 
 #: src/language/stats/t-test-indep.c:294
 msgid "Std. Error Difference"
-msgstr ""
+msgstr "Різниця стандратних похибок"
 
 #: src/language/stats/t-test-indep.c:299
 #: src/language/stats/t-test-one-sample.c:89
 #: src/language/stats/t-test-paired.c:300
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
-msgstr ""
+msgstr "%g%%-ий довірчий інтервал різниці"
 
 #: src/language/stats/t-test-indep.c:313
 msgid "Equal variances assumed"
-msgstr ""
+msgstr "Припускаємо рівність дисперсій"
 
 #: src/language/stats/t-test-indep.c:345
 msgid "Equal variances not assumed"
-msgstr ""
+msgstr "Не припускаємо рівності дисперсій"
 
 #: src/language/stats/t-test-one-sample.c:79
 msgid "One-Sample Test"
@@ -3910,26 +3900,26 @@ msgstr "Одновибіркова перевірка"
 #: src/language/stats/t-test-one-sample.c:84
 #, c-format
 msgid "Test Value = %f"
-msgstr ""
+msgstr "Значення перевірки = %f"
 
 #: src/language/stats/t-test-one-sample.c:156
 msgid "One-Sample Statistics"
-msgstr ""
+msgstr "Одновибіркова статистика"
 
 #: src/language/stats/t-test-paired.c:177
 msgid "Paired Sample Statistics"
-msgstr ""
+msgstr "Статистика парних вибірок"
 
 #: src/language/stats/t-test-paired.c:189
 #: src/language/stats/t-test-paired.c:244
 #: src/language/stats/t-test-paired.c:327
 #, c-format
 msgid "Pair %d"
-msgstr ""
+msgstr "Пара %d"
 
 #: src/language/stats/t-test-paired.c:231
 msgid "Paired Samples Correlations"
-msgstr ""
+msgstr "Кореляції парних вибірок"
 
 #: src/language/stats/t-test-paired.c:234
 msgid "Correlation"
@@ -3938,15 +3928,15 @@ msgstr "Кореляція"
 #: src/language/stats/t-test-paired.c:246
 #, c-format
 msgid "%s & %s"
-msgstr ""
+msgstr "%s і %s"
 
 #: src/language/stats/t-test-paired.c:290
 msgid "Paired Samples Test"
-msgstr ""
+msgstr "Перевірка парних вибірок"
 
 #: src/language/stats/t-test-paired.c:297
 msgid "Paired Differences"
-msgstr ""
+msgstr "Парні різниці"
 
 #: src/language/stats/t-test-paired.c:308
 msgid "Std. Error Mean"
@@ -3964,7 +3954,7 @@ msgstr ""
 #: src/language/stats/t-test-parser.c:135
 #: src/language/stats/t-test-parser.c:231
 msgid "VARIABLES subcommand may not be used with PAIRS."
-msgstr ""
+msgstr "Підкоманду VARIABLES не можна використовувати разом з PAIRS."
 
 #: src/language/stats/t-test-parser.c:293
 msgid "Exactly one of TESTVAL, GROUPS and PAIRS subcommands must be specified."
@@ -4128,9 +4118,8 @@ msgid "Record ends in data not part of any field."
 msgstr ""
 
 #: src/language/data-io/data-parser.c:683 src/language/data-io/print.c:447
-#, fuzzy
 msgid "Record"
-msgstr "Записати"
+msgstr "Запис"
 
 #: src/language/data-io/data-parser.c:684 src/language/data-io/print.c:448
 #: src/ui/gui/psppire-var-sheet.c:1388
@@ -4166,7 +4155,7 @@ msgstr "файл даних"
 #: src/language/data-io/data-reader.c:163
 #, c-format
 msgid "Could not open `%s' for reading as a data file: %s."
-msgstr ""
+msgstr "Не вдалося відкрити «%s» для читання у форматі файла даних: %s."
 
 #: src/language/data-io/data-reader.c:180
 #, c-format
@@ -4785,9 +4774,8 @@ msgid "Weighted Average"
 msgstr "Зважене середнє"
 
 #: src/math/percentiles.c:38
-#, fuzzy
 msgid "Rounded"
-msgstr "Округленість"
+msgstr "Округлене"
 
 #: src/math/percentiles.c:39
 msgid "Empirical"
@@ -5014,11 +5002,11 @@ msgstr "ГІСТОГРАМА"
 
 #: src/output/charts/roc-chart-cairo.c:36 src/ui/gui/roc.ui:7
 msgid "ROC Curve"
-msgstr ""
+msgstr "ROC-крива"
 
 #: src/output/charts/scree-cairo.c:36
 msgid "Scree Plot"
-msgstr ""
+msgstr "Графік власних значень"
 
 #: src/output/charts/scree-cairo.c:38
 msgid "Eigenvalue"
@@ -5044,12 +5032,12 @@ msgstr "помилка під час створення тимчасового �
 #: src/ui/source-init-opts.c:75
 #, c-format
 msgid "Algorithm must be either `%s' or `%s'."
-msgstr ""
+msgstr "Алгоритмом має бути «%s» або «%s»."
 
 #: src/ui/source-init-opts.c:100
 #, c-format
 msgid "Syntax must be either `%s' or `%s'."
-msgstr ""
+msgstr "Синтаксичною конструкцією має бути «%s» або «%s»."
 
 #: src/ui/terminal/main.c:146
 msgid "Error encountered while ERROR=STOP is effective."
@@ -5115,11 +5103,11 @@ msgstr "не вдалося отримати доступ до визначен�
 
 #: src/ui/gui/psppire-button-editable.c:135
 msgid "TreeView path"
-msgstr ""
+msgstr "Шлях TreeView"
 
 #: src/ui/gui/psppire-button-editable.c:136
 msgid "The path to the row in the GtkTreeView, as a string"
-msgstr ""
+msgstr "Шлях до рядка уe GtkTreeView як рядок"
 
 #: src/ui/gui/psppire-cell-renderer-button.c:498
 msgid "Diagonal slash"
@@ -5127,17 +5115,17 @@ msgstr "Діагональна риска"
 
 #: src/ui/gui/psppire-cell-renderer-button.c:499
 msgid "Whether to draw a diagonal slash across the button."
-msgstr ""
+msgstr "Визначає, чи слід малювати діагональну риску на кнопці."
 
 #: src/ui/gui/autorecode-dialog.c:292 src/ui/gui/recode-dialog.c:658
 #: src/ui/gui/recode-dialog.c:743
 msgid "New"
-msgstr "Новий"
+msgstr "Нове"
 
 #: src/ui/gui/autorecode-dialog.c:306 src/ui/gui/recode-dialog.c:673
 #: src/ui/gui/recode-dialog.c:735
 msgid "Old"
-msgstr "Старий"
+msgstr "Попереднє"
 
 #: src/ui/gui/aggregate-dialog.c:154
 msgid "Aggregate destination file"
@@ -5228,7 +5216,7 @@ msgstr "Некоректне визначення діапазону"
 #: src/ui/gui/oneway-anova-dialog.c:296
 #, c-format
 msgid "Contrast %d of %d"
-msgstr ""
+msgstr "Контраст %d з %d"
 
 #: src/ui/gui/psppire.c:294
 msgid "_Reset"
@@ -5242,19 +5230,19 @@ msgstr "По_значити"
 #, c-format
 msgid "%'d case"
 msgid_plural "%'d cases"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "%'d спостереження"
+msgstr[1] "%'d спостереження"
+msgstr[2] "%'d спостережень"
+msgstr[3] "%'d спостереження"
 
 #: src/ui/gui/psppire-data-editor.c:446
 #, c-format
 msgid "%'d variable"
 msgid_plural "%'d variables"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "%'d змінна"
+msgstr[1] "%'d змінні"
+msgstr[2] "%'d змінних"
+msgstr[3] "%'d змінна"
 
 #: src/ui/gui/psppire-data-editor.c:734
 msgid "Data View"
@@ -5277,13 +5265,12 @@ msgid "Case"
 msgstr "Спостереження"
 
 #: src/ui/gui/psppire-data-store.c:544
-#, fuzzy
 msgid "var"
-msgstr "var"
+msgstr "змін"
 
 #: src/ui/gui/psppire-data-window.c:183
 msgid "Transformations Pending"
-msgstr ""
+msgstr "Перетворення у черзі"
 
 #: src/ui/gui/psppire-data-window.c:199
 msgid "Filter off"
@@ -5300,7 +5287,7 @@ msgstr "Без поділу"
 
 #: src/ui/gui/psppire-data-window.c:241
 msgid "Split by "
-msgstr ""
+msgstr "Критерій поділу: "
 
 #: src/ui/gui/psppire-data-window.c:269
 msgid "Weights off"
@@ -5331,7 +5318,7 @@ msgstr "Вилучити наявний набір даних?"
 #: src/ui/gui/psppire-data-window.c:562
 #, c-format
 msgid "Renaming \"%s\" to \"%s\" will destroy the existing dataset named \"%s\".  Are you sure that you want to do this?"
-msgstr ""
+msgstr "Перейменування «%s» на «%s» призведе до знищення наявного набору даних з назвою «%s». Ви справді цього хочете?"
 
 #: src/ui/gui/psppire-data-window.c:590
 #, c-format
@@ -5352,7 +5339,7 @@ msgstr "Редактор даних"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:71
 msgid "Chisq"
-msgstr ""
+msgstr "χ²"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:72
 #: src/language/stats/crosstabs.q:1850
@@ -5361,19 +5348,19 @@ msgstr "φ"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:73
 msgid "CC"
-msgstr ""
+msgstr "Коеф. спряж."
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:75
 msgid "UC"
-msgstr ""
+msgstr "Коеф. невизн."
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:76
 msgid "BTau"
-msgstr ""
+msgstr "τ-b Кендала"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:77
 msgid "CTau"
-msgstr ""
+msgstr "τ-c Кендала"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:78
 msgid "Risk"
@@ -5385,9 +5372,8 @@ msgid "Gamma"
 msgstr "γ"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:80
-#, fuzzy
 msgid "D"
-msgstr "D"
+msgstr "d Сомерса"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:81
 #: src/language/stats/crosstabs.q:1858
@@ -5401,10 +5387,9 @@ msgstr "η"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:83
 msgid "Corr"
-msgstr ""
+msgstr "Кореляції"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:88
-#, fuzzy
 msgid "Count"
 msgstr "Кількість"
 
@@ -5417,17 +5402,16 @@ msgid "Column"
 msgstr "Стовпчик"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:92
-#, fuzzy
 msgid "Expected"
-msgstr "Очікуване"
+msgstr "Очікувані"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:94
 msgid "Std. Residual"
-msgstr ""
+msgstr "Станд. залишки"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:95
 msgid "Adjusted Std. Residual"
-msgstr ""
+msgstr "Кориговані станд. залишки"
 
 #: src/ui/gui/psppire-dialog-action-descriptives.c:45
 msgid "Standard error"
@@ -5436,7 +5420,7 @@ msgstr "Стандартна похибка"
 #: src/ui/gui/psppire-dialog-action-factor.c:320
 #, c-format
 msgid "_Eigenvalues over %4.2f times the mean eigenvalue"
-msgstr ""
+msgstr "_Власні значення, що перевищують середнє у понад %4.2f разів"
 
 #: src/ui/gui/psppire-dialog-action-frequencies.c:44
 msgid "Standard error of the mean"
@@ -5453,11 +5437,11 @@ msgstr "Режим"
 
 #: src/ui/gui/psppire-dialog-action-frequencies.c:51
 msgid "Standard error of the kurtosis"
-msgstr ""
+msgstr "Стандартна похибка ексцесу"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:40
 msgid "Coeff"
-msgstr ""
+msgstr "Коефіцієнти"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:42
 msgid "Anova"
@@ -5465,7 +5449,7 @@ msgstr "ANOVA"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:43
 msgid "Bcov"
-msgstr ""
+msgstr "Ковар. матриця"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:125
 #, c-format
@@ -5574,9 +5558,8 @@ msgid "Output Viewer"
 msgstr "Перегляд виведених даних"
 
 #: src/ui/gui/psppire-spreadsheet-model.c:268
-#, fuzzy
 msgid "(empty)"
-msgstr "Порожній"
+msgstr "(порожньо)"
 
 #: src/ui/gui/psppire-syntax-window.c:568
 #, c-format
@@ -5601,7 +5584,6 @@ msgid "Cannot load syntax file `%s'"
 msgstr "Не вдалося завантажити файл синтаксису «%s»"
 
 #: src/ui/gui/psppire-val-chooser.c:300
-#, fuzzy
 msgid "through"
 msgstr "до"
 
@@ -5611,23 +5593,23 @@ msgstr "_Значення:"
 
 #: src/ui/gui/psppire-val-chooser.c:330
 msgid "_System Missing"
-msgstr ""
+msgstr "С_истемне пропущене"
 
 #: src/ui/gui/psppire-val-chooser.c:331
 msgid "System _or User Missing"
-msgstr ""
+msgstr "Системне _або користувацьке пропущене"
 
 #: src/ui/gui/psppire-val-chooser.c:332
 msgid "_Range:"
-msgstr "_Діапазон:"
+msgstr "_Діапазон від:"
 
 #: src/ui/gui/psppire-val-chooser.c:333
 msgid "Range, _LOWEST thru value"
-msgstr ""
+msgstr "Діапазон, з_начення від найменшого до вказаного"
 
 #: src/ui/gui/psppire-val-chooser.c:334
 msgid "Range, value thru _HIGHEST"
-msgstr ""
+msgstr "Діапазон, значення від вказаного _до найбільшого"
 
 #: src/ui/gui/psppire-val-chooser.c:335
 msgid "_All other values"
@@ -5707,7 +5689,7 @@ msgstr "Зберегти зміни до «%s», перш ніж закрива�
 #: src/ui/gui/psppire-window.c:510
 #, c-format
 msgid "If you don't save, changes from the last %ld seconds will be permanently lost."
-msgstr ""
+msgstr "Якщо ви не збережете дані, зміни, внесені протягом останніх %ld секунд, буде втрачено."
 
 #: src/ui/gui/psppire-window.c:514
 msgid "Close _without saving"
@@ -5731,64 +5713,66 @@ msgstr "Перекодувати до тих самих змінних"
 
 #: src/ui/gui/recode-dialog.c:905
 msgid "Recode into Different Variables: Old and New Values "
-msgstr ""
+msgstr "Перекодування у інші змінні: попередні і нові значення "
 
 #: src/ui/gui/recode-dialog.c:906
 msgid "Recode into Same Variables: Old and New Values"
-msgstr ""
+msgstr "Перекодування у ті самі змінні: попередні і нові значення"
 
 #: src/ui/gui/select-cases-dialog.c:63
 #, c-format
 msgid "Approximately %3d%% of all cases."
-msgstr ""
+msgstr "Приблизно %3d%% усіх спостережень."
 
 #: src/ui/gui/select-cases-dialog.c:64
 #, c-format
 msgid "Exactly %3d cases from the first %3d cases."
-msgstr ""
+msgstr "Точно %3d спостережень з перших %3d спостережень."
 
 #: src/ui/gui/select-cases-dialog.c:203
 #, c-format
 msgid "%d thru %d"
-msgstr ""
+msgstr "від %d до %d"
 
 #: src/ui/gui/page-assistant.c:96
 msgid "Importing Delimited Text Data"
-msgstr ""
+msgstr "Імпортуємо розділені текстові дані"
 
 #: src/ui/gui/page-intro.c:94
 #, c-format
 msgid "Only the first %4d cases"
-msgstr ""
+msgstr "Лише перші %4d спостережень"
 
 #: src/ui/gui/page-intro.c:104
 #, c-format
 msgid "Only the first %3d %% of file (approximately)"
-msgstr ""
+msgstr "Лише перші %3d%% файла (приблизно)"
 
 #: src/ui/gui/page-intro.c:129
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
 msgstr ""
+"За допомогою цієї допоміжної програми ви зможете виконати процедуру імпортування до PSPP даних з текстового файла, у якому кожне спостереження записано у окремому рядку, а поля відокремлено символами табуляції, комами або іншими роздільниками.\n"
+"\n"
 
 #: src/ui/gui/page-intro.c:135
 #, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "У позначеному файлі міститься %zu рядок тексту. "
+msgstr[1] "У позначеному файлі міститься %zu рядки тексту. "
+msgstr[2] "У позначеному файлі міститься %zu рядків тексту. "
+msgstr[3] "У позначеному файлі міститься %zu рядок тексту. "
 
 #: src/ui/gui/page-intro.c:143
 #, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "У позначеному файлі міститься приблизно %lu рядок тексту. "
+msgstr[1] "У позначеному файлі міститься приблизно %lu рядки тексту. "
+msgstr[2] "У позначеному файлі міститься приблизно %lu рядків тексту. "
+msgstr[3] "У позначеному файлі міститься приблизно %lu рядок тексту. "
 
 #: src/ui/gui/page-intro.c:149
 #, c-format
@@ -5801,7 +5785,7 @@ msgstr[3] ""
 
 #: src/ui/gui/page-intro.c:156
 msgid "You may choose below how much of the file should actually be imported."
-msgstr ""
+msgstr "Нижче ви можете вказати частину файла, яку слід імпортувати."
 
 #: src/ui/gui/page-file.c:100
 #, c-format
@@ -5816,7 +5800,7 @@ msgstr "Помилка під час читання «%s»: %s"
 #: src/ui/gui/page-file.c:119
 #, c-format
 msgid "Failed to read `%s', because it contains a line over %d bytes long and therefore appears not to be a text file."
-msgstr ""
+msgstr "Не вдалося прочитати дані з «%s», оскільки у файлі міститься рядок об’ємом у понад %d байтів, тому, ймовірно, цей файл не є текстовим."
 
 #: src/ui/gui/page-file.c:137
 #, c-format
@@ -5825,7 +5809,7 @@ msgstr "«%s» є порожнім."
 
 #: src/ui/gui/page-file.c:194
 msgid "Import Delimited Text Data"
-msgstr ""
+msgstr "Імпорт розділених текстових даних"
 
 #: src/ui/gui/page-file.c:204
 msgid "Text Files"
@@ -5870,15 +5854,14 @@ msgstr "Під час спроби виконати читання файла е
 #: src/ui/gui/text-data-import-dialog.c:336
 #: src/ui/gui/text-data-import-dialog.c:384
 msgid "This input line has too few separators to fill in this field."
-msgstr ""
+msgstr "У рядку вхідних даних надто мало роздільників для заповнення цього поля."
 
 #: src/ui/gui/text-data-import-dialog.c:375
 #, c-format
 msgid "Cannot parse field content `%.*s' as format %s: %s"
-msgstr ""
+msgstr "Не вдалося обробити вміст поля «%.*s» як дані у форматі %s: %s"
 
 #: src/ui/gui/text-data-import-dialog.c:549
-#, fuzzy
 msgid "Line"
 msgstr "Рядок"
 
@@ -5894,7 +5877,7 @@ msgstr "П_араметри…"
 
 #: src/ui/gui/t-test-paired-samples.c:104
 msgid "Paired Samples T Test"
-msgstr ""
+msgstr "T-перевірка парних вибірок"
 
 #: src/ui/gui/npar-two-sample-related.c:128 src/ui/gui/k-related.ui:183
 msgid "Test Type"
@@ -5902,19 +5885,19 @@ msgstr "Тип тесту"
 
 #: src/ui/gui/npar-two-sample-related.c:135
 msgid "_Wilcoxon"
-msgstr ""
+msgstr "_Уїлкоксона"
 
 #: src/ui/gui/npar-two-sample-related.c:136
 msgid "_Sign"
-msgstr ""
+msgstr "З_наків"
 
 #: src/ui/gui/npar-two-sample-related.c:137
 msgid "_McNemar"
-msgstr ""
+msgstr "_МакНемара"
 
 #: src/ui/gui/npar-two-sample-related.c:152
 msgid "Two-Related-Samples Tests"
-msgstr ""
+msgstr "Перевірки двох пов’язаних вибірок"
 
 #: src/ui/gui/val-labs-dialog.c:540
 #, c-format
@@ -5924,26 +5907,26 @@ msgstr "%s = «%s»"
 #: src/ui/gui/weight-cases-dialog.c:79 src/ui/gui/psppire.ui:52
 #: src/ui/gui/psppire.ui:155
 msgid "Do not weight cases"
-msgstr ""
+msgstr "Не зважувати спостереження"
 
 #: src/ui/gui/weight-cases-dialog.c:85
 #, c-format
 msgid "Weight cases by %s"
-msgstr ""
+msgstr "Зважити спостереження за %s"
 
 #: src/language/utilities/set.q:163 src/language/utilities/set.q:170
 #, c-format
 msgid "%s must be at least 1."
-msgstr ""
+msgstr "%s має бути не меншим за 1."
 
 #: src/language/utilities/set.q:177 src/language/data-io/file-handle.q:106
 #, c-format
 msgid "%s must not be negative."
-msgstr ""
+msgstr "%s має бути невід’ємним."
 
 #: src/language/utilities/set.q:196
 msgid "WORKSPACE must be at least 1MB"
-msgstr ""
+msgstr "WORKSPACE повинен мати розмір не менше 1 МБ"
 
 #: src/language/utilities/set.q:198
 msgid "WORKSPACE must be positive"
@@ -5961,28 +5944,28 @@ msgstr "%s є зайвим."
 
 #: src/language/utilities/set.q:230
 msgid "Active file compression is not implemented."
-msgstr ""
+msgstr "Стискання активного файла не реалізовано."
 
 #: src/language/utilities/set.q:406
 msgid "EPOCH must be 1500 or later."
-msgstr ""
+msgstr "Значенням EPOCH має бути пізніше за 1500 значення."
 
 #: src/language/utilities/set.q:413
 msgid "expecting AUTOMATIC or year"
-msgstr ""
+msgstr "мало бути AUTOMATIC або значення року"
 
 #: src/language/utilities/set.q:441
 msgid "LENGTH must be at least 1."
-msgstr ""
+msgstr "Значення LENGTH має бути не меншим за 1."
 
 #: src/language/utilities/set.q:477
 #, c-format
 msgid "%s is not a recognized encoding or locale name"
-msgstr ""
+msgstr "%s не є відомою програмі назвою кодування або локалі"
 
 #: src/language/utilities/set.q:538
 msgid "WIDTH must be at least 40."
-msgstr ""
+msgstr "Значенням WIDTH має бути принаймні 40."
 
 #: src/language/utilities/set.q:565
 #, c-format
@@ -5991,31 +5974,31 @@ msgstr ""
 
 #: src/language/utilities/set.q:787
 msgid "ISL (32-bit IEEE 754 single, little-endian)"
-msgstr ""
+msgstr "ISL (32-бітове одинарної точності, IEEE 754, прямий порядок байтів)"
 
 #: src/language/utilities/set.q:790
 msgid "ISB (32-bit IEEE 754 single, big-endian)"
-msgstr ""
+msgstr "ISB (32-бітове одинарної точності, IEEE 754, зворотний порядок байтів)"
 
 #: src/language/utilities/set.q:793
 msgid "IDL (64-bit IEEE 754 double, little-endian)"
-msgstr ""
+msgstr "IDL (32-бітове подвійної точності, IEEE 754, прямий порядок байтів)"
 
 #: src/language/utilities/set.q:796
 msgid "IDB (64-bit IEEE 754 double, big-endian)"
-msgstr ""
+msgstr "IDB (64-бітове подвійної точності, IEEE 754, зворотний порядок байтів)"
 
 #: src/language/utilities/set.q:800
 msgid "VF (32-bit VAX F, VAX-endian)"
-msgstr ""
+msgstr "VF (32-бітове, VAX F, порядок байтів VAX)"
 
 #: src/language/utilities/set.q:803
 msgid "VD (64-bit VAX D, VAX-endian)"
-msgstr ""
+msgstr "VD (64-бітове, VAX D, порядок байтів VAX)"
 
 #: src/language/utilities/set.q:806
 msgid "VG (64-bit VAX G, VAX-endian)"
-msgstr ""
+msgstr "VG (64-бітове, VAX G, порядок байтів VAX)"
 
 #: src/language/utilities/set.q:810
 msgid "ZS (32-bit IBM Z hexadecimal short, big-endian)"
@@ -6028,7 +6011,7 @@ msgstr ""
 #: src/language/utilities/set.q:980
 #, c-format
 msgid "%s is %s."
-msgstr ""
+msgstr "%s є %s."
 
 #: src/language/utilities/set.q:1084
 #, c-format
@@ -6037,7 +6020,7 @@ msgstr ""
 
 #: src/language/utilities/set.q:1103
 msgid "RESTORE without matching PRESERVE."
-msgstr ""
+msgstr "RESTORE без відповідного PRESERVE."
 
 #: src/language/stats/crosstabs.q:297
 msgid "Missing mode REPORT not allowed in general mode.  Assuming MISSING=TABLE."
@@ -6049,12 +6032,12 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:481
 msgid "VARIABLES must be specified before TABLES."
-msgstr ""
+msgstr "VARIABLES має бути вказано до TABLES."
 
 #: src/language/stats/crosstabs.q:515
 #, c-format
 msgid "Maximum value (%ld) less than minimum value (%ld)."
-msgstr ""
+msgstr "Максимальне значення (%ld) є меншим за мінімальне значення (%ld)."
 
 #: src/language/stats/crosstabs.q:869
 msgid "Summary."
@@ -6068,19 +6051,16 @@ msgid "Crosstabulation %s contained no non-missing cases."
 msgstr ""
 
 #: src/language/stats/crosstabs.q:1177
-#, fuzzy
 msgid "count"
-msgstr "Кількість"
+msgstr "кількість"
 
 #: src/language/stats/crosstabs.q:1178
-#, fuzzy
 msgid "row %"
-msgstr "Рядок: %1"
+msgstr ""
 
 #: src/language/stats/crosstabs.q:1179
-#, fuzzy
 msgid "column %"
-msgstr "Стовпчик"
+msgstr ""
 
 #: src/language/stats/crosstabs.q:1180
 msgid "total %"
@@ -6226,15 +6206,15 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1989
 msgid "Goodman and Kruskal tau"
-msgstr ""
+msgstr "τ Ґудмена і Краскала"
 
 #: src/language/stats/crosstabs.q:1990
 msgid "Uncertainty Coefficient"
-msgstr ""
+msgstr "Коефіцієнт невизначеності"
 
 #: src/language/stats/crosstabs.q:1991
 msgid "Somers' d"
-msgstr ""
+msgstr "d Сомерса"
 
 #: src/language/stats/crosstabs.q:1997
 #, fuzzy
@@ -6248,7 +6228,7 @@ msgstr ""
 
 #: src/language/stats/frequencies.q:383
 msgid "Bar charts are not implemented."
-msgstr ""
+msgstr "Стовпчикові діаграми не реалізовано."
 
 #: src/language/stats/frequencies.q:400
 #, c-format
@@ -6276,7 +6256,7 @@ msgstr ""
 
 #: src/language/stats/frequencies.q:829
 msgid "Valid Percent"
-msgstr ""
+msgstr "Коректний процент"
 
 #: src/language/stats/frequencies.q:830
 msgid "Cum Percent"
@@ -6339,11 +6319,11 @@ msgstr ""
 
 #: src/ui/gui/aggregate.ui:7
 msgid "Aggregate Data"
-msgstr "Агрегувати дані"
+msgstr "Агрегування даних"
 
 #: src/ui/gui/aggregate.ui:101
 msgid "_Break variable(s)"
-msgstr ""
+msgstr "Змінні _групування"
 
 #: src/ui/gui/aggregate.ui:138
 msgid "Variable Name: "
@@ -6367,7 +6347,7 @@ msgstr "Аргумент 2:"
 
 #: src/ui/gui/aggregate.ui:330
 msgid "Aggregated variables"
-msgstr "Агрегувати змінні"
+msgstr "Агрегування змінних"
 
 #: src/ui/gui/aggregate.ui:364
 msgid "_Add aggregated variables to the active dataset"
@@ -6387,19 +6367,19 @@ msgstr "мітка"
 
 #: src/ui/gui/aggregate.ui:474
 msgid "File is _already sorted on break variable(s)"
-msgstr ""
+msgstr "Файл у_же впорядковано за змінними групування"
 
 #: src/ui/gui/aggregate.ui:489
 msgid "Sort file before a_ggregating"
-msgstr ""
+msgstr "Упорядкувати файл до _агрегування"
 
 #: src/ui/gui/aggregate.ui:510
 msgid "Options for very large datasets"
-msgstr ""
+msgstr "Параметри для даних дуже великого об’єму"
 
 #: src/ui/gui/autorecode.ui:7
 msgid "Automatic Recode"
-msgstr ""
+msgstr "Автоматичне перекодування"
 
 #: src/ui/gui/autorecode.ui:92
 msgid "Variable -> New Name"
@@ -6415,7 +6395,7 @@ msgstr "Най_вище значення"
 
 #: src/ui/gui/autorecode.ui:153
 msgid "Recode starting from"
-msgstr ""
+msgstr "Перекодувати, починаючи з"
 
 #: src/ui/gui/autorecode.ui:175
 msgid "_New Name"
@@ -6427,15 +6407,15 @@ msgstr "_Додати нову назву"
 
 #: src/ui/gui/autorecode.ui:235
 msgid "_Use the same recoding scheme for all variables"
-msgstr ""
+msgstr "_Та сама схема перекодування для усіх змінних"
 
 #: src/ui/gui/autorecode.ui:250
 msgid "Treat _blank string values as missing"
-msgstr ""
+msgstr "Вва_жати порожні рядки значень пропущеними"
 
 #: src/ui/gui/binomial.ui:63
 msgid "_Test Variable List:"
-msgstr ""
+msgstr "Список з_мінних для первірки:"
 
 #: src/ui/gui/binomial.ui:133 src/ui/gui/chi-square.ui:83
 msgid "_Get from data"
@@ -6459,7 +6439,7 @@ msgstr "Обчислити змінну"
 
 #: src/ui/gui/compute.ui:41
 msgid "Target _Variable:"
-msgstr ""
+msgstr "З_міннат для обробки:"
 
 #: src/ui/gui/compute.ui:72
 msgid "_Type & Label..."
@@ -6503,7 +6483,7 @@ msgstr ""
 
 #: src/ui/gui/correlation.ui:7
 msgid "Bivariate Correlations"
-msgstr ""
+msgstr "Двовимірна кореляція"
 
 #: src/ui/gui/correlation.ui:115
 msgid "Pearso_n"
@@ -6511,7 +6491,7 @@ msgstr "П_ірсон"
 
 #: src/ui/gui/correlation.ui:130
 msgid "_Kendall's tau-b"
-msgstr ""
+msgstr "τ-b Кендала"
 
 #: src/ui/gui/correlation.ui:145
 msgid "_Spearman"
@@ -6523,11 +6503,11 @@ msgstr "Коефіцієнти кореляції"
 
 #: src/ui/gui/correlation.ui:189
 msgid "_Two-tailed"
-msgstr ""
+msgstr "_Двобічна"
 
 #: src/ui/gui/correlation.ui:205
 msgid "One-tai_led"
-msgstr ""
+msgstr "_Однобічна"
 
 #: src/ui/gui/correlation.ui:226
 msgid "Test of Significance"
@@ -6535,11 +6515,11 @@ msgstr "Перевірка значимості"
 
 #: src/ui/gui/correlation.ui:238
 msgid "_Flag significant correlations"
-msgstr ""
+msgstr "_Позначити значимі кореляції"
 
 #: src/ui/gui/count.ui:7
 msgid "Count Occurrences of Values within Cases"
-msgstr ""
+msgstr "Підрахунок появи значень у спостереженнях"
 
 #: src/ui/gui/count.ui:97
 msgid "Numeric _Variables:"
@@ -6547,11 +6527,11 @@ msgstr "Ч_ислові змінні:"
 
 #: src/ui/gui/count.ui:132
 msgid "_Target Variable:"
-msgstr ""
+msgstr "З_мінна для обробки:"
 
 #: src/ui/gui/count.ui:164
 msgid "Target _Label:"
-msgstr ""
+msgstr "_Мітка результату:"
 
 #: src/ui/gui/count.ui:179
 msgid "_Define Values..."
@@ -6559,15 +6539,15 @@ msgstr "_Визначити значення…"
 
 #: src/ui/gui/count.ui:229
 msgid "Count Values within Cases: Values to Count"
-msgstr ""
+msgstr "Підрахунок кількості значень у спостереженнях: значення для підрахунку"
 
 #: src/ui/gui/count.ui:271
 msgid "Values _to Count:"
-msgstr ""
+msgstr "Значення д_ля підрахунку:"
 
 #: src/ui/gui/crosstabs.ui:7
 msgid "Crosstabs"
-msgstr "Факторні таблиці"
+msgstr "Таблиці спряженості"
 
 #: src/ui/gui/crosstabs.ui:57
 msgid "_Rows"
@@ -6591,7 +6571,7 @@ msgstr "_Комірки…"
 
 #: src/ui/gui/crosstabs.ui:248
 msgid "Crosstabs: Format"
-msgstr "Факторні таблиці: формат"
+msgstr "Таблиці спряженості: формат"
 
 #: src/ui/gui/crosstabs.ui:267
 msgid "Print tables"
@@ -6607,7 +6587,7 @@ msgstr "За зростанням"
 
 #: src/ui/gui/crosstabs.ui:335
 msgid "Crosstabs: Cells"
-msgstr "Факторні таблиці: комірки"
+msgstr "Таблиці спряженості: комірки"
 
 #: src/ui/gui/crosstabs.ui:369
 msgid "Cell Display"
@@ -6615,7 +6595,7 @@ msgstr "Показ комірки"
 
 #: src/ui/gui/crosstabs.ui:397
 msgid "Crosstabs: Statistics"
-msgstr "Факторні таблиці: статистика"
+msgstr "Таблиці спряженості: статистика"
 
 #: src/ui/gui/crosstabs.ui:431 src/ui/gui/oneway.ui:234
 msgid "Statistics"
@@ -6630,13 +6610,12 @@ msgid "Use _specified range"
 msgstr "Використовувати _вказаний діапазон"
 
 #: src/ui/gui/chi-square.ui:123
-#, fuzzy
 msgid "_Lower:"
-msgstr "_Опустити"
+msgstr "_Від:"
 
 #: src/ui/gui/chi-square.ui:132
 msgid "_Upper:"
-msgstr ""
+msgstr "_До:"
 
 #: src/ui/gui/chi-square.ui:179
 msgid "Expected Range:"
@@ -6644,7 +6623,7 @@ msgstr "Очікуваний діапазон:"
 
 #: src/ui/gui/chi-square.ui:206
 msgid "All categor_ies equal"
-msgstr ""
+msgstr "Усі _категорії рівні"
 
 #: src/ui/gui/chi-square.ui:223
 msgid "_Values"
@@ -6656,7 +6635,7 @@ msgstr "Очікувані значення:"
 
 #: src/ui/gui/chi-square.ui:317
 msgid "Test _Variables"
-msgstr ""
+msgstr "Тест з_мінних"
 
 #: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:106
 #: src/ui/gui/output-viewer.ui:29 src/ui/gui/syntax-editor.ui:66
@@ -6736,84 +6715,83 @@ msgstr "_Включити дані з пропущеними позиціями 
 
 #: src/ui/gui/descriptives.ui:230
 msgid "Save _Z-scores of selected variables as new variables"
-msgstr ""
+msgstr "Зберегти Z-_оцінки позначених змінних як нові змінні"
 
 #: src/ui/gui/descriptives.ui:252
 msgid "Options:"
 msgstr "Параметри:"
 
 #: src/ui/gui/examine.ui:8
-#, fuzzy
 msgid "Explore"
-msgstr "Ознайомлення"
+msgstr "Дослідження"
 
 #: src/ui/gui/examine.ui:51
 msgid "_Label Cases by:"
-msgstr ""
+msgstr "_Позначити спостереження:"
 
 #: src/ui/gui/examine.ui:101
 msgid "_Factor List:"
-msgstr ""
+msgstr "Список _факторів:"
 
 #: src/ui/gui/examine.ui:150 src/ui/gui/means.ui:110
 msgid "_Dependent List:"
-msgstr ""
+msgstr "Список з_алежних:"
 
 #: src/ui/gui/examine.ui:310
 msgid "Explore: Statistics"
-msgstr ""
+msgstr "Дослідження: статистика"
 
 #: src/ui/gui/examine.ui:327 src/ui/gui/oneway.ui:196
 msgid "_Descriptives"
-msgstr ""
+msgstr "_Описова статистика"
 
 #: src/ui/gui/examine.ui:341
 msgid "_Extremes"
-msgstr ""
+msgstr "_Екстремальні значення"
 
 #: src/ui/gui/examine.ui:355
 msgid "_Percentiles"
-msgstr ""
+msgstr "_Процентилі"
 
 #: src/ui/gui/examine.ui:392
 msgid "Explore: Options"
-msgstr ""
+msgstr "Дослідження: параметри"
 
 #: src/ui/gui/examine.ui:416 src/ui/gui/t-test.ui:57
 msgid "Exclude cases _listwise"
-msgstr ""
+msgstr "Виключати спостереження _цілком"
 
 #: src/ui/gui/examine.ui:431
 msgid "Exclude cases _pairwise"
-msgstr ""
+msgstr "Виключити спостереження п_арно"
 
 #: src/ui/gui/examine.ui:447
 msgid "_Report values"
-msgstr ""
+msgstr "_Звітувати значення"
 
 #: src/ui/gui/goto-case.ui:8
 msgid "Goto Case"
-msgstr ""
+msgstr "Перехід до спостереження"
 
 #: src/ui/gui/goto-case.ui:26
 msgid "Goto Case Number:"
-msgstr ""
+msgstr "Номер спостереження для переходу:"
 
 #: src/ui/gui/factor.ui:22
 msgid "Principal Components Analysis"
-msgstr ""
+msgstr "Аналіз основних компонентів"
 
 #: src/ui/gui/factor.ui:26
 msgid "Principal Axis Factoring"
-msgstr ""
+msgstr "Факторизація головних осей"
 
 #: src/ui/gui/factor.ui:29
 msgid "Factor Analysis"
-msgstr "Фактоний аналіз"
+msgstr "Факторний аналіз"
 
 #: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:291
 msgid "_Descriptives..."
-msgstr ""
+msgstr "_Описова статистика…"
 
 #: src/ui/gui/factor.ui:68
 msgid "_Extraction..."
@@ -6833,11 +6811,11 @@ msgstr "_Метод: "
 
 #: src/ui/gui/factor.ui:280
 msgid "Co_rrelation matrix"
-msgstr ""
+msgstr "_Матриця кореляцій"
 
 #: src/ui/gui/factor.ui:295
 msgid "Co_variance matrix"
-msgstr ""
+msgstr "_Коваріаційна матриця"
 
 #: src/ui/gui/factor.ui:316
 msgid "Analyze"
@@ -6845,11 +6823,11 @@ msgstr "Проаналізувати"
 
 #: src/ui/gui/factor.ui:340
 msgid "_Unrotated factor solution"
-msgstr ""
+msgstr "_Необернутий факторний розв’язок"
 
 #: src/ui/gui/factor.ui:355
 msgid "_Scree plot"
-msgstr ""
+msgstr "_Графік власних значень"
 
 #: src/ui/gui/factor.ui:375 src/ui/gui/roc.ui:287
 msgid "Display"
@@ -6865,11 +6843,11 @@ msgstr "Видобути"
 
 #: src/ui/gui/factor.ui:495 src/ui/gui/factor.ui:687
 msgid "Ma_ximum iterations for convergence:"
-msgstr ""
+msgstr "Макс. к-_ть ітерацій для збіжності:"
 
 #: src/ui/gui/factor.ui:560
 msgid "Factor Analysis: Rotation"
-msgstr "Фактоний аналіз: Обертання"
+msgstr "Факторний аналіз: обертання"
 
 #: src/ui/gui/factor.ui:593
 msgid "_None"
@@ -6877,15 +6855,15 @@ msgstr "_Немає"
 
 #: src/ui/gui/factor.ui:604
 msgid "_Varimax"
-msgstr ""
+msgstr "_Варімакс"
 
 #: src/ui/gui/factor.ui:620
 msgid "_Quartimax"
-msgstr ""
+msgstr "_Квартімакс"
 
 #: src/ui/gui/factor.ui:636
 msgid "_Equimax"
-msgstr ""
+msgstr "_Еквімакс"
 
 #: src/ui/gui/factor.ui:659
 msgid "Method"
@@ -6897,7 +6875,7 @@ msgstr "_Показати обернутий розв’язок"
 
 #: src/ui/gui/find.ui:8
 msgid "Find Case"
-msgstr ""
+msgstr "Пошук спостереження"
 
 #: src/ui/gui/find.ui:88
 msgid "Variable:"
@@ -6909,7 +6887,7 @@ msgstr "Значення:"
 
 #: src/ui/gui/find.ui:147
 msgid "Search value labels"
-msgstr ""
+msgstr "Шукати позначки змінних"
 
 #: src/ui/gui/find.ui:171
 msgid "Regular expression Match"
@@ -6950,7 +6928,7 @@ msgstr "_Таблиці частот…"
 
 #: src/ui/gui/frequencies.ui:243
 msgid "Frequencies: Frequency Tables"
-msgstr "Частоти: Таблиці частот"
+msgstr "Частоти: таблиці частот"
 
 #: src/ui/gui/frequencies.ui:280
 msgid "_Always"
@@ -6962,7 +6940,7 @@ msgstr "_Ніколи"
 
 #: src/ui/gui/frequencies.ui:317
 msgid "If no _more than "
-msgstr ""
+msgstr "Якщо маємо не _більше за "
 
 #: src/ui/gui/frequencies.ui:349
 msgid "values"
@@ -6970,23 +6948,23 @@ msgstr "значення"
 
 #: src/ui/gui/frequencies.ui:370
 msgid "Display frequency tables"
-msgstr ""
+msgstr "Показ таблиць частот"
 
 #: src/ui/gui/frequencies.ui:397
 msgid "A_scending value"
-msgstr ""
+msgstr "За з_ростанням значення"
 
 #: src/ui/gui/frequencies.ui:414
 msgid "D_escending value"
-msgstr ""
+msgstr "За с_паданням значення"
 
 #: src/ui/gui/frequencies.ui:431
 msgid "Ascending _frequency"
-msgstr ""
+msgstr "За зр_останням частоти"
 
 #: src/ui/gui/frequencies.ui:448
 msgid "Descending f_requency"
-msgstr ""
+msgstr "За спаданням _частоти"
 
 #: src/ui/gui/frequencies.ui:471
 msgid "Order by"
@@ -6998,11 +6976,11 @@ msgstr "Частоти: діаграми"
 
 #: src/ui/gui/frequencies.ui:541
 msgid "Exclude values _below "
-msgstr ""
+msgstr "Виключити значення, _менші за "
 
 #: src/ui/gui/frequencies.ui:577
 msgid "Exclude values _above "
-msgstr ""
+msgstr "Виключити значення, _більші за "
 
 #: src/ui/gui/frequencies.ui:616
 msgid "<b>Chart Formatting</b>"
@@ -7018,7 +6996,7 @@ msgstr "Накласти _криву нормального розподілу"
 
 #: src/ui/gui/frequencies.ui:670
 msgid "Scale:"
-msgstr "Масштаб:"
+msgstr "Шкала:"
 
 #: src/ui/gui/frequencies.ui:678
 msgid "_Frequencies"
@@ -7026,7 +7004,7 @@ msgstr "_Частоти"
 
 #: src/ui/gui/frequencies.ui:692
 msgid "_Percentages"
-msgstr ""
+msgstr "_Відсотки"
 
 #: src/ui/gui/frequencies.ui:716
 msgid "<b>Histograms</b>"
@@ -7038,7 +7016,7 @@ msgstr "Малювати _кругові діаграми"
 
 #: src/ui/gui/frequencies.ui:753
 msgid "Include slices for _missing values"
-msgstr ""
+msgstr "В_ключити сектори для пропущених значень"
 
 #: src/ui/gui/frequencies.ui:771
 msgid "<b>Pie Charts</b>"
@@ -7046,7 +7024,7 @@ msgstr "<b>Кругові діаграми</b>"
 
 #: src/ui/gui/indep-samples.ui:8
 msgid "Independent-Samples T Test"
-msgstr ""
+msgstr "T-перевірка незалежних вибірок"
 
 #: src/ui/gui/indep-samples.ui:54
 msgid "_Define Groups..."
@@ -7054,11 +7032,11 @@ msgstr "_Визначити групи…"
 
 #: src/ui/gui/indep-samples.ui:133 src/ui/gui/t-test.ui:172
 msgid "_Test Variable(s):"
-msgstr ""
+msgstr "З_мінні для перевірки:"
 
 #: src/ui/gui/indep-samples.ui:180
 msgid "_Grouping Variable:"
-msgstr ""
+msgstr "Змінна _групування:"
 
 #: src/ui/gui/indep-samples.ui:238
 msgid "Define Groups"
@@ -7066,11 +7044,11 @@ msgstr "Визначення груп"
 
 #: src/ui/gui/indep-samples.ui:278
 msgid "Group_2 value:"
-msgstr ""
+msgstr "Значення групи_2:"
 
 #: src/ui/gui/indep-samples.ui:292
 msgid "Group_1 value:"
-msgstr ""
+msgstr "Значення групи_1:"
 
 #: src/ui/gui/indep-samples.ui:375
 msgid "_Use specified values:"
@@ -7078,35 +7056,35 @@ msgstr "В_казані значення:"
 
 #: src/ui/gui/k-means.ui:7
 msgid "K-Means Cluster Analysis"
-msgstr ""
+msgstr "Кластерний аналіз методом k-середніх"
 
 #: src/ui/gui/k-means.ui:93
 msgid "N_umber of Clusters: "
-msgstr ""
+msgstr "_Кількість кластерів: "
 
 #: src/ui/gui/k-related.ui:7
 msgid "Tests for Several Related Samples"
-msgstr ""
+msgstr "Тести для декількох пов’язаних вибірок"
 
 #: src/ui/gui/k-related.ui:104
 msgid "_Test Variables:"
-msgstr ""
+msgstr "З_мінні для перевірки:"
 
 #: src/ui/gui/k-related.ui:133
 msgid "_Friedman"
-msgstr "_Фрідман"
+msgstr "_Фрідмана"
 
 #: src/ui/gui/k-related.ui:148
 msgid "_Kendall's W"
-msgstr ""
+msgstr "W _Кендала"
 
 #: src/ui/gui/k-related.ui:163
 msgid "_Cochran's Q"
-msgstr ""
+msgstr "К_ритерій Кохрена"
 
 #: src/ui/gui/ks-one-sample.ui:108
 msgid "Test _Variable List:"
-msgstr ""
+msgstr "Список з_мінних для тестування:"
 
 #: src/ui/gui/ks-one-sample.ui:139
 msgid "_Normal"
@@ -7126,11 +7104,11 @@ msgstr "_Експоненційний"
 
 #: src/ui/gui/ks-one-sample.ui:199
 msgid "Test Distribution"
-msgstr ""
+msgstr "Перевірка розподілу"
 
 #: src/ui/gui/logistic.ui:7
 msgid "Logistic Regression"
-msgstr ""
+msgstr "Логістична регресія"
 
 #: src/ui/gui/logistic.ui:32
 msgid "_Options..."
@@ -7142,67 +7120,67 @@ msgstr "З_берегти…"
 
 #: src/ui/gui/logistic.ui:151 src/ui/gui/regression.ui:165
 msgid "_Dependent"
-msgstr ""
+msgstr "_Залежні"
 
 #: src/ui/gui/logistic.ui:200 src/ui/gui/regression.ui:213
 msgid "_Independent"
-msgstr ""
+msgstr "_Незалежні"
 
 #: src/ui/gui/logistic.ui:239
 msgid "Logistic Regression: Options"
-msgstr ""
+msgstr "Логістична регресія: параметри"
 
 #: src/ui/gui/logistic.ui:259
 msgid "CI for _exp(B): "
-msgstr ""
+msgstr "Довірчий інтервал дл_я exp(B): "
 
 #: src/ui/gui/logistic.ui:336
 msgid "Classification cu_toff: "
-msgstr ""
+msgstr "Порі_г класифікації: "
 
 #: src/ui/gui/logistic.ui:347
 msgid "_Maximum Iterations: "
-msgstr ""
+msgstr "_Макс. к-ть ітерацій: "
 
 #: src/ui/gui/logistic.ui:364
 msgid "Include _constant in model"
-msgstr ""
+msgstr "Включити _константу до моделі"
 
 #: src/ui/gui/means.ui:8
 msgid "Means"
-msgstr ""
+msgstr "Середні"
 
 #: src/ui/gui/means.ui:139
 msgid "_Independent List:"
-msgstr ""
+msgstr "Список _незалежних:"
 
 #: src/ui/gui/missing-val-dialog.ui:25
 msgid "_No missing values"
-msgstr ""
+msgstr "_Без пропущених значень"
 
 #: src/ui/gui/missing-val-dialog.ui:96
 msgid "_Discrete missing values"
-msgstr ""
+msgstr "_Дискретні пропущені значення"
 
 #: src/ui/gui/missing-val-dialog.ui:130
 msgid "_Low:"
-msgstr ""
+msgstr "Най_менший:"
 
 #: src/ui/gui/missing-val-dialog.ui:149
 msgid "_High:"
-msgstr ""
+msgstr "Най_більший:"
 
 #: src/ui/gui/missing-val-dialog.ui:174
 msgid "Di_screte value:"
-msgstr ""
+msgstr "Д_искретне значення:"
 
 #: src/ui/gui/missing-val-dialog.ui:202
 msgid "_Range plus one optional discrete missing value"
-msgstr ""
+msgstr "_Діапазон плюс одне необов’язкове дискретне пропущене значення"
 
 #: src/ui/gui/oneway.ui:8
 msgid "One-Way ANOVA"
-msgstr ""
+msgstr "Однофакторний ANOVA"
 
 #: src/ui/gui/oneway.ui:37
 msgid "_Factor:"
@@ -7214,43 +7192,43 @@ msgstr "Залежні з_мінні:"
 
 #: src/ui/gui/oneway.ui:212
 msgid "_Homogeneity"
-msgstr ""
+msgstr "_Гомогенність"
 
 #: src/ui/gui/oneway.ui:250
 msgid "_Contrasts..."
-msgstr ""
+msgstr "_Контрасти…"
 
 #: src/ui/gui/oneway.ui:306
 msgid "One-Way ANOVA: Contrasts"
-msgstr ""
+msgstr "Однофакторний ANOVA: контрасти"
 
 #: src/ui/gui/oneway.ui:383
 msgid "_Coefficients:"
-msgstr ""
+msgstr "_Коефіцієнти:"
 
 #: src/ui/gui/oneway.ui:431
 msgid "Coefficient Total: "
-msgstr ""
+msgstr "Сума коефіцієнтів: "
 
 #: src/ui/gui/oneway.ui:467
 msgid "Contrast 1 of 1"
-msgstr ""
+msgstr "Контраст 1 з 1"
 
 #: src/ui/gui/paired-samples.ui:113
 msgid "_Test Pair(s):"
-msgstr ""
+msgstr "_Перевірити такі пари:"
 
 #: src/ui/gui/psppire.ui:7
 msgid "Weight Cases"
-msgstr ""
+msgstr "Зважування спостережень"
 
 #: src/ui/gui/psppire.ui:66
 msgid "Weight cases by"
-msgstr ""
+msgstr "Зважити спостереження за"
 
 #: src/ui/gui/psppire.ui:102
 msgid "Frequency Variable"
-msgstr ""
+msgstr "Змінна частоти"
 
 #: src/ui/gui/psppire.ui:145
 msgid "Current Status: "
@@ -7270,7 +7248,7 @@ msgstr "Змінні:"
 
 #: src/ui/gui/psppire.ui:383
 msgid "Data File Comments"
-msgstr ""
+msgstr "Коментарі до файла даних"
 
 #: src/ui/gui/psppire.ui:407
 msgid "Comments:"
@@ -7278,7 +7256,7 @@ msgstr "Коментарі:"
 
 #: src/ui/gui/psppire.ui:448
 msgid "Display comments in output"
-msgstr ""
+msgstr "Показувати коментарі у виведених даних"
 
 #: src/ui/gui/psppire.ui:467
 msgid "Column Number: 0"
@@ -7286,127 +7264,127 @@ msgstr "Номер стовпчика: 0"
 
 #: src/ui/gui/rank.ui:8
 msgid "Rank Cases"
-msgstr ""
+msgstr "Ранжування спостережень"
 
 #: src/ui/gui/rank.ui:58
 msgid "_By:"
-msgstr ""
+msgstr "_Критерій:"
 
 #: src/ui/gui/rank.ui:208
 msgid "_Smallest Value"
-msgstr ""
+msgstr "_найменшому значенню"
 
 #: src/ui/gui/rank.ui:225
 msgid "_Largest Value"
-msgstr ""
+msgstr "най_більшому значенню"
 
 #: src/ui/gui/rank.ui:249
 msgid "Assign rank 1 to:"
-msgstr ""
+msgstr "Надати ранг 1:"
 
 #: src/ui/gui/rank.ui:265
 msgid "_Display summary tables"
-msgstr ""
+msgstr "_Показувати таблиці резюме"
 
 #: src/ui/gui/rank.ui:283
 msgid "Rank T_ypes"
-msgstr ""
+msgstr "_Типи рангів"
 
 #: src/ui/gui/rank.ui:298
 msgid "_Ties..."
-msgstr ""
+msgstr "_Збіги…"
 
 #: src/ui/gui/rank.ui:350
 msgid "Rank Cases: Types"
-msgstr ""
+msgstr "Ранжування спостережень: типи"
 
 #: src/ui/gui/rank.ui:371
 msgid "Sum of case _weights"
-msgstr ""
+msgstr "Сума значень _ваги спостережень"
 
 #: src/ui/gui/rank.ui:388
 msgid "Fractional rank as _%"
-msgstr ""
+msgstr "Дробовий ранг _у %"
 
 #: src/ui/gui/rank.ui:403
 msgid "_Fractional rank"
-msgstr ""
+msgstr "_Дробовий ранг"
 
 #: src/ui/gui/rank.ui:418
 msgid "_Savage score"
-msgstr ""
+msgstr "Бали _Севеджа"
 
 #: src/ui/gui/rank.ui:433
 msgid "_Rank"
-msgstr ""
+msgstr "_Ранг"
 
 #: src/ui/gui/rank.ui:448
 msgid "N_tiles"
-msgstr ""
+msgstr "N-р_озбиття"
 
 #: src/ui/gui/rank.ui:492
 msgid "_Proportion Estimates"
-msgstr ""
+msgstr "О_цінки частин"
 
 #: src/ui/gui/rank.ui:506
 msgid "_Normal Scores"
-msgstr ""
+msgstr "_Нормальні значення"
 
 #: src/ui/gui/rank.ui:542
 msgid "_Blom"
-msgstr ""
+msgstr "Блома"
 
 #: src/ui/gui/rank.ui:557
 msgid "Tuke_y"
-msgstr ""
+msgstr "Ту_кі"
 
 #: src/ui/gui/rank.ui:572
 msgid "Ran_kit"
-msgstr ""
+msgstr "Р_анкіт"
 
 #: src/ui/gui/rank.ui:587
 msgid "_Van der Waerden"
-msgstr ""
+msgstr "_Ван-дер-Вардена"
 
 #: src/ui/gui/rank.ui:608
 msgid "Proportion Estimation Formula"
-msgstr ""
+msgstr "Формула оцінки частин"
 
 #: src/ui/gui/rank.ui:642
 msgid "Rank Cases: Ties"
-msgstr ""
+msgstr "Ранжування спостережень: збіги"
 
 #: src/ui/gui/rank.ui:668
 msgid "_Mean"
-msgstr ""
+msgstr "С_ередній"
 
 #: src/ui/gui/rank.ui:685
 msgid "_Low"
-msgstr ""
+msgstr "Най_менший"
 
 #: src/ui/gui/rank.ui:703
 msgid "_High"
-msgstr ""
+msgstr "Най_більший"
 
 #: src/ui/gui/rank.ui:726
 msgid "_Sequential ranks to unique values"
-msgstr ""
+msgstr "_Послідовні ранги для унікальних значень"
 
 #: src/ui/gui/rank.ui:749
 msgid "Rank Assigned to Ties"
-msgstr ""
+msgstr "Ранги збігів у спостереженнях"
 
 #: src/ui/gui/runs.ui:113
 msgid "_Median"
-msgstr ""
+msgstr "Ме_діана"
 
 #: src/ui/gui/runs.ui:123
 msgid "M_ean"
-msgstr ""
+msgstr "С_ереднє значення"
 
 #: src/ui/gui/runs.ui:137
 msgid "Mo_de"
-msgstr "_Режим"
+msgstr "_Мода"
 
 #: src/ui/gui/runs.ui:154
 msgid "_Custom:"
@@ -7414,7 +7392,7 @@ msgstr "_Нетипове:"
 
 #: src/ui/gui/runs.ui:193
 msgid "Cut Point"
-msgstr ""
+msgstr "Порогове значення"
 
 #: src/ui/gui/sort.ui:8
 msgid "Sort Cases"
@@ -7474,7 +7452,7 @@ msgstr "Попереднє значення"
 
 #: src/ui/gui/recode.ui:97
 msgid "System _Missing"
-msgstr ""
+msgstr "Системні _пропущені"
 
 #: src/ui/gui/recode.ui:113
 msgid "Co_py old values"
@@ -7490,11 +7468,11 @@ msgstr "Нове значення"
 
 #: src/ui/gui/recode.ui:232
 msgid "Conver_t numeric strings to numbers (`5' -> 5)"
-msgstr ""
+msgstr "Пе_ретворити числові рядки на числа («5» -> 5)"
 
 #: src/ui/gui/recode.ui:252
 msgid "Output variables are _strings"
-msgstr ""
+msgstr "Виведені змінні є р_ядками"
 
 #: src/ui/gui/recode.ui:269
 msgid "Width: "
@@ -7502,7 +7480,7 @@ msgstr "Ширина: "
 
 #: src/ui/gui/recode.ui:398
 msgid "(optional case selection condition)"
-msgstr ""
+msgstr "(необов’язкова умова вибору спостереження)"
 
 #: src/ui/gui/recode.ui:479
 msgid "_Name:"
@@ -7510,51 +7488,51 @@ msgstr "_Назва:"
 
 #: src/ui/gui/recode.ui:502
 msgid "La_bel:"
-msgstr ""
+msgstr "Мі_тка:"
 
 #: src/ui/gui/recode.ui:526
 msgid "Chan_ge"
-msgstr ""
+msgstr "З_міна"
 
 #: src/ui/gui/recode.ui:553
 msgid "Output Variable"
-msgstr ""
+msgstr "Виведена змінна"
 
 #: src/ui/gui/recode.ui:629
 msgid "Old and New Va_lues..."
-msgstr ""
+msgstr "Попередні і нові з_начення…"
 
 #: src/ui/gui/regression.ui:32
 msgid "S_tatistics..."
-msgstr ""
+msgstr "С_татистика…"
 
 #: src/ui/gui/regression.ui:252
 msgid "Regression: Save"
-msgstr ""
+msgstr "Регресія: збереження"
 
 #: src/ui/gui/regression.ui:267 src/ui/gui/univariate.ui:222
 msgid "_Predicted values"
-msgstr ""
+msgstr "_Передбачені значення"
 
 #: src/ui/gui/regression.ui:281 src/ui/gui/univariate.ui:236
 msgid "_Residuals"
-msgstr ""
+msgstr "_Лишки"
 
 #: src/ui/gui/regression.ui:317
 msgid "Regression: Statistics"
-msgstr ""
+msgstr "Регресія: статистика"
 
 #: src/ui/gui/regression.ui:358 src/ui/gui/univariate.ui:313
 msgid "S_tatistics"
-msgstr ""
+msgstr "С_татистика"
 
 #: src/ui/gui/reliability.ui:26
 msgid "Reliability Analysis"
-msgstr ""
+msgstr "Аналіз придатності"
 
 #: src/ui/gui/reliability.ui:124
 msgid "_Items:"
-msgstr ""
+msgstr "_Пункти:"
 
 #: src/ui/gui/reliability.ui:142
 msgid "_Model: "
@@ -7562,51 +7540,51 @@ msgstr "_Модель: "
 
 #: src/ui/gui/reliability.ui:183
 msgid "_Variables in first split:"
-msgstr ""
+msgstr "З_мінні у першому поділі:"
 
 #: src/ui/gui/reliability.ui:222
 msgid "Show _descriptives for scale if item is deleted"
-msgstr ""
+msgstr "Показати _описові статистики для шкали, якщо пункт вилучено"
 
 #: src/ui/gui/roc.ui:115
 msgid "_Test Variable:"
-msgstr ""
+msgstr "З_мінна для перевірки:"
 
 #: src/ui/gui/roc.ui:148
 msgid "_State Variable:"
-msgstr ""
+msgstr "Змінна с_тану:"
 
 #: src/ui/gui/roc.ui:174
 msgid "_Value of state variable:"
-msgstr ""
+msgstr "Зн_ачення змінної стану:"
 
 #: src/ui/gui/roc.ui:210
 msgid "ROC C_urve"
-msgstr ""
+msgstr "ROC-_криву"
 
 #: src/ui/gui/roc.ui:228
 msgid "_With diagonal reference line"
-msgstr ""
+msgstr "_З діагональною опорною лінією"
 
 #: src/ui/gui/roc.ui:252
 msgid "Standard _Error and Confidence Interval"
-msgstr ""
+msgstr "Стандартну по_хибку і довірчий інтервал"
 
 #: src/ui/gui/roc.ui:267
 msgid "_Coordinate points of the ROC Curve"
-msgstr ""
+msgstr "К_оординатні точки ROC-кривої"
 
 #: src/ui/gui/select-cases.ui:8
 msgid "Select Cases"
-msgstr ""
+msgstr "Вибір спостережень"
 
 #: src/ui/gui/select-cases.ui:196
 msgid "Use filter variable"
-msgstr ""
+msgstr "Використовувати змінну для фільтрування"
 
 #: src/ui/gui/select-cases.ui:255
 msgid "Based on time or case range"
-msgstr ""
+msgstr "На основі часу або діапазону спостережень"
 
 #: src/ui/gui/select-cases.ui:267
 msgid "Range..."
@@ -7614,7 +7592,7 @@ msgstr "Діапазон…"
 
 #: src/ui/gui/select-cases.ui:311
 msgid "Random sample of cases"
-msgstr ""
+msgstr "Випадкова вибірка спостережень"
 
 #: src/ui/gui/select-cases.ui:324
 msgid "Sample..."
@@ -7638,11 +7616,11 @@ msgstr "Вибрати"
 
 #: src/ui/gui/select-cases.ui:460
 msgid "Filtered"
-msgstr "Фільтр"
+msgstr "Фільтровані"
 
 #: src/ui/gui/select-cases.ui:476
 msgid "Deleted"
-msgstr "Вилучено"
+msgstr "Вилучені"
 
 #: src/ui/gui/select-cases.ui:499
 msgid "Unselected Cases Are"
@@ -7650,7 +7628,7 @@ msgstr "Непозначеними спостереженнями є"
 
 #: src/ui/gui/select-cases.ui:541
 msgid "Select Cases: Range"
-msgstr ""
+msgstr "Вибір спостережень: діапазон"
 
 #: src/ui/gui/select-cases.ui:590
 msgid "First case"
@@ -7666,7 +7644,7 @@ msgstr "Спостереження"
 
 #: src/ui/gui/select-cases.ui:648
 msgid "Select Cases: Random Sample"
-msgstr ""
+msgstr "Вибір спостережень: випадкова вибірка"
 
 #: src/ui/gui/select-cases.ui:746
 msgid "Sample Size"
@@ -7678,15 +7656,15 @@ msgstr "Параметри"
 
 #: src/ui/gui/t-test.ui:40
 msgid "Exclude cases _analysis by analysis"
-msgstr ""
+msgstr "Виключати спостереження _окремо"
 
 #: src/ui/gui/t-test.ui:117
 msgid "One - Sample T Test"
-msgstr ""
+msgstr "Одновибіркова t-перевірка"
 
 #: src/ui/gui/t-test.ui:216
 msgid "Test _Value: "
-msgstr ""
+msgstr "З_начення для перевірки: "
 
 #: src/ui/gui/text-data-import.ui:8
 msgid "Importing Textual Data"
@@ -7809,7 +7787,7 @@ msgstr ""
 
 #: src/ui/gui/text-data-import.ui:728
 msgid "_Cells: "
-msgstr ""
+msgstr "_Комірки: "
 
 #: src/ui/gui/text-data-import.ui:741
 msgid "_Sheet Index: "
@@ -7959,19 +7937,19 @@ msgstr "Поділити поточний набір даних"
 
 #: src/ui/gui/data-editor.ui:198
 msgid "Select _Cases..."
-msgstr ""
+msgstr "Вибрати сп_остереження…"
 
 #: src/ui/gui/data-editor.ui:199
 msgid "Choose a subset of cases for analysis"
-msgstr ""
+msgstr "Вибрати підмножину спостережень для аналізу"
 
 #: src/ui/gui/data-editor.ui:206
 msgid "_Weight Cases..."
-msgstr ""
+msgstr "З_важити спостереження…"
 
 #: src/ui/gui/data-editor.ui:207
 msgid "Weight cases by variable"
-msgstr ""
+msgstr "Зважити спостереження за змінною"
 
 #: src/ui/gui/data-editor.ui:214
 msgid "_Transform"
@@ -7987,7 +7965,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.ui:235
 msgid "Ran_k Cases..."
-msgstr ""
+msgstr "_Ранжувати спостереження…"
 
 #: src/ui/gui/data-editor.ui:242
 msgid "Auto_matic Recode..."
@@ -7995,11 +7973,11 @@ msgstr "_Автоматично перекодувати…"
 
 #: src/ui/gui/data-editor.ui:249
 msgid "Recode into _Same Variables..."
-msgstr ""
+msgstr "Перекодувати до _тих самих змінних…"
 
 #: src/ui/gui/data-editor.ui:256
 msgid "Recode into _Different Variables..."
-msgstr ""
+msgstr "Перекодувати до і_нших змінних…"
 
 #: src/ui/gui/data-editor.ui:263
 msgid "_Run Pending Transforms"
@@ -8019,11 +7997,11 @@ msgstr "_Частоти…"
 
 #: src/ui/gui/data-editor.ui:298
 msgid "_Explore..."
-msgstr ""
+msgstr "_Дослідити…"
 
 #: src/ui/gui/data-editor.ui:305
 msgid "_Crosstabs..."
-msgstr "_Факторні таблиці…"
+msgstr "_Таблиці спряженості…"
 
 #: src/ui/gui/data-editor.ui:311
 msgid "Compare _Means"
@@ -8039,15 +8017,15 @@ msgstr "_Одновибіркова t-перевірка…"
 
 #: src/ui/gui/data-editor.ui:331
 msgid "_Independent Samples T Test..."
-msgstr ""
+msgstr "T-перевірка незалежних вибірок…"
 
 #: src/ui/gui/data-editor.ui:337
 msgid "_Paired Samples T Test..."
-msgstr ""
+msgstr "T-перевірка парних вибірок…"
 
 #: src/ui/gui/data-editor.ui:343
 msgid "One Way _ANOVA..."
-msgstr ""
+msgstr "Однофакторний _ANOVA…"
 
 #: src/ui/gui/data-editor.ui:349
 msgid "_Univariate Analysis..."
@@ -8059,7 +8037,7 @@ msgstr "Двовимірна _кореляція…"
 
 #: src/ui/gui/data-editor.ui:364
 msgid "_K-Means Cluster..."
-msgstr ""
+msgstr "_Кластер k-середніх…"
 
 #: src/ui/gui/data-editor.ui:371
 msgid "Factor _Analysis..."
@@ -8071,47 +8049,47 @@ msgstr "_Достовірність…"
 
 #: src/ui/gui/data-editor.ui:384
 msgid "_Regression"
-msgstr ""
+msgstr "_Регресія"
 
 #: src/ui/gui/data-editor.ui:391
 msgid "_Linear..."
-msgstr ""
+msgstr "_Лінійна…"
 
 #: src/ui/gui/data-editor.ui:398
 msgid "_Binary Logistic..."
-msgstr ""
+msgstr "_Бінарна логістична…"
 
 #: src/ui/gui/data-editor.ui:404
 msgid "_Non-Parametric Statistics"
-msgstr ""
+msgstr "_Непараметричні критерії"
 
 #: src/ui/gui/data-editor.ui:410
 msgid "_Chi-Square..."
-msgstr ""
+msgstr "χ-_квадрат…"
 
 #: src/ui/gui/data-editor.ui:417
 msgid "_Binomial..."
-msgstr ""
+msgstr "_Біноміальний…"
 
 #: src/ui/gui/data-editor.ui:423
 msgid "R_uns..."
-msgstr ""
+msgstr "С_ерій…"
 
 #: src/ui/gui/data-editor.ui:429
 msgid "1-Sample _K-S..."
-msgstr ""
+msgstr "Одновибірковий _Колмогорова-Смірнова…"
 
 #: src/ui/gui/data-editor.ui:435
 msgid "2 _Related Samples..."
-msgstr ""
+msgstr "2 _пов’язані вибірки…"
 
 #: src/ui/gui/data-editor.ui:441
 msgid "K Related _Samples..."
-msgstr ""
+msgstr "K пов’язаних вибірок…"
 
 #: src/ui/gui/data-editor.ui:448
 msgid "ROC Cur_ve..."
-msgstr ""
+msgstr "ROC-к_рива…"
 
 #: src/ui/gui/data-editor.ui:454
 msgid "_Utilities"
@@ -8141,7 +8119,7 @@ msgstr "_Розділити"
 
 #: src/ui/gui/data-editor.ui:633
 msgid "Information Area"
-msgstr ""
+msgstr "Область інформації"
 
 #: src/ui/gui/data-editor.ui:655
 msgid "Case Counter Area"
@@ -8193,7 +8171,7 @@ msgstr "Інженерний запис"
 
 #: src/ui/gui/var-type-dialog.ui:126
 msgid "Custom currency"
-msgstr ""
+msgstr "Нетипова валюта"
 
 #: src/ui/gui/var-type-dialog.ui:226
 msgid "positive"
@@ -8217,7 +8195,7 @@ msgstr "Десяткові знаки:"
 
 #: src/ui/gui/gen-dot-desktop.sh:14
 msgid "Statistical Software"
-msgstr ""
+msgstr "Статистичне програмне забезпечення"
 
 #: src/ui/gui/gen-dot-desktop.sh:15
 msgid "Analyze statistical data with a free alternative to SPSS"
