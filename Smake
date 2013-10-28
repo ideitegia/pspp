@@ -157,21 +157,27 @@ MIMETYPE_ICONS = \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/22x22/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/22x22/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/22x22/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/24x24/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/24x24/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/24x24/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/256x256/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/256x256/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/256x256/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-zsav.png 
 src/ui/gui/icons/mimetypes/16x16/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/16x16/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/16x16/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-zsav.png \
 
 MISC_ICONS = src/ui/gui/icons/splash.png
 
