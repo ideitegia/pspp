@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="view-font.svg">
+   sodipodi:docname="view-value-labels.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -30,12 +30,12 @@
      inkscape:cx="8"
      inkscape:cy="6.1783041"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g6351"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="709"
+     inkscape:window-height="705"
      inkscape:window-x="0"
-     inkscape:window-y="27"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      showborder="false"
      inkscape:snap-bbox="true">
@@ -107,25 +107,23 @@
        transform="translate(95,915.00002)"
        style="display:inline"
        id="g6351">
-      <rect
-         y="121.36218"
-         x="-95"
-         height="16"
-         width="16"
-         id="rect5559"
-         style="fill:none;stroke:none" />
-      <rect
-         y="121.36218"
-         x="-95"
-         height="16"
-         width="16"
-         id="rect5744"
-         style="fill:none;stroke:none" />
-      <path
-         inkscape:connector-curvature="0"
-         id="rect6314"
-         d="m -87,121.36218 c -2.76142,0 -5,2.68629 -5,6 l 0,1.65625 0,0.34375 0,6.3125 c 0,0.92333 0.73292,1.6875 1.65625,1.6875 l 6.6875,0 c 0.923333,0 1.65625,-0.76417 1.65625,-1.6875 l 0,-6.3125 0,-0.34375 0,-1.65625 c 0,-3.31371 -2.238576,-6 -5,-6 z m 0,2 c 0.828427,0 1.5,0.67157 1.5,1.5 0,0.82843 -0.671573,1.5 -1.5,1.5 -0.82843,0 -1.5,-0.67157 -1.5,-1.5 0,-0.82843 0.67157,-1.5 1.5,-1.5 z m 0,5 c 1.65685,0 3,1.34315 3,3 l 0,4 -2,0 0,-2 -2,0 0,2 -2,0 0,-4 c 0,-1.65685 1.34315,-3 3,-3 z m 0,2 c -0.55228,0 -1,0.44772 -1,1 l 0,1 2,0 0,-1 c 0,-0.55228 -0.44772,-1 -1,-1 z"
-         style="fill:#555753;fill-opacity:1;stroke:none" />
+      <g
+         style="display:inline"
+         id="g4959"
+         transform="translate(0,-2.6171874e-6)">
+        <path
+           inkscape:connector-curvature="0"
+           id="path4057"
+           d="m -92,122.375 -2,2 0,4 8,8 6,-6 -8,-8 -4,0 z m 1.5,2 c 0.828427,0 1.5,0.67157 1.5,1.5 0,0.82843 -0.671573,1.5 -1.5,1.5 -0.828427,0 -1.5,-0.67157 -1.5,-1.5 0,-0.82843 0.671573,-1.5 1.5,-1.5 z"
+           style="fill:#555753;stroke:none" />
+        <rect
+           y="121.36218"
+           x="-95"
+           height="16"
+           width="16"
+           id="rect4141"
+           style="fill:none;stroke:none" />
+      </g>
     </g>
   </g>
 </svg>
