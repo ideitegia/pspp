@@ -41,6 +41,9 @@ struct journal_driver
     struct output_driver driver;
     FILE *file;
     char *command_name;
+
+    /* Name of journal file. */
+    char *file_name;
   };
 
 static const struct output_driver_class journal_class;
@@ -48,8 +51,6 @@ static const struct output_driver_class journal_class;
 /* Journal driver, if journaling is enabled. */
 static struct journal_driver *journal;
 
-/* Name of journal file. */
-static char *journal_file_name;
 
 static struct journal_driver *
 journal_driver_cast (struct output_driver *driver)
@@ -65,7 +66,7 @@ journal_close (void)
     {
       if (fwriteerror (journal->file))
         msg_error (errno, _("error writing output file `%s'"),
-               journal_file_name);
+               journal->file_name);
       journal->file = NULL;
     }
 }
@@ -176,8 +177,8 @@ void
 journal_set_file_name (const char *file_name)
 {
   journal_close ();
-  free (journal_file_name);
-  journal_file_name = xstrdup (file_name);
+  free (journal->file_name);
+  journal->file_name = xstrdup (file_name);
 }
 
 /* Returns the name of the journal file.  The caller must not modify or free
@@ -185,10 +186,10 @@ journal_set_file_name (const char *file_name)
 const char *
 journal_get_file_name (void)
 {
-  if (journal_file_name == NULL)
+  if (journal->file_name == NULL)
     {
       const char *output_path = default_output_path ();
-      journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
+      journal->file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
     }
-  return journal_file_name;
+  return journal->file_name;
 }
