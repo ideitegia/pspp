@@ -11,6 +11,7 @@ POFILES = \
 	po/en_GB.po \
 	po/es.po \
 	po/fr.po \
+	po/ja.po \
 	po/lt.po \
 	po/nl.po \
 	po/sl.po \
