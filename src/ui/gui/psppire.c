@@ -94,7 +94,7 @@ initialize (const char *data_file)
 
   psppire_output_window_setup ();
 
-  journal_enable ();
+  journal_init ();
   textdomain (PACKAGE);
 
   psppire_selector_set_default_selection_func (GTK_TYPE_ENTRY, insert_source_row_into_entry);

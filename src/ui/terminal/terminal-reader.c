@@ -99,7 +99,7 @@ welcome (void)
 	 "conditions.\nThere is ABSOLUTELY NO WARRANTY for PSPP; type \"show "
 	 "warranty.\" for details.\n", stdout);
   puts (stat_version);
-  journal_enable ();
+  journal_init ();
 }
 
 static struct terminal_reader *

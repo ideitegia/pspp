@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 
+void journal_init (void);
 void journal_enable (void);
 void journal_disable (void);
 bool journal_is_enabled (void);
