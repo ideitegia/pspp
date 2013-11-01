@@ -45,7 +45,7 @@ struct levene
   /* Width of the categorical variable */
   int gvw ;
 
-  /* The value deviding the the groups. Valid only for dichotomous categorical variable.*/
+  /* The value dividing the groups. Valid only for dichotomous categorical variable.*/
   const union value *cutpoint;
 
 

@@ -57,7 +57,7 @@ mrsets.sps:29: warning: MRSETS: Variable y specified as part of multiple dichoto
 
 mrsets.sps:34: warning: MRSETS: Variable x specified as part of multiple dichotomy group $c (which has CATEGORYLABELS=COUNTEDVALUES) has no value label for its counted value.  This category will not be distinguishable in output.
 
-mrsets.sps:34: warning: MRSETS: Variables y and z specified as part of multiple dichotomy group $c (which has CATEGORYLABELS=COUNTEDVALUES) have the same value label for the the group's counted value.  These categories will not be distinguishable in output.
+mrsets.sps:34: warning: MRSETS: Variables y and z specified as part of multiple dichotomy group $c (which has CATEGORYLABELS=COUNTEDVALUES) have the same value label for the group's counted value.  These categories will not be distinguishable in output.
 
 mrsets.sps:38: warning: MRSETS: MDGROUP subcommand for group $d specifies LABELSOURCE=VARLABEL but not CATEGORYLABELS=COUNTEDVALUES.  Ignoring LABELSOURCE.
 

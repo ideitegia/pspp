@@ -368,7 +368,7 @@ parse_group (struct lexer *lexer, struct dictionary *dict,
                     msg (SW, _("Variables %s and %s specified as part of "
                                "multiple dichotomy group %s (which has "
                                "CATEGORYLABELS=COUNTEDVALUES) have the same "
-                               "value label for the the group's counted "
+                               "value label for the group's counted "
                                "value.  These categories will not be "
                                "distinguishable in output."),
                          other_name, name, mrset->name);

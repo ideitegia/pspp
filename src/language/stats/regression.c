@@ -478,8 +478,8 @@ identify_indep_vars (const struct regression *cmd,
        */
       msg (SW,
            gettext
-           ("The dependent variable is equal to the independent variable."
-            "The least squares line is therefore Y=X."
+           ("The dependent variable is equal to the independent variable. "
+            "The least squares line is therefore Y=X. "
             "Standard errors and related statistics may be meaningless."));
       n_indep_vars = 1;
       indep_vars[0] = cmd->vars[0];
