@@ -88,7 +88,7 @@ usage (void)
   gtk_help = gtk_help != NULL ? gtk_help + 2 : gtk_help_base;
 
   printf (_("\
-PSPPIRE, a GUI for PSPP, a program for statistical analysis of sample data.\n\
+PSPPIRE, a GUI for PSPP, a program for statistical analysis of sampled data.\n\
 Usage: %s [OPTION]... FILE\n\
 \n\
 Arguments to long options also apply to equivalent short options.\n\
