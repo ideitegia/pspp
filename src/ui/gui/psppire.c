@@ -270,14 +270,17 @@ create_icon_factory (void)
        ones in all other respects.
     */
     const struct iconmap map[] = {
-      {GTK_STOCK_NEW,   "file-new-document"},
-      {GTK_STOCK_QUIT,  "file-quit"},
-      {GTK_STOCK_SAVE,  "file-save-document"},
-      {GTK_STOCK_CUT,   "edit-cut"},
-      {GTK_STOCK_COPY,  "edit-copy"},
-      {GTK_STOCK_PASTE, "edit-paste"},
-      {GTK_STOCK_ABOUT, "help-about"},
-      {GTK_STOCK_PRINT, "file-print-document"}
+      {GTK_STOCK_NEW,    "file-new-document"},
+      {GTK_STOCK_QUIT,   "file-quit"},
+      {GTK_STOCK_SAVE,   "file-save-document"},
+      {GTK_STOCK_CUT,    "edit-cut"},
+      {GTK_STOCK_COPY,   "edit-copy"},
+      {GTK_STOCK_PASTE,  "edit-paste"},
+      {GTK_STOCK_UNDO,   "edit-undo"},
+      {GTK_STOCK_REDO,   "edit-redo"},
+      {GTK_STOCK_DELETE, "edit-delete"},
+      {GTK_STOCK_ABOUT,  "help-about"},
+      {GTK_STOCK_PRINT,  "file-print-document"}
     };
 
     GtkStockItem customised[sizeof (map) / sizeof (map[0])];
