@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="24"
+   height="24"
+   id="svg3991"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="edit-select-all.svg">
+  <title
+     id="title4018">GNU PSPP flat icon set</title>
+  <defs
+     id="defs3993" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="-5.4178166"
+     inkscape:cy="9.5322807"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1366"
+     inkscape:window-height="704"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     showborder="false"
+     inkscape:snap-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2983"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true" />
+    <sodipodi:guide
+       position="0,0"
+       orientation="0,24"
+       id="guide2993" />
+    <sodipodi:guide
+       position="24,0"
+       orientation="-24,0"
+       id="guide2995" />
+    <sodipodi:guide
+       position="24,24"
+       orientation="0,-24"
+       id="guide2997" />
+    <sodipodi:guide
+       position="0,24"
+       orientation="24,0"
+       id="guide2999" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3996">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>GNU PSPP flat icon set</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Bastián Díaz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://github.com/bedf/PSPPire-artwork</dc:source>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-1028.3622)">
+    <g
+       transform="matrix(1.4979093,0,0,1.4990328,299.60242,846.43631)"
+       style="display:inline"
+       id="g4773-9">
+      <g
+         inkscape:export-ydpi="90"
+         inkscape:export-xdpi="90"
+         inkscape:export-filename="/home/raizen/Dropbox/Proyectos/GNU PSPP/PSPPire artwork/icons/actions/16x16/edit-cut.png"
+         id="g5500-7"
+         style="display:inline"
+         transform="translate(-480,-157.63781)">
+        <rect
+           transform="translate(0,-552.3622)"
+           y="831.3725"
+           x="280.00861"
+           height="16.000017"
+           width="16"
+           id="rect4926-2"
+           style="opacity:0;fill:#ffffff;fill-opacity:1;stroke:none;display:inline" />
+        <path
+           transform="matrix(0.41237112,0,0,0.42088117,282.03093,197.35312)"
+           d="m 9.625,223.6875 c 0,3.27919 -2.7142737,5.9375 -6.0625,5.9375 -3.3482263,0 -6.0625,-2.65831 -6.0625,-5.9375 0,-3.27919 2.7142737,-5.9375 6.0625,-5.9375 3.3482263,0 6.0625,2.65831 6.0625,5.9375 z"
+           sodipodi:ry="5.9375"
+           sodipodi:rx="6.0625"
+           sodipodi:cy="223.6875"
+           sodipodi:cx="3.5625"
+           id="path3940-8-2"
+           style="fill:none;stroke:#555753;stroke-width:4.80071735;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+           sodipodi:type="arc" />
+        <path
+           sodipodi:type="arc"
+           style="fill:none;stroke:#545753;stroke-width:4.80071735;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;display:inline"
+           id="path3942-4-9"
+           sodipodi:cx="3.5625"
+           sodipodi:cy="223.6875"
+           sodipodi:rx="6.0625"
+           sodipodi:ry="5.9375"
+           d="m 9.625,223.6875 c 0,3.27919 -2.7142737,5.9375 -6.0625,5.9375 -3.3482263,0 -6.0625,-2.65831 -6.0625,-5.9375 0,-3.27919 2.7142737,-5.9375 6.0625,-5.9375 3.3482263,0 6.0625,2.65831 6.0625,5.9375 z"
+           transform="matrix(0.4123712,0,0,0.42088118,291.03093,197.35311)" />
+        <path
+           sodipodi:nodetypes="ccccccccccccc"
+           inkscape:connector-curvature="0"
+           style="fill:#555753;fill-opacity:1;stroke:none"
+           d="m 283.09611,278.99999 c -1.06041,0.55377 -1.40652,1.75848 -0.79429,2.71764 l 4.42041,7.27829 -1.74629,2.36699 1.41408,2.08432 1.60998,-2.48337 1.57873,2.48337 1.40114,-1.99597 -1.7021,-2.45534 4.42041,-7.27829 c 0.61223,-0.95916 0.26612,-2.16387 -0.79429,-2.71764 L 288,286.99673 l -4.90389,-7.99674 z"
+           id="rect4875-4-5" />
+      </g>
+    </g>
+  </g>
+</svg>
