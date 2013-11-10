@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-09-22 22:37-0700\n"
-"PO-Revision-Date: 2013-11-01 18:50+0200\n"
+"PO-Revision-Date: 2013-11-04 20:32+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "Language: uk\n"
@@ -3246,7 +3246,7 @@ msgstr "Z"
 #: src/language/stats/mann-whitney.c:271 src/language/stats/mcnemar.c:262
 #: src/language/stats/sign.c:133 src/language/stats/wilcoxon.c:322
 msgid "Exact Sig. (2-tailed)"
-msgstr "Точна значимість (двобічна)"
+msgstr "Точна значущість (двобічна)"
 
 #: src/language/stats/mann-whitney.c:272 src/language/stats/mcnemar.c:268
 #: src/language/stats/sign.c:139 src/language/stats/wilcoxon.c:326
@@ -3314,7 +3314,7 @@ msgstr "Перевірку МакНемара можна застосовува�
 #: src/language/stats/mcnemar.c:265 src/language/stats/sign.c:136
 #: src/language/stats/wilcoxon.c:323
 msgid "Exact Sig. (1-tailed)"
-msgstr "Точна значимість (однобічна)"
+msgstr "Точна значущість (однобічна)"
 
 #: src/language/stats/median.c:358
 msgid "> Median"
@@ -3410,7 +3410,7 @@ msgstr "Сума квадратів"
 #: src/language/stats/oneway.c:978 src/language/stats/oneway.c:1225
 #: src/language/stats/regression.c:795 src/language/stats/regression.c:884
 msgid "Significance"
-msgstr "Значимість"
+msgstr "Значущість"
 
 #: src/language/stats/oneway.c:996
 msgid "Between Groups"
@@ -3962,7 +3962,7 @@ msgstr "Додатні ранги"
 
 #: src/language/stats/wilcoxon.c:361
 msgid "Too many pairs to calculate exact significance."
-msgstr "Занадто багато пар для обчислення точної значимості."
+msgstr "Занадто багато пар для обчислення точної значущості."
 
 #: src/language/data-io/combine-files.c:214
 msgid "Cannot specify the active dataset since none has been defined."
@@ -4298,7 +4298,7 @@ msgstr "REREAD: номери стовпчиків мають бути додат
 #: src/language/data-io/list.c:227
 #, c-format
 msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
-msgstr "Перше вказане спостереження (%ld) передує останньому вказаному спосетереженню (%ld). Буде виконано відповідне переставляння значень."
+msgstr "Перше вказане спостереження (%ld) передує останньому вказаному спостереженню (%ld). Буде виконано відповідне переставляння значень."
 
 #: src/language/data-io/list.c:236
 #, c-format
@@ -4395,7 +4395,7 @@ msgstr "Файл виведених даних «%s» вже існує, але 
 #: src/language/data-io/trim.c:89
 #, c-format
 msgid "Cannot rename %s as %s because there already exists a variable named %s.  To rename variables with overlapping names, use a single RENAME subcommand such as `/RENAME (A=B)(B=C)(C=A)', or equivalently, `/RENAME (A B C=B C A)'."
-msgstr "Перейменування %s на %s неможливе, оскільки змінна з назвою %s вже існує. Щоб перейменувати змінні без конфліктів наз, скорисайтеся окремою підкомандою RENAME так: /RENAME (A=B)(B=C)(C=A) або так: /RENAME (A B C=B C A)."
+msgstr "Перейменування %s на %s неможливе, оскільки змінна з назвою %s вже існує. Щоб перейменувати змінні без конфліктів назв, скористайтеся окремою підкомандою RENAME так: /RENAME (A=B)(B=C)(C=A) або так: /RENAME (A B C=B C A)."
 
 #: src/language/data-io/trim.c:123
 #, c-format
@@ -4775,7 +4775,7 @@ msgstr "Емпіричне"
 
 #: src/math/percentiles.c:40
 msgid "Empirical with averaging"
-msgstr "Емпіричне з осередненням"
+msgstr "Емпіричне з усередненням"
 
 #: src/output/ascii.c:307
 #, c-format
@@ -6476,7 +6476,7 @@ msgstr "Вва_жати порожні рядки значень пропуще�
 
 #: src/ui/gui/binomial.ui:63
 msgid "_Test Variable List:"
-msgstr "Список з_мінних для первірки:"
+msgstr "Список з_мінних для перевірки:"
 
 #: src/ui/gui/binomial.ui:133 src/ui/gui/chi-square.ui:83
 msgid "_Get from data"
@@ -6572,11 +6572,11 @@ msgstr "_Однобічна"
 
 #: src/ui/gui/correlation.ui:226
 msgid "Test of Significance"
-msgstr "Перевірка значимості"
+msgstr "Перевірка значущості"
 
 #: src/ui/gui/correlation.ui:238
 msgid "_Flag significant correlations"
-msgstr "_Позначити значимі кореляції"
+msgstr "_Позначити значущі кореляції"
 
 #: src/ui/gui/count.ui:7
 msgid "Count Occurrences of Values within Cases"
@@ -8108,7 +8108,7 @@ msgstr "Факторний _аналіз…"
 
 #: src/ui/gui/data-editor.ui:378
 msgid "Re_liability..."
-msgstr "_Достовірність…"
+msgstr "_Вірогідність…"
 
 #: src/ui/gui/data-editor.ui:384
 msgid "_Regression"
