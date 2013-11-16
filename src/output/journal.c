@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2010, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2010, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "data/file-name.h"
 #include "libpspp/cast.h"
@@ -41,15 +42,17 @@ struct journal_driver
     struct output_driver driver;
     FILE *file;
     char *command_name;
+
+    /* Name of journal file. */
+    char *file_name;
+    bool destroyed;
   };
 
 static const struct output_driver_class journal_class;
 
 /* Journal driver, if journaling is enabled. */
-static struct journal_driver *journal;
+static struct journal_driver journal;
 
-/* Name of journal file. */
-static char *journal_file_name;
 
 static struct journal_driver *
 journal_driver_cast (struct output_driver *driver)
@@ -61,13 +64,14 @@ journal_driver_cast (struct output_driver *driver)
 static void
 journal_close (void)
 {
-  if (journal != NULL && journal->file != NULL)
+  if (journal.file != NULL)
     {
-      if (fwriteerror (journal->file))
+      if (fwriteerror (journal.file))
         msg_error (errno, _("error writing output file `%s'"),
-               journal_file_name);
-      journal->file = NULL;
-    }
+		   journal.file_name);
+
+      }
+  journal.file = NULL;
 }
 
 static void
@@ -75,27 +79,20 @@ journal_destroy (struct output_driver *driver)
 {
   struct journal_driver *j = journal_driver_cast (driver);
 
-  journal_close ();
-  free (j->command_name);
-  free (j);
+  if ( !j->destroyed)
+    {
+      journal_close ();
+      free (j->command_name);
+    }
 
-  journal = NULL;
+  j->destroyed = true;
 }
 
 static void
 journal_output (struct journal_driver *j, const char *s)
 {
-  if (j->file == NULL)
-    {
-      j->file = fopen (journal_get_file_name (), "a");
-      if (j->file == NULL)
-        {
-          msg_error (errno, _("error opening output file `%s'"),
-                 journal_get_file_name ());
-          output_driver_destroy (&j->driver);
-          return;
-        }
-    }
+  if ( j->file == NULL)
+    return;
 
   fprintf (j->file, "%s\n", s);
 
@@ -137,38 +134,56 @@ static const struct output_driver_class journal_class =
     journal_submit,
     NULL                        /* flush */
   };
+
 
+
 /* Enables journaling. */
 void
-journal_enable (void)
+journal_init (void)
 {
-  if (journal == NULL)
-    {
-      /* Create journal driver. */
-      journal = xzalloc (sizeof *journal);
-      output_driver_init (&journal->driver, &journal_class, "journal",
-                          SETTINGS_DEVICE_UNFILTERED);
-      journal->file = NULL;
-      journal->command_name = NULL;
+  /* Create journal driver. */
+  output_driver_init (&journal.driver, &journal_class, "journal",
+		      SETTINGS_DEVICE_UNFILTERED);
+  journal.file = NULL;
+  journal.command_name = NULL;
+  
+  /* Register journal driver. */
+  output_driver_register (&journal.driver);
 
-      /* Register journal driver. */
-      output_driver_register (&journal->driver);
-    }
+  journal_enable ();
+  journal.destroyed = false;
 }
 
 /* Disables journaling. */
 void
 journal_disable (void)
 {
-  if (journal != NULL)
-    output_driver_destroy (&journal->driver);
+  journal_close ();
 }
+
+
+/* Enable journaling. */
+void
+journal_enable (void)
+{
+  if (journal.file == NULL)
+    {
+      journal.file = fopen (journal_get_file_name (), "a");
+      if (journal.file == NULL)
+        {
+          msg_error (errno, _("error opening output file `%s'"),
+		     journal_get_file_name ());
+	  journal_close ();
+        }
+    }
+}
+
 
 /* Returns true if journaling is enabled, false otherwise. */
 bool
 journal_is_enabled (void)
 {
-  return journal != NULL;
+  return journal.file != NULL ;
 }
 
 /* Sets the name of the journal file to FILE_NAME. */
@@ -176,8 +191,8 @@ void
 journal_set_file_name (const char *file_name)
 {
   journal_close ();
-  free (journal_file_name);
-  journal_file_name = xstrdup (file_name);
+  free (journal.file_name);
+  journal.file_name = xstrdup (file_name);
 }
 
 /* Returns the name of the journal file.  The caller must not modify or free
@@ -185,10 +200,10 @@ journal_set_file_name (const char *file_name)
 const char *
 journal_get_file_name (void)
 {
-  if (journal_file_name == NULL)
+  if (journal.file_name == NULL)
     {
       const char *output_path = default_output_path ();
-      journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
+      journal.file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
     }
-  return journal_file_name;
+  return journal.file_name;
 }

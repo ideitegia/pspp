@@ -727,13 +727,15 @@ psppire_window_file_chooser_dialog (PsppireWindow *toplevel)
   gtk_file_filter_set_name (filter, _("Data and Syntax Files"));
   gtk_file_filter_add_mime_type (filter, "application/x-spss-sav");
   gtk_file_filter_add_mime_type (filter, "application/x-spss-por");
+  gtk_file_filter_add_pattern (filter, "*.zsav");
   gtk_file_filter_add_pattern (filter, "*.sps");
   gtk_file_filter_add_pattern (filter, "*.SPS");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
+  gtk_file_filter_set_name (filter, _("System Files (*.sav, *.zsav)"));
   gtk_file_filter_add_mime_type (filter, "application/x-spss-sav");
+  gtk_file_filter_add_pattern (filter, "*.zsav");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();

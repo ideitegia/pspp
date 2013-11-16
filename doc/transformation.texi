@@ -672,7 +672,7 @@ recode
 @end example
 @noindent Here we have two recodings. The first affects the source variable
 @var{a} and recodes in-place the value 2 into 22 and all other values to 99.
-The second recoding copies the values of @var{b} into the the variable @var{z}, 
+The second recoding copies the values of @var{b} into the variable @var{z}, 
 changing any instances of 1 into 3.
 
 @node SORT CASES

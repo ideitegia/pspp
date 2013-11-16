@@ -157,46 +157,76 @@ MIMETYPE_ICONS = \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/32x32/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/32x32/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/22x22/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/22x22/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/22x22/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/22x22/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/24x24/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/24x24/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/24x24/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/24x24/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/256x256/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/256x256/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/256x256/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/256x256/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/16x16/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/16x16/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/16x16/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/16x16/application-x-spss-zsav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-por.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sav.png \
 src/ui/gui/icons/mimetypes/48x48/application-x-spss-sps.png \
+src/ui/gui/icons/mimetypes/48x48/application-x-spss-zsav.png \
 
 MISC_ICONS = src/ui/gui/icons/splash.png
 
 
 ACTION_ICONS = \
 src/ui/gui/icons/actions/32x32/data-split-file.png \
+src/ui/gui/icons/actions/32x32/data-select-cases.png \
 src/ui/gui/icons/actions/32x32/data-weight-cases.png \
+src/ui/gui/icons/actions/32x32/transform-compute.png \
 src/ui/gui/icons/actions/32x32/edit-find.png \
 src/ui/gui/icons/actions/32x32/edit-go-to-case.png \
 src/ui/gui/icons/actions/32x32/edit-go-to-variable.png \
 src/ui/gui/icons/actions/32x32/edit-insert-case.png \
 src/ui/gui/icons/actions/32x32/edit-insert-variable.png \
+src/ui/gui/icons/actions/32x32/edit-cut.png \
+src/ui/gui/icons/actions/32x32/edit-copy.png \
+src/ui/gui/icons/actions/32x32/edit-paste.png \
+src/ui/gui/icons/actions/32x32/edit-undo.png \
+src/ui/gui/icons/actions/32x32/edit-redo.png \
+src/ui/gui/icons/actions/32x32/edit-select-all.png \
 src/ui/gui/icons/actions/32x32/file-open-data.png \
 src/ui/gui/icons/actions/32x32/file-save-data.png \
+src/ui/gui/icons/actions/32x32/file-export-data.png \
+src/ui/gui/icons/actions/32x32/file-print.png \
 src/ui/gui/icons/actions/32x32/view-value-labels.png \
+src/ui/gui/icons/actions/32x32/utilities-variables.png \
+src/ui/gui/icons/actions/32x32/run-all.png \
 src/ui/gui/icons/actions/24x24/data-split-file.png \
+src/ui/gui/icons/actions/24x24/data-select-cases.png \
 src/ui/gui/icons/actions/24x24/data-weight-cases.png \
+src/ui/gui/icons/actions/24x24/transform-compute.png \
 src/ui/gui/icons/actions/24x24/edit-find.png \
 src/ui/gui/icons/actions/24x24/edit-go-to-case.png \
 src/ui/gui/icons/actions/24x24/edit-go-to-variable.png \
 src/ui/gui/icons/actions/24x24/edit-insert-case.png \
 src/ui/gui/icons/actions/24x24/edit-insert-variable.png \
+src/ui/gui/icons/actions/24x24/edit-cut.png \
+src/ui/gui/icons/actions/24x24/edit-copy.png \
+src/ui/gui/icons/actions/24x24/edit-paste.png \
+src/ui/gui/icons/actions/24x24/edit-undo.png \
+src/ui/gui/icons/actions/24x24/edit-redo.png \
+src/ui/gui/icons/actions/24x24/edit-select-all.png \
 src/ui/gui/icons/actions/24x24/file-open-data.png \
 src/ui/gui/icons/actions/24x24/file-save-data.png \
+src/ui/gui/icons/actions/24x24/file-export-data.png \
+src/ui/gui/icons/actions/24x24/file-print.png \
 src/ui/gui/icons/actions/24x24/view-value-labels.png \
+src/ui/gui/icons/actions/24x24/utilities-variables.png \
+src/ui/gui/icons/actions/24x24/run-all.png \
 src/ui/gui/icons/actions/16x16/file-new-data.png \
 src/ui/gui/icons/actions/16x16/file-syntax-data.png \
 src/ui/gui/icons/actions/16x16/file-system-data.png \
@@ -408,14 +438,11 @@ clean:
 # with the alpha channels.  Therefore, it is not recommended for production pspp builds, but might
 # be useful to get something working on a platform which doesn't have a working gimp.
 
-#svg2png=convert $1 $3
+#svg2png=convert -background transparent $1 $3
 
-svg2png=gimp -i -b '(let* ((image  (car  (gimp-file-load 1  "$1"  "$1"))))  (gimp-image-attach-parasite image (list "gimp-comment" 0 "$(shell cat $2)"))  (gimp-file-save 1 image (car  (gimp-image-get-active-drawable image)) "$3" "$3")) (gimp-quit 1)'
-
-
-src/ui/gui/icons/%.png: src/ui/gui/artwork/%.svg src/ui/gui/icons/COPYING_CCBYSA3
+src/ui/gui/icons/%.png: src/ui/gui/artwork/%.svg build-aux/svg2png src/ui/gui/icons/COPYING_CCBYSA3
 	mkdir -p $(dir $@)
-	$(call svg2png,$<,$(lastword $^),$@)
+	build-aux/svg2png "$<" "$(lastword $^)" "$@"
 
 
 src/ui/gui/icons/%.svg: src/ui/gui/artwork/%.svg

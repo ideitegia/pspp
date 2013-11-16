@@ -1,0 +1,9 @@
+#! /bin/sh
+
+comment=`cat $2`
+gimp -i -b "\
+(let* ((image (car (gimp-file-load 1 \"$1\" \"$1\"))))
+      (gimp-image-attach-parasite image (list \"gimp-comment\" 0 \"$comment\"))
+      (gimp-file-save 1 image (car (gimp-image-get-active-drawable image))
+		      \"$3\" \"$3\"))
+    (gimp-quit 1)"

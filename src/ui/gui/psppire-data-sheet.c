@@ -675,7 +675,7 @@ add_data_column_cell_renderer (PsppireDataSheet *data_sheet,
   var = g_object_get_data (G_OBJECT (column), "variable");
   g_return_if_fail (var != NULL);
 
-  if (var_has_value_labels (var))
+  if (data_sheet->show_value_labels && var_has_value_labels (var))
     {
       cell = gtk_cell_renderer_combo_new ();
       g_object_set (G_OBJECT (cell),
@@ -944,10 +944,11 @@ psppire_data_sheet_set_value_labels (PsppireDataSheet *ds,
     {
       ds->show_value_labels = show_value_labels;
       g_object_notify (G_OBJECT (ds), "value-labels");
-      gtk_widget_queue_draw (GTK_WIDGET (ds));
 
-      /* Make the cell being edited refresh too. */
-      pspp_sheet_view_stop_editing (PSPP_SHEET_VIEW (ds), TRUE);
+      /* Pretend the model changed, to force the columns to be rebuilt.
+         Otherwise cell renderers won't get changed from combo boxes to text
+         entries or vice versa. */
+      g_object_notify (G_OBJECT (ds), "model");
     }
 }
 

@@ -172,7 +172,7 @@ usage (void)
   char *inc_path = string_array_join (include_path_default (), " ");
 
   printf (_("\
-PSPP, a program for statistical analysis of sample data.\n\
+PSPP, a program for statistical analysis of sampled data.\n\
 Usage: %s [OPTION]... FILE...\n\
 \n\
 Arguments to long options also apply to equivalent short options.\n\

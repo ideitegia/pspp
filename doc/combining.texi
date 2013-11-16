@@ -61,7 +61,7 @@ following sections describe details specific to each command.
 Each of these commands reads two or more input files and combines them.  
 The command's output becomes the new active dataset.
 None of the commands actually change the input files.
-Therefore, if you want the changes to become permanant, you must explictly
+Therefore, if you want the changes to become permanent, you must explicitly
 save them using an appropriate procedure or transformation (@pxref{System and Portable File IO}).
 
 The syntax of each command begins with a specification of the files to

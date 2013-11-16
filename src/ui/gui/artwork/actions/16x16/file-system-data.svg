@@ -14,7 +14,7 @@
    id="svg3991"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="file-syntax-data.svg">
+   sodipodi:docname="file-system-data.svg">
   <title
      id="title4018">GNU PSPP flat icon set</title>
   <defs
@@ -33,9 +33,9 @@
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="683"
-     inkscape:window-height="708"
+     inkscape:window-height="705"
      inkscape:window-x="0"
-     inkscape:window-y="27"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      showborder="false"
      inkscape:snap-bbox="true">
@@ -104,21 +104,87 @@
      id="layer1"
      transform="translate(0,-1036.3622)">
     <g
+       transform="translate(601,919.00002)"
        style="display:inline"
-       id="g4888"
-       transform="translate(620,915.00002)">
-      <path
-         inkscape:connector-curvature="0"
-         id="rect3998"
-         d="m -617,123.36218 c -0.554,0 -1,0.446 -1,1 l 0,2 0,2 0,1 0,2 0,1 0,2 0,1 0,1 8,0 1,0 3,0 1,0 0,-2 0,-9 0,-1 c 0,-0.554 -0.446,-1 -1,-1 l -11,0 z m 0,3 3,0 0,2 -3,0 0,-2 z m 4,0 3,0 0,2 -3,0 0,-2 z m 4,0 3,0 0,2 -3,0 0,-2 z m -8,3 3,0 0,2 -3,0 0,-2 z m 4,0 3,0 0,2 -3,0 0,-2 z m 4,0 3,0 0,2 -3,0 0,-2 z m -8,3 3,0 0,2 -3,0 0,-2 z m 4,0 3,0 0,2 -3,0 0,-2 z m 4,0 3,0 0,2 -3,0 0,-2 z"
-         style="fill:#555753;stroke:none" />
+       id="g5777">
       <rect
-         y="121.36218"
-         x="-620"
+         y="117.36218"
+         x="-601"
          height="16"
          width="16"
          id="rect4886"
          style="fill:none;stroke:none" />
+      <rect
+         y="124.36218"
+         x="-599"
+         height="1"
+         width="13"
+         id="rect5694-0-3"
+         style="fill:#555753" />
+      <rect
+         y="120.36218"
+         x="-599"
+         height="1"
+         width="13"
+         id="rect5694-7-1-89"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="120.36218"
+         x="-599"
+         height="2"
+         width="13"
+         id="rect5694-73-2-82"
+         style="fill:#555753;display:inline" />
+      <rect
+         ry="1"
+         y="119.36218"
+         x="-599"
+         height="2"
+         width="13"
+         id="rect5694-9-6-03"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="120.36218"
+         x="-599"
+         height="11"
+         width="1"
+         id="rect5694-733-5-6"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="120.36218"
+         x="-587"
+         height="11"
+         width="1"
+         id="rect5694-733-8-8-1"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="120.36218"
+         x="-591"
+         height="11"
+         width="1"
+         id="rect5694-733-0-2-2"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="120.36218"
+         x="-595"
+         height="11"
+         width="1"
+         id="rect5694-733-86-9-1"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="127.36218"
+         x="-599"
+         height="1"
+         width="13"
+         id="rect5694-0-3-4"
+         style="fill:#555753;display:inline" />
+      <rect
+         y="130.36218"
+         x="-599"
+         height="1"
+         width="13"
+         id="rect5694-0-3-6"
+         style="fill:#555753;display:inline" />
     </g>
   </g>
 </svg>

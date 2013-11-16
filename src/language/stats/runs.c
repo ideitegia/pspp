@@ -64,7 +64,7 @@ struct run_state
 
 
 /* Return the Z statistic representing the assympototic
-   distribution of the the number of runs */
+   distribution of the number of runs */
 static double
 runs_statistic (const struct run_state *rs)
 {
@@ -164,7 +164,7 @@ runs_execute (const struct dataset *ds,
 	      }
 	    casegrouper_destroy (grouper);
 	    if (multimodal)
-	      msg (MW, _("Multiple modes exist for varible `%s'.  Using %g as the threshold value."),
+	      msg (MW, _("Multiple modes exist for variable `%s'.  Using %g as the threshold value."),
 		   var_get_name (var), run->cutpoint);
 	  }
       }

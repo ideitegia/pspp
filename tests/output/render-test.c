@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,6 +46,9 @@ static char *box;
 
 /* --draw-mode: special ASCII driver test mode. */
 static int draw_mode;
+
+/* --pdf: Also render PDF output. */
+static int render_pdf;
 
 /* ASCII driver, for ASCII driver test mode. */
 static struct output_driver *ascii_driver;
@@ -135,18 +138,20 @@ configure_drivers (int width, int length)
   output_driver_register (driver);
 
 #ifdef HAVE_CAIRO
-  /* Render to render.pdf. */
-  string_map_insert (&options, "output-file", "render.pdf");
-  string_map_insert (&options, "top-margin", "0");
-  string_map_insert (&options, "bottom-margin", "0");
-  string_map_insert (&options, "left-margin", "0");
-  string_map_insert (&options, "right-margin", "0");
-  string_map_insert_nocopy (&options, xstrdup ("paper-size"),
-                            xasprintf ("%dx%dpt", width * 5, length * 8));
-  driver = output_driver_create (&options);
-  if (driver == NULL)
-    exit (EXIT_FAILURE);
-  output_driver_register (driver);
+  if (render_pdf)
+    {
+      string_map_insert (&options, "output-file", "render.pdf");
+      string_map_insert (&options, "top-margin", "0");
+      string_map_insert (&options, "bottom-margin", "0");
+      string_map_insert (&options, "left-margin", "0");
+      string_map_insert (&options, "right-margin", "0");
+      string_map_insert_nocopy (&options, xstrdup ("paper-size"),
+                                xasprintf ("%dx%dpt", width * 5, length * 8));
+      driver = output_driver_create (&options);
+      if (driver == NULL)
+        exit (EXIT_FAILURE);
+      output_driver_register (driver);
+    }
 #endif
 
   string_map_insert (&options, "output-file", "render.odt");
@@ -181,6 +186,7 @@ parse_options (int argc, char **argv)
           {"emphasis", required_argument, NULL, OPT_EMPHASIS},
           {"box", required_argument, NULL, OPT_BOX},
           {"draw-mode", no_argument, &draw_mode, 1},
+          {"pdf", no_argument, &render_pdf, 1},
           {"help", no_argument, NULL, OPT_HELP},
           {NULL, 0, NULL, 0},
         };
