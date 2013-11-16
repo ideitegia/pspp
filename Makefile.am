@@ -59,6 +59,7 @@ generate-changelog:
 DIST_HOOKS += generate-changelog
 
 
+include $(top_srcdir)/build-aux/automake.mk
 include $(top_srcdir)/po/automake.mk
 include $(top_srcdir)/lib/automake.mk
 include $(top_srcdir)/doc/automake.mk
