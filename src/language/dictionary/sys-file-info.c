@@ -406,19 +406,19 @@ display_attributes (struct tab_table *t, const struct attrset *set, int flags,
       const struct attribute *attr = attrs[i];
       const char *name = attribute_get_name (attr);
       size_t n_values;
-      size_t i;
+      size_t j;
 
       if (!(flags & DF_AT_ATTRIBUTES) && is_at_name (name))
         continue;
 
       n_values = attribute_get_n_values (attr);
-      for (i = 0; i < n_values; i++)
+      for (j = 0; j < n_values; j++)
         {
           if (n_values > 1)
-            tab_text_format (t, c, r, TAB_LEFT, "%s[%zu]", name, i + 1);
+            tab_text_format (t, c, r, TAB_LEFT, "%s[%zu]", name, j + 1);
           else
             tab_text (t, c, r, TAB_LEFT, name);
-          tab_text (t, c + 1, r, TAB_LEFT, attribute_get_value (attr, i));
+          tab_text (t, c + 1, r, TAB_LEFT, attribute_get_value (attr, j));
           r++;
         }
     }
