@@ -140,7 +140,7 @@ AT_CHECK([pspp -O format=csv corr-ns.sps], [0], [dnl
 Table: Correlations
 ,,bar,wiz
 foo,Pearson Correlation,1.000,-1.000
-,Sig. (2-tailed),,.000
+,Sig. (2-tailed),.000,.000
 ,N,6,6
 ])
 
@@ -198,4 +198,153 @@ b,Pearson Correlation,...
 ,Sig. (2-tailed),...
 ,N,...
 ])
+AT_CLEANUP
+
+
+
+dnl Checks for bug #40661
+AT_SETUP([CORRELATIONS -- incorrect subtable selection])
+AT_DATA([correlations.sps], [dnl
+set format = F12.4.
+set decimal = dot.
+data list notable list /var1 var2 var3 var4 var5 *.
+begin data.
+7,6,9,2,3
+9,12,8,5,8
+8,9,7,8,6
+8,8,9,10,8
+7,6,4,5,3
+7,9,8,2,1
+9,8,11,,10
+8,7,6,,5
+6,7,6,,8
+6,,3,,4
+6,,7,3,3
+5,4,2,7,8
+9,8,6,11,10
+5,6,2,2,4
+8,7,6,8,7
+10,13,8,12,10
+7,8,7,11,2
+8,7,7,9,6
+10,11,11,8,1
+5,8,6,9,9
+8,7,5,5,6
+5,7,2,1,8
+9,8,8,13,6
+5,8,5,6,4
+,7,5,4,5
+,8,4,4,3
+,6,4,9,5
+8,11,9,12,3
+9,11,8,10,6
+10,10,7,8,1
+6,6,3,8,9
+10,9,7,12,2
+6,8,,7,4
+6,8,3,2,9
+7,8,8,2,9
+5,6,5,5,5
+9,9,7,7,5
+9,10,11,7,8
+8,11,9,3,3
+5,4,4,0,5
+9,9,11,14,2
+5,6,2,4,4
+8,8,7,4,1
+9,9,8,14,
+6,8,7,2,
+10,9,9,6,
+8,8,10,9,
+7,8,4,12,
+6,6,6,7,1
+5,7,7,4,10
+9,10,10,13,4
+9,11,9,8,7
+10,13,12,6,8
+8,11,6,8,5
+7,8,7,12,2
+6,7,4,1,10
+5,4,5,6,10
+7,8,6,12,10
+6,5,3,9,2
+7,8,8,7,2
+5,4,4,9,8
+5,7,6,3,9
+10,10,9,13,1
+8,10,9,5,4
+8,9,8,8,7
+7,9,9,6,7
+10,9,7,12,6
+10,13,12,12,4
+7,10,9,7,2
+6,8,7,11,6
+8,11,5,13,2
+7,10,6,12,8
+10,10,9,7,9
+9,12,6,7,10
+6,6,8,2,9
+10,9,12,13,10
+8,9,8,3,6
+8,7,6,4,10
+8,7,10,12,2
+7,6,8,2,7
+8,11,6,9,4
+6,6,7,8,2
+6,7,3,11,4
+5,6,3,0,5
+10,10,11,15,6
+5,4,7,6,8
+5,4,4,1,3
+6,9,8,1,6
+10,11,10,15,8
+7,10,4,11,7
+9,12,8,6,3
+10,10,11,15,2
+10,9,9,15,3
+6,6,8,5,1
+5,7,7,0,3
+9,8,10,6,8
+9,8,11,11,4
+8,10,7,3,4
+7,8,7,3,3
+8,9,10,13,8
+end data.
+
+CORRELATION
+	/VARIABLES =  var1 var2 var3 WITH var4 var5
+	/PRINT = TWOTAIL NOSIG.
+
+CORRELATION
+	/VARIABLES =  var3 var4 var5 WITH var1 var2
+	/PRINT = TWOTAIL NOSIG.
+
+])
+
+AT_CHECK([pspp -O format=csv  correlations.sps], [0],
+[Table: Correlations
+,,var4,var5
+var1,Pearson Correlation,.5693,-.0519
+,Sig. (2-tailed),.0000,.6232
+,N,93,92
+var2,Pearson Correlation,.3792,-.0407
+,Sig. (2-tailed),.0002,.6985
+,N,95,93
+var3,Pearson Correlation,.3699,-.0543
+,Sig. (2-tailed),.0002,.6029
+,N,95,94
+
+Table: Correlations
+,,var1,var2
+var3,Pearson Correlation,.6964,.5615
+,Sig. (2-tailed),.0000,.0000
+,N,96,97
+var4,Pearson Correlation,.5693,.3792
+,Sig. (2-tailed),.0000,.0002
+,N,93,95
+var5,Pearson Correlation,-.0519,-.0407
+,Sig. (2-tailed),.6232,.6985
+,N,92,93
+])
+
 AT_CLEANUP

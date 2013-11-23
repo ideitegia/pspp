@@ -210,6 +210,7 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 
   tab_vline (t, TAL_1, 1, heading_rows, nr - 1);
 
+  /* Row Headers */
   for (r = 0 ; r < corr->n_vars1 ; ++r)
     {
       tab_text (t, 0, 1 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, 
@@ -231,6 +232,7 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
       tab_hline (t, TAL_1, 0, nc - 1, r * rows_per_variable + 1);
     }
 
+  /* Column Headers */
   for (c = 0 ; c < matrix_cols ; ++c)
     {
       const struct variable *v = corr->n_vars_total > corr->n_vars1 ?
@@ -245,7 +247,7 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 	{
 	  unsigned char flags = 0; 
 	  const int col_index = corr->n_vars_total > corr->n_vars1 ? 
-	    corr->n_vars_total - corr->n_vars1 - 1  + c : 
+	    corr->n_vars1 + c : 
 	    c;
 	  double pearson = gsl_matrix_get (cm, r, col_index);
 	  double w = gsl_matrix_get (samples, r, col_index);
@@ -254,10 +256,10 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 	  if ( opts->missing_type != CORR_LISTWISE )
 	    tab_double (t, c + heading_columns, row + rows_per_variable - 1, 0, w, wfmt);
 
-	  if ( c != r)
+	  if ( col_index != r)
 	    tab_double (t, c + heading_columns, row + 1, 0,  sig, NULL);
 
-	  if ( opts->sig && c != r && sig < 0.05)
+	  if ( opts->sig && col_index != r && sig < 0.05)
 	    flags = TAB_EMPH;
 	  
 	  tab_double (t, c + heading_columns, row, flags, pearson, NULL);
