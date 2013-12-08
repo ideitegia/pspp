@@ -38,14 +38,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Result of type detection. */
-enum detect_result
-  {
-    YES,                        /* It is this type. */
-    NO,                         /* It is not this type. */
-    IO_ERROR                    /* File couldn't be opened. */
-  };
-
 /* Tries to detect whether FILE is a given type of file, by opening the file
    and passing it to DETECT, and returns a detect_result. */
 static enum detect_result
@@ -59,23 +51,27 @@ try_detect (const char *file_name, bool (*detect) (FILE *))
     {
       msg (ME, _("An error occurred while opening `%s': %s."),
            file_name, strerror (errno));
-      return IO_ERROR;
+      return ANY_ERROR;
     }
 
   is_type = detect (file);
 
   fn_close (file_name, file);
 
-  return is_type ? YES : NO;
+  return is_type ? ANY_YES : ANY_NO;
 }
 
 /* Returns true if any_reader_open() would be able to open FILE as a data
    file, false otherwise. */
-bool
+enum detect_result
 any_reader_may_open (const char *file)
 {
-  return (try_detect (file, sfm_detect) == YES
-          || try_detect (file, pfm_detect) == YES);
+  enum detect_result res = try_detect (file, sfm_detect);
+  
+  if (res == ANY_NO)
+    res = try_detect (file, pfm_detect);
+
+  return res;
 }
 
 /* Returns a casereader for HANDLE.  On success, returns the new
@@ -97,15 +93,15 @@ any_reader_open (struct file_handle *handle, const char *encoding,
         enum detect_result result;
 
         result = try_detect (fh_get_file_name (handle), sfm_detect);
-        if (result == IO_ERROR)
+        if (result == ANY_ERROR)
           return NULL;
-        else if (result == YES)
+        else if (result == ANY_YES)
           return sfm_open_reader (handle, encoding, dict, NULL);
 
         result = try_detect (fh_get_file_name (handle), pfm_detect);
-        if (result == IO_ERROR)
+        if (result == ANY_ERROR)
           return NULL;
-        else if (result == YES)
+        else if (result == ANY_YES)
           return pfm_open_reader (handle, dict, NULL);
 
         msg (SE, _("`%s' is not a system or portable file."),

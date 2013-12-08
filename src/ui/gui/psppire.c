@@ -105,11 +105,13 @@ initialize (const char *data_file)
     {
       gchar *filename = local_to_filename_encoding (data_file);
 
+      enum detect_result res = any_reader_may_open (filename);
+
       /* Check to see if the file is a .sav or a .por file.  If not
          assume that it is a syntax file */
-      if ( any_reader_may_open (filename))
-        open_data_window (NULL, filename, NULL);
-      else
+      if (res == ANY_YES)
+	open_data_window (NULL, filename, NULL);
+      else if (res == ANY_NO)
         {
           create_data_window ();
           open_syntax_window (filename, NULL);

@@ -19,9 +19,18 @@
 
 #include <stdbool.h>
 
+/* Result of type detection. */
+enum detect_result
+  {
+    ANY_YES,                        /* It is this type. */
+    ANY_NO,                         /* It is not this type. */
+    ANY_ERROR                    /* File couldn't be opened. */
+  };
+
+
 struct file_handle;
 struct dictionary;
-bool any_reader_may_open (const char *file_name);
+enum detect_result any_reader_may_open (const char *file_name);
 struct casereader *any_reader_open (struct file_handle *, const char *encoding,
                                     struct dictionary **);
 

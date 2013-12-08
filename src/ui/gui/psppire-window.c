@@ -703,7 +703,7 @@ on_selection_changed (GtkFileChooser *chooser, GtkWidget *encoding_selector)
       return;
     }
 
-  gtk_widget_set_sensitive (encoding_selector, ! any_reader_may_open (sysname));
+  gtk_widget_set_sensitive (encoding_selector, ANY_NO == any_reader_may_open (sysname));
 }
 
 GtkWidget *
@@ -805,9 +805,10 @@ psppire_window_open (PsppireWindow *de)
         gchar *encoding = psppire_encoding_selector_get_encoding (
           gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
 
-	if (any_reader_may_open (sysname))
+	enum detect_result res = any_reader_may_open (sysname);
+	if (ANY_YES == res)
           open_data_window (de, name, NULL);
-	else
+	else if (ANY_NO == res)
 	  open_syntax_window (name, encoding);
 
         g_free (encoding);
