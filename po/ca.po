@@ -10,10 +10,10 @@
 # Francesc Josep Miguel Quesada <Miguel.Quesada@uab.cat>, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: pspp-0.8.1\n"
+"Project-Id-Version: pspp-0.8.1.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2013-09-22 22:37-0700\n"
-"PO-Revision-Date: 2013-10-15 08:42+0200\n"
+"POT-Creation-Date: 2013-11-09 17:02-0800\n"
+"PO-Revision-Date: 2013-11-19 09:53+0100\n"
 "Last-Translator: Francesc Josep Miguel Quesada <Miguel.Quesada@uab.cat>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "Language: ca\n"
@@ -21,6 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.4\n"
 
 #: src/ui/gui/helper.c:204
 msgid "Sorry. The help system hasn't yet been implemented."
@@ -31,13 +32,13 @@ msgid "Continue"
 msgstr "Continuar"
 
 #: src/ui/gui/psppire-dictview.c:486 src/language/dictionary/split-file.c:82
-#: src/language/dictionary/sys-file-info.c:165
-#: src/language/dictionary/sys-file-info.c:349
-#: src/language/dictionary/sys-file-info.c:671
+#: src/language/dictionary/sys-file-info.c:166
+#: src/language/dictionary/sys-file-info.c:350
+#: src/language/dictionary/sys-file-info.c:672
 #: src/language/stats/descriptives.c:982
 #: src/language/data-io/data-parser.c:682
 #: src/language/data-io/data-parser.c:721 src/language/data-io/print.c:446
-#: src/ui/gui/psppire-var-sheet.c:1248
+#: src/ui/gui/psppire-var-sheet.c:1242
 msgid "Variable"
 msgstr "Variable"
 
@@ -45,7 +46,7 @@ msgstr "Variable"
 msgid "Prefer variable labels"
 msgstr "Prefereixo les etiquetes de variable"
 
-#: src/ui/gui/psppire-var-view.c:202
+#: src/ui/gui/psppire-var-view.c:189
 #, c-format
 msgid "Var%d"
 msgstr "Var%d"
@@ -89,7 +90,7 @@ msgstr "Almenys un cas a la lectura de dades tenia un valor de ponderació que �
 msgid "CSV file"
 msgstr "arxiu CSV"
 
-#: src/data/csv-file-writer.c:161 src/data/sys-file-writer.c:227
+#: src/data/csv-file-writer.c:161 src/data/sys-file-writer.c:258
 #, c-format
 msgid "Error opening `%s' for writing as a system file: %s."
 msgstr "Error en obrir `%s' per gravar com arxiu de sistema: %s."
@@ -337,8 +338,8 @@ msgstr "Cadena"
 msgid "Numeric"
 msgstr "Numèric"
 
-#: src/data/format.c:416 src/data/sys-file-reader.c:1768
-#: src/data/sys-file-reader.c:1770 src/language/xforms/recode.c:512
+#: src/data/format.c:416 src/data/sys-file-reader.c:1825
+#: src/data/sys-file-reader.c:1827 src/language/xforms/recode.c:512
 #: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
 #: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
@@ -346,8 +347,8 @@ msgstr "Numèric"
 msgid "numeric"
 msgstr "numèric"
 
-#: src/data/format.c:416 src/data/sys-file-reader.c:1768
-#: src/data/sys-file-reader.c:1770 src/language/xforms/recode.c:512
+#: src/data/format.c:416 src/data/sys-file-reader.c:1825
+#: src/data/sys-file-reader.c:1827 src/language/xforms/recode.c:512
 #: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
 #: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
@@ -603,7 +604,7 @@ msgstr "Amplada de la variable invàlida %d."
 msgid "Invalid variable name `%s' in position %d."
 msgstr "Nom de la variable invàlid `%s' en la posició %d."
 
-#: src/data/por-file-reader.c:698 src/data/sys-file-reader.c:1028
+#: src/data/por-file-reader.c:698 src/data/sys-file-reader.c:1089
 #, c-format
 msgid "Bad width %d for variable %s."
 msgstr "Amplada %d incorrecte per a la variable %s."
@@ -676,458 +677,599 @@ msgstr "Error des de la font psql: %s."
 msgid "Unsupported OID %d.  SYSMIS values will be inserted."
 msgstr "OID %d no admès. Valors SYSMIS seran inserits."
 
-#: src/data/settings.c:390
+#: src/data/settings.c:389
 msgid "MXWARNS set to zero.  No further warnings will be given even when potentially problematic situations are encountered."
 msgstr "S'assigna zero a MXWARNS.  No es proporcionaran més avisos tot, i que podrien trobar-se situacions problemàtiques posteriors."
 
-#: src/data/settings.c:397
+#: src/data/settings.c:396
 #, c-format
 msgid "Warnings re-enabled. %d warnings will be issued before aborting syntax processing."
 msgstr "Avisos activats de nou.  Es tindran en compte %d avisos abans d'abortar el procés."
 
-#: src/data/settings.c:605
+#: src/data/settings.c:604
 #, c-format
 msgid "%s: Custom currency string `%s' does not contain exactly three periods or commas (or it contains both)."
 msgstr "%s: Cadena de moneda personalitzada '%s' no conté exactament tres punts o comes (o els conté ambdós)."
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
-#: src/data/sys-file-reader.c:371 src/data/sys-file-writer.c:215
+#: src/data/sys-file-reader.c:399 src/data/sys-file-writer.c:246
 msgid "system file"
 msgstr "arxiu de sistema"
 
-#: src/data/sys-file-reader.c:378
+#: src/data/sys-file-reader.c:406
 #, c-format
 msgid "Error opening `%s' for reading as a system file: %s."
 msgstr "Error en obrir `%s' per a la lectura com arxiu de sistema: %s."
 
-#: src/data/sys-file-reader.c:430
+#: src/data/sys-file-reader.c:458
 msgid "Misplaced type 4 record."
 msgstr "Registre de tipus 4 fora de lloc."
 
-#: src/data/sys-file-reader.c:434
+#: src/data/sys-file-reader.c:462
 msgid "Duplicate type 6 (document) record."
 msgstr "Registre de tipus 6 (document) duplicat."
 
-#: src/data/sys-file-reader.c:443 src/data/sys-file-reader.c:949
+#: src/data/sys-file-reader.c:471 src/data/sys-file-reader.c:1010
 #, c-format
 msgid "Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s."
 msgstr "Registre de tipus 7, subtipus %d no reconegut. Si us plau envieu una còpia d'aquest arxiu, així com de la sintaxi que el va crear a %s."
 
-#: src/data/sys-file-reader.c:452
+#: src/data/sys-file-reader.c:480
 #, c-format
 msgid "Record type 7, subtype %d found here has the same type as the record found near offset 0x%llx.  Please send a copy of this file, and the syntax which created it to %s."
 msgstr "Registre de tipus 7, subtipus %d que te el mateix tipus que el registre trobat prop de la posició 0x%llx. Si us plau envieu una còpia d'aquest arxiu, així com de la sintaxi que el va crear a %s."
 
-#: src/data/sys-file-reader.c:465
+#: src/data/sys-file-reader.c:493
 #, c-format
 msgid "Unrecognized record type %d."
 msgstr "Tipus de registre %d no reconegut."
 
-#: src/data/sys-file-reader.c:515
+#: src/data/sys-file-reader.c:546
 #, c-format
 msgid "Weighting variable must be numeric (not string variable `%s')."
 msgstr "Variable de ponderació ha de ser numèrica (no la variable de text `%s')."
 
-#: src/data/sys-file-reader.c:555
+#: src/data/sys-file-reader.c:588
 #, c-format
 msgid "File header claims %d variable positions but %zu were read from file."
 msgstr "Capçalera de l'arxiu requereix %d posicions de variable, però s'han llegit %zu des de l'arxiu."
 
-#: src/data/sys-file-reader.c:607
+#: src/data/sys-file-reader.c:640
 #, c-format
 msgid "Error closing system file `%s': %s."
 msgstr "Error en tancar l'arxiu de sistema `%s': %s."
 
-#: src/data/sys-file-reader.c:660 src/data/sys-file-reader.c:670
+#: src/data/sys-file-reader.c:701 src/data/sys-file-reader.c:711
 msgid "This is not an SPSS system file."
 msgstr "Això no és un arxiu de sistema de SPSS."
 
-#: src/data/sys-file-reader.c:693
+#: src/data/sys-file-reader.c:752
 msgid "Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
 msgstr "El biaix de compressió no és el valor habitual de 100, o l'arxiu de sistema utilitza un format de punt flotant no reconegut."
 
-#: src/data/sys-file-reader.c:759
+#: src/data/sys-file-reader.c:818
 msgid "Variable label indicator field is not 0 or 1."
 msgstr "Camp indicador d'etiqueta de variable no és 0 o 1."
 
-#: src/data/sys-file-reader.c:769
+#: src/data/sys-file-reader.c:828
 msgid "Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 msgstr "Camp d'indicador de valors perduts numèrics  no és -3, -2, 0, 1, 2 o 3."
 
-#: src/data/sys-file-reader.c:776
+#: src/data/sys-file-reader.c:835
 msgid "String missing value indicator field is not 0, 1, 2, or 3."
 msgstr "Camp d'indicador de valors perduts de cadena no és 0, 1, 2 o 3."
 
-#: src/data/sys-file-reader.c:796
+#: src/data/sys-file-reader.c:855
 #, c-format
 msgid "Invalid number of labels %zu."
 msgstr "Nombre invàlid d'etiquetes %zu."
 
-#: src/data/sys-file-reader.c:821
+#: src/data/sys-file-reader.c:880
 msgid "Variable index record (type 4) does not immediately follow value label record (type 3) as it should."
 msgstr "Registre d'índex de variable (tipus 4) no és seguit immediatament pel registre d'etiquetes de valors (tipus 3) com hauria."
 
-#: src/data/sys-file-reader.c:829
+#: src/data/sys-file-reader.c:888
 #, c-format
 msgid "Number of variables associated with a value label (%zu) is not between 1 and the number of variables (%zu)."
 msgstr "Nombre de variables associades amb una etiqueta de valors (%zu) no està entre 1 i el nombre de variables (%zu)."
 
-#: src/data/sys-file-reader.c:850
+#: src/data/sys-file-reader.c:909
 #, c-format
 msgid "Number of document lines (%d) must be greater than 0 and less than %d."
 msgstr "Nombre de línies de document (%d) ha de ser més gran que 0 i més petit que %d."
 
-#: src/data/sys-file-reader.c:925
+#: src/data/sys-file-reader.c:986
 #, c-format
 msgid "Record type 7, subtype %d has bad size %zu (expected %d)."
 msgstr "Registre de tipus 7, subtipus %d te mida incorrecta %zu (s'espera %d)."
 
-#: src/data/sys-file-reader.c:929
+#: src/data/sys-file-reader.c:990
 #, c-format
 msgid "Record type 7, subtype %d has bad count %zu (expected %d)."
 msgstr "Registre de tipus 7, subtipus %d te recompte incorrecte %zu (s'espera %d)."
 
-#: src/data/sys-file-reader.c:1024
+#: src/data/sys-file-reader.c:1085
 #, c-format
 msgid "Invalid variable name `%s'."
 msgstr "Nom de variable '%s' no vàlid."
 
-#: src/data/sys-file-reader.c:1032
+#: src/data/sys-file-reader.c:1093
 #, c-format
 msgid "Duplicate variable name `%s'."
 msgstr "Nom de la variable `%s' duplicat."
 
-#: src/data/sys-file-reader.c:1108
+#: src/data/sys-file-reader.c:1165
 msgid "Missing string continuation record."
 msgstr "Manca de registre de continuació de cadena."
 
-#: src/data/sys-file-reader.c:1150
+#: src/data/sys-file-reader.c:1207
 #, c-format
 msgid "Variable %s with width %d has invalid print format 0x%x."
 msgstr "La variable %s amb longitud %d té una especificació de format invàlida 0x%x."
 
-#: src/data/sys-file-reader.c:1154
+#: src/data/sys-file-reader.c:1211
 #, c-format
 msgid "Variable %s with width %d has invalid write format 0x%x."
 msgstr "La variable %s amb longitud %d té una especificació de format invàlida 0x%x."
 
-#: src/data/sys-file-reader.c:1159
+#: src/data/sys-file-reader.c:1216
 msgid "Suppressing further invalid format warnings."
 msgstr "Es desactiven les alertes posteriors de format no vàlid."
 
-#: src/data/sys-file-reader.c:1211
+#: src/data/sys-file-reader.c:1268
 #, c-format
 msgid "Floating-point representation indicated by system file (%d) differs from expected (%d)."
 msgstr "Representació del punt flotant indicat per l'arxiu de sistema (%d) difereix de l'esperat (%d)."
 
-#: src/data/sys-file-reader.c:1225
+#: src/data/sys-file-reader.c:1282
 #, c-format
 msgid "Integer format indicated by system file (%d) differs from expected (%d)."
 msgstr "Format enter indicat per l'arxiu de sistema  (%d) difereix de l'esperat (%d)."
 
-#: src/data/sys-file-reader.c:1290 src/data/sys-file-reader.c:1296
+#: src/data/sys-file-reader.c:1347 src/data/sys-file-reader.c:1353
 #, c-format
 msgid "File specifies unexpected value %g (%a) as %s, instead of %g (%a)."
 msgstr "L'arxiu especifica un valor inesperat %g (%a) com a %s, i no %g (%a)."
 
-#: src/data/sys-file-reader.c:1305
+#: src/data/sys-file-reader.c:1362
 #, c-format
 msgid "File specifies unexpected value %g (%a) as %s, instead of %g (%a) or %g (%a)."
 msgstr "L'arxiu especifica un valor inesperat %g (%a) com a %s, i no %g (%a) o %g (%a)."
 
-#: src/data/sys-file-reader.c:1352
+#: src/data/sys-file-reader.c:1409
 #, c-format
 msgid "`%s' does not begin with `$' at offset %zu in MRSETS record."
 msgstr "`%s' not comença amb `$' a la posició %zu d'un registre MRSETS."
 
-#: src/data/sys-file-reader.c:1363 src/data/sys-file-reader.c:1382
+#: src/data/sys-file-reader.c:1420 src/data/sys-file-reader.c:1439
 #, c-format
 msgid "Missing space following `%c' at offset %zu in MRSETS record."
 msgstr "Espai perdut darrera `%c' a la posició %zu al registre MRSETS."
 
-#: src/data/sys-file-reader.c:1392
+#: src/data/sys-file-reader.c:1449
 #, c-format
 msgid "Unexpected label source value `%s' following `E' at offset %zu in MRSETS record."
 msgstr "Valor d'etiqueta no esperat `%s' darrera `E' a la posició %zu del registre MRSETS."
 
-#: src/data/sys-file-reader.c:1399
+#: src/data/sys-file-reader.c:1456
 #, c-format
 msgid "Missing `C', `D', or `E' at offset %zu in MRSETS record."
 msgstr "Manca `C', `D' o `E' a la posició %zu d'un registre MRSETS."
 
-#: src/data/sys-file-reader.c:1431
+#: src/data/sys-file-reader.c:1488
 #, c-format
 msgid "Missing new-line parsing variable names at offset %zu in MRSETS record."
 msgstr "Manquen noms de variable de nova línia en la posició %zu d'un registre MRSETS."
 
-#: src/data/sys-file-reader.c:1447
+#: src/data/sys-file-reader.c:1504
 #, c-format
 msgid "Duplicate variable name %s at offset %zu in MRSETS record."
 msgstr "Nom de la variable %s duplicat a la posició %zu d'un registre MRSETS."
 
-#: src/data/sys-file-reader.c:1463
+#: src/data/sys-file-reader.c:1520
 #, c-format
 msgid "MRSET %s contains both string and numeric variables."
 msgstr "MRSET %s contè variables textuals i numeriques."
 
-#: src/data/sys-file-reader.c:1479
+#: src/data/sys-file-reader.c:1536
 #, c-format
 msgid "MRSET %s has only %zu variables."
 msgstr "MRSET %s nomès te %zu variables."
 
-#: src/data/sys-file-reader.c:1526
+#: src/data/sys-file-reader.c:1583
 #, c-format
 msgid "Extension 11 has bad count %zu (for %zu variables)."
 msgstr "Extensió 11 té un recompte invàlid %zu (per a %zu variables)."
 
-#: src/data/sys-file-reader.c:1559
+#: src/data/sys-file-reader.c:1616
 #, c-format
 msgid "Invalid variable display parameters for variable %zu (%s).  Default parameters substituted."
 msgstr "Paràmetres de visualització de variable no vàlids per a la variable %zu (%s). Substitució pels paràmetres per defecte."
 
-#: src/data/sys-file-reader.c:1653
+#: src/data/sys-file-reader.c:1710
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
 msgstr "Identificació de variable llarga des de %s cap a un nom de variable invàlid  '%s'."
 
-#: src/data/sys-file-reader.c:1664
+#: src/data/sys-file-reader.c:1721
 #, c-format
 msgid "Duplicate long variable name `%s'."
 msgstr "Nom de la variable llarga `%s' duplicat."
 
-#: src/data/sys-file-reader.c:1697
+#: src/data/sys-file-reader.c:1754
 #, c-format
 msgid "%s listed as string of invalid length %s in very long string record."
 msgstr "%s figura com a cadena de longitud no vàlida %s a un registre de cadena molt llarg."
 
-#: src/data/sys-file-reader.c:1708
+#: src/data/sys-file-reader.c:1765
 #, c-format
 msgid "%s listed in very long string record with width %s, which requires only one segment."
 msgstr "%s figura en el registre de cadena molt llarga amb longitud %s, que requereix només un segment."
 
-#: src/data/sys-file-reader.c:1715
+#: src/data/sys-file-reader.c:1772
 #, c-format
 msgid "Very long string %s overflows dictionary."
 msgstr "Cadena molt llarga %s desborda el diccionari."
 
-#: src/data/sys-file-reader.c:1730
+#: src/data/sys-file-reader.c:1787
 #, c-format
 msgid "Very long string with width %ld has segment %d of width %d (expected %d)."
 msgstr "Cadena molt llarga amb una mida de %ld conté segment %d de longitud %d (s'espera %d)."
 
-#: src/data/sys-file-reader.c:1764
+#: src/data/sys-file-reader.c:1821
 #, c-format
 msgid "Variables associated with value label are not all of identical type.  Variable %s is %s, but variable %s is %s."
 msgstr "Les variables associades amb etiqueta de valors no són totes del mateix tipus.  La variable %s és %s, però la variable %s és %s."
 
-#: src/data/sys-file-reader.c:1781
+#: src/data/sys-file-reader.c:1838
 #, c-format
 msgid "Value labels may not be added to long string variables (e.g. %s) using records types 3 and 4."
 msgstr "No es pot afegir etiquetes dels valors a les variables de cadena llarga (e.g. %s) utilitzant els tipus de registres 3 i 4."
 
-#: src/data/sys-file-reader.c:1800
+#: src/data/sys-file-reader.c:1857
 #, c-format
 msgid "Duplicate value label for %g on %s."
 msgstr "Etiqueta de valors duplicats per %g en %s."
 
-#: src/data/sys-file-reader.c:1804 src/data/sys-file-reader.c:2104
+#: src/data/sys-file-reader.c:1861 src/data/sys-file-reader.c:2162
 #, c-format
 msgid "Duplicate value label for `%.*s' on %s."
 msgstr "Etiqueta de valor duplicat per a `%.*s' a %s."
 
-#: src/data/sys-file-reader.c:1829
+#: src/data/sys-file-reader.c:1886
 #, c-format
 msgid "Variable index %d not in valid range 1...%zu."
 msgstr "Índex de la variable %d fora de l'interval vàlid de 1...%zu."
 
-#: src/data/sys-file-reader.c:1838
+#: src/data/sys-file-reader.c:1895
 #, c-format
 msgid "Variable index %d refers to long string continuation."
 msgstr "Índex de la variable %d es refereix a una continuació de cadena llarga."
 
-#: src/data/sys-file-reader.c:1874
+#: src/data/sys-file-reader.c:1931
 #, c-format
 msgid "Error parsing attribute value %s[%d]."
 msgstr "Error en analitzar el valor de l'atribut %s[%d]."
 
-#: src/data/sys-file-reader.c:1888
+#: src/data/sys-file-reader.c:1945
 #, c-format
 msgid "Attribute value %s[%d] is not quoted: %s."
 msgstr "El valor de l'atribut %s[%d] no esta entre cometes: %s."
 
-#: src/data/sys-file-reader.c:1978
+#: src/data/sys-file-reader.c:2035
 #, c-format
 msgid "Invalid role for variable %s."
 msgstr "Rol no vàlid per a la variable %s."
 
-#: src/data/sys-file-reader.c:1987
+#: src/data/sys-file-reader.c:2044
 #, c-format
 msgid "%zu other variables had invalid roles."
 msgstr "altres %zu variables tenen rols no vàlids."
 
-#: src/data/sys-file-reader.c:1999
-msgid "Long string value label record ends unexpectedly."
-msgstr "Etiqueta de valor d'un registre de text molt llarg finalitza inesperadament."
-
-#: src/data/sys-file-reader.c:2038
+#: src/data/sys-file-reader.c:2056
 #, c-format
-msgid "Ignoring long string value record for unknown variable %s."
+msgid "Extension record subtype %d ends unexpectedly."
+msgstr "Subtipus %d d'extensión de registre finalitza inesperadament."
+
+#: src/data/sys-file-reader.c:2096
+#, c-format
+msgid "Ignoring long string value label record for unknown variable %s."
 msgstr "Ignorant el registre del valor de cadena llarga per a la variable desconeguda %s."
 
-#: src/data/sys-file-reader.c:2043
+#: src/data/sys-file-reader.c:2101
 #, c-format
-msgid "Ignoring long string value record for numeric variable %s."
+msgid "Ignoring long string value label record for numeric variable %s."
 msgstr "Ignorant el registre del valor de cadena llarga per a la variable numèrica %s."
 
-#: src/data/sys-file-reader.c:2050
+#: src/data/sys-file-reader.c:2108
 #, c-format
-msgid "Ignoring long string value record for variable %s because the record's width (%d) does not match the variable's width (%d)."
-msgstr "Ignorant el registre del valor de cadena llarga %s ja que la mida del registre (%d) no coincideix amb la mida de la variable (%d)."
+msgid "Ignoring long string value label record for variable %s because the record's width (%d) does not match the variable's width (%d)."
+msgstr "Ignorant el registre del valor de cadena llarga %s donat que la mida del registre (%d) no coincideix amb la mida de la variable (%d)."
 
-#: src/data/sys-file-reader.c:2079
+#: src/data/sys-file-reader.c:2137
 #, c-format
-msgid "Ignoring long string value %zu for variable %s, with width %d, that has bad value width %zu."
+msgid "Ignoring long string value label %zu for variable %s, with width %d, that has bad value width %zu."
 msgstr "Ignorant el valor de cadena llarga %zu per a la variable %s, d'amplada %d, que té una amplada de valor incorrecta %zu."
 
-#: src/data/sys-file-reader.c:2183
+#: src/data/sys-file-reader.c:2206
+#, c-format
+msgid "Long string missing values record says variable %s has %d missing values, but only 1 to 3 missing values are allowed."
+msgstr "Registre de valors perduts d'una variable literal llarga indica que la variable %s te %d valors perduts, però només  son permesos d'1 a 3 valors perduts."
+
+#: src/data/sys-file-reader.c:2216
+#, c-format
+msgid "Ignoring long string missing value record for unknown variable %s."
+msgstr "Ignorant el registre del valor perdut de cadena llarga per a la variable desconeguda %s."
+
+#: src/data/sys-file-reader.c:2221
+#, c-format
+msgid "Ignoring long string missing value record for numeric variable %s."
+msgstr "Ignorant el registre del valor perdut de cadena llarga per a la variable numèrica %s."
+
+#: src/data/sys-file-reader.c:2244
+#, c-format
+msgid "Ignoring long string missing value %zu for variable %s, with width %d, that has bad value width %zu."
+msgstr "Ignorant el valor de cadena llarga %zu per a la variable %s, d'amplada %d, que té una amplada de valor incorrecta %zu."
+
+#: src/data/sys-file-reader.c:2324
 msgid "File ends in partial case."
 msgstr "L'arxiu acaba en un cas parcial."
 
-#: src/data/sys-file-reader.c:2191
+#: src/data/sys-file-reader.c:2332
 #, c-format
 msgid "Error reading case from file %s."
 msgstr "Error llegint un cas de l'arxiu %s."
 
-#: src/data/sys-file-reader.c:2293
+#: src/data/sys-file-reader.c:2434
 msgid "Possible compressed data corruption: compressed spaces appear in numeric field."
 msgstr "Possible corrupció de dades comprimides: apareixen espais comprimits a un camp numeric."
 
-#: src/data/sys-file-reader.c:2347
+#: src/data/sys-file-reader.c:2488
 #, c-format
 msgid "Possible compressed data corruption: string contains compressed integer (opcode %d)."
 msgstr "Possible corrupció de dades comprimides: una cadena textual contè un enter comprimit (opcode %d)."
 
-#: src/data/sys-file-reader.c:2441
+#: src/data/sys-file-reader.c:2582
 #, c-format
 msgid "Suppressed %d additional related warnings."
 msgstr "Suprimides %d advertències addicionals."
 
-#: src/data/sys-file-reader.c:2487 src/data/sys-file-reader.c:2504
+#: src/data/sys-file-reader.c:2628 src/data/sys-file-reader.c:2645
 #, c-format
 msgid "Dictionary record refers to unknown variable %s."
 msgstr "El registre diccionari es refereix a la variable desconeguda %s."
 
-#: src/data/sys-file-reader.c:2566
+#: src/data/sys-file-reader.c:2707
 #, c-format
 msgid "Expecting digit at offset %zu in MRSETS record."
 msgstr "S'espera un dígit a la posició %zu d'un registre MRSETS."
 
-#: src/data/sys-file-reader.c:2574
+#: src/data/sys-file-reader.c:2715
 #, c-format
 msgid "Expecting space at offset %zu in MRSETS record."
 msgstr "S'espera un espai a la posició %zu d'un registre MRSETS."
 
-#: src/data/sys-file-reader.c:2582
+#: src/data/sys-file-reader.c:2723
 #, c-format
 msgid "%zu-byte string starting at offset %zu exceeds record length %zu."
 msgstr "El text de %zu-bytes que comença en la posició %zu excedeix la mida del registre %zu."
 
-#: src/data/sys-file-reader.c:2592
+#: src/data/sys-file-reader.c:2733
 #, c-format
 msgid "Expecting space at offset %zu following %zu-byte string."
 msgstr "S'espera un espai en la posició %zu darrera d'un text de %zu-bytes."
 
-#: src/data/sys-file-reader.c:2639
+#: src/data/sys-file-reader.c:2780
 #, c-format
 msgid "`%s' near offset 0x%llx: "
 msgstr "`%s' prop de la posició 0x%llx: "
 
-#: src/data/sys-file-reader.c:2642
+#: src/data/sys-file-reader.c:2783
 #, c-format
 msgid "`%s': "
 msgstr "`%s': "
 
-#: src/data/sys-file-reader.c:2699
+#: src/data/sys-file-reader.c:2840
 #, c-format
 msgid "System error: %s."
 msgstr "Error de sistema: %s."
 
-#: src/data/sys-file-reader.c:2701
+#: src/data/sys-file-reader.c:2842
 msgid "Unexpected end of file."
 msgstr "Final d'arxiu inesperat."
 
-#: src/data/sys-file-writer.c:188
+#: src/data/sys-file-reader.c:2981
+#, c-format
+msgid "Wrong ZLIB data header offset %#llx (expected %#llx)."
+msgstr "Capçalera de dades ZLIB incorrecta amb offset %#llx (s'espera %#llx)."
+
+#: src/data/sys-file-reader.c:2986
+#, c-format
+msgid "Impossible ZLIB trailer offset 0x%llx."
+msgstr "Impossible ZLIB trailer offset 0x%llx."
+
+#: src/data/sys-file-reader.c:2990
+#, c-format
+msgid "Invalid ZLIB trailer length %lld."
+msgstr "Amplada no vàlida %lld pel ZLIB trailer."
+
+#: src/data/sys-file-reader.c:3014
+#, c-format
+msgid "%s: seek failed (%s)."
+msgstr "%s: cerca fallida (%s)."
+
+#: src/data/sys-file-reader.c:3036
+#, c-format
+msgid "%s: stat failed (%s)."
+msgstr "%s: stat fallida (%s)."
+
+#: src/data/sys-file-reader.c:3048
+#, c-format
+msgid "End of ZLIB trailer (0x%llx) is not file size (0x%llx)."
+msgstr "Final de ZLIB trailer (0x%llx) no és longitud d'arxiu (0x%llx)."
+
+#: src/data/sys-file-reader.c:3056
+#, c-format
+msgid "ZLIB trailer bias (%lld) differs from file header bias (%.2f)."
+msgstr "Esbiaix de ZLIB trailer (%lld) és diferent del biaix de capçalera d'arxiu (%.2f)."
+
+#: src/data/sys-file-reader.c:3063
+#, c-format
+msgid "ZLIB trailer \"zero\" field has nonzero value %lld."
+msgstr "El camp \"zero\" del ZLIB trailer té un valor diferent a zero %lld."
+
+#: src/data/sys-file-reader.c:3068
+#, c-format
+msgid "ZLIB trailer specifies unexpected %u-byte block size."
+msgstr "El ZLIB trailer especifica una amplada de block %u-byte no esperat."
+
+#: src/data/sys-file-reader.c:3074
+#, c-format
+msgid "%lld-byte ZLIB trailer specifies %u data blocks (expected %lld)."
+msgstr "El ZLIB trailer %lld-byte especifica %u blocs de dades (s'espera %lld)."
+
+#: src/data/sys-file-reader.c:3090
+#, c-format
+msgid "ZLIB block descriptor %u reported uncompressed data offset %#llx, when %#llx was expected."
+msgstr "El descriptor de blocs ZLIB %u informa d'un offset de dades no comprimides %#llx, quan s'espera %#llx."
+
+#: src/data/sys-file-reader.c:3096
+#, c-format
+msgid "ZLIB block descriptor %u reported compressed data offset %#llx, when %#llx was expected."
+msgstr "El descriptor de bloc ZLIB %u informa d'un offset de dades comprimides %#llx, quan s'espera %#llx."
+
+#: src/data/sys-file-reader.c:3104
+#, c-format
+msgid "ZLIB block descriptor %u reported block size %#x, when %#x was expected."
+msgstr "El descriptor de bloc ZLIB %u informa d'una amplada de bloc %#x, quan s'espera %#x."
+
+#: src/data/sys-file-reader.c:3112
+#, c-format
+msgid "ZLIB block descriptor %u reported block size %#x, when at most %#x was expected."
+msgstr "El descriptor de bloc ZLIB %u informa d'una amplada de bloc %#x, quan s'espera com a màxim %#x."
+
+#: src/data/sys-file-reader.c:3123
+#, c-format
+msgid "ZLIB block descriptor %u reports compressed size %u and uncompressed size %u."
+msgstr "El descriptor de bloc ZLIB %u informa d'una amplada comprimida %u i descomprimida %u."
+
+#: src/data/sys-file-reader.c:3132
+#, c-format
+msgid "ZLIB trailer is at offset %#llx but %#llx would be expected from block descriptors."
+msgstr "El ZLIB trailer està a la posició %#llx però %#llx s'espera pels descriptors de bloc."
+
+#: src/data/sys-file-reader.c:3147
+#, c-format
+msgid "ZLIB initialization failed (%s)."
+msgstr "Inicialització de ZLIB fallida (%s)."
+
+#: src/data/sys-file-reader.c:3158
+#, c-format
+msgid "Inconsistency at end of ZLIB stream (%s)."
+msgstr "Inconsistencia al final del fluxe ZLIB (%s)."
+
+#: src/data/sys-file-reader.c:3212
+#, c-format
+msgid "ZLIB stream inconsistency (%s)."
+msgstr "Inconsistencia al fluxe ZLIB (%s)."
+
+#: src/data/sys-file-reader.c:3229
+msgid "Unexpected end of ZLIB compressed data."
+msgstr "Final inesperat de dades comprimides ZLIB."
+
+#: src/data/sys-file-writer.c:211
 #, c-format
 msgid "Unknown system file version %d. Treating as version %d."
 msgstr "Versió d'arxiu de sistema %d desconeguda. Es tractarà com a versió %d."
 
-#: src/data/sys-file-writer.c:1156
+#: src/data/sys-file-writer.c:1280
 #, c-format
 msgid "An I/O error occurred writing system file `%s'."
 msgstr "S'ha produït un error de E/S en desar l'arxiu de sistema `%s'."
 
-#: src/data/variable.c:671
+#: src/data/sys-file-writer.c:1387
+#, c-format
+msgid "Failed to initialize ZLIB for compression (%s)."
+msgstr "Inicialització fallida de compressió per a ZLIB (%s)."
+
+#: src/data/sys-file-writer.c:1416
+#, c-format
+msgid "Failed to complete ZLIB stream compression (%s)."
+msgstr "Compressió completa fallida pel fluxe ZLIB (%s)."
+
+#: src/data/sys-file-writer.c:1457
+#, c-format
+msgid "ZLIB stream compression failed (%s)."
+msgstr "Compressió fallida del fluxe ZLIB (%s)."
+
+#: src/data/sys-file-writer.c:1499
+#, c-format
+msgid "%s: Seek failed (%s)."
+msgstr "%s: Cerca fallida (%s)."
+
+#: src/data/variable.c:675
 #, c-format
 msgid "%s (%s)"
 msgstr "%s (%s)"
 
-#: src/data/variable.c:743
+#: src/data/variable.c:747
 #, c-format
 msgid "Truncating variable label for variable `%s' to %d bytes."
 msgstr "Truncant la etiqueta de variable `%s' a %d caràcters."
 
-#: src/data/variable.c:812
+#: src/data/variable.c:816
 msgid "Nominal"
 msgstr "Nominal"
 
-#: src/data/variable.c:815
+#: src/data/variable.c:819
 msgid "Ordinal"
 msgstr "Ordinal"
 
-#: src/data/variable.c:818 src/language/stats/ks-one-sample.c:327
+#: src/data/variable.c:822 src/language/stats/ks-one-sample.c:327
 msgid "Scale"
 msgstr "Escala"
 
-#: src/data/variable.c:909
+#: src/data/variable.c:913
 msgid "Input"
 msgstr "Entrada"
 
 #. TRANSLATORS: This will form a filename.  Please avoid whitespace.
-#: src/data/variable.c:912 src/ui/gui/psppire-output-window.c:1051
+#: src/data/variable.c:916 src/ui/gui/psppire-output-window.c:1050
 msgid "Output"
 msgstr "Objectiu"
 
-#: src/data/variable.c:915
+#: src/data/variable.c:919
 msgid "Both"
 msgstr "Indiferent"
 
-#: src/data/variable.c:918 src/ui/gui/psppire-dialog-action-crosstabs.c:84
+#: src/data/variable.c:922 src/language/dictionary/sys-file-info.c:155
+#: src/ui/gui/psppire-dialog-action-crosstabs.c:84
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:96
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:131
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:139
 #: src/ui/gui/psppire-dialog-action-var-info.c:46
-#: src/ui/gui/psppire-var-sheet.c:441 src/ui/gui/var-display.c:16
+#: src/ui/gui/psppire-var-sheet.c:435 src/ui/gui/var-display.c:16
 msgid "None"
 msgstr "Cap"
 
-#: src/data/variable.c:921
+#: src/data/variable.c:925
 msgid "Partition"
 msgstr "Partició"
 
-#: src/data/variable.c:924
+#: src/data/variable.c:928
 msgid "Split"
 msgstr "Divisió"
 
-#: src/data/variable.c:1035
+#: src/data/variable.c:1039
 msgid "Left"
 msgstr "Esquerra"
 
-#: src/data/variable.c:1038
+#: src/data/variable.c:1042
 msgid "Right"
 msgstr "Dreta"
 
-#: src/data/variable.c:1041
+#: src/data/variable.c:1045
 msgid "Center"
 msgstr "Centre"
 
@@ -1396,8 +1538,8 @@ msgstr "esperant el tipus de format"
 
 #: src/language/lexer/value-parser.c:65
 #, c-format
-msgid "Low end of range (%g) is below high end (%g).  The range will be treated as reversed."
-msgstr "El límit inferior de l'interval (%g) està per sota del límit superior (%g).  L' interval serà invertit."
+msgid "The high end of the range (%g) is below the low end (%g).  The range will be treated as if reversed."
+msgstr "El límit superior de l'interval (%g) està per sota del límit inferior (%g).  L' interval serà invertit."
 
 #: src/language/lexer/value-parser.c:73
 #, c-format
@@ -1650,12 +1792,12 @@ msgstr "DELETE VARIABLES no pot ser utilitzar per esborrar totes les variables d
 msgid "Cannot mix numeric variables (e.g. %s) and string variables (e.g. %s) within a single list."
 msgstr "No es poden barrejar les variables numèriques (e.g. %s) i les variables de cadena (e.g. %s) dins d'una llista única."
 
-#: src/language/dictionary/missing-values.c:119
+#: src/language/dictionary/missing-values.c:123
 #, c-format
 msgid "Truncating missing value to maximum acceptable length (%d bytes)."
 msgstr "Truncant el valor perdut a la longitud màxima acceptable (%d bytes)."
 
-#: src/language/dictionary/missing-values.c:142
+#: src/language/dictionary/missing-values.c:146
 #, c-format
 msgid "Missing values provided are too long to assign to variable of width %d."
 msgstr "Els valors perduts donats són massa llargs per assignar a la variable d'amplada %d."
@@ -1732,7 +1874,7 @@ msgstr "La variable %s especificada com a part del grup dicotòmic múltiple %s 
 
 #: src/language/dictionary/mrsets.c:368
 #, c-format
-msgid "Variables %s and %s specified as part of multiple dichotomy group %s (which has CATEGORYLABELS=COUNTEDVALUES) have the same value label for the the group's counted value.  These categories will not be distinguishable in output."
+msgid "Variables %s and %s specified as part of multiple dichotomy group %s (which has CATEGORYLABELS=COUNTEDVALUES) have the same value label for the group's counted value.  These categories will not be distinguishable in output."
 msgstr "Les variables %s i %s  especificades com a part del grup dicotòmic múltiple %s (que té CATEGORYLABELS=COUNTEDVALUES) té la mateixa etiqueta de valor pel valor de recompte del grup. Aquestes categories no seran distingible als resultats."
 
 #: src/language/dictionary/mrsets.c:425
@@ -1753,7 +1895,7 @@ msgstr "El diccionari de l'arxiu de dades actiu no conté cap conjunt de multi-r
 msgid "Multiple Response Sets"
 msgstr "Conjunts Multi-Resposta"
 
-#: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:1367
+#: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:1361
 msgid "Name"
 msgstr "Nom"
 
@@ -1775,9 +1917,9 @@ msgstr "Conjunt de Categories Múltiples"
 
 #: src/language/dictionary/mrsets.c:567
 #: src/language/dictionary/split-file.c:84
-#: src/language/dictionary/sys-file-info.c:353
-#: src/language/dictionary/sys-file-info.c:600
-#: src/ui/gui/psppire-var-sheet.c:1380 src/ui/gui/compute.ui:479
+#: src/language/dictionary/sys-file-info.c:354
+#: src/language/dictionary/sys-file-info.c:601
+#: src/ui/gui/psppire-var-sheet.c:1374 src/ui/gui/compute.ui:479
 msgid "Label"
 msgstr "Etiqueta"
 
@@ -1834,8 +1976,8 @@ msgid "Renaming would duplicate variable name %s."
 msgstr "Canviar el nom duplicaria el nom de la variable %s."
 
 #: src/language/dictionary/split-file.c:83
-#: src/language/dictionary/sys-file-info.c:442
-#: src/language/dictionary/sys-file-info.c:599
+#: src/language/dictionary/sys-file-info.c:443
+#: src/language/dictionary/sys-file-info.c:600
 #: src/language/stats/cochran.c:170 src/language/stats/examine.c:1130
 #: src/language/stats/reliability.c:794 src/language/stats/reliability.c:805
 #: src/language/stats/crosstabs.q:1277 src/language/stats/crosstabs.q:1304
@@ -1920,7 +2062,7 @@ msgid "Type:"
 msgstr "Tipus:"
 
 #: src/language/dictionary/sys-file-info.c:143
-#: src/ui/gui/psppire-data-window.c:496
+#: src/ui/gui/psppire-data-window.c:517
 msgid "System File"
 msgstr "Arxiu de Sistema"
 
@@ -1933,114 +2075,101 @@ msgid "Not weighted."
 msgstr "No ponderat."
 
 #: src/language/dictionary/sys-file-info.c:153
-msgid "Mode:"
-msgstr "Mode:"
+msgid "Compression:"
+msgstr "Compressió:"
 
-#: src/language/dictionary/sys-file-info.c:155
-#, c-format
-msgid "Compression %s."
-msgstr "Compressió %s."
-
-#: src/language/dictionary/sys-file-info.c:155
-msgid "on"
-msgstr "activat"
-
-#: src/language/dictionary/sys-file-info.c:155
-msgid "off"
-msgstr "desactivat"
-
-#: src/language/dictionary/sys-file-info.c:158
+#: src/language/dictionary/sys-file-info.c:159
 msgid "Charset:"
 msgstr "Conjunt de caràcters:"
 
-#: src/language/dictionary/sys-file-info.c:166
-#: src/language/dictionary/sys-file-info.c:353
+#: src/language/dictionary/sys-file-info.c:167
+#: src/language/dictionary/sys-file-info.c:354
 msgid "Description"
 msgstr "Descripció"
 
-#: src/language/dictionary/sys-file-info.c:167
-#: src/language/dictionary/sys-file-info.c:355
-#: src/language/dictionary/sys-file-info.c:670
+#: src/language/dictionary/sys-file-info.c:168
+#: src/language/dictionary/sys-file-info.c:356
+#: src/language/dictionary/sys-file-info.c:671
 msgid "Position"
 msgstr "Posició"
 
-#: src/language/dictionary/sys-file-info.c:215
+#: src/language/dictionary/sys-file-info.c:216
 msgid "The active dataset does not have a file label."
 msgstr "L'arxiu de dades actiu no té etiqueta d'arxiu."
 
-#: src/language/dictionary/sys-file-info.c:217
+#: src/language/dictionary/sys-file-info.c:218
 #, c-format
 msgid "File label: %s"
 msgstr "Etiqueta d'arxiu: %s"
 
-#: src/language/dictionary/sys-file-info.c:291
+#: src/language/dictionary/sys-file-info.c:292
 msgid "No variables to display."
 msgstr "Cap variable per mostrar."
 
-#: src/language/dictionary/sys-file-info.c:305
+#: src/language/dictionary/sys-file-info.c:306
 msgid "Macros not supported."
 msgstr "Macros no disponibles."
 
-#: src/language/dictionary/sys-file-info.c:314
+#: src/language/dictionary/sys-file-info.c:315
 msgid "The active dataset dictionary does not contain any documents."
 msgstr "El diccionari de l'arxiu de dades actiu no conté cap document. "
 
-#: src/language/dictionary/sys-file-info.c:321
+#: src/language/dictionary/sys-file-info.c:322
 msgid "Documents in the active dataset:"
 msgstr "Documents a l'arxiu de dades actiu:"
 
-#: src/language/dictionary/sys-file-info.c:441
+#: src/language/dictionary/sys-file-info.c:442
 msgid "Attribute"
 msgstr "Atribut"
 
-#: src/language/dictionary/sys-file-info.c:497
+#: src/language/dictionary/sys-file-info.c:498
 #, c-format
 msgid "Format: %s"
 msgstr "Format: %s"
 
-#: src/language/dictionary/sys-file-info.c:504
+#: src/language/dictionary/sys-file-info.c:505
 #, c-format
 msgid "Print Format: %s"
 msgstr "Format d'Impressió: %s"
 
-#: src/language/dictionary/sys-file-info.c:508
+#: src/language/dictionary/sys-file-info.c:509
 #, c-format
 msgid "Write Format: %s"
 msgstr "Format d'Escriptura: %s"
 
-#: src/language/dictionary/sys-file-info.c:520
+#: src/language/dictionary/sys-file-info.c:521
 #, c-format
 msgid "Measure: %s"
 msgstr "Mesura: %s"
 
-#: src/language/dictionary/sys-file-info.c:527
+#: src/language/dictionary/sys-file-info.c:528
 #, c-format
 msgid "Role: %s"
 msgstr "Rol: %s"
 
-#: src/language/dictionary/sys-file-info.c:532
+#: src/language/dictionary/sys-file-info.c:533
 #, c-format
 msgid "Display Alignment: %s"
 msgstr "Alineació de la mostra: %s"
 
-#: src/language/dictionary/sys-file-info.c:537
+#: src/language/dictionary/sys-file-info.c:538
 #, c-format
 msgid "Display Width: %d"
 msgstr "Amplada de la mostra: %d"
 
-#: src/language/dictionary/sys-file-info.c:551
+#: src/language/dictionary/sys-file-info.c:552
 msgid "Missing Values: "
 msgstr "Valors perduts:"
 
-#: src/language/dictionary/sys-file-info.c:650
+#: src/language/dictionary/sys-file-info.c:651
 msgid "No vectors defined."
 msgstr "Vectors no definits."
 
-#: src/language/dictionary/sys-file-info.c:669
+#: src/language/dictionary/sys-file-info.c:670
 msgid "Vector"
 msgstr "Vector"
 
-#: src/language/dictionary/sys-file-info.c:672
+#: src/language/dictionary/sys-file-info.c:673
 msgid "Print Format"
 msgstr "Format d'Impressió"
 
@@ -2646,7 +2775,7 @@ msgstr "Bisagras de Tukey"
 msgid "Descriptives"
 msgstr "Descriptives"
 
-#: src/language/stats/examine.c:804 src/ui/gui/checkbox-treeview.c:94
+#: src/language/stats/examine.c:804 src/ui/gui/psppire-checkbox-treeview.c:103
 #: src/language/stats/crosstabs.q:1276 src/language/stats/crosstabs.q:1303
 #: src/language/stats/crosstabs.q:1326 src/language/stats/crosstabs.q:1350
 msgid "Statistic"
@@ -3726,8 +3855,8 @@ msgid "REGRESSION with SAVE ignores TEMPORARY.  Temporary transformations will b
 msgstr "REGRESSION amb SAVE ignora TEMPORARY.  Les transformacions temporals seran permanents."
 
 #: src/language/stats/regression.c:481
-msgid "The dependent variable is equal to the independent variable.The least squares line is therefore Y=X.Standard errors and related statistics may be meaningless."
-msgstr "La variable dependiente es igual a la variable independiente. La línea de minimos cuadrados es por tanto Y=X. Los errores estàndard i els estadistics relacionats podríen ser irrellevants."
+msgid "The dependent variable is equal to the independent variable. The least squares line is therefore Y=X. Standard errors and related statistics may be meaningless."
+msgstr "La variable dependent és igual a la variable independent. La línia de mínims quadrats és doncs Y=X. Els errors estàndard i els estadistics relacionats podríen ser irrellevants."
 
 #: src/language/stats/regression.c:665
 msgid "No valid data found. This command was skipped."
@@ -3788,7 +3917,7 @@ msgstr "Correlacions de Coeficients (%s)"
 
 #: src/language/stats/runs.c:167
 #, c-format
-msgid "Multiple modes exist for varible `%s'.  Using %g as the threshold value."
+msgid "Multiple modes exist for variable `%s'.  Using %g as the threshold value."
 msgstr "Existeixen multiples modes per la variable `%s'.  S'utilitza %g com a valor d'umbral."
 
 #: src/language/stats/runs.c:322 src/ui/gui/runs.ui:7
@@ -4112,7 +4241,7 @@ msgid "Record"
 msgstr "Registre"
 
 #: src/language/data-io/data-parser.c:684 src/language/data-io/print.c:448
-#: src/ui/gui/psppire-var-sheet.c:1388
+#: src/ui/gui/psppire-var-sheet.c:1382
 msgid "Columns"
 msgstr "Columnes"
 
@@ -4552,195 +4681,200 @@ msgstr "final de fitxer inesperat en llegir l'arxiu temporal"
 msgid "writing to temporary file"
 msgstr "escrivint a un arxiu temporal"
 
-#: src/libpspp/inflate.c:89
+#: src/libpspp/inflate.c:87
 #, c-format
 msgid "Cannot initialize inflator: %s"
 msgstr "No es pot inicialitzar el descompressor: %s"
 
-#: src/libpspp/inflate.c:144
+#: src/libpspp/inflate.c:142
 #, c-format
 msgid "Error inflating: %s"
 msgstr "Error en descomprimir: %s"
 
-#: src/libpspp/i18n.c:935
+#: src/libpspp/i18n.c:940
 msgid "Arabic"
 msgstr "Aràbic"
 
-#: src/libpspp/i18n.c:937
+#: src/libpspp/i18n.c:942
 msgid "Armenian"
 msgstr "Armeni"
 
-#: src/libpspp/i18n.c:938
+#: src/libpspp/i18n.c:943
 msgid "Baltic"
 msgstr "Baltic"
 
-#: src/libpspp/i18n.c:940
+#: src/libpspp/i18n.c:945
 msgid "Celtic"
 msgstr "Celtic"
 
-#: src/libpspp/i18n.c:941
+#: src/libpspp/i18n.c:946
 msgid "Central European"
 msgstr "Centre Europeu"
 
-#: src/libpspp/i18n.c:943
+#: src/libpspp/i18n.c:948
 msgid "Chinese Simplified"
 msgstr "Xinès Simplificat"
 
-#: src/libpspp/i18n.c:945
+#: src/libpspp/i18n.c:950
 msgid "Chinese Traditional"
 msgstr "Xinès Tradicional"
 
-#: src/libpspp/i18n.c:947
+#: src/libpspp/i18n.c:952
 msgid "Croatian"
 msgstr "Croata"
 
-#: src/libpspp/i18n.c:948
+#: src/libpspp/i18n.c:953
 msgid "Cyrillic"
 msgstr "Ciril·lic"
 
-#: src/libpspp/i18n.c:950
+#: src/libpspp/i18n.c:955
 msgid "Cyrillic/Russian"
 msgstr "Ciril·lic/Rus"
 
-#: src/libpspp/i18n.c:951
+#: src/libpspp/i18n.c:956
 msgid "Cyrillic/Ukrainian"
 msgstr "Ciril·lic/Ucranià"
 
-#: src/libpspp/i18n.c:953
+#: src/libpspp/i18n.c:958
 msgid "Georgian"
 msgstr "Georgià"
 
-#: src/libpspp/i18n.c:954
+#: src/libpspp/i18n.c:959
 msgid "Greek"
 msgstr "Grec"
 
-#: src/libpspp/i18n.c:955
+#: src/libpspp/i18n.c:960
 msgid "Gujarati"
 msgstr "Gujarati"
 
-#: src/libpspp/i18n.c:956
+#: src/libpspp/i18n.c:961
 msgid "Gurmukhi"
 msgstr "Gurmukhi"
 
-#: src/libpspp/i18n.c:957
+#: src/libpspp/i18n.c:962
 msgid "Hebrew"
 msgstr "Hebreu"
 
-#: src/libpspp/i18n.c:959
+#: src/libpspp/i18n.c:964
 msgid "Hebrew Visual"
 msgstr "Hebreu Visual"
 
-#: src/libpspp/i18n.c:960
+#: src/libpspp/i18n.c:965
 msgid "Hindi"
 msgstr "Hindi"
 
-#: src/libpspp/i18n.c:961
+#: src/libpspp/i18n.c:966
 msgid "Icelandic"
 msgstr "Islandès"
 
-#: src/libpspp/i18n.c:962
+#: src/libpspp/i18n.c:967
 msgid "Japanese"
 msgstr "Japonès"
 
-#: src/libpspp/i18n.c:964
+#: src/libpspp/i18n.c:969
 msgid "Korean"
 msgstr "Coreà"
 
-#: src/libpspp/i18n.c:966
+#: src/libpspp/i18n.c:971
 msgid "Nordic"
 msgstr "Nórdic"
 
-#: src/libpspp/i18n.c:967
+#: src/libpspp/i18n.c:972
 msgid "Romanian"
 msgstr "Rumanès"
 
-#: src/libpspp/i18n.c:969
+#: src/libpspp/i18n.c:974
 msgid "South European"
 msgstr "Sud Europeu"
 
-#: src/libpspp/i18n.c:970
+#: src/libpspp/i18n.c:975
 msgid "Thai"
 msgstr "Tailandès"
 
-#: src/libpspp/i18n.c:972
+#: src/libpspp/i18n.c:977
 msgid "Turkish"
 msgstr "Turc"
 
-#: src/libpspp/i18n.c:974
+#: src/libpspp/i18n.c:979
 msgid "Vietnamese"
 msgstr "Vietnamita"
 
-#: src/libpspp/i18n.c:976
+#: src/libpspp/i18n.c:981
 msgid "Western European"
 msgstr "Europeu Occidental"
 
-#: src/libpspp/message.c:85
+#: src/libpspp/message.c:97
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/libpspp/message.c:120
 msgid "error"
 msgstr "error"
 
-#: src/libpspp/message.c:87
+#: src/libpspp/message.c:122
 msgid "warning"
 msgstr "avís"
 
-#: src/libpspp/message.c:90
+#: src/libpspp/message.c:125
 msgid "note"
 msgstr "anotació"
 
-#: src/libpspp/message.c:280
+#: src/libpspp/message.c:338
 #, c-format
 msgid "Notes (%d) exceed limit (%d).  Suppressing further notes."
 msgstr "Les anotacions (%d) han superat el límit (%d).  Es suprimeixen les posteriors."
 
-#: src/libpspp/message.c:288
+#: src/libpspp/message.c:346
 #, c-format
 msgid "Warnings (%d) exceed limit (%d).  Syntax processing will be halted."
 msgstr "Les alertes (%d) han superat el límit (%d).  S'atura el processament de sintaxi."
 
-#: src/libpspp/message.c:291
+#: src/libpspp/message.c:349
 #, c-format
 msgid "Errors (%d) exceed limit (%d).  Syntax processing will be halted."
 msgstr "Els errors (%d) han superat el límit (%d).  S'atura el processament de sintaxi."
 
-#: src/libpspp/zip-reader.c:88
+#: src/libpspp/zip-reader.c:84
 #, c-format
 msgid "Unsupported compression type (%d)"
 msgstr "Tipus de compressió no suportada (%d)"
 
-#: src/libpspp/zip-reader.c:201
+#: src/libpspp/zip-reader.c:197
 #, c-format
 msgid "Corrupt file at 0x%llx: Expected %<PRIx32>; got %<PRIx32>"
 msgstr "Arxiu corrupte a 0x%llx: S'esparaba %<PRIx32>; s'obte %<PRIx32>"
 
-#: src/libpspp/zip-reader.c:325
+#: src/libpspp/zip-reader.c:321
 msgid "Cannot find central directory"
 msgstr "No es pot trobar el directori central"
 
-#: src/libpspp/zip-reader.c:334
+#: src/libpspp/zip-reader.c:330
 #, c-format
 msgid "Failed to seek to end of central directory record: %s"
 msgstr "Falla en cercar el registre al final del directori central: %s"
 
-#: src/libpspp/zip-reader.c:360
+#: src/libpspp/zip-reader.c:356
 #, c-format
 msgid "Failed to seek to central directory: %s"
 msgstr "Falla en cercar el directori central: %s"
 
-#: src/libpspp/zip-reader.c:415
+#: src/libpspp/zip-reader.c:411
 #, c-format
 msgid "Failed to seek to start of member `%s': %s"
 msgstr "Falla en cercar l'inicio del membre `%s': %s"
 
-#: src/libpspp/zip-reader.c:446
+#: src/libpspp/zip-reader.c:442
 #, c-format
 msgid "Name mismatch in zip archive. Central directory says `%s'; local file header says `%s'"
 msgstr "Nom incorrecte en arxiu zip. El directori central diu `%s'; l'encapçalament de l'arxiu local diu `%s'"
 
-#: src/libpspp/zip-writer.c:93
+#: src/libpspp/zip-writer.c:94
 #, c-format
 msgid "%s: error opening output file"
 msgstr "%s: error obrint l'arxiu de resultats"
 
-#: src/libpspp/zip-writer.c:226
+#: src/libpspp/zip-writer.c:227
 #, c-format
 msgid "%s: write failed"
 msgstr "%s: error en escriure"
@@ -4769,61 +4903,61 @@ msgstr "Empíric"
 msgid "Empirical with averaging"
 msgstr "Empíric amb mitjanes"
 
-#: src/output/ascii.c:307
+#: src/output/ascii.c:314
 #, c-format
 msgid "%s: %s must be positive integer or `auto'"
 msgstr "%s: %s ha de ser enter positiu o `auto'"
 
-#: src/output/ascii.c:340
+#: src/output/ascii.c:347
 #, c-format
 msgid "ascii: page excluding margins and headers must be at least %d characters wide by %d lines long, but as configured is only %d characters by %d lines"
 msgstr "ascii: excloent els marges i encapçalaments la pàgina ha de tenir com a mínim %d caràcters d'ample per %d línies de llarg, però tal com està configurada, només n'hi ha %d caràcters i %d línies"
 
-#: src/output/ascii.c:388
+#: src/output/ascii.c:395
 #, c-format
 msgid "ascii: closing output file `%s'"
 msgstr "ascii: tancant l'arxiu de sortida `%s'"
 
-#: src/output/ascii.c:531
+#: src/output/ascii.c:539
 #, c-format
 msgid "See %s for a chart."
 msgstr "Veure %s per a gràfica."
 
-#: src/output/ascii.c:1005
+#: src/output/ascii.c:1013
 #, c-format
 msgid "ascii: opening output file `%s'"
 msgstr "ascii: obrint l'arxiu de resultats `%s'"
 
-#: src/output/ascii.c:1062
+#: src/output/ascii.c:1070
 #, c-format
 msgid "%s - Page %d"
 msgstr "%s - Pàgina %d"
 
-#: src/output/csv.c:97 src/output/html.c:109 src/output/journal.c:93
+#: src/output/csv.c:96 src/output/html.c:114 src/output/journal.c:174
 #: src/output/msglog.c:66
 #, c-format
 msgid "error opening output file `%s'"
 msgstr "error obrint l'arxiu de resultats `%s'"
 
-#: src/output/driver.c:325
+#: src/output/driver.c:324
 #, c-format
 msgid "%s is not a valid device type (the choices are `%s' and `%s')"
 msgstr "%s no és un tipus de dispositiu vàlid (les opcions son `%s' i `%s')"
 
-#: src/output/driver.c:337
+#: src/output/driver.c:336
 #, c-format
 msgid "%s: unknown option `%s'"
 msgstr "%s: opció desconeguda `%s'"
 
-#: src/output/html.c:117
+#: src/output/html.c:122
 msgid "PSPP Output"
 msgstr "Resultat de PSPP"
 
-#: src/output/html.c:247
+#: src/output/html.c:255
 msgid "No description"
 msgstr "Sense descripció"
 
-#: src/output/journal.c:67
+#: src/output/journal.c:70
 #, c-format
 msgid "error writing output file `%s'"
 msgstr "error en escriure l'arxiu de resultats `%s'"
@@ -4858,87 +4992,87 @@ msgstr "error llegint l'arxiu `%s'"
 msgid "paper size file `%s' does not state a paper size"
 msgstr "l'arxiu de mida de paper `%s' no indica una mida de paper"
 
-#: src/output/options.c:113
+#: src/output/options.c:112
 #, c-format
 msgid "%s: `%s' is `%s' but a Boolean value is required"
 msgstr "%s: `%s' és `%s', però es requereix un valor Booleà"
 
-#: src/output/options.c:188
+#: src/output/options.c:187
 #, c-format
 msgid "%s: `%s' is `%s' but one of the following is required: %s"
 msgstr "%s: `%s' és `%s', però es requereix un del sequents: %s "
 
-#: src/output/options.c:232
+#: src/output/options.c:231
 #, c-format
 msgid "%s: `%s' is `%s' but a nonnegative integer is required"
 msgstr "%s: `%s' és `%s', però es requereix un enter no negatiu"
 
-#: src/output/options.c:236
+#: src/output/options.c:235
 #, c-format
 msgid "%s: `%s' is `%s' but a positive integer is required"
 msgstr "%s: `%s' és `%s', però es requereix un enter positiu"
 
-#: src/output/options.c:239
+#: src/output/options.c:238
 #, c-format
 msgid "%s: `%s' is `%s' but an integer is required"
 msgstr "%s: `%s' és `%s', però es requereix un enter"
 
-#: src/output/options.c:242
+#: src/output/options.c:241
 #, c-format
 msgid "%s: `%s' is `%s' but an integer greater than %d is required"
 msgstr "%s: `%s' és `%s', però es requereix un enter més gran que %d"
 
-#: src/output/options.c:247
+#: src/output/options.c:246
 #, c-format
 msgid "%s: `%s' is `%s'  but an integer between %d and %d is required"
 msgstr "%s: `%s' és `%s', però es requereix un enter entre %d i %d"
 
-#: src/output/options.c:326
+#: src/output/options.c:325
 #, c-format
 msgid "%s: `%s' is `%s' but a file name that contains `#' is required."
 msgstr "%s: `%s' és `%s', però es requereix un nom d'arxiu que contingui `#'."
 
-#: src/output/tab.c:207
+#: src/output/tab.c:206
 #, c-format
 msgid "bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr "bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) a taula de mida (%d,%d)\n"
 
-#: src/output/tab.c:245
+#: src/output/tab.c:244
 #, c-format
 msgid "bad hline: x=(%d+%d=%d,%d+%d=%d) y=%d+%d=%d in table size (%d,%d)\n"
 msgstr "incorrecta hline: x=(%d+%d=%d,%d+%d=%d) y=%d+%d=%d a taula de mida (%d,%d)\n"
 
-#: src/output/tab.c:289
+#: src/output/tab.c:288
 #, c-format
 msgid "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n"
 msgstr "bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) en taula amb mida (%d,%d)\n"
 
-#: src/output/cairo.c:227
+#: src/output/cairo.c:226
 #, c-format
 msgid "`%s': bad font specification"
 msgstr "`%s': especificació de caràcter no vàlida"
 
-#: src/output/cairo.c:382
+#: src/output/cairo.c:381
 #, c-format
 msgid "error opening output file `%s': %s"
 msgstr "error obrint l'arxiu de resultats `%s': %s"
 
-#: src/output/cairo.c:399
+#: src/output/cairo.c:398
 #, c-format
 msgid "The defined page is not wide enough to hold at least %d characters in the default font.  In fact, there's only room for %d characters."
 msgstr "La pàgina definida no és prou ampla com per contenir al més d'almenys %d caracters en la font per defecte.  De fet, només n'hi ha espai per %d caracters."
 
-#: src/output/cairo.c:409
+#: src/output/cairo.c:408
 #, c-format
 msgid "The defined page is not long enough to hold at least %d lines in the default font.  In fact, there's only room for %d lines."
 msgstr "La pàgina definida no és prou llarga com per contenir almenys %d línies amb les fonts per defecte. De fet, només n'hi ha espai per %d línies."
 
-#: src/output/cairo.c:460
+#: src/output/cairo.c:459
 #, c-format
 msgid "error drawing output for %s driver: %s"
 msgstr "error dibuixant resultats pel controlador %s: %s"
 
-#: src/output/cairo.c:1120
+#: src/output/cairo.c:1125
 #, c-format
 msgid "error writing output file `%s': %s"
 msgstr "Error escribint l'arxiu de resultats `%s': %s."
@@ -5044,7 +5178,7 @@ msgstr "%s: opció de resultat especificada més d'una vegada"
 #: src/ui/terminal/terminal-opts.c:174
 #, c-format
 msgid ""
-"PSPP, a program for statistical analysis of sample data.\n"
+"PSPP, a program for statistical analysis of sampled data.\n"
 "Usage: %s [OPTION]... FILE...\n"
 "\n"
 "Arguments to long options also apply to equivalent short options.\n"
@@ -5104,6 +5238,7 @@ msgstr ""
 "                            marcar com `compatible' per desactivar les extensions de PSPP\n"
 "  -b, --batch               interpretar la sintaxi en mode paquet\n"
 "  -i, --interactive         interpretar la sintaxi en mode interactiu\n"
+"  --syntax-encoding=ENCODING  specifica la codificació pels arxius de sintaxi\n"
 "  -s, --safer               no permet algunes operacions poc segures\n"
 "Ruta de cerca per defecte:%s\n"
 "\n"
@@ -5148,13 +5283,16 @@ msgstr "Antic"
 msgid "Aggregate destination file"
 msgstr "Arxiu destinació de l'agregació"
 
-#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:478
-#: src/ui/gui/psppire-window.c:731
+#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:486
 msgid "System Files (*.sav)"
 msgstr "Arxius de Sistema (*.sav)"
 
-#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:483
-#: src/ui/gui/psppire-window.c:736
+#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:491
+msgid "Compressed System Files (*.zsav)"
+msgstr "Arxius Comprimits de Sistema (*.zsav)"
+
+#: src/ui/gui/aggregate-dialog.c:176 src/ui/gui/psppire-data-window.c:496
+#: src/ui/gui/psppire-window.c:738
 msgid "Portable Files (*.por) "
 msgstr "Arxius Portables (*.por)"
 
@@ -5168,33 +5306,33 @@ msgstr "Número de columna: %d"
 msgid "Bad regular expression: %s"
 msgstr "Expressió regular incorrecta: %s"
 
-#: src/ui/gui/help-menu.c:66
+#: src/ui/gui/help-menu.c:61
 msgid "A program for the analysis of sampled data"
 msgstr "Un programa per a l'anàlisi de dades de mostreig"
 
 #. TRANSLATORS: Do not translate this string.  Instead, put the names of the people
 #. who have helped in the translation.
-#: src/ui/gui/help-menu.c:76
+#: src/ui/gui/help-menu.c:71
 msgid "translator-credits"
 msgstr "F.J. Miguel, J. Gómez, P. Payà"
 
-#: src/ui/gui/help-menu.c:106
+#: src/ui/gui/help-menu.c:101
 #, c-format
 msgid "Cannot open reference manual: %s.  The PSPP user manual is also available at %s"
 msgstr "No es pot obrir el manual de referència: %s. El manual d'usuari de PSPP es tambè disponible a %s"
 
-#: src/ui/gui/help-menu.c:133
+#: src/ui/gui/help-menu.c:128
 msgid "_Help"
 msgstr "Ajut"
 
-#: src/ui/gui/help-menu.c:140
+#: src/ui/gui/help-menu.c:135
 msgid "_Reference Manual"
 msgstr "Manual de _Referencia"
 
 #: src/ui/gui/main.c:90
 #, c-format
 msgid ""
-"PSPPIRE, a GUI for PSPP, a program for statistical analysis of sample data.\n"
+"PSPPIRE, a GUI for PSPP, a program for statistical analysis of sampled data.\n"
 "Usage: %s [OPTION]... FILE\n"
 "\n"
 "Arguments to long options also apply to equivalent short options.\n"
@@ -5218,8 +5356,8 @@ msgid ""
 "  -h, --help                display this help and exit\n"
 "  -V, --version             output version information and exit\n"
 "\n"
-"A non-option argument is interpreted as a .sav file, a .por file or a syntax\n"
-"file to load.\n"
+"A non-option argument is interpreted as a data file in .sav or .zsav or .por\n"
+"format or a syntax file to load.\n"
 msgstr ""
 "PSPPIRE, un entorn gràfic (GUI) per PSPP, programa per l'anàlisi estatistic de dades mostrals.\n"
 "Ús: %s [OPTION]... FILE\n"
@@ -5245,7 +5383,8 @@ msgstr ""
 "  -h, --help                mostra aquesta ajuda i surt\n"
 "  -V, --version             mostra informació sobre la versió i surt\n"
 "\n"
-"Arguments sense opcions son interpretats com arxius .sav, .por, o de sintaxis per executar.\n"
+"Arguments sense opcions son interpretats com arxius .sav, .zsav, .por\n"
+"o arxius de sintaxis per executar.\n"
 
 #: src/ui/gui/missing-val-dialog.c:252 src/ui/gui/missing-val-dialog.c:302
 msgid "Incorrect value for variable type"
@@ -5255,123 +5394,126 @@ msgstr "Valor incorrecte pel tipus de variable"
 msgid "Incorrect range specification"
 msgstr "Especificació d'interval incorrecte"
 
-#: src/ui/gui/oneway-anova-dialog.c:296
-#, c-format
-msgid "Contrast %d of %d"
-msgstr "Contrast %d de %d"
-
-#: src/ui/gui/psppire.c:294
+#: src/ui/gui/psppire.c:304
 msgid "_Reset"
 msgstr "_Reiniciar"
 
-#: src/ui/gui/psppire.c:295
+#: src/ui/gui/psppire.c:305
 msgid "_Select"
 msgstr "_Selecionar"
 
-#: src/ui/gui/psppire-data-editor.c:441
+#: src/ui/gui/psppire-data-editor.c:442
 #, c-format
 msgid "%'d case"
 msgid_plural "%'d cases"
 msgstr[0] "%'d cas"
 msgstr[1] "%'d casos"
 
-#: src/ui/gui/psppire-data-editor.c:446
+#: src/ui/gui/psppire-data-editor.c:447
 #, c-format
 msgid "%'d variable"
 msgid_plural "%'d variables"
 msgstr[0] "Variable %'d"
 msgstr[1] "Variables %'d"
 
-#: src/ui/gui/psppire-data-editor.c:734
+#: src/ui/gui/psppire-data-editor.c:738
 msgid "Data View"
 msgstr "Vista de dades"
 
-#: src/ui/gui/psppire-data-editor.c:747
+#: src/ui/gui/psppire-data-editor.c:751
 msgid "Variable View"
 msgstr "Vista de Variables"
 
-#: src/ui/gui/psppire-data-sheet.c:138
+#: src/ui/gui/psppire-data-sheet.c:139
 msgid "Enter a number to add a new variable."
 msgstr "Introdueix un número per afegir una variable nova."
 
-#: src/ui/gui/psppire-data-sheet.c:143
+#: src/ui/gui/psppire-data-sheet.c:144
 msgid "Enter a number to add a new case."
 msgstr "Introdueix un número per afegir un nou cas."
 
-#: src/ui/gui/psppire-data-sheet.c:229
+#: src/ui/gui/psppire-data-sheet.c:230
 msgid "Case"
 msgstr "Cas"
 
-#: src/ui/gui/psppire-data-store.c:544
+#: src/ui/gui/psppire-data-store.c:550
 msgid "var"
 msgstr "var"
 
-#: src/ui/gui/psppire-data-window.c:183
+#: src/ui/gui/psppire-data-window.c:171
 msgid "Transformations Pending"
 msgstr "Transformacions pendents"
 
-#: src/ui/gui/psppire-data-window.c:199
+#: src/ui/gui/psppire-data-window.c:187
 msgid "Filter off"
 msgstr "Filtre desactivat"
 
-#: src/ui/gui/psppire-data-window.c:211
+#: src/ui/gui/psppire-data-window.c:199
 #, c-format
 msgid "Filter by %s"
 msgstr "Filtrat per %s"
 
-#: src/ui/gui/psppire-data-window.c:232
+#: src/ui/gui/psppire-data-window.c:220
 msgid "No Split"
 msgstr "No dividit"
 
-#: src/ui/gui/psppire-data-window.c:241
+#: src/ui/gui/psppire-data-window.c:229
 msgid "Split by "
 msgstr "Dividit per "
 
-#: src/ui/gui/psppire-data-window.c:269
+#: src/ui/gui/psppire-data-window.c:257
 msgid "Weights off"
 msgstr "Sense Ponderar:"
 
-#: src/ui/gui/psppire-data-window.c:281
+#: src/ui/gui/psppire-data-window.c:269
 #, c-format
 msgid "Weight by %s"
 msgstr "Ponderat per %s"
 
-#: src/ui/gui/psppire-data-window.c:469 src/ui/gui/aggregate.ui:450
+#: src/ui/gui/psppire-data-window.c:476 src/ui/gui/aggregate.ui:450
 msgid "Save"
 msgstr "Desar"
 
-#: src/ui/gui/psppire-data-window.c:488 src/ui/gui/psppire-syntax-window.c:605
-#: src/ui/gui/psppire-window.c:747 src/ui/gui/page-file.c:251
+#: src/ui/gui/psppire-data-window.c:501 src/ui/gui/psppire-syntax-window.c:605
+#: src/ui/gui/psppire-window.c:749 src/ui/gui/page-file.c:249
 msgid "All Files"
 msgstr "Tots els arxius"
 
-#: src/ui/gui/psppire-data-window.c:501
+#: src/ui/gui/psppire-data-window.c:524
+msgid "Compressed System File"
+msgstr "Arxiu Comprimit de Sistema"
+
+#: src/ui/gui/psppire-data-window.c:530
 msgid "Portable File"
 msgstr "Arxiu Portable"
 
-#: src/ui/gui/psppire-data-window.c:558
+#: src/ui/gui/psppire-data-window.c:533
+msgid "Format:"
+msgstr "Format:"
+
+#: src/ui/gui/psppire-data-window.c:597
 msgid "Delete Existing Dataset?"
 msgstr "Eliminar arxiu de dades existent?"
 
-#: src/ui/gui/psppire-data-window.c:562
+#: src/ui/gui/psppire-data-window.c:601
 #, c-format
 msgid "Renaming \"%s\" to \"%s\" will destroy the existing dataset named \"%s\".  Are you sure that you want to do this?"
 msgstr "Re-anomenar \"%s\" com a \"%s\" eliminarà les dades existents anomenades \"%s\".  Segur que vol fer aixó?"
 
-#: src/ui/gui/psppire-data-window.c:590
+#: src/ui/gui/psppire-data-window.c:629
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
 msgstr "Si us plau, introdueixi un nou nom per l'arxiu de dades \"%s\":"
 
-#: src/ui/gui/psppire-data-window.c:592
+#: src/ui/gui/psppire-data-window.c:631
 msgid "Rename Dataset"
 msgstr "Reanomena l'Arxiu de dades"
 
-#: src/ui/gui/psppire-data-window.c:650
+#: src/ui/gui/psppire-data-window.c:689
 msgid "Font Selection"
 msgstr "Selecció de font"
 
-#: src/ui/gui/psppire-data-window.c:1255
+#: src/ui/gui/psppire-data-window.c:1284
 msgid "Data Editor"
 msgstr "Editor de Dades"
 
@@ -5477,6 +5619,20 @@ msgstr "Mode"
 msgid "Standard error of the kurtosis"
 msgstr "Error estàndard en la curtosi"
 
+#: src/ui/gui/psppire-dialog-action-oneway.c:151
+#, c-format
+msgid "Contrast %d of %d"
+msgstr "Contrast %d de %d"
+
+#: src/ui/gui/psppire-dialog-action-paired.c:161 src/ui/gui/examine.ui:266
+#: src/ui/gui/indep-samples.ui:69 src/ui/gui/t-test.ui:250
+msgid "O_ptions..."
+msgstr "O_pcions..."
+
+#: src/ui/gui/psppire-dialog-action-paired.c:168
+msgid "Paired Samples T Test"
+msgstr "Prova T per mostres Aparellades"
+
 #: src/ui/gui/psppire-dialog-action-regression.c:40
 msgid "Coeff"
 msgstr "Coef."
@@ -5488,6 +5644,27 @@ msgstr "Anova"
 #: src/ui/gui/psppire-dialog-action-regression.c:43
 msgid "Bcov"
 msgstr "Bcov"
+
+#: src/ui/gui/psppire-dialog-action-two-sample.c:183
+msgid "Two-Related-Samples Tests"
+msgstr "Prova de Dues mostres aparellades"
+
+#: src/ui/gui/psppire-dialog-action-two-sample.c:190
+#: src/ui/gui/k-related.ui:183
+msgid "Test Type"
+msgstr "Tipus de Test"
+
+#: src/ui/gui/psppire-dialog-action-two-sample.c:199
+msgid "_Wilcoxon"
+msgstr "_Wilcoxon"
+
+#: src/ui/gui/psppire-dialog-action-two-sample.c:200
+msgid "_Sign"
+msgstr "_Signe"
+
+#: src/ui/gui/psppire-dialog-action-two-sample.c:201
+msgid "_McNemar"
+msgstr "_McNemar"
 
 #: src/ui/gui/psppire-dialog-action-var-info.c:125
 #, c-format
@@ -5546,52 +5723,52 @@ msgstr "Codificació Local"
 msgid "Character Encoding: "
 msgstr "Codificació de caràcters: "
 
-#: src/ui/gui/psppire-means-layer.c:45
+#: src/ui/gui/psppire-means-layer.c:73
 #, c-format
 msgid "Layer %d of %d"
 msgstr "Capa %d de %d"
 
-#: src/ui/gui/psppire-output-window.c:347
+#: src/ui/gui/psppire-output-window.c:346
 msgid "Message"
 msgstr "Missatje"
 
-#: src/ui/gui/psppire-output-window.c:508
+#: src/ui/gui/psppire-output-window.c:507
 msgid "Infer file type from extension"
 msgstr "Inferir tipus d'arxiu a partir de l'extensió"
 
-#: src/ui/gui/psppire-output-window.c:509
+#: src/ui/gui/psppire-output-window.c:508
 msgid "PDF (*.pdf)"
 msgstr "PDF (*.pdf)"
 
-#: src/ui/gui/psppire-output-window.c:510
+#: src/ui/gui/psppire-output-window.c:509
 msgid "HTML (*.html)"
 msgstr "HTML (*.html)"
 
-#: src/ui/gui/psppire-output-window.c:511
+#: src/ui/gui/psppire-output-window.c:510
 msgid "OpenDocument (*.odt)"
 msgstr "OpenDocument (*.odt)"
 
-#: src/ui/gui/psppire-output-window.c:512
+#: src/ui/gui/psppire-output-window.c:511
 msgid "Text (*.txt)"
 msgstr "Text (*.txt)"
 
-#: src/ui/gui/psppire-output-window.c:513
+#: src/ui/gui/psppire-output-window.c:512
 msgid "PostScript (*.ps)"
 msgstr "PostScript (*.ps)"
 
-#: src/ui/gui/psppire-output-window.c:514
+#: src/ui/gui/psppire-output-window.c:513
 msgid "Comma-Separated Values (*.csv)"
 msgstr "Valors Separats per Comes (*.csv)"
 
-#: src/ui/gui/psppire-output-window.c:615
+#: src/ui/gui/psppire-output-window.c:614
 msgid "Export Output"
 msgstr "Exporta Resultats"
 
-#: src/ui/gui/psppire-output-window.c:773
-msgid "failed to create temporary directory"
-msgstr "error en crear el directori temporal"
+#: src/ui/gui/psppire-output-window.c:772
+msgid "failed to create temporary directory during clipboard operation"
+msgstr "error en crear el directori temporal en una operació de porta-papers"
 
-#: src/ui/gui/psppire-output-window.c:1052
+#: src/ui/gui/psppire-output-window.c:1051
 msgid "Output Viewer"
 msgstr "Vista de resultats"
 
@@ -5608,7 +5785,7 @@ msgstr "Desat com a arxiu `%s'"
 msgid "Save Syntax"
 msgstr "Desar sintaxi"
 
-#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:741
+#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:743
 msgid "Syntax Files (*.sps) "
 msgstr "Arxius de Sintàxi (*.sps) "
 
@@ -5671,51 +5848,51 @@ msgstr "Ja existeix una variable anomenada \"%s\" a aquest diccionary."
 msgid "Cannot rename variable."
 msgstr "Impossible re-anomenar la variable."
 
-#: src/ui/gui/psppire-var-sheet.c:448
+#: src/ui/gui/psppire-var-sheet.c:442
 #, c-format
 msgid "{%s, %s}..."
 msgstr "{%s, %s}..."
 
-#: src/ui/gui/psppire-var-sheet.c:880
+#: src/ui/gui/psppire-var-sheet.c:874
 msgid "Enter a variable name to add a new variable."
 msgstr "Introdueix un nom de variable per afegir una nova variable."
 
-#: src/ui/gui/psppire-var-sheet.c:920
+#: src/ui/gui/psppire-var-sheet.c:914
 #, c-format
 msgid "{%s, %s}\n"
 msgstr "{%s, %s}\n"
 
-#: src/ui/gui/psppire-var-sheet.c:1373 src/language/stats/crosstabs.q:1351
+#: src/ui/gui/psppire-var-sheet.c:1367 src/language/stats/crosstabs.q:1351
 #: src/ui/gui/compute.ui:618
 msgid "Type"
 msgstr "Tipus:"
 
-#: src/ui/gui/psppire-var-sheet.c:1376 src/ui/gui/compute.ui:532
+#: src/ui/gui/psppire-var-sheet.c:1370 src/ui/gui/compute.ui:532
 msgid "Width"
 msgstr "Ample"
 
-#: src/ui/gui/psppire-var-sheet.c:1378
+#: src/ui/gui/psppire-var-sheet.c:1372
 msgid "Decimals"
 msgstr "Decimals"
 
-#: src/ui/gui/psppire-var-sheet.c:1382 src/ui/gui/val-labs-dialog.ui:190
+#: src/ui/gui/psppire-var-sheet.c:1376 src/ui/gui/val-labs-dialog.ui:190
 msgid "Value Labels"
 msgstr "Etiquetes de Valor"
 
-#: src/ui/gui/psppire-var-sheet.c:1385 src/ui/gui/examine.ui:469
+#: src/ui/gui/psppire-var-sheet.c:1379 src/ui/gui/examine.ui:469
 #: src/ui/gui/t-test.ui:81
 msgid "Missing Values"
 msgstr "Valors perduts"
 
-#: src/ui/gui/psppire-var-sheet.c:1390
+#: src/ui/gui/psppire-var-sheet.c:1384
 msgid "Align"
 msgstr "Aliniament"
 
-#: src/ui/gui/psppire-var-sheet.c:1396
+#: src/ui/gui/psppire-var-sheet.c:1390
 msgid "Measure"
 msgstr "Mesura"
 
-#: src/ui/gui/psppire-var-sheet.c:1402
+#: src/ui/gui/psppire-var-sheet.c:1396
 msgid "Role"
 msgstr "Rol"
 
@@ -5740,6 +5917,10 @@ msgstr "Obert"
 #: src/ui/gui/psppire-window.c:723
 msgid "Data and Syntax Files"
 msgstr "Arxius de Dades i Sintaxi"
+
+#: src/ui/gui/psppire-window.c:732
+msgid "System Files (*.sav, *.zsav)"
+msgstr "Arxius de Sistema (*.sav, *.zsav)"
 
 #: src/ui/gui/recode-dialog.c:641
 msgid "Recode into Different Variables"
@@ -5772,21 +5953,21 @@ msgstr "Exactament %3d casos dels primers  %3d casos."
 msgid "%d thru %d"
 msgstr "%d fisn a %d"
 
-#: src/ui/gui/page-assistant.c:96
+#: src/ui/gui/page-assistant.c:94
 msgid "Importing Delimited Text Data"
 msgstr "Important dades de text deliminatat"
 
-#: src/ui/gui/page-intro.c:94
+#: src/ui/gui/page-intro.c:92
 #, c-format
 msgid "Only the first %4d cases"
 msgstr "Només els primers %4d casos"
 
-#: src/ui/gui/page-intro.c:104
+#: src/ui/gui/page-intro.c:102
 #, c-format
 msgid "Only the first %3d %% of file (approximately)"
 msgstr "Només els primers %3ds %% de l'arxiu (aproximadament)"
 
-#: src/ui/gui/page-intro.c:129
+#: src/ui/gui/page-intro.c:127
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
@@ -5794,106 +5975,106 @@ msgstr ""
 "Aquest asistent t'acompanyarà per tot el procés d'importar dades cap al PSPP a partir d'un arxiu de text amb una linia per cas,  al qual els camps estan separats per tabuladors, comes, o altres delimitadors.\n"
 "\n"
 
-#: src/ui/gui/page-intro.c:135
+#: src/ui/gui/page-intro.c:133
 #, c-format
-msgid "The selected file contains %zu line of text.  "
-msgid_plural "The selected file contains %zu lines of text.  "
-msgstr[0] "L'arxiu seleccionat conté %zu linies de text.  "
-msgstr[1] "L'arxiu seleccionat conté %zu linies de text.  "
+msgid "The selected file contains %'zu line of text.  "
+msgid_plural "The selected file contains %'zu lines of text.  "
+msgstr[0] "L'arxiu seleccionat conté %'zu línia de text.  "
+msgstr[1] "L'arxiu seleccionat conté %'zu línies de text.  "
 
-#: src/ui/gui/page-intro.c:143
+#: src/ui/gui/page-intro.c:141
 #, c-format
-msgid "The selected file contains approximately %lu line of text.  "
-msgid_plural "The selected file contains approximately %lu lines of text.  "
-msgstr[0] "L'arxiu seleccionat conté aproximadament %lu linia de text.  "
-msgstr[1] "L'arxiu seleccionat conté aproximadament %lu linies de text.  "
+msgid "The selected file contains approximately %'lu line of text.  "
+msgid_plural "The selected file contains approximately %'lu lines of text.  "
+msgstr[0] "L'arxiu seleccionat conté aproximadament %'lu línia de text.  "
+msgstr[1] "L'arxiu seleccionat conté aproximadament %'lu línies de text.  "
 
-#: src/ui/gui/page-intro.c:149
+#: src/ui/gui/page-intro.c:147
 #, c-format
 msgid "Only the first %zu line of the file will be shown for preview purposes in the following screens.  "
 msgid_plural "Only the first %zu lines of the file will be shown for preview purposes in the following screens.  "
 msgstr[0] "Només les primeres %zu linies de l'arxiu es previsualitzaran a les seguents pantalles.  "
 msgstr[1] "Només les primeres %zu linies de l'arxiu es previsualitzaran a les seguents pantalles.  "
 
-#: src/ui/gui/page-intro.c:156
+#: src/ui/gui/page-intro.c:154
 msgid "You may choose below how much of the file should actually be imported."
 msgstr "Pots triar a continuació quina part de l'arxiu ha de ser importat."
 
-#: src/ui/gui/page-file.c:100
+#: src/ui/gui/page-file.c:98
 #, c-format
-msgid "Could not open `%s': %s"
-msgstr "No es pot obrir `%s': %s"
+msgid "Could not open `%s'"
+msgstr "No es pot obrir `%s'"
 
-#: src/ui/gui/page-file.c:116
+#: src/ui/gui/page-file.c:114
 #, c-format
 msgid "Error reading `%s': %s"
 msgstr "Error leyendo `%s': %s"
 
-#: src/ui/gui/page-file.c:119
+#: src/ui/gui/page-file.c:117
 #, c-format
 msgid "Failed to read `%s', because it contains a line over %d bytes long and therefore appears not to be a text file."
 msgstr "Error en llegir `%s', per què conté una linia per sobre dels %d bytes de llarg i, per tant, sembla que no és un arxiu de text."
 
-#: src/ui/gui/page-file.c:137
+#: src/ui/gui/page-file.c:135
 #, c-format
 msgid "`%s' is empty."
 msgstr "`%s' és buit."
 
-#: src/ui/gui/page-file.c:194
+#: src/ui/gui/page-file.c:192
 msgid "Import Delimited Text Data"
 msgstr "Importar dades de text delimitat"
 
-#: src/ui/gui/page-file.c:204
+#: src/ui/gui/page-file.c:202
 msgid "Text Files"
 msgstr "Arxius de text"
 
-#: src/ui/gui/page-file.c:209
+#: src/ui/gui/page-file.c:207
 msgid "Text (*.txt) Files"
 msgstr "Arxius de Text (*.txt)"
 
-#: src/ui/gui/page-file.c:215
+#: src/ui/gui/page-file.c:213
 msgid "Plain Text (ASCII) Files"
 msgstr "Arxius de Text Pla (ASCII)"
 
-#: src/ui/gui/page-file.c:220
+#: src/ui/gui/page-file.c:218
 msgid "Comma Separated Value Files"
 msgstr "Arxius de Valors Separats per Comes"
 
-#: src/ui/gui/page-file.c:227
+#: src/ui/gui/page-file.c:225
 msgid "Tab Separated Value Files"
 msgstr "Arxius de Valors Separats per Tabuladors"
 
-#: src/ui/gui/page-file.c:232
+#: src/ui/gui/page-file.c:230
 msgid "Gnumeric Spreadsheet Files"
 msgstr "Arxius de full de càlcul Gnumeric"
 
-#: src/ui/gui/page-file.c:237
+#: src/ui/gui/page-file.c:235
 msgid "OpenDocument Spreadsheet Files"
 msgstr "Arxius de full de càlcul OpenDocument"
 
-#: src/ui/gui/page-file.c:242
+#: src/ui/gui/page-file.c:240
 msgid "All Spreadsheet Files"
 msgstr "Tots els arxius de full de càlcul"
 
-#: src/ui/gui/page-first-line.c:146
+#: src/ui/gui/page-first-line.c:144
 msgid "Text"
 msgstr "Text"
 
-#: src/ui/gui/page-sheet-spec.c:254
+#: src/ui/gui/page-sheet-spec.c:252
 msgid "An error occurred reading the spreadsheet file."
 msgstr "Error llegint un arxiu de full de càlcul."
 
-#: src/ui/gui/text-data-import-dialog.c:336
-#: src/ui/gui/text-data-import-dialog.c:384
+#: src/ui/gui/text-data-import-dialog.c:334
+#: src/ui/gui/text-data-import-dialog.c:382
 msgid "This input line has too few separators to fill in this field."
 msgstr "Aquesta linia d'entrada no en te prou separadors per emplenar el camp"
 
-#: src/ui/gui/text-data-import-dialog.c:375
+#: src/ui/gui/text-data-import-dialog.c:373
 #, c-format
 msgid "Cannot parse field content `%.*s' as format %s: %s"
 msgstr "No es possible construïr l'arxiu de contingut `%.*s' com a format %s: %s"
 
-#: src/ui/gui/text-data-import-dialog.c:549
+#: src/ui/gui/text-data-import-dialog.c:547
 msgid "Line"
 msgstr "Linia"
 
@@ -5901,35 +6082,6 @@ msgstr "Linia"
 #, c-format
 msgid "Con_fidence Interval: %2d %%"
 msgstr "Interval de Con_fiança: %2d %%"
-
-#: src/ui/gui/t-test-paired-samples.c:92 src/ui/gui/examine.ui:266
-#: src/ui/gui/indep-samples.ui:69 src/ui/gui/t-test.ui:250
-msgid "O_ptions..."
-msgstr "O_pcions..."
-
-#: src/ui/gui/t-test-paired-samples.c:104
-msgid "Paired Samples T Test"
-msgstr "Prova T per mostres Aparellades"
-
-#: src/ui/gui/npar-two-sample-related.c:128 src/ui/gui/k-related.ui:183
-msgid "Test Type"
-msgstr "Tipus de Test"
-
-#: src/ui/gui/npar-two-sample-related.c:135
-msgid "_Wilcoxon"
-msgstr "_Wilcoxon"
-
-#: src/ui/gui/npar-two-sample-related.c:136
-msgid "_Sign"
-msgstr "_Signe"
-
-#: src/ui/gui/npar-two-sample-related.c:137
-msgid "_McNemar"
-msgstr "_McNemar"
-
-#: src/ui/gui/npar-two-sample-related.c:152
-msgid "Two-Related-Samples Tests"
-msgstr "Prova de Dues mostres aparellades"
 
 #: src/ui/gui/val-labs-dialog.c:540
 #, c-format
@@ -5945,6 +6097,30 @@ msgstr "No ponderar casos."
 #, c-format
 msgid "Weight cases by %s"
 msgstr "Pondera casos per %s"
+
+#: utilities/pspp-convert.c:117
+msgid "exactly two non-option arguments are required; use --help for help"
+msgstr "son requerits exactament dos arguments sense opció; consultar --help per ajuda"
+
+#: utilities/pspp-convert.c:126
+#, c-format
+msgid "%s: cannot guess output format (use -O option)"
+msgstr "%s: no s'ha pogut determinar el format de sortida (utilitzeu l'opció -O)"
+
+#: utilities/pspp-convert.c:162
+#, c-format
+msgid "%s: unknown output format (use -O option)"
+msgstr "%s: format de sortida desconegut (utilitzeu l'opció -O)"
+
+#: utilities/pspp-convert.c:179
+#, c-format
+msgid "%s: error reading input file"
+msgstr "%s: error llegint l'arxiu d'entrada"
+
+#: utilities/pspp-convert.c:181
+#, c-format
+msgid "%s: error writing output file"
+msgstr "%s: error escribint l'arxiu de resultats"
 
 #: src/language/utilities/set.q:163 src/language/utilities/set.q:170
 #, c-format
@@ -6668,8 +6844,8 @@ msgstr "Valors Esperats:"
 msgid "Test _Variables"
 msgstr "Variables de prova"
 
-#: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:106
-#: src/ui/gui/output-viewer.ui:29 src/ui/gui/syntax-editor.ui:66
+#: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:112
+#: src/ui/gui/output-viewer.ui:29 src/ui/gui/syntax-editor.ui:71
 #: src/ui/gui/var-sheet.ui:35
 msgid "_Edit"
 msgstr "_Editar"
@@ -6683,8 +6859,8 @@ msgid "Create a new variable at the current position"
 msgstr "Crear una nova variable a la posició seleccionada"
 
 #: src/ui/gui/data-sheet.ui:65
-msgid "Insert Cases"
-msgstr "Insertar Casos"
+msgid "Insert Case"
+msgstr "Insertar Cas"
 
 #: src/ui/gui/data-sheet.ui:66
 msgid "Create a new case at the current position"
@@ -6694,7 +6870,7 @@ msgstr "Crear un nou cas a la posició actual"
 msgid "Go To Variable..."
 msgstr "Anar a la Variable..."
 
-#: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:462
+#: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:490
 #: src/ui/gui/var-sheet.ui:50
 msgid "Jump to variable"
 msgstr "Anar a la variable"
@@ -6726,6 +6902,14 @@ msgstr "Esborra els casos a la(es) posició(ns) seleccionada(es)"
 #: src/ui/gui/data-sheet.ui:125
 msgid "_Find..."
 msgstr "Cercar..."
+
+#: src/ui/gui/data-sheet.ui:132
+msgid "Sort _Ascending"
+msgstr "Ordenació _Ascendent"
+
+#: src/ui/gui/data-sheet.ui:139
+msgid "Sort _Descending"
+msgstr "Ordenació _Descendent"
 
 #: src/ui/gui/descriptives.ui:115 src/ui/gui/factor.ui:183
 #: src/ui/gui/recode.ui:606
@@ -6820,7 +7004,7 @@ msgstr "Factors pels eixos principals"
 msgid "Factor Analysis"
 msgstr "Anàlisi Factorial"
 
-#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:291
+#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:301
 msgid "_Descriptives..."
 msgstr "_Descriptius..."
 
@@ -7145,6 +7329,7 @@ msgid "_Options..."
 msgstr "_Opcions..."
 
 #: src/ui/gui/logistic.ui:47 src/ui/gui/regression.ui:47
+#: src/ui/gui/syntax-editor.ui:45
 msgid "_Save..."
 msgstr "De_sar..."
 
@@ -7867,310 +8052,318 @@ msgstr "Informació de la Variable"
 msgid "_File"
 msgstr "_Arxiu"
 
-#: src/ui/gui/data-editor.ui:21 src/ui/gui/syntax-editor.ui:22
+#: src/ui/gui/data-editor.ui:15 src/ui/gui/syntax-editor.ui:17
+msgid "_New..."
+msgstr "_Nou..."
+
+#: src/ui/gui/data-editor.ui:23 src/ui/gui/syntax-editor.ui:24
 msgid "_Syntax"
 msgstr "_Sintaxi"
 
-#: src/ui/gui/data-editor.ui:27 src/ui/gui/data-editor.ui:147
-#: src/ui/gui/data-editor.ui:160 src/ui/gui/syntax-editor.ui:28
+#: src/ui/gui/data-editor.ui:30 src/ui/gui/data-editor.ui:153
+#: src/ui/gui/data-editor.ui:166 src/ui/gui/syntax-editor.ui:31
 msgid "_Data"
 msgstr "_Dades"
 
-#: src/ui/gui/data-editor.ui:34 src/ui/gui/syntax-editor.ui:35
+#: src/ui/gui/data-editor.ui:37 src/ui/gui/syntax-editor.ui:38
 msgid "_Open..."
 msgstr "_Obert..."
 
-#: src/ui/gui/data-editor.ui:40
+#: src/ui/gui/data-editor.ui:43
 msgid "I_mport Data..."
 msgstr "_Importar dades..."
 
-#: src/ui/gui/data-editor.ui:47
+#: src/ui/gui/data-editor.ui:50
 msgid "_Rename Dataset..."
 msgstr "_Reanomenar l'arxiu de dades..."
 
-#: src/ui/gui/data-editor.ui:61 src/ui/gui/syntax-editor.ui:48
+#: src/ui/gui/data-editor.ui:58
+msgid "_Save"
+msgstr "De_sar"
+
+#: src/ui/gui/data-editor.ui:65 src/ui/gui/syntax-editor.ui:52
 msgid "Save _As..."
 msgstr "Desar Com _A..."
 
-#: src/ui/gui/data-editor.ui:67
+#: src/ui/gui/data-editor.ui:71
 msgid "D_isplay Data File Information"
 msgstr "Mostra _informació de l'arxiu de dades"
 
-#: src/ui/gui/data-editor.ui:74
+#: src/ui/gui/data-editor.ui:78
 msgid "Working File"
 msgstr "Arxius de treball"
 
-#: src/ui/gui/data-editor.ui:80
+#: src/ui/gui/data-editor.ui:85
 msgid "External File..."
 msgstr "Arxiu Extern..."
 
-#: src/ui/gui/data-editor.ui:86
+#: src/ui/gui/data-editor.ui:92
 msgid "Recently Used Da_ta"
 msgstr "Dades usades recentment"
 
-#: src/ui/gui/data-editor.ui:93
+#: src/ui/gui/data-editor.ui:99
 msgid "Recently Used _Files"
 msgstr "Arxius utilitzats recentment"
 
-#: src/ui/gui/data-editor.ui:112
+#: src/ui/gui/data-editor.ui:118
 msgid "_View"
 msgstr "_Veure"
 
-#: src/ui/gui/data-editor.ui:119
+#: src/ui/gui/data-editor.ui:125
 msgid "_Status Bar"
 msgstr "Barra d'E_stat"
 
-#: src/ui/gui/data-editor.ui:126
+#: src/ui/gui/data-editor.ui:132
 msgid "_Font..."
 msgstr "_Font..."
 
-#: src/ui/gui/data-editor.ui:133
+#: src/ui/gui/data-editor.ui:139
 msgid "_Grid Lines"
 msgstr "_Linies divisories"
 
-#: src/ui/gui/data-editor.ui:139
+#: src/ui/gui/data-editor.ui:145
 msgid "Value _Labels"
 msgstr "Etiquetes de _Valors"
 
-#: src/ui/gui/data-editor.ui:140
+#: src/ui/gui/data-editor.ui:146
 msgid "Show/hide value labels"
 msgstr "Mostra/Oculta etiquetes de valor"
 
-#: src/ui/gui/data-editor.ui:153
+#: src/ui/gui/data-editor.ui:159
 msgid "_Variables"
 msgstr "_Variables:"
 
-#: src/ui/gui/data-editor.ui:165
+#: src/ui/gui/data-editor.ui:171
 msgid "_Sort Cases..."
 msgstr "Ordenar Casos..."
 
-#: src/ui/gui/data-editor.ui:169
+#: src/ui/gui/data-editor.ui:175
 msgid "Sort cases in the active dataset"
 msgstr "Ordenar casos a l'arxiu de dades actiu"
 
-#: src/ui/gui/data-editor.ui:176
+#: src/ui/gui/data-editor.ui:183
 msgid "_Transpose..."
 msgstr "_Transposar..."
 
-#: src/ui/gui/data-editor.ui:177
+#: src/ui/gui/data-editor.ui:184
 msgid "Transpose the cases with the variables"
 msgstr "Transposar casos i variables"
 
-#: src/ui/gui/data-editor.ui:184
+#: src/ui/gui/data-editor.ui:191
 msgid "_Aggregate..."
 msgstr "_Agregar..."
 
-#: src/ui/gui/data-editor.ui:190
+#: src/ui/gui/data-editor.ui:197
 msgid "S_plit File..."
 msgstr "Divideix Arxiu..."
 
-#: src/ui/gui/data-editor.ui:191
+#: src/ui/gui/data-editor.ui:198
 msgid "Split the active dataset"
 msgstr "Dividir l'arxiu de dades actiu"
 
-#: src/ui/gui/data-editor.ui:198
+#: src/ui/gui/data-editor.ui:205
 msgid "Select _Cases..."
 msgstr "Seleccionar _Casos..."
 
-#: src/ui/gui/data-editor.ui:199
+#: src/ui/gui/data-editor.ui:206
 msgid "Choose a subset of cases for analysis"
 msgstr "Selecciona un subconjunt de casos per analitzar"
 
-#: src/ui/gui/data-editor.ui:206
+#: src/ui/gui/data-editor.ui:213
 msgid "_Weight Cases..."
 msgstr "Ponderar Casos..."
 
-#: src/ui/gui/data-editor.ui:207
+#: src/ui/gui/data-editor.ui:214
 msgid "Weight cases by variable"
 msgstr "Pondera casos per la variable"
 
-#: src/ui/gui/data-editor.ui:214
+#: src/ui/gui/data-editor.ui:221
 msgid "_Transform"
 msgstr "_Transformar"
 
-#: src/ui/gui/data-editor.ui:220
+#: src/ui/gui/data-editor.ui:228
 msgid "_Compute..."
 msgstr "_Calcular..."
 
-#: src/ui/gui/data-editor.ui:227
+#: src/ui/gui/data-editor.ui:236
 msgid "Cou_nt..."
 msgstr "Reco_mpte..."
 
-#: src/ui/gui/data-editor.ui:235
+#: src/ui/gui/data-editor.ui:244
 msgid "Ran_k Cases..."
 msgstr "Rang de Casos..."
 
-#: src/ui/gui/data-editor.ui:242
+#: src/ui/gui/data-editor.ui:251
 msgid "Auto_matic Recode..."
 msgstr "Recodificació Auto_màtica..."
 
-#: src/ui/gui/data-editor.ui:249
+#: src/ui/gui/data-editor.ui:258
 msgid "Recode into _Same Variables..."
 msgstr "Recodificar a les Mateixe_s Variables..."
 
-#: src/ui/gui/data-editor.ui:256
+#: src/ui/gui/data-editor.ui:265
 msgid "Recode into _Different Variables..."
 msgstr "Recodificar a Variables _Diferents..."
 
-#: src/ui/gui/data-editor.ui:263
+#: src/ui/gui/data-editor.ui:272
 msgid "_Run Pending Transforms"
 msgstr "Executa_r Transformacions pendents"
 
-#: src/ui/gui/data-editor.ui:271
+#: src/ui/gui/data-editor.ui:280
 msgid "_Analyze"
 msgstr "_Analitzar"
 
-#: src/ui/gui/data-editor.ui:277
+#: src/ui/gui/data-editor.ui:286
 msgid "_Descriptive Statistics"
 msgstr "Estadística _Descriptiva"
 
-#: src/ui/gui/data-editor.ui:284
+#: src/ui/gui/data-editor.ui:294
 msgid "_Frequencies..."
 msgstr "_Freqüències..."
 
-#: src/ui/gui/data-editor.ui:298
+#: src/ui/gui/data-editor.ui:308
 msgid "_Explore..."
 msgstr "_Explorar..."
 
-#: src/ui/gui/data-editor.ui:305
+#: src/ui/gui/data-editor.ui:315
 msgid "_Crosstabs..."
 msgstr "Taules _Creuades..."
 
-#: src/ui/gui/data-editor.ui:311
+#: src/ui/gui/data-editor.ui:321
 msgid "Compare _Means"
 msgstr "Comparar _Mitjanes"
 
-#: src/ui/gui/data-editor.ui:318
+#: src/ui/gui/data-editor.ui:329
 msgid "_Means..."
 msgstr "_Mitjanes..."
 
-#: src/ui/gui/data-editor.ui:324
+#: src/ui/gui/data-editor.ui:336
 msgid "_One Sample T Test..."
 msgstr "Prova T per una mostra..."
 
-#: src/ui/gui/data-editor.ui:331
+#: src/ui/gui/data-editor.ui:343
 msgid "_Independent Samples T Test..."
 msgstr "Prova T per a Mostres _Independents..."
 
-#: src/ui/gui/data-editor.ui:337
+#: src/ui/gui/data-editor.ui:350
 msgid "_Paired Samples T Test..."
 msgstr "Prova T per a Mostres A_parellades..."
 
-#: src/ui/gui/data-editor.ui:343
+#: src/ui/gui/data-editor.ui:357
 msgid "One Way _ANOVA..."
 msgstr "_ANOVA d'un factor..."
 
-#: src/ui/gui/data-editor.ui:349
+#: src/ui/gui/data-editor.ui:364
 msgid "_Univariate Analysis..."
 msgstr "Anàlisi Univariada..."
 
-#: src/ui/gui/data-editor.ui:357
+#: src/ui/gui/data-editor.ui:373
 msgid "Bivariate _Correlation..."
 msgstr "_Correlació Bivariada..."
 
-#: src/ui/gui/data-editor.ui:364
+#: src/ui/gui/data-editor.ui:381
 msgid "_K-Means Cluster..."
 msgstr "Conglomerat K-Mitjanes..."
 
-#: src/ui/gui/data-editor.ui:371
+#: src/ui/gui/data-editor.ui:389
 msgid "Factor _Analysis..."
 msgstr "_Anàlisi Factorial..."
 
-#: src/ui/gui/data-editor.ui:378
+#: src/ui/gui/data-editor.ui:397
 msgid "Re_liability..."
 msgstr "Fiabi_litat..."
 
-#: src/ui/gui/data-editor.ui:384
+#: src/ui/gui/data-editor.ui:404
 msgid "_Regression"
 msgstr "_Regressió"
 
-#: src/ui/gui/data-editor.ui:391
+#: src/ui/gui/data-editor.ui:412
 msgid "_Linear..."
 msgstr "_Lineal..."
 
-#: src/ui/gui/data-editor.ui:398
+#: src/ui/gui/data-editor.ui:419
 msgid "_Binary Logistic..."
 msgstr "_Binaria Logística..."
 
-#: src/ui/gui/data-editor.ui:404
+#: src/ui/gui/data-editor.ui:425
 msgid "_Non-Parametric Statistics"
 msgstr "Proves _No-Paramétriques"
 
-#: src/ui/gui/data-editor.ui:410
+#: src/ui/gui/data-editor.ui:433
 msgid "_Chi-Square..."
 msgstr "_Chi-quadrat..."
 
-#: src/ui/gui/data-editor.ui:417
+#: src/ui/gui/data-editor.ui:440
 msgid "_Binomial..."
 msgstr "_Binomial..."
 
-#: src/ui/gui/data-editor.ui:423
+#: src/ui/gui/data-editor.ui:447
 msgid "R_uns..."
 msgstr "Exec_ucions..."
 
-#: src/ui/gui/data-editor.ui:429
+#: src/ui/gui/data-editor.ui:454
 msgid "1-Sample _K-S..."
 msgstr "_K-S per a Una Mostra..."
 
-#: src/ui/gui/data-editor.ui:435
+#: src/ui/gui/data-editor.ui:461
 msgid "2 _Related Samples..."
 msgstr "Dues Mostres Apa_rellades..."
 
-#: src/ui/gui/data-editor.ui:441
+#: src/ui/gui/data-editor.ui:468
 msgid "K Related _Samples..."
 msgstr "K Mostre_s aparellades..."
 
-#: src/ui/gui/data-editor.ui:448
+#: src/ui/gui/data-editor.ui:475
 msgid "ROC Cur_ve..."
 msgstr "Corba ROC..."
 
-#: src/ui/gui/data-editor.ui:454
+#: src/ui/gui/data-editor.ui:482
 msgid "_Utilities"
 msgstr "_Utilitats"
 
-#: src/ui/gui/data-editor.ui:461
+#: src/ui/gui/data-editor.ui:489
 msgid "_Variables..."
 msgstr "_Variables..."
 
-#: src/ui/gui/data-editor.ui:469
+#: src/ui/gui/data-editor.ui:497
 msgid "Data File _Comments..."
 msgstr "_Comentaris arxiu de dades..."
 
-#: src/ui/gui/data-editor.ui:476 src/ui/gui/output-viewer.ui:47
-#: src/ui/gui/syntax-editor.ui:143
+#: src/ui/gui/data-editor.ui:504 src/ui/gui/output-viewer.ui:49
+#: src/ui/gui/syntax-editor.ui:154
 msgid "_Windows"
 msgstr "Finestres"
 
-#: src/ui/gui/data-editor.ui:482 src/ui/gui/output-viewer.ui:53
-#: src/ui/gui/syntax-editor.ui:149
+#: src/ui/gui/data-editor.ui:510 src/ui/gui/output-viewer.ui:56
+#: src/ui/gui/syntax-editor.ui:161
 msgid "_Minimize All Windows"
 msgstr "_Minimitza totes les finestres"
 
-#: src/ui/gui/data-editor.ui:489
+#: src/ui/gui/data-editor.ui:517
 msgid "_Split"
 msgstr "Divideix"
 
-#: src/ui/gui/data-editor.ui:633
+#: src/ui/gui/data-editor.ui:662
 msgid "Information Area"
 msgstr "Àrea d'Informació"
 
-#: src/ui/gui/data-editor.ui:655
+#: src/ui/gui/data-editor.ui:684
 msgid "Case Counter Area"
 msgstr "Area del Recompte"
 
-#: src/ui/gui/data-editor.ui:680
+#: src/ui/gui/data-editor.ui:709
 msgid "Filter Use Status Area"
 msgstr "Area del Filtre"
 
-#: src/ui/gui/data-editor.ui:706
+#: src/ui/gui/data-editor.ui:735
 msgid "Weight Status Area"
 msgstr "Area de Ponderació"
 
-#: src/ui/gui/data-editor.ui:732
+#: src/ui/gui/data-editor.ui:761
 msgid "Split File Status Area"
 msgstr "Area de Divisió"
 
-#: src/ui/gui/output-viewer.ui:16
+#: src/ui/gui/output-viewer.ui:16 src/ui/gui/syntax-editor.ui:59
 msgid "_Print..."
 msgstr "Im_primir..."
 
@@ -8178,23 +8371,31 @@ msgstr "Im_primir..."
 msgid "_Export..."
 msgstr "_Exportar..."
 
-#: src/ui/gui/syntax-editor.ui:112
+#: src/ui/gui/output-viewer.ui:36
+msgid "Select _All"
+msgstr "Seleccion_a Tot"
+
+#: src/ui/gui/output-viewer.ui:43
+msgid "_Copy"
+msgstr "_Copia"
+
+#: src/ui/gui/syntax-editor.ui:119
 msgid "_Run"
 msgstr "Executa_r"
 
-#: src/ui/gui/syntax-editor.ui:118
+#: src/ui/gui/syntax-editor.ui:126
 msgid "All"
 msgstr "Tots"
 
-#: src/ui/gui/syntax-editor.ui:124
+#: src/ui/gui/syntax-editor.ui:133
 msgid "Selection"
 msgstr "Selecció"
 
-#: src/ui/gui/syntax-editor.ui:130
+#: src/ui/gui/syntax-editor.ui:140
 msgid "Current Line"
 msgstr "Linia actual"
 
-#: src/ui/gui/syntax-editor.ui:137
+#: src/ui/gui/syntax-editor.ui:148
 msgid "To End"
 msgstr "Fins al final"
 
@@ -8234,6 +8435,18 @@ msgstr "Programari estadístic"
 msgid "Analyze statistical data with a free alternative to SPSS"
 msgstr "Analitza dades estadístiques amb una alternativa lliure a SPSS"
 
+#~ msgid "Mode:"
+#~ msgstr "Mode:"
+
+#~ msgid "on"
+#~ msgstr "activat"
+
+#~ msgid "off"
+#~ msgstr "desactivat"
+
+#~ msgid "Insert Cases"
+#~ msgstr "Insertar Casos"
+
 #~ msgid "Processor Area"
 #~ msgstr "Area del processador"
 
@@ -8263,9 +8476,6 @@ msgstr "Analitza dades estadístiques amb una alternativa lliure a SPSS"
 
 #~ msgid "Error opening `%s' for reading as a OpenDocument spreadsheet file: %s."
 #~ msgstr "Error en obrir `%s' per a la lectura com a arxiu full de càlcul OpenDocument: %s."
-
-#~ msgid "Unexpected end of file reading %s."
-#~ msgstr "Final inesperat en la lectura d'arxiu %s."
 
 #~ msgid "VAR%05d"
 #~ msgstr "VAR%05d"
@@ -8558,9 +8768,6 @@ msgstr "Analitza dades estadístiques amb una alternativa lliure a SPSS"
 #~ msgid "%s: Creating temporary file: %s."
 #~ msgstr "%s: Creant arxiu temporal: %s"
 
-#~ msgid "%s: Creating file: %s."
-#~ msgstr "%s: Creant arxiu: %s"
-
 #~ msgid "Missing space following 'E' at offset %zu in MRSETS record"
 #~ msgstr "Espai perdut darrera 'E' en la possició %zu a registre MRSETS"
 
@@ -8656,12 +8863,6 @@ msgstr "Analitza dades estadístiques amb una alternativa lliure a SPSS"
 
 #~ msgid "`%s' is not a variable name"
 #~ msgstr "`%s' no és un nom de variable"
-
-#~ msgid "Sort Ascending"
-#~ msgstr "Ordenació ascendent"
-
-#~ msgid "Sort Descending"
-#~ msgstr "Ordenació descendent"
 
 #~ msgid "Buttons"
 #~ msgstr "Botons"
@@ -9020,9 +9221,6 @@ msgstr "Analitza dades estadístiques amb una alternativa lliure a SPSS"
 
 #~ msgid "Clear"
 #~ msgstr "Eliminar"
-
-#~ msgid "Insert Case"
-#~ msgstr "Insertar Cas"
 
 #~ msgid "Open a data file"
 #~ msgstr "Obrir un arxiu de dades"

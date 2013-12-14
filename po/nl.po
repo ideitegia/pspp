@@ -34,7 +34,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.8.1.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-11-09 17:02-0800\n"
-"PO-Revision-Date: 2013-19-26 17:25+0100\n"
+"PO-Revision-Date: 2013-11-23 17:25+0100\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -1263,7 +1263,7 @@ msgstr "Uitvoer"
 
 #: src/data/variable.c:919
 msgid "Both"
-msgstr ""
+msgstr "Beide"
 
 #: src/data/variable.c:922 src/language/dictionary/sys-file-info.c:155
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:84
@@ -5247,15 +5247,15 @@ msgstr ""
 
 #: src/ui/gui/psppire-button-editable.c:136
 msgid "The path to the row in the GtkTreeView, as a string"
-msgstr ""
+msgstr "Het pad naar de rij in de GtkTreeView, als een tekenreeks"
 
 #: src/ui/gui/psppire-cell-renderer-button.c:498
 msgid "Diagonal slash"
-msgstr ""
+msgstr "Schuine streep"
 
 #: src/ui/gui/psppire-cell-renderer-button.c:499
 msgid "Whether to draw a diagonal slash across the button."
-msgstr ""
+msgstr "Er moet een schuine streep door de knop."
 
 #: src/ui/gui/autorecode-dialog.c:292 src/ui/gui/recode-dialog.c:658
 #: src/ui/gui/recode-dialog.c:743
@@ -5858,7 +5858,7 @@ msgstr "Meting"
 
 #: src/ui/gui/psppire-var-sheet.c:1396
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #: src/ui/gui/psppire-window.c:503
 #, c-format
@@ -6689,7 +6689,7 @@ msgstr "_Markeer significante correlaties"
 
 #: src/ui/gui/count.ui:7
 msgid "Count Occurrences of Values within Cases"
-msgstr ""
+msgstr "Tel voorkomen van Waardes binnen Cases"
 
 #: src/ui/gui/count.ui:97
 msgid "Numeric _Variables:"
@@ -6709,7 +6709,7 @@ msgstr "_Defineer waardes..."
 
 #: src/ui/gui/count.ui:229
 msgid "Count Values within Cases: Values to Count"
-msgstr ""
+msgstr "Tel Waardse binnen Cases: Waardes te tellen"
 
 #: src/ui/gui/count.ui:271
 msgid "Values _to Count:"
@@ -8018,7 +8018,7 @@ msgstr "_Bestand"
 
 #: src/ui/gui/data-editor.ui:15 src/ui/gui/syntax-editor.ui:17
 msgid "_New..."
-msgstr ""
+msgstr "_Nieuw..."
 
 #: src/ui/gui/data-editor.ui:23 src/ui/gui/syntax-editor.ui:24
 msgid "_Syntax"
@@ -8131,7 +8131,7 @@ msgstr "Selecteer _cases..."
 
 #: src/ui/gui/data-editor.ui:206
 msgid "Choose a subset of cases for analysis"
-msgstr ""
+msgstr "Kies een subset van cases voor analyse"
 
 #: src/ui/gui/data-editor.ui:213
 msgid "_Weight Cases..."
@@ -8243,7 +8243,7 @@ msgstr "_Regressie"
 
 #: src/ui/gui/data-editor.ui:412
 msgid "_Linear..."
-msgstr ""
+msgstr "_Lineair..."
 
 #: src/ui/gui/data-editor.ui:419
 msgid "_Binary Logistic..."
@@ -8341,7 +8341,7 @@ msgstr "Selecteer _alles"
 
 #: src/ui/gui/output-viewer.ui:43
 msgid "_Copy"
-msgstr ""
+msgstr "Kopie"
 
 #: src/ui/gui/syntax-editor.ui:119
 msgid "_Run"
@@ -8398,15 +8398,3 @@ msgstr "Statistische software"
 #: src/ui/gui/gen-dot-desktop.sh:15
 msgid "Analyze statistical data with a free alternative to SPSS"
 msgstr "Analyseer statistische data met een vrij alternatief van SPSS"
-
-#~ msgid "Mode:"
-#~ msgstr "Modus:"
-
-#~ msgid "on"
-#~ msgstr "aan"
-
-#~ msgid "off"
-#~ msgstr "uit"
-
-#~ msgid "Processor Area"
-#~ msgstr "Processorgebied"
