@@ -341,17 +341,19 @@ load_file (PsppireWindow *de, const gchar *file_name, gpointer syn)
     {
       gchar *utf8_file_name;
       struct string filename;
-      ds_init_empty (&filename);
       
       utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL, NULL);
-    
+
+      if (NULL == utf8_file_name)
+	return FALSE;
+
+      ds_init_empty (&filename);    
       syntax_gen_string (&filename, ss_cstr (utf8_file_name));
       
       g_free (utf8_file_name);
       
       syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
       ds_destroy (&filename);
-
     }
   else
     {
