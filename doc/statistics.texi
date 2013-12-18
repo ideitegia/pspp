@@ -214,7 +214,7 @@ but not currently honoured.
 
 @vindex EXAMINE
 @cindex Exploratory data analysis
-@cindex Normality, testing for
+@cindex normality, testing
 
 @display
 EXAMINE
