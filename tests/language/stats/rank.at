@@ -126,32 +126,32 @@ b,Format: F8.2,,2
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-Ra,RANK of a,,3
+Ra,Label: RANK of a,,3
 ,Format: F9.3,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-RFR001,RFRACTION of a,,4
+RFR001,Label: RFRACTION of a,,4
 ,Format: F6.4,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-count,N of a,,5
+count,Label: N of a,,5
 ,Format: F6.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-Rb,RANK of b,,6
+Rb,Label: RANK of b,,6
 ,Format: F9.3,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-RFR002,RFRACTION of b,,7
+RFR002,Label: RFRACTION of b,,7
 ,Format: F6.4,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-Nb,N of b,,8
+Nb,Label: N of b,,8
 ,Format: F6.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
@@ -543,7 +543,7 @@ ran003,Format: F8.2,,3
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-RAN001,RANK of foo,,4
+RAN001,Label: RANK of foo,,4
 ,Format: F9.3,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,

@@ -481,7 +481,11 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
 
   if (flags & DF_VARIABLE_LABELS && var_has_label (v))
     {
-      tab_joint_text (t, 1, r, 2, r, TAB_LEFT, var_get_label (v));
+      if (flags & ~(DF_DICT_INDEX | DF_VARIABLE_LABELS))
+        tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                               _("Label: %s"), var_get_label (v));
+      else
+        tab_joint_text (t, 1, r, 2, r, TAB_LEFT, var_get_label (v));
       r++;
     }
 

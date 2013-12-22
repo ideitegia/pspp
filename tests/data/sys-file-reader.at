@@ -140,11 +140,11 @@ File label: PSPP synthetic test file: ôõöø
 
 Variable,Description,,Position
 num1,Format: F8.0,,1
-num2,Numeric variable 2's label (ùúû),,2
+num2,Label: Numeric variable 2's label (ùúû),,2
 ,Format: F8.0,,
 num3,Format: F8.0,,3
 ,Missing Values: 1,,
-num4,Another numeric variable label,,4
+num4,Label: Another numeric variable label,,4
 ,Format: F8.0,,
 ,Missing Values: 1,,
 num5,Format: F8.0,,5
@@ -160,11 +160,11 @@ num9,Format: F8.0,,9
 numàèìñò,Format: F8.0,,10
 ,Missing Values: LOWEST THRU 1; 5,,
 str1,Format: A4,,11
-str2,String variable 2's label,,12
+str2,Label: String variable 2's label,,12
 ,Format: A4,,
 str3,Format: A4,,13
 ,"Missing Values: ""MISS""",,
-str4,Another string variable label,,14
+str4,Label: Another string variable label,,14
 ,Format: A4,,
 ,"Missing Values: ""OTHR""",,
 str5,Format: A4,,15
@@ -179,7 +179,7 @@ str9,Format: A10,,19
 ,"Missing Values: ""abcdefgh""; ""01234567""",,
 str10,Format: A11,,20
 ,"Missing Values: ""abcdefgh""; ""01234567""; ""0       """,,
-str11,25-byte string,,21
+str11,Label: 25-byte string,,21
 ,Format: A25,,
 
 Table: Data List
@@ -232,7 +232,7 @@ LIST.
   AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
 Variable,Description,,Position
 num1,Format: F8.0,,1
-num2,Numeric variable 2's label,,2
+num2,Label: Numeric variable 2's label,,2
 ,Format: F8.0,,
 
 Table: Data List
@@ -288,7 +288,7 @@ LIST.
   AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
 Variable,Description,,Position
 num1,Format: F8.0,,1
-num2,Numeric variable 2's label,,2
+num2,Label: Numeric variable 2's label,,2
 ,Format: F8.0,,
 
 Table: Data List

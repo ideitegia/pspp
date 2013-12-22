@@ -250,7 +250,7 @@ GET FILE='$tempfile'.
 DISPLAY DICTIONARY.
 SYNTAX
 Variable,Description,,Position
-integer,My Integer,,1
+integer,Label: My Integer,,1
 ,Format: F8.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
@@ -259,7 +259,7 @@ integer,My Integer,,1
 ,0,Zero,
 ,1,Unity,
 ,2,Duality,
-string,My String,,2
+string,Label: My String,,2
 ,Format: A8,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
@@ -267,7 +267,7 @@ string,My String,,2
 ,"Missing Values: ""this    ""; ""that    """,,
 ,xx      ,foo,
 ,yy      ,bar,
-longstring,My Long String,,3
+longstring,Label: My Long String,,3
 ,Format: A9,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,

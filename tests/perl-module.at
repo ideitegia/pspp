@@ -237,7 +237,7 @@ DISPLAY DICTIONARY.
 ])
 AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
   [Variable,Description,,Position
-integer,My Integer,,1
+integer,Label: My Integer,,1
 ,Format: F8.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
@@ -246,7 +246,7 @@ integer,My Integer,,1
 ,0,Zero,
 ,1,Unity,
 ,2,Duality,
-string,My String,,2
+string,Label: My String,,2
 ,Format: A8,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
@@ -254,7 +254,7 @@ string,My String,,2
 ,"Missing Values: ""this    ""; ""that    """,,
 ,xx      ,foo,
 ,yy      ,bar,
-longstring,My Long String,,3
+longstring,Label: My Long String,,3
 ,Format: A9,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
@@ -457,7 +457,7 @@ LIST.
 ])
 AT_CHECK([pspp -O format=csv dump-dicts.sps], [0],
   [[Variable,Description,,Position
-string,A Short String Variable,,1
+string,Label: A Short String Variable,,1
 ,Format: A8,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
@@ -466,12 +466,12 @@ string,A Short String Variable,,1
 ,1111    ,ones,
 ,2222    ,twos,
 ,3333    ,threes,
-longstring,A Long String Variable,,2
+longstring,Label: A Long String Variable,,2
 ,Format: A12,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
 ,Display Width: 12,,
-numeric,A Numeric Variable,,3
+numeric,Label: A Numeric Variable,,3
 ,Format: F10.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
@@ -486,17 +486,17 @@ numeric,A Numeric Variable,,3
 ,colour[3],violet,
 ,nationality,foreign,
 ,size,large,
-date,A Date Variable,,4
+date,Label: A Date Variable,,4
 ,Format: DATE11,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-dollar,A Dollar Variable,,5
+dollar,Label: A Dollar Variable,,5
 ,Format: DOLLAR11.2,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-datetime,A Datetime Variable,,6
+datetime,Label: A Datetime Variable,,6
 ,Format: DATETIME17.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
@@ -511,7 +511,7 @@ string,longstring,numeric,date,dollar,datetime
 5555    ,Five        ,5,05-MAY-2005,$5.00,05-MAY-2005 05:05
 
 Variable,Description,,Position
-string,A Short String Variable,,1
+string,Label: A Short String Variable,,1
 ,Format: A8,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
@@ -520,12 +520,12 @@ string,A Short String Variable,,1
 ,1111    ,ones,
 ,2222    ,twos,
 ,3333    ,threes,
-longstring,A Long String Variable,,2
+longstring,Label: A Long String Variable,,2
 ,Format: A12,,
 ,Measure: Nominal,,
 ,Display Alignment: Left,,
 ,Display Width: 12,,
-numeric,A Numeric Variable,,3
+numeric,Label: A Numeric Variable,,3
 ,Format: F10.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
@@ -540,17 +540,17 @@ numeric,A Numeric Variable,,3
 ,colour[3],violet,
 ,nationality,foreign,
 ,size,large,
-date,A Date Variable,,4
+date,Label: A Date Variable,,4
 ,Format: DATE11,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-dollar,A Dollar Variable,,5
+dollar,Label: A Dollar Variable,,5
 ,Format: DOLLAR11.2,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
 ,Display Width: 8,,
-datetime,A Datetime Variable,,6
+datetime,Label: A Datetime Variable,,6
 ,Format: DATETIME17.0,,
 ,Measure: Scale,,
 ,Display Alignment: Right,,
