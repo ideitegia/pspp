@@ -47,11 +47,11 @@ main (int argc, char *argv[])
   const char *input_filename;
   const char *output_filename;
 
-  struct fh_properties properties;
   long long int max_cases = LLONG_MAX;
   struct dictionary *dict;
   struct casereader *reader;
   struct file_handle *input_fh;
+  const char *encoding = NULL;
 
   const char *output_format = NULL;
   struct file_handle *output_fh;
@@ -64,7 +64,6 @@ main (int argc, char *argv[])
   fh_init ();
   settings_init ();
 
-  properties = *fh_default_properties ();
   for (;;)
     {
       static const struct option long_options[] =
@@ -92,7 +91,7 @@ main (int argc, char *argv[])
           break;
 
         case 'e':
-          properties.encoding = optarg;
+          encoding = optarg;
           break;
 
         case 'O':
@@ -129,8 +128,8 @@ main (int argc, char *argv[])
       output_format = dot + 1;
     }
 
-  input_fh = fh_create_file (NULL, input_filename, &properties);
-  reader = any_reader_open (input_fh, properties.encoding, &dict);
+  input_fh = fh_create_file (NULL, input_filename, fh_default_properties ());
+  reader = any_reader_open (input_fh, encoding, &dict);
   if (reader == NULL)
     exit (1);
 
