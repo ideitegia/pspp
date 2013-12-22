@@ -46,6 +46,11 @@ SPSS portable file.
 Use \fB\-O \fIextension\fR to override the inferred format or to
 specify the format for unrecognized extensions.
 .
+.PP
+\fBpspp\-convert\fR can convert most input formats to most output
+formats, with one exception: if the input file is an encrypted system
+file, then the output file must also be an (unencrypted) system file.
+.
 .SH "OPTIONS"
 .
 .IP "\fB\-O format\fR"
@@ -65,6 +70,16 @@ Specifying this option to limit the number of cases written to
 Overrides the encoding in which character strings in \fIinput\fR are
 interpreted.  This option is necessary because old SPSS system files
 do not self-identify their encoding.
+.
+.IP "\fB\-p \fIpassword\fR"
+.IQ "\fB\-\-password=\fIpassword\fR"
+Specifies the password to use to decrypt an encrypted SPSS system file
+\fIinput\fR.  If this option is not specified, \fBpspp\-convert\fR
+prompts for the password.
+.
+.IP
+On multiuser systems, this option may not be safe because other users
+may be able to see the password in process listings.
 .
 .IP "\fB\-h\fR"
 .IQ "\fB\-\-help\fR"

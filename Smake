@@ -20,6 +20,7 @@ GNULIB_MODULES = \
 	crc \
 	crypto/md4 \
 	crypto/md5 \
+	crypto/rijndael \
 	dirname \
 	dtoastr \
 	environ \
@@ -33,6 +34,7 @@ GNULIB_MODULES = \
         ftello \
 	fwriteerror \
 	getline \
+	getpass \
 	gettext \
 	gettimeofday \
         getopt-gnu \

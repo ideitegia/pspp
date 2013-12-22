@@ -15,6 +15,8 @@ src_libpspp_liblibpspp_la_SOURCES = \
 	src/libpspp/bt.c \
 	src/libpspp/bt.h \
 	src/libpspp/cast.h \
+	src/libpspp/cmac-aes256.c \
+	src/libpspp/cmac-aes256.h \
 	src/libpspp/compiler.h \
 	src/libpspp/copyleft.c \
 	src/libpspp/copyleft.h \

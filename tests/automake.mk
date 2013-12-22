@@ -9,6 +9,7 @@ check_PROGRAMS += \
 	tests/language/lexer/segment-test \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
+	tests/libpspp/cmac-aes256-test \
 	tests/libpspp/encoding-guesser-test \
 	tests/libpspp/heap-test \
 	tests/libpspp/hmap-test \
@@ -92,6 +93,11 @@ tests_libpspp_bt_test_SOURCES = \
 	src/libpspp/bt.c \
 	tests/libpspp/bt-test.c
 tests_libpspp_bt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_cmac_aes256_test_SOURCES = \
+	src/libpspp/cmac-aes256.c \
+	tests/libpspp/cmac-aes256-test.c
+tests_libpspp_cmac_aes256_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_range_map_test_SOURCES = \
 	src/libpspp/bt.c \
@@ -246,6 +252,7 @@ TESTSUITE_AT = \
 	tests/data/por-file.at \
 	tests/data/sys-file-reader.at \
 	tests/data/sys-file.at \
+	tests/data/sys-file-encryption.at \
 	tests/language/command.at \
 	tests/language/control/do-if.at \
 	tests/language/control/do-repeat.at \
@@ -358,7 +365,7 @@ TESTSUITE_AT = \
 
 TESTSUITE = $(srcdir)/tests/testsuite
 DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
-AUTOTEST_PATH = tests/data:tests/language/lexer:tests/libpspp:tests/output:src/ui/terminal
+AUTOTEST_PATH = tests/data:tests/language/lexer:tests/libpspp:tests/output:src/ui/terminal:utilities
 
 $(srcdir)/tests/testsuite.at: tests/testsuite.in tests/automake.mk
 	cp $< $@

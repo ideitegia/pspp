@@ -9,9 +9,16 @@ Changes from 0.8.1 to 0.8.1.1:
  * Charts are now rendered with colours from the Tango palette instead
    of fully saturated primaries.
 
- * PSPP can now read and write ZCOMPRESSED system files, a new format
-   variant that compresses data much more effectively than the
-   previous form of compression (which is still supported).
+ * Support for new system file variants:
+
+   - PSPP can now read and write ZCOMPRESSED system files, which
+     compress data much more effectively than older "compressed"
+     files.  (The older format is still supported.)
+
+   - PSPP can now decrypt encrypted system files, using the new
+     pspp-convert utility.  The encrypted system file format is
+     unacceptably insecure, so to discourage its use PSPP and PSPPIRE
+     do not directly read or write this format.
 
  * Missing values for long string variables are now read from and
    written to system files in an SPSS-compatible fashion.
@@ -23,8 +30,8 @@ Changes from 0.8.1 to 0.8.1.1:
 
  * pspp-convert, a new standalone utility for converting SPSS system
    and portable files to other formats, is now included.  The initial
-   version is only capable of converting to comma-separated value
-   files..
+   version supports comma-separated value files as output format.
+   pspp-convert can also decrypt encrypted system files.
 
  * Build changes:
 

@@ -120,6 +120,7 @@ Each type of record is described separately below.
 * Miscellaneous Informational Records::
 * Dictionary Termination Record::
 * Data Record::
+* Encrypted System Files::
 @end menu
 
 @node File Header Record
@@ -1321,10 +1322,10 @@ VARIABLE ATTRIBUTE VARIABLES=dummy ATTRIBUTE=bert('123').
 will contain a variable attribute record with the following contents:
 
 @example
-00000000  07 00 00 00 12 00 00 00  01 00 00 00 22 00 00 00  |............"...|
-00000010  64 75 6d 6d 79 3a 66 72  65 64 28 27 32 33 27 0a  |dummy:fred('23'.|
-00000020  27 33 34 27 0a 29 62 65  72 74 28 27 31 32 33 27  |'34'.)bert('123'|
-00000030  0a 29                                             |.)              |
+0000  07 00 00 00 12 00 00 00  01 00 00 00 22 00 00 00  |............"...|
+0010  64 75 6d 6d 79 3a 66 72  65 64 28 27 32 33 27 0a  |dummy:fred('23'.|
+0020  27 33 34 27 0a 29 62 65  72 74 28 27 31 32 33 27  |'34'.)bert('123'|
+0030  0a 29                                             |.)              |
 @end example
 
 @menu
@@ -1632,3 +1633,165 @@ system file.
 @end table
 
 @setfilename ignored
+
+@node Encrypted System Files
+@section Encrypted System Files
+
+SPSS 21 and later support an encrypted system file format.
+
+@quotation Warning
+The SPSS encrypted file format is poorly designed.  It is much cheaper
+and faster to decrypt a file encrypted this way than if a well
+designed alternative were used.  If you must use this format, use a
+10-byte randomly generated password.
+@end quotation
+
+@subheading Encrypted File Format
+
+Encrypted system files begin with the following 36-byte fixed header:
+
+@example
+0000  1c 00 00 00 00 00 00 00  45 4e 43 52 59 50 54 45  |........ENCRYPTE|
+0010  44 53 41 56 15 00 00 00  00 00 00 00 00 00 00 00  |DSAV............|
+0020  00 00 00 00                                       |....|
+@end example
+
+Following the fixed header is a complete system file in the usual
+format, except that each 16-byte block is encrypted with AES-256 in
+ECB mode.  The AES-256 key is derived from a password in the following
+way:
+
+@enumerate 
+@item
+Start from the literal password typed by the user.  Truncate it to at
+most 10 bytes, then append (between 1 and 22) null bytes until there
+are exactly 32 bytes.  Call this @var{password}.
+
+@item
+Let @var{constant} be the following 73-byte constant:
+
+@example
+0000  00 00 00 01 35 27 13 cc  53 a7 78 89 87 53 22 11
+0010  d6 5b 31 58 dc fe 2e 7e  94 da 2f 00 cc 15 71 80
+0020  0a 6c 63 53 00 38 c3 38  ac 22 f3 63 62 0e ce 85
+0030  3f b8 07 4c 4e 2b 77 c7  21 f5 1a 80 1d 67 fb e1
+0040  e1 83 07 d8 0d 00 00 01  00
+@end example
+
+@item
+Compute CMAC-AES-256(@var{password}, @var{constant}).  Call the
+16-byte result @var{cmac}.
+
+@item
+The 32-byte AES-256 key is @var{cmac} || @var{cmac}, that is,
+@var{cmac} repeated twice.
+@end enumerate
+
+@subsubheading Example
+
+Consider the password @samp{pspp}.  @var{password} is:
+
+@example
+0000  70 73 70 70 00 00 00 00  00 00 00 00 00 00 00 00  |pspp............|
+0010  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+@end example
+
+@noindent
+@var{cmac} is:
+
+@example
+0000  3e da 09 8e 66 04 d4 fd  f9 63 0c 2c a8 6f b0 45
+@end example
+
+@noindent
+The AES-256 key is:
+
+@example
+0000  3e da 09 8e 66 04 d4 fd  f9 63 0c 2c a8 6f b0 45
+0010  3e da 09 8e 66 04 d4 fd  f9 63 0c 2c a8 6f b0 45
+@end example
+
+@subheading Password Encoding
+
+SPSS also supports what it calls ``encrypted passwords.''  These are
+not encrypted.  They are encoded with a simple, fixed scheme.  An
+encoded password is always a multiple of 2 characters long, and never
+longer than 20 characters.  The characters in an encoded password are
+always in the graphic ASCII range 33 through 126.  Each successive
+pair of characters in the password encodes a single byte in the
+plaintext password.
+
+Use the following algorithm to decode a pair of characters:
+
+@enumerate
+@item
+Let @var{a} be the ASCII code of the first character, and @var{b} be
+the ASCII code of the second character.
+
+@item
+Let @var{ah} be the most significant 4 bits of @var{a}.  Find the line
+in the table below that has @var{ah} on the left side.  The right side
+of the line is a set of possible values for the most significant 4
+bits of the decoded byte.
+
+@display
+@t{2 } @result{} @t{2367}
+@t{3 } @result{} @t{0145}
+@t{47} @result{} @t{89cd}
+@t{56} @result{} @t{abef}
+@end display
+
+@item
+Let @var{bh} be the most significant 4 bits of @var{b}.  Find the line
+in the second table below that has @var{bh} on the left side.  The
+right side of the line is a set of possible values for the most
+significant 4 bits of the decoded byte.  Together with the results of
+the previous step, only a single possibility is left.
+
+@display
+@t{2 } @result{} @t{139b}
+@t{3 } @result{} @t{028a}
+@t{47} @result{} @t{46ce}
+@t{56} @result{} @t{57df}
+@end display
+
+@item
+Let @var{al} be the least significant 4 bits of @var{a}.  Find the
+line in the table below that has @var{al} on the left side.  The right
+side of the line is a set of possible values for the least significant
+4 bits of the decoded byte.
+
+@display
+@t{03cf} @result{} @t{0145}
+@t{12de} @result{} @t{2367}
+@t{478b} @result{} @t{89cd}
+@t{569a} @result{} @t{abef}
+@end display
+
+@item
+Let @var{bl} be the least significant 4 bits of @var{b}.  Find the
+line in the table below that has @var{bl} on the left side.  The right
+side of the line is a set of possible values for the least significant
+4 bits of the decoded byte.  Together with the results of the previous
+step, only a single possibility is left.
+
+@display
+@t{03cf} @result{} @t{028a}
+@t{12de} @result{} @t{139b}
+@t{478b} @result{} @t{46ce}
+@t{569a} @result{} @t{57df}
+@end display
+@end enumerate
+
+@subsubheading Example
+
+Consider the encoded character pair @samp{-|}.  @var{a} is
+0x2d and @var{b} is 0x7c, so @var{ah} is 2, @var{bh} is 7, @var{al} is
+0xd, and @var{bl} is 0xc.  @var{ah} means that the most significant
+four bits of the decoded character is 2, 3, 6, or 7, and @var{bh}
+means that they are 4, 6, 0xc, or 0xe.  The single possibility in
+common is 6, so the most significant four bits are 6.  Similarly,
+@var{al} means that the least significant four bits are 2, 3, 6, or 7,
+and @var{bl} means they are 0, 2, 8, or 0xa, so the least significant
+four bits are 2.  The decoded character is therefore 0x62, the letter
+@samp{b}.
