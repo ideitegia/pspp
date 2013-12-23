@@ -48,6 +48,12 @@ PHONY =
 SUFFIXES = .q
 LDADD = gl/libgl.la
 
+# This ensures that files added to EXTRA_DIST are always distributed,
+# even if they are inside an Automake if...endif conditional block that is
+# disabled by some particular "configure" run.  For more information, see:
+# http://article.gmane.org/gmane.comp.sysutils.automake.general/10891
+noinst_HEADERS = $(EXTRA_DIST)
+
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
 	  $(top_srcdir)/build-aux/gitlog-to-changelog --since=2008-07-27	\
