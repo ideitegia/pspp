@@ -101,7 +101,7 @@ encrypted_sys_file_open (struct encrypted_sys_file **fp, const char *filename)
 
 error:
   if (f->file)
-    fclose (f->file);
+    fn_close (filename, f->file);
   free (f);
   *fp = NULL;
 
