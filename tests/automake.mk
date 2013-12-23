@@ -219,6 +219,7 @@ EXTRA_DIST += \
 	tests/data/bcd-in.expected.cmp.gz \
 	tests/data/binhex-in.expected.cmp.gz \
 	tests/data/binhex-out.expected.gz \
+	tests/data/hotel-encrypted.sav \
 	tests/data/legacy-in.expected.cmp.gz \
 	tests/data/num-in.expected.gz \
 	tests/data/num-out-cmp.pl \

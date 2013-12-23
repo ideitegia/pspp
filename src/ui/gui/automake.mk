@@ -49,8 +49,11 @@ UI_FILES = \
 
 EXTRA_DIST += \
 	src/ui/gui/OChangeLog \
+	src/ui/gui/artwork/actions/.empty \
+	src/ui/gui/artwork/apps/scalable/.empty \
+	src/ui/gui/gen-dot-desktop.sh \
 	src/ui/gui/marshaller-list \
-	src/ui/gui/gen-dot-desktop.sh
+	src/ui/gui/pspplogo.svg
 
 
 if HAVE_GUI

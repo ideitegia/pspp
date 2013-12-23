@@ -70,7 +70,12 @@ uninstall-hook:
 	done
 
 
-EXTRA_DIST += $(POFILES) $(POTFILE)
+EXTRA_DIST += \
+	$(POFILES) \
+	$(POTFILE) \
+	po/ChangeLog \
+	po/cs.po,aux \
+	po/de.po,aux
 
 CLEANFILES += $(GMOFILES) $(POTFILE)
 

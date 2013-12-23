@@ -5,6 +5,7 @@ examplesdir = $(pkgdatadir)/examples
 
 examples_DATA = \
 	examples/descript.sps \
+	examples/grid.sps \
 	examples/hotel.sav \
 	examples/physiology.sav \
 	examples/repairs.sav \

@@ -38,4 +38,6 @@ generate_from_pl = $(MKDIR_P) `dirname $@` && \
 .incpl.inc:
 	$(generate_from_pl)
 
-EXTRA_DIST += src/language/expressions/OChangeLog
+EXTRA_DIST += \
+	src/language/expressions/OChangeLog \
+	src/language/expressions/TODO

@@ -1,6 +1,6 @@
 include $(top_srcdir)/src/ui/gui/icons/manifest
 
-EXTRA_DIST += $(icons) $(icon_srcs)
+EXTRA_DIST += $(icons) $(icon_srcs) src/ui/gui/icons/COPYING_CCBYSA3
 
 themedir = $(DESTDIR)$(datadir)/icons/hicolor
 

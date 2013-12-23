@@ -75,4 +75,8 @@ if ODF_WRITE_SUPPORT
 src_output_liboutput_la_SOURCES += src/output/odt.c
 endif
 
-EXTRA_DIST += src/output/OChangeLog
+EXTRA_DIST += \
+	src/output/OChangeLog \
+	src/output/README \
+	src/output/charts/OChangeLog \
+	src/output/mk-class-boilerplate
