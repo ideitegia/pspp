@@ -116,9 +116,9 @@ ALL_LOCAL += dist-hook-git
 dist-hook-git: distfiles
 	@if test -e $(srcdir)/.git && (git --version) >/dev/null 2>&1; then \
 	  (cd $(srcdir) && git ls-files)				    \
-	    | grep -vE '\.gitignore|README.Git|Smake' 			    \
-	    | sort -u > gitfiles;					    \
-	  comm -1 -3 distfiles gitfiles > missing-distfiles;		    \
+	    | grep -vE '\.gitignore|README.Git|Smake'			    \
+	    | LC_ALL=C sort -u > gitfiles;				    \
+	  LC_ALL=C comm -1 -3 distfiles gitfiles > missing-distfiles;	    \
 	  if test -s missing-distfiles; then				    \
 	    echo "The distribution is missing the following files:";	    \
 	    cat missing-distfiles;					    \
@@ -132,6 +132,7 @@ distfiles: Makefile
 	list='$(DISTFILES)'; \
 	for file in $$list; do echo $$file; done | \
 	  sed -e "s|^$$srcdirstrip/||;t" \
-	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t" | sort -u > $@
+	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t" \
+	  | LC_ALL=C sort -u > $@
 CLEANFILES += distfiles gitfiles missing-distfiles
 .PHONY: dist-hook-git
