@@ -44,7 +44,7 @@ cmac_aes256(const uint8_t key[32],
             uint8_t cmac[16])
 {
   const char zeros[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  uint32_t rk[4 * RIJNDAEL_MAXNR + 1];
+  uint32_t rk[4 * (RIJNDAEL_MAXNR + 1)];
   uint8_t k1[16], k2[16], L[16];
   const uint8_t *data = data_;
   uint8_t c[16], tmp[16];
