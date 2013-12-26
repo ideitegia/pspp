@@ -241,8 +241,8 @@ AC_SUBST([WITH_PERL_MODULE])
 AM_CONDITIONAL(WITH_PERL_MODULE, test $WITH_PERL_MODULE = yes)
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
-PKG_CHECK_MODULES([GSL], [gsl >= 1.12], [],
-			 AC_SEARCH_LIBS([gsl_linalg_cholesky_invert], [gsl],,[PSPP_REQUIRED_PREREQ([gsl 2.0 version 1.12 or later])]))
+PKG_CHECK_MODULES([GSL], [gsl >= 1.13], [],
+			 AC_SEARCH_LIBS([gsl_poly_eval_derivs], [gsl],,[PSPP_REQUIRED_PREREQ([gsl version 1.13 or later])]))
 
 
 PSPP_GSL_NEEDS_FGNU89_INLINE
