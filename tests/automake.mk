@@ -430,6 +430,7 @@ valgrind_wrappers = \
 	tests/valgrind/tower-test \
 	tests/valgrind/u8-istream-test \
 	tests/valgrind/render-test \
+	tests/valgrind/pspp-convert \
 	tests/valgrind/pspp
 
 $(valgrind_wrappers): tests/valgrind-wrapper.in
