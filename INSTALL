@@ -2,7 +2,8 @@ Installation Instructions for GNU pspp
 **************************************
 
 These instructions are based on the generic GNU installation
-instructions, but they have been tailored for PSPP.
+instructions, but they have been tailored for PSPP.  These instructions
+apply only to people wishing to build and install PSPP from source. 
 
 Overview
 ========
@@ -20,6 +21,8 @@ Obviously, you should replace 'pspp-*' in the above, with the name of
 the tarball you are installing.  
 
 In 99% of cases, that is all you have to do - FINISHED! 
+
+
 
 
 If any part of the above process fails, then it is
@@ -48,7 +51,7 @@ The following packages are required to install PSPP:
       MinGW (http://www.mingw.org/) are known to work.
 
     * The GNU Scientific Library (http://www.gnu.org/software/gsl/),
-      version 1.8 or later, including libgslcblas included with GSL.
+      version 1.13 or later, including libgslcblas included with GSL.
 
     * Perl (http://www.perl.org/), version 5.005_03 or later.  Perl is
       required during build but not after installation.
@@ -57,7 +60,7 @@ The following packages are required to install PSPP:
       If you don't have a version already, you can install GNU
       libiconv (http://www.gnu.org/software/libiconv/).
 
-    * libintl, from GNU gettext (http://ww.gnu.org/software/gettext).
+    * libintl, from GNU gettext (http://www.gnu.org/software/gettext).
       GNU libc includes an integrated libintl, so there is no need to
       separately install libintl on a GNU/Linux system.
 
@@ -80,8 +83,7 @@ use the GUI, you must run `configure' with --without-gui.
       0.18 and 0.19 have a bug that will prevent library detection,
       but other versions should be fine.
 
-    * GTK+ (http://www.gtk.org/), version 2.24.0 or later.  However
-      it must be Gtk+ 2.something  - The Gtk+-3.x series will NOT work!
+    * GTK+ (http://www.gtk.org/), version 2.24.0  -  The Gtk+-3.x series will NOT work!
 
     * GtkSourceView (http://projects.gnome.org/gtksourceview/) 
       version 2.2 or later.
@@ -212,7 +214,7 @@ details on some of the pertinent environment variables.
 by setting variables in the command line or in the environment.  Here
 is an example:
 
-     ./configure CC=c89 CFLAGS=-O2 LIBS=-lposix
+     ./configure CC=c89 CFLAGS=-O0 LIBS=-lposix
 
 To cross-compile PSPP, you will likely need to set the
 PKG_CONFIG_LIBDIR environment variable to point to an
