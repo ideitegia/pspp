@@ -210,3 +210,22 @@ AT_CHECK([diff pspp-s.csv pspp-pw.csv], [0])
 
 
 AT_CLEANUP
+
+
+
+AT_SETUP([QUICK CLUSTER crash on bad cluster quantity])
+AT_DATA([badn.sps], [dnl
+data list notable list /x * y *.
+begin data.
+1   2
+1   2.2
+end data.
+
+QUICK CLUSTER x y 
+	/CRITERIA = CLUSTER(0)
+	.
+])
+
+AT_CHECK([pspp -O format=csv badn.sps], [1], [ignore])
+
+AT_CLEANUP

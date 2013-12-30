@@ -548,6 +548,11 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
 		    {
 		      lex_force_int (lexer);
 		      qc.ngroups = lex_integer (lexer);
+		      if (qc.ngroups <= 0)
+			{
+			  lex_error (lexer, _("The number of clusters must be positive"));
+			  goto error;
+			}
 		      lex_get (lexer);
 		      lex_force_match (lexer, T_RPAREN);
 		    }
@@ -558,6 +563,11 @@ cmd_quick_cluster (struct lexer *lexer, struct dataset *ds)
 		    {
 		      lex_force_int (lexer);
 		      qc.maxiter = lex_integer (lexer);
+		      if (qc.maxiter <= 0)
+			{
+			  lex_error (lexer, _("The number of iterations must be positive"));
+			  goto error;
+			}
 		      lex_get (lexer);
 		      lex_force_match (lexer, T_RPAREN);
 		    }
