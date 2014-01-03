@@ -710,18 +710,19 @@ then an alternative calculation is necessary.
 For the @var{height} variable, the output shows the significance of the 
 Levene test to be 0.33 which means there is a 
 33% probability that the  
-Levene test produces this outcome when the variances are unequal.
-Such a probability is too high
-to assume that the variances are equal so the row
-for unequal variances should be used.
+Levene test produces this outcome when the variances are equal.
+Had the significance been less than 0.05, then it would have been unsafe to assume that
+the variances were equal.
+However, because the value is higher than 0.05 the homogeneity of variances assumption
+is safe and the ``Equal Variances'' row (the more powerful test) can be used.
 Examining this row, the two tailed significance for the @var{height} t-test 
 is less than 0.05, so it is safe to reject the null hypothesis and conclude
 that the mean heights of males and females are unequal.
 
 For the @var{temperature} variable, the significance of the Levene test 
-is 0.58 so again, it is unsafe to use the row for equal variances.
-The unequal variances row indicates that the two tailed significance for
-@var{temperature} is 0.19.  Since this is greater than 0.05 we must reject
+is 0.58 so again, it is safe to use the row for equal variances.
+The equal variances row indicates that the two tailed significance for
+@var{temperature} is 0.20.  Since this is greater than 0.05 we must reject
 the null hypothesis and conclude that there is insufficient evidence to 
 suggest that the body temperature of male and female persons are different.
 
