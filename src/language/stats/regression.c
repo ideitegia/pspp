@@ -792,7 +792,7 @@ reg_stats_coeff (const linreg * c, const gsl_matrix *cov, const struct variable 
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Error"));
   tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Beta"));
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
-  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
+  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Sig."));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
   tab_double (t, 2, 1, 0, linreg_intercept (c), NULL);
   std_err = sqrt (gsl_matrix_get (linreg_cov (c), 0, 0));
@@ -881,7 +881,7 @@ reg_stats_anova (const linreg * c, const struct variable *var)
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Mean Square"));
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("F"));
-  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
+  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Sig."));
 
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("Regression"));
   tab_text (t, 1, 2, TAB_LEFT | TAT_TITLE, _("Residual"));

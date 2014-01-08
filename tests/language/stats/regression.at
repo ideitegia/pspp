@@ -26,13 +26,13 @@ Table: Model Summary (v2)
 ,.971,.942,.925,1.337
 
 Table: ANOVA (v2)
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 ,Regression,202.753,2,101.376,56.754,.000
 ,Residual,12.504,7,1.786,,
 ,Total,215.256,9,,,
 
 Table: Coefficients (v2)
-,,B,Std. Error,Beta,t,Significance
+,,B,Std. Error,Beta,t,Sig.
 ,(Constant),2.191,2.357,.000,.930,.380
 ,v0,1.813,1.053,.171,1.722,.129
 ,v1,-3.427,.332,-1.026,-10.334,.000
@@ -1700,13 +1700,13 @@ Table: Model Summary (v0)
 ,.05,.00,.00,8.11
 
 Table: ANOVA (v0)
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 ,Regression,235.23,1,235.23,3.58,.06
 ,Residual,98438.40,1498,65.71,,
 ,Total,98673.63,1499,,,
 
 Table: Coefficients (v0)
-,,B,Std. Error,Beta,t,Significance
+,,B,Std. Error,Beta,t,Sig.
 ,(Constant),1.24,.42,.00,2.95,.00
 ,v1,1.37,.72,.05,1.89,.06
 ,,,,,,

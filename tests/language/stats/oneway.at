@@ -44,11 +44,11 @@ Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
 ,Total,15,3.47,1.77,.46,2.49,4.45,1.00,7.00
 
 Table: Test of Homogeneity of Variances
-,Levene Statistic,df1,df2,Significance
+,Levene Statistic,df1,df2,Sig.
 Breaking Strain,.09,2,12,.91
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 Breaking Strain,Between Groups,20.13,2,10.07,5.12,.02
 ,Within Groups,23.60,12,1.97,,
 ,Total,43.73,14,,,
@@ -117,11 +117,11 @@ Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
 ,Total,7,2.57,1.51,.57,1.17,3.97,1.00,5.00
 
 Table: Test of Homogeneity of Variances
-,Levene Statistic,df1,df2,Significance
+,Levene Statistic,df1,df2,Sig.
 Breaking Strain,1.09,1,5,.35
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 Breaking Strain,Between Groups,2.41,1,2.41,1.07,.35
 ,Within Groups,11.30,5,2.26,,
 ,Total,13.71,6,,,
@@ -150,11 +150,11 @@ Breaking Strain,Bloggs,3,3.00,1.00,.58,.52,5.48,2.00,4.00
 ,Total,8,4.25,1.67,.59,2.85,5.65,2.00,7.00
 
 Table: Test of Homogeneity of Variances
-,Levene Statistic,df1,df2,Significance
+,Levene Statistic,df1,df2,Sig.
 Breaking Strain,.92,1,6,.37
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 Breaking Strain,Between Groups,7.50,1,7.50,3.75,.10
 ,Within Groups,12.00,6,2.00,,
 ,Total,19.50,7,,,
@@ -320,7 +320,7 @@ QUALITY,11.00,5,12.20,1.30,.58,10.58,13.82,11.00,14.00
 ,Total,15,13.47,1.77,.46,12.49,14.45,11.00,17.00
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 QUALITY,Between Groups,20.13,2,10.07,5.12,.02
 ,Within Groups,23.60,12,1.97,,
 ,Total,43.73,14,,,
@@ -361,11 +361,11 @@ ONEWAY
 
 AT_CHECK([pspp -O format=csv oneway-homogeneity.sps], [0], 
 [Table: Test of Homogeneity of Variances
-,Levene Statistic,df1,df2,Significance
+,Levene Statistic,df1,df2,Sig.
 QUALITY,.09,2,12,.91
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 QUALITY,Between Groups,20.13,2,10.07,5.12,.02
 ,Within Groups,23.60,12,1.97,,
 ,Total,43.73,14,,,
@@ -437,13 +437,13 @@ z,10.00,3,3.67,4.73,2.73,-8.07,15.41,.00,9.00
 ,Total,24,4.67,2.99,.61,3.40,5.93,.00,9.00
 
 Table: Test of Homogeneity of Variances
-,Levene Statistic,df1,df2,Significance
+,Levene Statistic,df1,df2,Sig.
 x,18.76,3,20,.00
 y,71.41,3,20,.00
 z,.89,3,20,.46
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 x,Between Groups,56.16,3,18.72,2.92,.06
 ,Within Groups,128.34,20,6.42,,
 ,Total,184.50,23,,,
@@ -597,7 +597,7 @@ pigmentation,1.000,5,38.600,2.702,1.208,35.245,41.955,36.000,43.000
 ,Total,20,45.850,5.967,1.334,43.057,48.643,36.000,56.000
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 pigmentation,Between Groups,478.950,3,159.650,12.927,.000
 ,Within Groups,197.600,16,12.350,,
 ,Total,676.550,19,,,
@@ -666,7 +666,7 @@ oneway libido by dose
 
 AT_CHECK([pspp -O format=csv oneway-tukey.sps], [0], 
 [Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 libido,Between Groups,20.133,2,10.067,5.119,.025
 ,Within Groups,23.600,12,1.967,,
 ,Total,43.733,14,,,
@@ -726,7 +726,7 @@ ONEWAY
 
 AT_CHECK([pspp -O format=csv oneway-sidak.sps], [0], 
 [Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 score,Between Groups,54.9500,3,18.3167,7.0449,.0031
 ,Within Groups,41.6000,16,2.6000,,
 ,Total,96.5500,19,,,
@@ -807,7 +807,7 @@ oneway usage by group
 
 AT_CHECK([pspp -O format=csv oneway-scheffe.sps], [0], 
 [Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 Days of Use,Between Groups,555.275,3,185.092,6.663,.001
 ,Within Groups,1000.100,36,27.781,,
 ,Total,1555.375,39,,,
@@ -860,7 +860,7 @@ AT_CHECK([pspp -O format=csv oneway-bad-contrast.sps], [0], [dnl
 "oneway-bad-contrast.sps:18: warning: ONEWAY: In contrast list 3, the number of coefficients (3) does not equal the number of groups (2). This contrast list will be ignored."
 
 Table: ANOVA
-,,Sum of Squares,df,Mean Square,F,Significance
+,,Sum of Squares,df,Mean Square,F,Sig.
 height,Between Groups,92629.63,1,92629.63,120.77,.00
 ,Within Groups,4601.87,6,766.98,,
 ,Total,97231.50,7,,,

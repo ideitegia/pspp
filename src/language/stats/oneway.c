@@ -975,7 +975,7 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Mean Square"));
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("F"));
-  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
+  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Sig."));
 
 
   for (i = 0; i < cmd->n_vars; ++i)
@@ -1222,7 +1222,7 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Levene Statistic"));
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("df1"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("df2"));
-  tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
+  tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Sig."));
 
   tab_title (t, _("Test of Homogeneity of Variances"));
 
