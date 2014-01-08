@@ -23,18 +23,18 @@ B,F8.0
 
 Table: Paired Sample Statistics
 ,,Mean,N,Std. Deviation,S.E. Mean
-Pair 0,A,2.00,5,.71,.32
+Pair 1,A,2.00,5,.71,.32
 ,B,4.00,5,1.54,.69
 
 Table: Paired Samples Correlations
 ,,N,Correlation,Sig.
-Pair 0,A & B,5,.92,.03
+Pair 1,A & B,5,.92,.03
 
 Table: Paired Samples Test
 ,,Paired Differences,,,,,,,
 ,,,,,95% Confidence Interval of the Difference,,,,
 ,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
-Pair 0,A - B,-2.00,.94,.42,-3.16,-.84,-4.78,4,.01
+Pair 1,A - B,-2.00,.94,.42,-3.16,-.84,-4.78,4,.01
 ])
 AT_CLEANUP
 
@@ -62,22 +62,22 @@ d,F8.0
 
 Table: Paired Sample Statistics
 ,,Mean,N,Std. Deviation,S.E. Mean
-Pair 0,a,2.00,5,.71,.32
+Pair 1,a,2.00,5,.71,.32
 ,b,4.00,5,1.54,.69
-Pair 1,c,5.10,5,.69,.31
+Pair 2,c,5.10,5,.69,.31
 ,d,3.80,5,.16,.07
 
 Table: Paired Samples Correlations
 ,,N,Correlation,Sig.
-Pair 0,a & b,5,.92,.03
-Pair 1,c & d,5,-.92,.03
+Pair 1,a & b,5,.92,.03
+Pair 2,c & d,5,-.92,.03
 
 Table: Paired Samples Test
 ,,Paired Differences,,,,,,,
 ,,,,,95% Confidence Interval of the Difference,,,,
 ,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
-Pair 0,a - b,-2.00,.94,.42,-3.16,-.84,-4.78,4,.01
-Pair 1,c - d,1.30,.84,.37,.26,2.34,3.47,4,.03
+Pair 1,a - b,-2.00,.94,.42,-3.16,-.84,-4.78,4,.01
+Pair 2,c - d,1.30,.84,.37,.26,2.34,3.47,4,.03
 ])
 AT_CHECK([pspp -o ref.csv ref.sps])
 AT_CHECK([cat ref.csv], [0], [expout])
@@ -123,22 +123,22 @@ d,F8.0
 
 Table: Paired Sample Statistics
 ,,Mean,N,Std. Deviation,S.E. Mean
-Pair 0,a,2.00,5,.71,.32
+Pair 1,a,2.00,5,.71,.32
 ,c,5.10,5,.69,.31
-Pair 1,b,4.00,5,1.54,.69
+Pair 2,b,4.00,5,1.54,.69
 ,d,3.80,5,.16,.07
 
 Table: Paired Samples Correlations
 ,,N,Correlation,Sig.
-Pair 0,a & c,5,.41,.49
-Pair 1,b & d,5,-.87,.05
+Pair 1,a & c,5,.41,.49
+Pair 2,b & d,5,-.87,.05
 
 Table: Paired Samples Test
 ,,Paired Differences,,,,,,,
 ,,,,,95% Confidence Interval of the Difference,,,,
 ,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
-Pair 0,a - c,-3.10,.76,.34,-4.04,-2.16,-9.14,4,.00
-Pair 1,b - d,.20,1.68,.75,-1.89,2.29,.27,4,.80
+Pair 1,a - c,-3.10,.76,.34,-4.04,-2.16,-9.14,4,.00
+Pair 2,b - d,.20,1.68,.75,-1.89,2.29,.27,4,.80
 ])
 AT_CHECK([pspp -o ref.csv ref.sps])
 AT_CHECK([cat ref.csv], [0], [expout])
@@ -183,18 +183,18 @@ B,F8.0
 
 Table: Paired Sample Statistics
 ,,Mean,N,Std. Deviation,S.E. Mean
-Pair 0,A,4.333,3,5.774,3.333
+Pair 1,A,4.333,3,5.774,3.333
 ,B,1.333,3,.577,.333
 
 Table: Paired Samples Correlations
 ,,N,Correlation,Sig.
-Pair 0,A & B,3,1.000,.000
+Pair 1,A & B,3,1.000,.000
 
 Table: Paired Samples Test
 ,,Paired Differences,,,,,,,
 ,,,,,95% Confidence Interval of the Difference,,,,
 ,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
-Pair 0,A - B,3.000,5.196,3.000,-9.908,15.908,1.000,2,.423
+Pair 1,A - B,3.000,5.196,3.000,-9.908,15.908,1.000,2,.423
 ])
 AT_CLEANUP
 

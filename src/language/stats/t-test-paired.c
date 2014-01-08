@@ -186,7 +186,7 @@ paired_summary (const struct tt *tt, struct paired_samp *os)
       int v = pp->posn;
       double cc, mean, sigma;
 
-      tab_text_format (t, 0, v * 2 + heading_rows, TAB_LEFT, _("Pair %d"), pp->posn);
+      tab_text_format (t, 0, v * 2 + heading_rows, TAB_LEFT, _("Pair %d"), pp->posn + 1);
 
       /* first var */
       moments_calculate (pp->mom0, &cc, &mean, &sigma, NULL, NULL);
@@ -241,7 +241,7 @@ paired_correlations (const struct tt *tt, struct paired_samp *os)
       double cc1, mean1, sigma1;
       int v = pp->posn;
 
-      tab_text_format (t, 0, v + heading_rows, TAB_LEFT, _("Pair %d"), pp->posn);
+      tab_text_format (t, 0, v + heading_rows, TAB_LEFT, _("Pair %d"), pp->posn + 1);
 
       tab_text_format (t, 1, v + heading_rows, TAB_LEFT, _("%s & %s"), 
 		       var_to_string (pp->var0),
@@ -324,7 +324,7 @@ paired_test (const struct tt *tt, const struct paired_samp *os)
       moments_calculate (pp->mom_diff, &cc, &mean, &sigma, NULL, NULL);
 
       df = cc - 1.0;
-      tab_text_format (t, 0, v + heading_rows, TAB_LEFT, _("Pair %d"), v);
+      tab_text_format (t, 0, v + heading_rows, TAB_LEFT, _("Pair %d"), v + 1);
 
       tab_text_format (t, 1, v + heading_rows, TAB_LEFT, _("%s - %s"), 
 		       var_to_string (pp->var0),
