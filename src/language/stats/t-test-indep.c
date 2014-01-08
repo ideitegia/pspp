@@ -227,6 +227,8 @@ indep_summary (const struct tt *tt, struct indep_samples *is, const struct pair_
       var_append_value_name (is->gvar, is->gval1, &vallab1);
     }
 
+  tab_vline (t, TAL_1, 1, heading_rows,  rows - 1);
+
   for (v = 0; v < tt->n_vars; ++v)
     {
       int i;
@@ -298,6 +300,8 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
   tab_joint_text_format (t, 9, 1, 10, 1, TAB_CENTER,
                          _("%g%% Confidence Interval of the Difference"),
                          tt->confidence * 100.0);
+
+  tab_vline (t, TAL_1, 1, heading_rows,  rows - 1);
 
   for (v = 0; v < tt->n_vars; ++v)
   {
