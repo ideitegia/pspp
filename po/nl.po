@@ -1,5 +1,5 @@
 # translation of pspp-0.8.1.1.po to Dutch
-# Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+# Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 # This file is distributed under the same licence as the PSPP package.
 #
 # Vertaalde woorden:
@@ -27,14 +27,14 @@
 #  Weighting  = Weging
 #
 # filename: pspp-0.8.1.1.nl.po
-# Harry Thijssen <pspp@sjpaes.nl>, 2009, 2010, 2011, 2012, 2013.
+# Harry Thijssen <pspp@sjpaes.nl>, 2009, 2010, 2011, 2012, 2013, 2014.
 # merge statement: msgmerge -o pspp-0.8.1.1.nl.po-new pspp-0.8.1.1.nl.po pspp.pot
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp-0.8.1.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2013-11-09 17:02-0800\n"
-"PO-Revision-Date: 2013-11-23 17:25+0100\n"
+"PO-Revision-Date: 2014-01-08 17:25+0100\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -1184,17 +1184,17 @@ msgstr ""
 #: src/data/sys-file-reader.c:3147
 #, c-format
 msgid "ZLIB initialization failed (%s)."
-msgstr ""
+msgstr "ZLIB initialisatie mislukt (%s)."
 
 #: src/data/sys-file-reader.c:3158
 #, c-format
 msgid "Inconsistency at end of ZLIB stream (%s)."
-msgstr ""
+msgstr "Inconsistentie op het einde van ZLIB stream (%s)."
 
 #: src/data/sys-file-reader.c:3212
 #, c-format
 msgid "ZLIB stream inconsistency (%s)."
-msgstr ""
+msgstr "ZLIB stream inconsistent (%s)."
 
 #: src/data/sys-file-reader.c:3229
 msgid "Unexpected end of ZLIB compressed data."
@@ -1223,7 +1223,7 @@ msgstr ""
 #: src/data/sys-file-writer.c:1457
 #, c-format
 msgid "ZLIB stream compression failed (%s)."
-msgstr ""
+msgstr "ZLIB stream compressie mislukt (%s)."
 
 #: src/data/sys-file-writer.c:1499
 #, c-format
@@ -1254,7 +1254,7 @@ msgstr "Schaal"
 
 #: src/data/variable.c:913
 msgid "Input"
-msgstr ""
+msgstr "Invoer"
 
 #. TRANSLATORS: This will form a filename.  Please avoid whitespace.
 #: src/data/variable.c:916 src/ui/gui/psppire-output-window.c:1050
@@ -2026,7 +2026,7 @@ msgstr "Aangemaakt:"
 
 #: src/language/dictionary/sys-file-info.c:113
 msgid "Product:"
-msgstr ""
+msgstr "Produkt:"
 
 #: src/language/dictionary/sys-file-info.c:117
 msgid "Integer Format:"
@@ -2731,7 +2731,7 @@ msgstr "Doel"
 
 #: src/language/stats/descriptives.c:651
 msgid "Internal error processing Z scores"
-msgstr ""
+msgstr "Interne fout bij verwerken Z scores"
 
 #: src/language/stats/descriptives.c:749
 #, c-format
@@ -3938,7 +3938,7 @@ msgid "Coefficient Correlations (%s)"
 msgstr "Coëfficiëntcorrelaties (%s)"
 
 #: src/language/stats/runs.c:167
-#, fuzzy, c-format
+#, c-format
 msgid "Multiple modes exist for variable `%s'.  Using %g as the threshold value."
 msgstr "Meerdere modes bestaan voor variabele `%s'.  Gebruik %g als de drempel waarde."
 
@@ -5883,9 +5883,8 @@ msgid "Data and Syntax Files"
 msgstr "Gegevens- en Syntax-bestanden"
 
 #: src/ui/gui/psppire-window.c:732
-#, fuzzy
 msgid "System Files (*.sav, *.zsav)"
-msgstr "Systeembestanden (*.sav)"
+msgstr "Systeembestanden (*.sav, *.zsav)"
 
 #: src/ui/gui/recode-dialog.c:641
 msgid "Recode into Different Variables"
@@ -6068,12 +6067,12 @@ msgstr ""
 #: utilities/pspp-convert.c:126
 #, c-format
 msgid "%s: cannot guess output format (use -O option)"
-msgstr ""
+msgstr "%s: kan het uitvoer formaat niet bepalen (gebruik -O optie)"
 
 #: utilities/pspp-convert.c:162
 #, c-format
 msgid "%s: unknown output format (use -O option)"
-msgstr ""
+msgstr "%s: onbekend uitvoer formaat (gebruik -O optie)"
 
 #: utilities/pspp-convert.c:179
 #, c-format
@@ -8398,3 +8397,21 @@ msgstr "Statistische software"
 #: src/ui/gui/gen-dot-desktop.sh:15
 msgid "Analyze statistical data with a free alternative to SPSS"
 msgstr "Analyseer statistische data met een vrij alternatief van SPSS"
+
+#~ msgid "An error occurred while reading `%s': %s."
+#~ msgstr "Fout opgetreden bij openen van `%s': %s."
+
+#~ msgid "Label: %s"
+#~ msgstr "Label: %s"
+
+#~ msgid "The number of clusters must be positive"
+#~ msgstr "Het aantal clusters moet positief zijn"
+
+#~ msgid "The number of iterations must be positive"
+#~ msgstr "Het aantal iteraries moet positief zijn"
+
+#~ msgid "can only convert encrypted data file to sav or sys format"
+#~ msgstr "kan alleen versleuteld data bestand converteren naar sav of sys formaat"
+
+#~ msgid "sorry, wrong password"
+#~ msgstr "sorry, foutief wachtwoord"
