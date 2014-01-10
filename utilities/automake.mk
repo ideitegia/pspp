@@ -10,7 +10,4 @@ bin_PROGRAMS += utilities/pspp-convert
 dist_man_MANS += utilities/pspp-convert.1
 utilities_pspp_convert_SOURCES = utilities/pspp-convert.c
 utilities_pspp_convert_CPPFLAGS = $(AM_CPPFLAGS) -DINSTALLDIR=\"$(bindir)\"
-utilities_pspp_convert_LDADD = \
-	src/libpspp/liblibpspp.la \
-	src/libpspp-core.la \
-	gl/libgl.la
+utilities_pspp_convert_LDADD = src/libpspp-core.la
