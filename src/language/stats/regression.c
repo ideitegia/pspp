@@ -52,6 +52,17 @@
 
 #define REG_LARGE_DATA 1000
 
+#define STATS_R      1
+#define STATS_COEFF  2
+#define STATS_ANOVA  4
+#define STATS_OUTS   8
+#define STATS_CI    16
+#define STATS_BCOV  32
+
+#define STATS_DEFAULT  (STATS_R | STATS_COEFF | STATS_ANOVA | STATS_OUTS)
+
+
+
 struct regression
 {
   struct dataset *ds;
@@ -62,11 +73,7 @@ struct regression
   const struct variable **dep_vars;
   size_t n_dep_vars;
 
-  bool r;
-  bool coeff;
-  bool anova;
-  bool bcov;
-
+  unsigned int stats;
 
   bool resid;
   bool pred;
@@ -189,10 +196,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 
   memset (&regression, 0, sizeof (struct regression));
 
-  regression.anova = true;
-  regression.coeff = true;
-  regression.r = true;
-
+  regression.stats = STATS_DEFAULT;
   regression.pred = false;
   regression.resid = false;
 
@@ -248,21 +252,38 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
             {
               if (lex_match (lexer, T_ALL))
                 {
+		  regression.stats = ~0;
                 }
               else if (lex_match_id (lexer, "DEFAULTS"))
                 {
+		  regression.stats |= STATS_DEFAULT;
                 }
               else if (lex_match_id (lexer, "R"))
                 {
+		  regression.stats |= STATS_R;
                 }
               else if (lex_match_id (lexer, "COEFF"))
                 {
+		  regression.stats |= STATS_COEFF;
                 }
               else if (lex_match_id (lexer, "ANOVA"))
                 {
+		  regression.stats |= STATS_ANOVA;
                 }
               else if (lex_match_id (lexer, "BCOV"))
                 {
+		  regression.stats |= STATS_BCOV;
+                }
+              else if (lex_match_id (lexer, "CI"))
+                {
+		  regression.stats |= STATS_CI;
+
+		  if (lex_match (lexer, T_LPAREN))
+		    {
+		      lex_number (lexer);
+		      lex_get (lexer);
+		      lex_force_match (lexer, T_RPAREN);
+		    }
                 }
               else
                 {
@@ -573,16 +594,16 @@ static void
 subcommand_statistics (const struct regression *cmd, const linreg * c, const gsl_matrix * cm,
                        const struct variable *var)
 {
-  if (cmd->r) 
+  if (cmd->stats & STATS_R) 
     reg_stats_r     (c, var);
 
-  if (cmd->anova) 
+  if (cmd->stats & STATS_ANOVA) 
     reg_stats_anova (c, var);
 
-  if (cmd->coeff)
+  if (cmd->stats & STATS_COEFF)
     reg_stats_coeff (c, cm, var);
 
-  if (cmd->bcov)
+  if (cmd->stats & STATS_BCOV)
     reg_stats_bcov  (c, var);
 }
 

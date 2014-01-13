@@ -166,11 +166,10 @@ end input program.
 regression 
 	   /variables = x0 x1
 	   /dependent = y ycopy
-	   /statistics = all
+	   /statistics = default.
 ])
 
 AT_CHECK([pspp -O format=csv regression.sps > output], [0], [ignore])
-
 
 AT_CHECK([head -16 output > first], [0], [])
 AT_CHECK([tail -16 output > second], [0], [])
