@@ -4,6 +4,11 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
+Changes from 0.8.2 to 0.8.3:
+
+ * REGRESSION now recognises /STATISTICS=CI(x) which causes confidence
+   intervals for the coefficients to be printed.
+
 Changes from 0.8.1 to 0.8.2:
 
  * Charts are now rendered with colours from the Tango palette instead

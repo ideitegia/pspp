@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ struct regression
   size_t n_dep_vars;
 
   unsigned int stats;
+  double ci;
 
   bool resid;
   bool pred;
@@ -196,6 +197,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 
   memset (&regression, 0, sizeof (struct regression));
 
+  regression.ci = 0.95;
   regression.stats = STATS_DEFAULT;
   regression.pred = false;
   regression.resid = false;
@@ -280,7 +282,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 
 		  if (lex_match (lexer, T_LPAREN))
 		    {
-		      lex_number (lexer);
+		      regression.ci = lex_number (lexer) / 100.0;
 		      lex_get (lexer);
 		      lex_force_match (lexer, T_RPAREN);
 		    }
@@ -585,7 +587,7 @@ fill_covariance (gsl_matrix * cov, struct covariance *all_cov,
   STATISTICS subcommand output functions.
 */
 static void reg_stats_r (const linreg *,     const struct variable *);
-static void reg_stats_coeff (const linreg *, const gsl_matrix *, const struct variable *);
+static void reg_stats_coeff (const linreg *, const gsl_matrix *, const struct variable *, const struct regression *);
 static void reg_stats_anova (const linreg *, const struct variable *);
 static void reg_stats_bcov (const linreg *,  const struct variable *);
 
@@ -601,7 +603,7 @@ subcommand_statistics (const struct regression *cmd, const linreg * c, const gsl
     reg_stats_anova (c, var);
 
   if (cmd->stats & STATS_COEFF)
-    reg_stats_coeff (c, cm, var);
+    reg_stats_coeff (c, cm, var, cmd);
 
   if (cmd->stats & STATS_BCOV)
     reg_stats_bcov  (c, var);
@@ -784,10 +786,11 @@ reg_stats_r (const linreg * c, const struct variable *var)
   Table showing estimated regression coefficients.
 */
 static void
-reg_stats_coeff (const linreg * c, const gsl_matrix *cov, const struct variable *var)
+reg_stats_coeff (const linreg * c, const gsl_matrix *cov, const struct variable *var, const struct regression *cmd)
 {
   size_t j;
   int n_cols = 7;
+  const int heading_rows = 2;
   int n_rows;
   int this_row;
   double t_stat;
@@ -799,43 +802,68 @@ reg_stats_coeff (const linreg * c, const gsl_matrix *cov, const struct variable 
   const struct variable *v;
   struct tab_table *t;
 
+  const double df = linreg_n_obs (c) - linreg_n_coeffs (c) - 1;
+  double q = (1 - cmd->ci) / 2.0;  /* 2-tailed test */
+  double tval = gsl_cdf_tdist_Qinv (q, df);
+
   assert (c != NULL);
-  n_rows = linreg_n_coeffs (c) + 3;
+  n_rows = linreg_n_coeffs (c) + heading_rows + 1;
+
+  if (cmd->stats & STATS_CI)
+    n_cols += 2;
 
   t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 1, 0);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
-  tab_hline (t, TAL_2, 0, n_cols - 1, 1);
+  tab_hline (t, TAL_2, 0, n_cols - 1, heading_rows);
   tab_vline (t, TAL_2, 2, 0, n_rows - 1);
   tab_vline (t, TAL_0, 1, 0, 0);
 
-  tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("B"));
-  tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Error"));
-  tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Beta"));
-  tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
-  tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Sig."));
-  tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
-  tab_double (t, 2, 1, 0, linreg_intercept (c), NULL);
+
+  tab_hline (t, TAL_1, 2, 4, 1); 
+  tab_joint_text (t, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE, _("Unstandardized Coefficients"));
+  tab_text (t, 2, 1, TAB_CENTER | TAT_TITLE, _("B"));
+  tab_text (t, 3, 1, TAB_CENTER | TAT_TITLE, _("Std. Error"));
+  tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Standardized Coefficients"));
+  tab_text (t, 4, 1, TAB_CENTER | TAT_TITLE, _("Beta"));
+  tab_text (t, 5, 1, TAB_CENTER | TAT_TITLE, _("t"));
+  tab_text (t, 6, 1, TAB_CENTER | TAT_TITLE, _("Sig."));
+  tab_text (t, 1, heading_rows, TAB_LEFT | TAT_TITLE, _("(Constant)"));
+  tab_double (t, 2, heading_rows, 0, linreg_intercept (c), NULL);
   std_err = sqrt (gsl_matrix_get (linreg_cov (c), 0, 0));
-  tab_double (t, 3, 1, 0, std_err, NULL);
-  tab_double (t, 4, 1, 0, 0.0, NULL);
+
+  if (cmd->stats & STATS_CI)
+    {
+      double lower = linreg_intercept (c) - tval * std_err ;
+      double upper = linreg_intercept (c) + tval * std_err ;
+      tab_double (t, 7, heading_rows, 0, lower, NULL);
+      tab_double (t, 8, heading_rows, 0, upper, NULL);
+
+      tab_joint_text_format (t, 7, 0, 8, 0, TAB_CENTER | TAT_TITLE, _("%g%% Confidence Interval for B"), cmd->ci * 100);
+      tab_hline (t, TAL_1, 7, 8, 1); 
+      tab_text (t, 7, 1, TAB_CENTER | TAT_TITLE, _("Lower Bound"));
+      tab_text (t, 8, 1, TAB_CENTER | TAT_TITLE, _("Upper Bound"));
+    }
+  tab_double (t, 3, heading_rows, 0, std_err, NULL);
+  tab_double (t, 4, heading_rows, 0, 0.0, NULL);
   t_stat = linreg_intercept (c) / std_err;
-  tab_double (t, 5, 1, 0, t_stat, NULL);
+  tab_double (t, 5, heading_rows, 0, t_stat, NULL);
   pval =
     2 * gsl_cdf_tdist_Q (fabs (t_stat),
                          (double) (linreg_n_obs (c) - linreg_n_coeffs (c)));
-  tab_double (t, 6, 1, 0, pval, NULL);
+  tab_double (t, 6, heading_rows, 0, pval, NULL);
+
   for (j = 0; j < linreg_n_coeffs (c); j++)
     {
       struct string tstr;
       ds_init_empty (&tstr);
-      this_row = j + 2;
+      this_row = j + heading_rows + 1;
 
       v = linreg_indep_var (c, j);
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
       ds_put_cstr (&tstr, label);
-      tab_text (t, 1, this_row, TAB_CENTER, ds_cstr (&tstr));
+      tab_text (t, 1, this_row, TAB_LEFT, ds_cstr (&tstr));
       /*
          Regression coefficients.
        */
@@ -862,12 +890,18 @@ reg_stats_coeff (const linreg * c, const gsl_matrix *cov, const struct variable 
       /*
          P values for the test statistic above.
        */
-      pval =
-        2 * gsl_cdf_tdist_Q (fabs (t_stat),
-                             (double) (linreg_n_obs (c) -
-                                       linreg_n_coeffs (c) - 1));
+      pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), df);
       tab_double (t, 6, this_row, 0, pval, NULL);
       ds_destroy (&tstr);
+
+      if (cmd->stats & STATS_CI)
+	{
+	  double lower = linreg_coeff (c, j)  - tval * std_err ;
+	  double upper = linreg_coeff (c, j)  + tval * std_err ;
+			
+	  tab_double (t, 7, this_row, 0, lower, NULL);
+	  tab_double (t, 8, this_row, 0, upper, NULL);
+	}
     }
   tab_title (t, _("Coefficients (%s)"), var_to_string (var));
   tab_submit (t);

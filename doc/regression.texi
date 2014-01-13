@@ -45,7 +45,7 @@ linear model.
 REGRESSION
         /VARIABLES=@var{var_list}
         /DEPENDENT=@var{var_list}
-        /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
+        /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV, CI[@var{conf}]@}
         /SAVE=@{PRED, RESID@}
 @end display
 
@@ -61,7 +61,8 @@ are treated as explanatory variables in the linear model.
 
 All other subcommands are optional:
 
-The @subcmd{STATISTICS} subcommand specifies the statistics to be displayed:
+The @subcmd{STATISTICS} subcommand specifies additional statistics to be displayed.
+The following keywords are accepted:
 
 @table @subcmd
 @item ALL
@@ -71,10 +72,16 @@ The ratio of the sums of squares due to the model to the total sums of
 squares for the dependent variable.
 @item COEFF
 A table containing the estimated model coefficients and their standard errors.
+@item CI (@var{conf})
+This item is only relevant if COEFF has also been selected.  It specifies that the
+confidence interval for the coefficients should be printed.  The optional value @var{conf},
+which must be in parentheses, is the desired confidence level expressed as a percentage.
 @item ANOVA
 Analysis of variance table for the model.
 @item BCOV
 The covariance matrix for the estimated model coefficients.
+@item DEFAULT
+The same as if R, COEFF, and ANOVA had been selected.
 @end table
 
 The @subcmd{SAVE} subcommand causes @pspp{} to save the residuals or predicted
