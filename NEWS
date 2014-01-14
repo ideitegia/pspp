@@ -1,10 +1,10 @@
 PSPP NEWS -- history of user-visible changes.
-Copyright (C) 1996-2000, 2008-2013 Free Software Foundation, Inc.
+Copyright (C) 1996-2000, 2008-2014 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
-Changes from 0.8.1 to 0.8.1.1:
+Changes from 0.8.1 to 0.8.2:
 
  * Charts are now rendered with colours from the Tango palette instead
    of fully saturated primaries.
