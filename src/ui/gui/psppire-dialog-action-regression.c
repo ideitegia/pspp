@@ -38,9 +38,11 @@
 
 #define REGRESSION_STATS			  \
   RG (COEFF, N_("Coeff"))                         \
+  RG (CI, N_("Conf. Interval"))                 \
   RG (R, N_("R"))				  \
   RG (ANOVA, N_("Anova"))			  \
   RG (BCOV, N_("Bcov"))
+
 enum
   {
 #define RG(NAME, LABEL) RG_##NAME,
