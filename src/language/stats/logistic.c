@@ -877,12 +877,12 @@ cmd_logistic (struct lexer *lexer, struct dataset *ds)
 		  lr.print |= PRINT_CI;
 		  if (lex_force_match (lexer, T_LPAREN))
 		    {
-		      if (! lex_force_int (lexer))
+		      if (! lex_force_num (lexer))
 			{
 			  lex_error (lexer, NULL);
 			  goto error;
 			}
-		      lr.confidence = lex_integer (lexer);
+		      lr.confidence = lex_number (lexer);
 		      lex_get (lexer);
 		      if ( ! lex_force_match (lexer, T_RPAREN))
 			{
