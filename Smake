@@ -370,7 +370,7 @@ prep_ph:
 		echo >&2 "libtoolize not found";		\
 		exit 1;						\
 	fi;							\
-	$$LIBTOOLIZE --force --automake
+	$$LIBTOOLIZE --force --automake --copy
 
 aclocal.m4:
 	aclocal -I m4 -I gl/m4
