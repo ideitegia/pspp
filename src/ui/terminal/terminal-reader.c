@@ -108,12 +108,15 @@ terminal_reader_cast (struct lex_reader *r)
   return UP_CAST (r, struct terminal_reader, reader);
 }
 
+
 /* Older libreadline versions do not provide rl_outstream.
    However, it is almost always going to be the same as stdout. */
 #if ! HAVE_RL_OUTSTREAM
 # define rl_outstream stdout
 #endif
 
+
+#if HAVE_READLINE
 /* Similarly, rl_echo_signal_char is fairly recent.
    We provide our own crude version if it is not present. */
 #if ! HAVE_RL_ECHO_SIGNAL_CHAR
@@ -137,6 +140,7 @@ rl_echo_signal_char (int sig)
 
   fflush (rl_outstream);
 }  
+#endif
 #endif
 
 
