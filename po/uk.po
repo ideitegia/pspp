@@ -2,13 +2,13 @@
 # Copyright (C) 2013 Free Software Foundation, Inc.
 # This file is distributed under the same license as the pspp package.
 #
-# Yuri Chornoivan <yurchor@ukr.net>, 2013.
+# Yuri Chornoivan <yurchor@ukr.net>, 2013, 2014.
 msgid ""
 msgstr ""
-"Project-Id-Version: pspp 0.8.1.1\n"
+"Project-Id-Version: pspp 0.8.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2013-11-09 17:02-0800\n"
-"PO-Revision-Date: 2013-11-10 11:23+0200\n"
+"POT-Creation-Date: 2014-01-13 21:25-0800\n"
+"PO-Revision-Date: 2014-01-14 12:13+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "Language: uk\n"
@@ -29,7 +29,7 @@ msgstr "Продовжити"
 #: src/ui/gui/psppire-dictview.c:486 src/language/dictionary/split-file.c:82
 #: src/language/dictionary/sys-file-info.c:166
 #: src/language/dictionary/sys-file-info.c:350
-#: src/language/dictionary/sys-file-info.c:672
+#: src/language/dictionary/sys-file-info.c:676
 #: src/language/stats/descriptives.c:982
 #: src/language/data-io/data-parser.c:682
 #: src/language/data-io/data-parser.c:721 src/language/data-io/print.c:446
@@ -46,17 +46,17 @@ msgstr "Перевага змінних міток"
 msgid "Var%d"
 msgstr "Змін%d"
 
-#: src/data/any-reader.c:60
+#: src/data/any-reader.c:52 src/data/sys-file-encryption.c:74
 #, c-format
 msgid "An error occurred while opening `%s': %s."
 msgstr "Під час спроби відкрити «%s» сталася помилка: %s."
 
-#: src/data/any-reader.c:111
+#: src/data/any-reader.c:107
 #, c-format
 msgid "`%s' is not a system or portable file."
 msgstr "«%s» не є системним або портативним файлом."
 
-#: src/data/any-reader.c:117 src/data/any-writer.c:67
+#: src/data/any-reader.c:113 src/data/any-writer.c:67
 msgid "The inline file is not allowed here."
 msgstr "Тут не можна використовувати вбудовані файли."
 
@@ -691,6 +691,11 @@ msgstr "Показ попереджено повторно увімкнено. �
 #, c-format
 msgid "%s: Custom currency string `%s' does not contain exactly three periods or commas (or it contains both)."
 msgstr "%s: у рядку нетипової валюти, «%s» не міститься точно трьох крапок або ком (або містяться і крапки, і коми)."
+
+#: src/data/sys-file-encryption.c:85
+#, c-format
+msgid "An error occurred while reading `%s': %s."
+msgstr "Під час спроби читання «%s» сталася помилка: %s."
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
@@ -1919,7 +1924,7 @@ msgstr "Набір множини категорій"
 #: src/language/dictionary/mrsets.c:567
 #: src/language/dictionary/split-file.c:84
 #: src/language/dictionary/sys-file-info.c:354
-#: src/language/dictionary/sys-file-info.c:601
+#: src/language/dictionary/sys-file-info.c:605
 #: src/ui/gui/psppire-var-sheet.c:1374 src/ui/gui/compute.ui:479
 msgid "Label"
 msgstr "Мітка"
@@ -1978,7 +1983,7 @@ msgstr "Перейменування призведе до дублювання 
 
 #: src/language/dictionary/split-file.c:83
 #: src/language/dictionary/sys-file-info.c:443
-#: src/language/dictionary/sys-file-info.c:600
+#: src/language/dictionary/sys-file-info.c:604
 #: src/language/stats/cochran.c:170 src/language/stats/examine.c:1130
 #: src/language/stats/reliability.c:794 src/language/stats/reliability.c:805
 #: src/language/stats/crosstabs.q:1277 src/language/stats/crosstabs.q:1304
@@ -2063,7 +2068,7 @@ msgid "Type:"
 msgstr "Тип:"
 
 #: src/language/dictionary/sys-file-info.c:143
-#: src/ui/gui/psppire-data-window.c:517
+#: src/ui/gui/psppire-data-window.c:520
 msgid "System File"
 msgstr "Системний файл"
 
@@ -2090,7 +2095,7 @@ msgstr "Опис"
 
 #: src/language/dictionary/sys-file-info.c:168
 #: src/language/dictionary/sys-file-info.c:356
-#: src/language/dictionary/sys-file-info.c:671
+#: src/language/dictionary/sys-file-info.c:675
 msgid "Position"
 msgstr "Розташування"
 
@@ -2123,54 +2128,59 @@ msgstr "Документи у активному наборі даних:"
 msgid "Attribute"
 msgstr "Атрибут"
 
-#: src/language/dictionary/sys-file-info.c:498
+#: src/language/dictionary/sys-file-info.c:486
+#, c-format
+msgid "Label: %s"
+msgstr "Мітка: %s"
+
+#: src/language/dictionary/sys-file-info.c:502
 #, c-format
 msgid "Format: %s"
 msgstr "Формат: %s"
 
-#: src/language/dictionary/sys-file-info.c:505
+#: src/language/dictionary/sys-file-info.c:509
 #, c-format
 msgid "Print Format: %s"
 msgstr "Формат друку: %s"
 
-#: src/language/dictionary/sys-file-info.c:509
+#: src/language/dictionary/sys-file-info.c:513
 #, c-format
 msgid "Write Format: %s"
 msgstr "Формат запису: %s"
 
-#: src/language/dictionary/sys-file-info.c:521
+#: src/language/dictionary/sys-file-info.c:525
 #, c-format
 msgid "Measure: %s"
 msgstr "Міра: %s"
 
-#: src/language/dictionary/sys-file-info.c:528
+#: src/language/dictionary/sys-file-info.c:532
 #, c-format
 msgid "Role: %s"
 msgstr "Роль: %s"
 
-#: src/language/dictionary/sys-file-info.c:533
+#: src/language/dictionary/sys-file-info.c:537
 #, c-format
 msgid "Display Alignment: %s"
 msgstr "Вирівнювання під час показу: %s"
 
-#: src/language/dictionary/sys-file-info.c:538
+#: src/language/dictionary/sys-file-info.c:542
 #, c-format
 msgid "Display Width: %d"
 msgstr "Ширина показу: %d"
 
-#: src/language/dictionary/sys-file-info.c:552
+#: src/language/dictionary/sys-file-info.c:556
 msgid "Missing Values: "
 msgstr "Пропущені значення: "
 
-#: src/language/dictionary/sys-file-info.c:651
+#: src/language/dictionary/sys-file-info.c:655
 msgid "No vectors defined."
 msgstr "Векторів не визначено."
 
-#: src/language/dictionary/sys-file-info.c:670
+#: src/language/dictionary/sys-file-info.c:674
 msgid "Vector"
 msgstr "Вектор"
 
-#: src/language/dictionary/sys-file-info.c:673
+#: src/language/dictionary/sys-file-info.c:677
 msgid "Print Format"
 msgstr "Формат друку"
 
@@ -2436,7 +2446,7 @@ msgid "Category"
 msgstr "Категорія"
 
 #: src/language/stats/binomial.c:253 src/language/stats/cochran.c:211
-#: src/language/stats/correlations.c:120 src/language/stats/correlations.c:229
+#: src/language/stats/correlations.c:120 src/language/stats/correlations.c:230
 #: src/language/stats/examine.c:1340 src/language/stats/friedman.c:275
 #: src/language/stats/kruskal-wallis.c:273
 #: src/language/stats/ks-one-sample.c:293 src/language/stats/logistic.c:1403
@@ -2510,7 +2520,7 @@ msgstr "χ-квадрат"
 #: src/language/stats/glm.c:750 src/language/stats/kruskal-wallis.c:349
 #: src/language/stats/logistic.c:1223 src/language/stats/median.c:426
 #: src/language/stats/oneway.c:975 src/language/stats/oneway.c:1380
-#: src/language/stats/regression.c:881 src/language/stats/t-test-indep.c:291
+#: src/language/stats/regression.c:881 src/language/stats/t-test-indep.c:293
 #: src/language/stats/t-test-one-sample.c:95
 #: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1278
 msgid "df"
@@ -2573,30 +2583,30 @@ msgstr "Стд. відхилення"
 msgid "Correlations"
 msgstr "Кореляції"
 
-#: src/language/stats/correlations.c:218
+#: src/language/stats/correlations.c:219
 msgid "Pearson Correlation"
 msgstr "Кореляція Пірсона"
 
-#: src/language/stats/correlations.c:220 src/language/stats/oneway.c:1381
-#: src/language/stats/t-test-indep.c:292
+#: src/language/stats/correlations.c:221 src/language/stats/oneway.c:1381
+#: src/language/stats/t-test-indep.c:294
 #: src/language/stats/t-test-one-sample.c:96
 #: src/language/stats/t-test-paired.c:307
 msgid "Sig. (2-tailed)"
 msgstr "Знач. (двобічна)"
 
-#: src/language/stats/correlations.c:220 src/language/stats/factor.c:1689
+#: src/language/stats/correlations.c:221 src/language/stats/factor.c:1689
 msgid "Sig. (1-tailed)"
 msgstr "Знач. (однобічна)"
 
-#: src/language/stats/correlations.c:224
+#: src/language/stats/correlations.c:225
 msgid "Cross-products"
 msgstr "Добутки"
 
-#: src/language/stats/correlations.c:225
+#: src/language/stats/correlations.c:226
 msgid "Covariance"
 msgstr "Коваріація"
 
-#: src/language/stats/correlations.c:458 src/language/stats/descriptives.c:371
+#: src/language/stats/correlations.c:460 src/language/stats/descriptives.c:371
 #: src/language/data-io/list.c:167
 msgid "No variables specified."
 msgstr "Не вказано змінних."
@@ -2975,8 +2985,10 @@ msgid "Approx. Chi-Square"
 msgstr "Приблизне χ-квадрат"
 
 #: src/language/stats/factor.c:1885 src/language/stats/glm.c:753
-#: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:1584
-#: src/language/stats/t-test-indep.c:289
+#: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:978
+#: src/language/stats/oneway.c:1225 src/language/stats/oneway.c:1584
+#: src/language/stats/regression.c:795 src/language/stats/regression.c:884
+#: src/language/stats/t-test-indep.c:291
 #: src/language/stats/t-test-paired.c:235
 msgid "Sig."
 msgstr "Знач."
@@ -3092,7 +3104,7 @@ msgid "Mean Square"
 msgstr "Середнє за квадратами"
 
 #: src/language/stats/glm.c:752 src/language/stats/oneway.c:977
-#: src/language/stats/regression.c:883 src/language/stats/t-test-indep.c:288
+#: src/language/stats/regression.c:883 src/language/stats/t-test-indep.c:290
 msgid "F"
 msgstr "F"
 
@@ -3243,13 +3255,13 @@ msgstr "Exp(B)"
 msgid "%d%% CI for Exp(B)"
 msgstr "%d%% коеф. спряж. для Exp(B)"
 
-#: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:295
+#: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:297
 #: src/language/stats/t-test-one-sample.c:98
 #: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1328
 msgid "Lower"
 msgstr "Нижня"
 
-#: src/language/stats/logistic.c:1233 src/language/stats/t-test-indep.c:296
+#: src/language/stats/logistic.c:1233 src/language/stats/t-test-indep.c:298
 #: src/language/stats/t-test-one-sample.c:99
 #: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1329
 msgid "Upper"
@@ -3535,11 +3547,6 @@ msgstr "Сума коефіцієнтів контрасту %zu не дорів
 msgid "Sum of Squares"
 msgstr "Сума квадратів"
 
-#: src/language/stats/oneway.c:978 src/language/stats/oneway.c:1225
-#: src/language/stats/regression.c:795 src/language/stats/regression.c:884
-msgid "Significance"
-msgstr "Значущість"
-
 #: src/language/stats/oneway.c:996
 msgid "Between Groups"
 msgstr "Між групами"
@@ -3585,7 +3592,7 @@ msgid "Value of Contrast"
 msgstr "Значення контрастності"
 
 #: src/language/stats/oneway.c:1379 src/language/stats/regression.c:794
-#: src/language/stats/t-test-indep.c:290
+#: src/language/stats/t-test-indep.c:292
 #: src/language/stats/t-test-one-sample.c:94
 #: src/language/stats/t-test-paired.c:305
 msgid "t"
@@ -3614,7 +3621,7 @@ msgstr "(I) %s"
 msgid "(J) %s"
 msgstr "(J) %s"
 
-#: src/language/stats/oneway.c:1581 src/language/stats/t-test-indep.c:293
+#: src/language/stats/oneway.c:1581 src/language/stats/t-test-indep.c:295
 #: src/language/stats/t-test-one-sample.c:97
 msgid "Mean Difference"
 msgstr "Середня різниця"
@@ -3648,6 +3655,14 @@ msgstr "Кластер"
 #: src/language/stats/quick-cluster.c:461
 msgid "Number of Cases in each Cluster"
 msgstr "Кількість спостережень у кожному з кластерів"
+
+#: src/language/stats/quick-cluster.c:553
+msgid "The number of clusters must be positive"
+msgstr "Кількість кластерів має бути додатною"
+
+#: src/language/stats/quick-cluster.c:568
+msgid "The number of iterations must be positive"
+msgstr "Кількість ітерацій має бути додатною"
 
 #: src/language/stats/rank.c:206
 #, c-format
@@ -3982,34 +3997,34 @@ msgstr "Змінну %s у критерії впорядковування вк�
 msgid "Group Statistics"
 msgstr "Статистика групи"
 
-#: src/language/stats/t-test-indep.c:277
+#: src/language/stats/t-test-indep.c:279
 msgid "Independent Samples Test"
 msgstr "Перевірка незалежних вибірок"
 
-#: src/language/stats/t-test-indep.c:285
+#: src/language/stats/t-test-indep.c:287
 msgid "Levene's Test for Equality of Variances"
 msgstr "Перевірка Лівіня рівності дисперсій"
 
-#: src/language/stats/t-test-indep.c:286
+#: src/language/stats/t-test-indep.c:288
 msgid "t-test for Equality of Means"
 msgstr "t-перевірка рівності середніх"
 
-#: src/language/stats/t-test-indep.c:294
+#: src/language/stats/t-test-indep.c:296
 msgid "Std. Error Difference"
 msgstr "Різниця стандратних похибок"
 
-#: src/language/stats/t-test-indep.c:299
+#: src/language/stats/t-test-indep.c:301
 #: src/language/stats/t-test-one-sample.c:89
 #: src/language/stats/t-test-paired.c:300
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
 msgstr "%g%%-ий довірчий інтервал різниці"
 
-#: src/language/stats/t-test-indep.c:313
+#: src/language/stats/t-test-indep.c:317
 msgid "Equal variances assumed"
 msgstr "Припускаємо рівність дисперсій"
 
-#: src/language/stats/t-test-indep.c:345
+#: src/language/stats/t-test-indep.c:349
 msgid "Equal variances not assumed"
 msgstr "Не припускаємо рівності дисперсій"
 
@@ -5297,15 +5312,15 @@ msgstr "Попереднє"
 msgid "Aggregate destination file"
 msgstr "Агрегувати файл призначення"
 
-#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:486
+#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:488
 msgid "System Files (*.sav)"
 msgstr "системні файли (*.sav)"
 
-#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:491
+#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:493
 msgid "Compressed System Files (*.zsav)"
 msgstr "стиснені системні файли (*.zsav)"
 
-#: src/ui/gui/aggregate-dialog.c:176 src/ui/gui/psppire-data-window.c:496
+#: src/ui/gui/aggregate-dialog.c:176 src/ui/gui/psppire-data-window.c:498
 #: src/ui/gui/psppire-window.c:738
 msgid "Portable Files (*.por) "
 msgstr "портативні файли (*.por) "
@@ -5411,11 +5426,11 @@ msgstr "Некоректне значення типу змінної"
 msgid "Incorrect range specification"
 msgstr "Некоректне визначення діапазону"
 
-#: src/ui/gui/psppire.c:304
+#: src/ui/gui/psppire.c:306
 msgid "_Reset"
 msgstr "С_кинути"
 
-#: src/ui/gui/psppire.c:305
+#: src/ui/gui/psppire.c:307
 msgid "_Select"
 msgstr "По_значити"
 
@@ -5491,50 +5506,50 @@ msgstr "Зваж. вимкн."
 msgid "Weight by %s"
 msgstr "Вага за %s"
 
-#: src/ui/gui/psppire-data-window.c:476 src/ui/gui/aggregate.ui:450
+#: src/ui/gui/psppire-data-window.c:478 src/ui/gui/aggregate.ui:450
 msgid "Save"
 msgstr "Зберегти"
 
-#: src/ui/gui/psppire-data-window.c:501 src/ui/gui/psppire-syntax-window.c:605
+#: src/ui/gui/psppire-data-window.c:503 src/ui/gui/psppire-syntax-window.c:605
 #: src/ui/gui/psppire-window.c:749 src/ui/gui/page-file.c:249
 msgid "All Files"
 msgstr "усі файли"
 
-#: src/ui/gui/psppire-data-window.c:524
+#: src/ui/gui/psppire-data-window.c:527
 msgid "Compressed System File"
 msgstr "Стиснений системний файл"
 
-#: src/ui/gui/psppire-data-window.c:530
+#: src/ui/gui/psppire-data-window.c:533
 msgid "Portable File"
 msgstr "Портативний файл"
 
-#: src/ui/gui/psppire-data-window.c:533
+#: src/ui/gui/psppire-data-window.c:536
 msgid "Format:"
 msgstr "Формат:"
 
-#: src/ui/gui/psppire-data-window.c:597
+#: src/ui/gui/psppire-data-window.c:600
 msgid "Delete Existing Dataset?"
 msgstr "Вилучити наявний набір даних?"
 
-#: src/ui/gui/psppire-data-window.c:601
+#: src/ui/gui/psppire-data-window.c:604
 #, c-format
 msgid "Renaming \"%s\" to \"%s\" will destroy the existing dataset named \"%s\".  Are you sure that you want to do this?"
 msgstr "Перейменування «%s» на «%s» призведе до знищення наявного набору даних з назвою «%s». Ви справді цього хочете?"
 
-#: src/ui/gui/psppire-data-window.c:629
+#: src/ui/gui/psppire-data-window.c:632
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
 msgstr "Вкажіть нову назву набору даних «%s»:"
 
-#: src/ui/gui/psppire-data-window.c:631
+#: src/ui/gui/psppire-data-window.c:634
 msgid "Rename Dataset"
 msgstr "Перейменувати набір даних"
 
-#: src/ui/gui/psppire-data-window.c:689
+#: src/ui/gui/psppire-data-window.c:692
 msgid "Font Selection"
 msgstr "Вибір шрифту"
 
-#: src/ui/gui/psppire-data-window.c:1284
+#: src/ui/gui/psppire-data-window.c:1287
 msgid "Data Editor"
 msgstr "Редактор даних"
 
@@ -6125,29 +6140,37 @@ msgstr "Не зважувати спостереження"
 msgid "Weight cases by %s"
 msgstr "Зважити спостереження за %s"
 
-#: utilities/pspp-convert.c:117
+#: utilities/pspp-convert.c:133
 msgid "exactly two non-option arguments are required; use --help for help"
 msgstr "має бути вказано точно два аргументи, які не є параметрами; скористайтеся параметром --help, щоб отримати довідку"
 
-#: utilities/pspp-convert.c:126
+#: utilities/pspp-convert.c:142
 #, c-format
 msgid "%s: cannot guess output format (use -O option)"
 msgstr "%s: не далося визначити формат виведення даних (скористайтеся параметром -O)"
 
-#: utilities/pspp-convert.c:162
+#: utilities/pspp-convert.c:151
+msgid "can only convert encrypted data file to sav or sys format"
+msgstr "перетворення файла із зашифрованими даними можливе лише у формати sav або sys"
+
+#: utilities/pspp-convert.c:188
 #, c-format
 msgid "%s: unknown output format (use -O option)"
 msgstr "%s: невідомий формат виведення даних (скористайтеся параметром -O)"
 
-#: utilities/pspp-convert.c:179
+#: utilities/pspp-convert.c:205
 #, c-format
 msgid "%s: error reading input file"
 msgstr "%s: помилка під час спроби читання файла вхідних даних"
 
-#: utilities/pspp-convert.c:181
+#: utilities/pspp-convert.c:207
 #, c-format
 msgid "%s: error writing output file"
 msgstr "%s: помилка під час спроби запису файла результатів"
+
+#: utilities/pspp-convert.c:233
+msgid "sorry, wrong password"
+msgstr "вибачте, помилковий пароль"
 
 #: src/language/utilities/set.q:163 src/language/utilities/set.q:170
 #, c-format
@@ -8461,3 +8484,6 @@ msgstr "Статистичне програмне забезпечення"
 #: src/ui/gui/gen-dot-desktop.sh:15
 msgid "Analyze statistical data with a free alternative to SPSS"
 msgstr "Аналіз статистичних даних у вільній альтернативі SPSS"
+
+#~ msgid "Significance"
+#~ msgstr "Значущість"
