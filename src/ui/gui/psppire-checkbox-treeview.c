@@ -118,8 +118,9 @@ static void
 psppire_checkbox_treeview_init (PsppireCheckboxTreeview *cbtv)
 {
   cbtv->list = GTK_TREE_MODEL (gtk_list_store_new (N_CHECKBOX_COLUMNS,
-						  G_TYPE_STRING, 
-						  G_TYPE_BOOLEAN));
+						   G_TYPE_STRING, 
+						   G_TYPE_BOOLEAN,
+						   G_TYPE_STRING));
 
   gtk_tree_view_set_model (GTK_TREE_VIEW (cbtv), cbtv->list);
   g_object_unref (cbtv->list);
@@ -147,9 +148,10 @@ psppire_checkbox_treeview_populate (PsppireCheckboxTreeview *cbtv,
       gtk_list_store_append (GTK_LIST_STORE (cbtv->list), &iter);
       gtk_list_store_set (GTK_LIST_STORE (cbtv->list), &iter,
                           CHECKBOX_COLUMN_LABEL, gettext (items[i].label),
-                          CHECKBOX_COLUMN_SELECTED,
-			  (default_items & (1u << i)) != 0,
+                          CHECKBOX_COLUMN_SELECTED,  (default_items & (1u << i)) != 0,
+			  CHECKBOX_COLUMN_TOOLTIP, gettext (items[i].tooltip),
                           -1);
     }
 
+  gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (cbtv), CHECKBOX_COLUMN_TOOLTIP);
 }

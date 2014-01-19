@@ -69,12 +69,14 @@ struct checkbox_entry_item
   {
     const char *name;
     const char *label;
+    const char *tooltip;
   };
 
 enum
   {
     CHECKBOX_COLUMN_LABEL,
     CHECKBOX_COLUMN_SELECTED,
+    CHECKBOX_COLUMN_TOOLTIP,
     N_CHECKBOX_COLUMNS
   };
 
