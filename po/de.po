@@ -2,14 +2,14 @@
 # Copyright (C) 2012 Free Software Foundation, Inc.
 # This file is distributed under the same license as the pspp package.
 # Matthias Keil <matthias.keil@ymail.com>, 2012 -
-# Olaf Noehring <olaf2013@team-noehring.de>. 2013 -
+# Olaf Noehring <noehring@datenbank-projekt.de> 2013 -
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp 0.8.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-01-13 21:25-0800\n"
-"PO-Revision-Date: 2014-01-19 10:28+0100\n"
+"PO-Revision-Date: 2014-01-20 19:08+0100\n"
 "Last-Translator: Matthias Keil <matthias.keil@ymail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "Language: de_DE\n"
@@ -2551,7 +2551,7 @@ msgstr "Cochran's Q"
 #: src/language/stats/correlations.c:97 src/language/stats/factor.c:1789
 #: src/language/stats/npar-summary.c:109
 msgid "Descriptive Statistics"
-msgstr "Deskreptive Statistiken"
+msgstr "Deskriptive Statistiken"
 
 #: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:106
 #: src/language/stats/examine.c:886 src/language/stats/factor.c:1810
@@ -2784,7 +2784,7 @@ msgstr "Tukey's Hinges"
 #: src/language/stats/examine.c:787 src/language/stats/oneway.c:1086
 #: src/ui/gui/descriptives.ui:8
 msgid "Descriptives"
-msgstr "Deskreptive Statistiken"
+msgstr "Deskriptive Statistiken"
 
 #: src/language/stats/examine.c:804 src/ui/gui/psppire-checkbox-treeview.c:103
 #: src/language/stats/crosstabs.q:1276 src/language/stats/crosstabs.q:1303
@@ -2796,7 +2796,7 @@ msgstr "Statistik"
 #: src/language/stats/oneway.c:1378 src/language/stats/oneway.c:1583
 #: src/language/stats/roc.c:978 src/language/stats/regression.c:792
 msgid "Std. Error"
-msgstr "Std. Fehler"
+msgstr "Standardfehler"
 
 #: src/language/stats/examine.c:903 src/language/stats/oneway.c:1077
 #, c-format
@@ -3101,7 +3101,7 @@ msgstr ""
 #: src/language/stats/glm.c:751 src/language/stats/oneway.c:976
 #: src/language/stats/regression.c:882
 msgid "Mean Square"
-msgstr ""
+msgstr "Mittel der Quadrate"
 
 #: src/language/stats/glm.c:752 src/language/stats/oneway.c:977
 #: src/language/stats/regression.c:883 src/language/stats/t-test-indep.c:290
@@ -3896,7 +3896,7 @@ msgstr ""
 #: src/language/stats/regression.c:750
 #: src/ui/gui/psppire-dialog-action-regression.c:41
 msgid "R"
-msgstr "R-Quadrat"
+msgstr "R"
 
 #: src/language/stats/regression.c:751
 msgid "R Square"
@@ -3904,16 +3904,16 @@ msgstr "R-Quadrat"
 
 #: src/language/stats/regression.c:752
 msgid "Adjusted R Square"
-msgstr "Angepasstes R-Quadrat"
+msgstr "Korrigiertes R-Quadrat"
 
 #: src/language/stats/regression.c:753
 msgid "Std. Error of the Estimate"
-msgstr ""
+msgstr "Standardfehler des Schätzers "
 
 #: src/language/stats/regression.c:758
 #, c-format
 msgid "Model Summary (%s)"
-msgstr ""
+msgstr "Modellzusammenfassung (%s)"
 
 #: src/language/stats/regression.c:793
 msgid "Beta"
@@ -3921,12 +3921,12 @@ msgstr "Beta"
 
 #: src/language/stats/regression.c:796
 msgid "(Constant)"
-msgstr "(Konstant)"
+msgstr "(Konstante)"
 
 #: src/language/stats/regression.c:851
-#, fuzzy, c-format
+#, c-format
 msgid "Coefficients (%s)"
-msgstr "K_oeffizienten:"
+msgstr "Koeffizienten (%s)"
 
 #: src/language/stats/regression.c:886 src/ui/gui/regression.ui:7
 msgid "Regression"
@@ -6973,7 +6973,7 @@ msgstr "Explorative Datenanalyse: Statistiken"
 
 #: src/ui/gui/examine.ui:327 src/ui/gui/oneway.ui:196
 msgid "_Descriptives"
-msgstr "_Deskreptive´"
+msgstr "_Deskriptive´"
 
 #: src/ui/gui/examine.ui:341
 #, fuzzy
@@ -7025,7 +7025,7 @@ msgstr "Faktorenanalyse"
 
 #: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:301
 msgid "_Descriptives..."
-msgstr "_Deskreptive Statistiken..."
+msgstr "_Deskriptive Statistiken..."
 
 #: src/ui/gui/factor.ui:68
 msgid "_Extraction..."
