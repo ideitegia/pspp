@@ -47,10 +47,10 @@
 struct html_driver
   {
     struct output_driver driver;
-
+#ifdef HAVE_CAIRO
     struct xr_color fg;
     struct xr_color bg;
-    
+#endif    
     char *file_name;
     char *chart_file_name;
 
@@ -104,10 +104,10 @@ html_create (const char *file_name, enum settings_output_devices device_type,
                                                       file_name));
   html->file = NULL;
   html->chart_cnt = 1;
-
+#ifdef HAVE_CAIRO
   parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &html->bg);
   parse_color (d, o, "foreground-color", "#000000000000", &html->fg);
-
+#endif
   html->file = fn_open (html->file_name, "w");
   if (html->file == NULL)
     {

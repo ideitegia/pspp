@@ -150,10 +150,11 @@ struct ascii_driver
     enum emphasis_style emphasis; /* How to emphasize text. */
     char *chart_file_name;      /* Name of files used for charts. */
 
+#ifdef HAVE_CAIRO
     /* Colours for charts */
     struct xr_color fg;
     struct xr_color bg;
-
+#endif
 
     int width;                  /* Page width. */
     int length;                 /* Page length minus margins and header. */
@@ -261,10 +262,10 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
   a->auto_width = a->width < 0;
   a->auto_length = paper_length < 0;
   a->length = paper_length - vertical_margins (a);
-
+#ifdef HAVE_CAIRO
   parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &a->bg);
   parse_color (d, o, "foreground-color", "#000000000000", &a->fg);
-
+#endif
   box = parse_enum (opt (d, o, "box", "ascii"),
                     "ascii", BOX_ASCII,
                     "unicode", BOX_UNICODE,
