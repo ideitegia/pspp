@@ -2,13 +2,13 @@
 # Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 # This file is distributed under the same licence as the PSPP package.#
 #
-# Mindaugas Baranauskas <embar@super.lt>, 2010, 2011, 2012, 2013, 2014.
+# Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>, 2010-2014.
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp-0.8.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-01-13 21:25-0800\n"
-"PO-Revision-Date: 2014-01-19 18:17+0200\n"
+"PO-Revision-Date: 2014-01-26 18:20+0200\n"
 "Last-Translator: Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -1808,7 +1808,7 @@ msgstr ""
 #: src/language/dictionary/missing-values.c:146
 #, c-format
 msgid "Missing values provided are too long to assign to variable of width %d."
-msgstr ""
+msgstr "Pateiktos trūkstamos reikšmės yra per ilgos, tad negalima jų priskirti prie kintamojo, kurio plotis %d."
 
 #: src/language/dictionary/modify-variables.c:92
 msgid "MODIFY VARS may not be used after TEMPORARY.  Temporary transformations will be made permanent."
@@ -2526,7 +2526,7 @@ msgstr "Chi kvadratas"
 #: src/language/stats/t-test-one-sample.c:95
 #: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1278
 msgid "df"
-msgstr "skirt."
+msgstr "laisv.l."
 
 #: src/language/stats/chisquare.c:268 src/language/stats/cochran.c:220
 #: src/language/stats/friedman.c:288 src/language/stats/kruskal-wallis.c:352
@@ -2664,7 +2664,7 @@ msgstr "Asim. s.pakl."
 #: src/ui/gui/psppire-dialog-action-frequencies.c:48
 #: src/language/stats/frequencies.q:117
 msgid "Range"
-msgstr "Sritis"
+msgstr "Sklaidos plotis"
 
 #: src/language/stats/descriptives.c:115 src/language/stats/examine.c:990
 #: src/language/stats/ks-one-sample.c:311
@@ -2781,7 +2781,7 @@ msgstr "%g"
 
 #: src/language/stats/examine.c:759
 msgid "Tukey's Hinges"
-msgstr ""
+msgstr "Tjukio kvartiliai"
 
 #: src/language/stats/examine.c:787 src/language/stats/oneway.c:1086
 #: src/ui/gui/descriptives.ui:8
@@ -2865,13 +2865,13 @@ msgstr "Galiojančių"
 #: src/language/stats/examine.c:1330 src/language/stats/crosstabs.q:873
 #: src/language/stats/frequencies.q:877 src/language/stats/frequencies.q:1048
 msgid "Missing"
-msgstr "Praleista"
+msgstr "Praleistų"
 
 #: src/language/stats/examine.c:1342 src/language/stats/logistic.c:1404
 #: src/language/stats/means.c:1090 src/language/stats/crosstabs.q:882
 #: src/language/stats/frequencies.q:828
 msgid "Percent"
-msgstr "Procentai"
+msgstr "Procentais"
 
 #: src/language/stats/examine.c:1980
 #, c-format
@@ -2943,11 +2943,11 @@ msgstr "Svorių kvadratų suma po sukimo"
 #: src/language/stats/factor.c:1519
 #, no-c-format
 msgid "% of Variance"
-msgstr "% dispersijos"
+msgstr "Dispersijos dalis, %"
 
 #: src/language/stats/factor.c:1520
 msgid "Cumulative %"
-msgstr "Sukaupta %"
+msgstr "Sukauptoji dalis, %"
 
 #: src/language/stats/factor.c:1547
 #, c-format
@@ -3507,11 +3507,11 @@ msgstr "LSD"
 
 #: src/language/stats/oneway.c:360
 msgid "Tukey HSD"
-msgstr "Tjukio HSD"
+msgstr "Tjukio kriterijus"
 
 #: src/language/stats/oneway.c:361
 msgid "Bonferroni"
-msgstr "Bonferroni"
+msgstr "Bonferonio"
 
 #: src/language/stats/oneway.c:362
 msgid "Scheffé"
@@ -3528,7 +3528,7 @@ msgstr "Šidák"
 #: src/language/stats/oneway.c:512
 #, c-format
 msgid "The post hoc analysis method %s is not supported."
-msgstr "Post hoc analizės medotas %s nepalaikomas."
+msgstr "Aposteriorinis (post hoc) analizės medotas %s nepalaikomas."
 
 #: src/language/stats/oneway.c:827
 #, c-format
@@ -3563,15 +3563,15 @@ msgstr "ANOVA"
 
 #: src/language/stats/oneway.c:1222
 msgid "Levene Statistic"
-msgstr "Statistika (Levene)"
+msgstr "Livyno kriterijus"
 
 #: src/language/stats/oneway.c:1223
 msgid "df1"
-msgstr "skirt1"
+msgstr "laisv.l.1"
 
 #: src/language/stats/oneway.c:1224
 msgid "df2"
-msgstr "skirt2"
+msgstr "laisv.l.2"
 
 #: src/language/stats/oneway.c:1227
 msgid "Test of Homogeneity of Variances"
@@ -3602,11 +3602,11 @@ msgstr "t"
 
 #: src/language/stats/oneway.c:1431
 msgid "Assume equal variances"
-msgstr "Manant, kas dispersijos yra lygios"
+msgstr "Jei dispersijos lygios"
 
 #: src/language/stats/oneway.c:1435
 msgid "Does not assume equal"
-msgstr "Nemanant, kad lygios"
+msgstr "Jei dispersijos skiriasi"
 
 #: src/language/stats/oneway.c:1577
 #, c-format
@@ -4005,7 +4005,7 @@ msgstr "Kriterijus nepriklausomoms imtims"
 
 #: src/language/stats/t-test-indep.c:287
 msgid "Levene's Test for Equality of Variances"
-msgstr "Levene kriterijus dispersijų lygybei"
+msgstr "Livyno kriterijus dispersijų lygybei"
 
 #: src/language/stats/t-test-indep.c:288
 msgid "t-test for Equality of Means"
@@ -4028,7 +4028,7 @@ msgstr "Jei dispersijos būtų lygios"
 
 #: src/language/stats/t-test-indep.c:349
 msgid "Equal variances not assumed"
-msgstr "Jei dispersijos būtų nelygios"
+msgstr "Jei dispersijos skirtųsi"
 
 #: src/language/stats/t-test-one-sample.c:79
 msgid "One-Sample Test"
@@ -4045,7 +4045,7 @@ msgstr "Vienos imties statistika"
 
 #: src/language/stats/t-test-paired.c:177
 msgid "Paired Sample Statistics"
-msgstr "Porinių imčių statistika"
+msgstr "Priklausomų (porinių) imčių statistika"
 
 #: src/language/stats/t-test-paired.c:189
 #: src/language/stats/t-test-paired.c:244
@@ -4056,7 +4056,7 @@ msgstr "%d pora "
 
 #: src/language/stats/t-test-paired.c:231
 msgid "Paired Samples Correlations"
-msgstr "Porinių imčių koreliacija"
+msgstr "Priklausomų (porinių) imčių koreliacija"
 
 #: src/language/stats/t-test-paired.c:234
 msgid "Correlation"
@@ -4069,7 +4069,7 @@ msgstr "%s ir %s"
 
 #: src/language/stats/t-test-paired.c:290
 msgid "Paired Samples Test"
-msgstr "Kriterijus porinėms imtims"
+msgstr "Kriterijus priklausomoms (porinėms) imtims"
 
 #: src/language/stats/t-test-paired.c:297
 msgid "Paired Differences"
@@ -4909,7 +4909,7 @@ msgstr "Histograma nebraižoma, nes duomenyse mažiau nei 2 skirtingos reikšmė
 
 #: src/math/percentiles.c:36
 msgid "HAverage"
-msgstr ""
+msgstr "Svertinis vidurk."
 
 #: src/math/percentiles.c:37
 msgid "Weighted Average"
@@ -5338,7 +5338,7 @@ msgstr "Programa imties duomenų analizavimui"
 #. who have helped in the translation.
 #: src/ui/gui/help-menu.c:71
 msgid "translator-credits"
-msgstr "Mindaugas Baranauskas"
+msgstr "Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>, 2010-2014"
 
 #: src/ui/gui/help-menu.c:101
 #, c-format
@@ -5563,11 +5563,11 @@ msgstr "Neapibr.k."
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:76
 msgid "BTau"
-msgstr "BTau"
+msgstr "Kendalo tau-b"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:77
 msgid "CTau"
-msgstr "CTau"
+msgstr "Kendalo tau-c"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:78
 msgid "Risk"
@@ -5580,7 +5580,7 @@ msgstr "Gamma"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:80
 msgid "D"
-msgstr "D"
+msgstr "Somerso d"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:81
 #: src/language/stats/crosstabs.q:1858
@@ -5594,7 +5594,7 @@ msgstr "Eta"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:83
 msgid "Corr"
-msgstr "Korel."
+msgstr "Koreliac."
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:88
 msgid "Count"
@@ -5658,7 +5658,7 @@ msgstr "_Parinktys..."
 
 #: src/ui/gui/psppire-dialog-action-paired.c:168
 msgid "Paired Samples T Test"
-msgstr "Kriterijus porinėms imtims"
+msgstr "T kriterijus priklausomoms (porinėms) imtims"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:40
 msgid "Coeff"
@@ -5982,7 +5982,7 @@ msgstr "nuo %d iki %d"
 
 #: src/ui/gui/page-assistant.c:94
 msgid "Importing Delimited Text Data"
-msgstr "Importuojami bet kokie tekstiniai duomenys"
+msgstr "Bet kokių tekstinių duomenų importavimas"
 
 #: src/ui/gui/page-intro.c:92
 #, c-format
@@ -5999,7 +5999,7 @@ msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
 msgstr ""
-"Šis vediklis padės į PSPP importuoti duomenis iš tekstinės rinkmenos, kur viena eilutė atitiks vieną atvejį, o laukai (būsimi kintamieji) atskiriami tabuliacija, kableliu ar kitu pasirinktu simboliu.\n"
+"Šis vediklis padės į PSPP importuoti duomenis iš tekstinės rinkmenos, kurioje viena eilutė atitinka vieną atvejį, o laukai (būsimi kintamieji) atskirtitabuliacija, kableliu ar kitu pasirinktu simboliu.\n"
 "\n"
 
 #: src/ui/gui/page-intro.c:133
@@ -6353,7 +6353,7 @@ msgstr "Apytiksl. p-reikšmė"
 
 #: src/language/stats/crosstabs.q:1321
 msgid "Risk estimate."
-msgstr "Rizikos įvertis."
+msgstr "Rizikos įvertinimas."
 
 #: src/language/stats/crosstabs.q:1325
 #, c-format
@@ -6415,15 +6415,15 @@ msgstr "Kontingencijos koeficientas"
 
 #: src/language/stats/crosstabs.q:1853
 msgid "Kendall's tau-b"
-msgstr "Kendall tau-b"
+msgstr "Kendalo tau-b"
 
 #: src/language/stats/crosstabs.q:1854
 msgid "Kendall's tau-c"
-msgstr "Kendall tau-c"
+msgstr "Kendalo tau-c"
 
 #: src/language/stats/crosstabs.q:1856
 msgid "Spearman Correlation"
-msgstr "Spirmano koreliacija"
+msgstr "Spirmeno koreliacija"
 
 #: src/language/stats/crosstabs.q:1857
 msgid "Pearson's R"
@@ -6463,7 +6463,7 @@ msgstr "Neapibrėžtumo koeficientas"
 
 #: src/language/stats/crosstabs.q:1991
 msgid "Somers' d"
-msgstr "Somers d"
+msgstr "Somerso d"
 
 #: src/language/stats/crosstabs.q:1997
 msgid "Symmetric"
@@ -6472,7 +6472,7 @@ msgstr "Simetrinis"
 #: src/language/stats/crosstabs.q:1998 src/language/stats/crosstabs.q:1999
 #, c-format
 msgid "%s Dependent"
-msgstr "%s priklausomas"
+msgstr "%s (priklausomas)"
 
 #: src/language/stats/frequencies.q:383
 msgid "Bar charts are not implemented."
@@ -6743,7 +6743,7 @@ msgstr "_Kendalo tau-b"
 
 #: src/ui/gui/correlation.ui:145
 msgid "_Spearman"
-msgstr "_Spirmano"
+msgstr "_Spirmeno"
 
 #: src/ui/gui/correlation.ui:165
 msgid "Correlation Coefficients"
@@ -7592,7 +7592,7 @@ msgstr "_Blom"
 
 #: src/ui/gui/rank.ui:557
 msgid "Tuke_y"
-msgstr "_Tukey"
+msgstr "_Tjukio"
 
 #: src/ui/gui/rank.ui:572
 msgid "Ran_kit"
@@ -7924,7 +7924,7 @@ msgstr "Kriterijaus _reikšmė: "
 
 #: src/ui/gui/text-data-import.ui:8
 msgid "Importing Textual Data"
-msgstr "Importuojami tekstiniai duomenys"
+msgstr "Tekstinių duomenų importavimas"
 
 #: src/ui/gui/text-data-import.ui:19
 msgid ""
@@ -8300,7 +8300,7 @@ msgstr "_Vienmatė dispersinė analizė..."
 
 #: src/ui/gui/data-editor.ui:373
 msgid "Bivariate _Correlation..."
-msgstr "_Dviejų kintamųjų koreliacija..."
+msgstr "_Dviejų kintamųjų koreliacijos..."
 
 #: src/ui/gui/data-editor.ui:381
 msgid "_K-Means Cluster..."
