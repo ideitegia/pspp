@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -664,12 +664,13 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 
 
 static void
-load_and_show_syntax_window (GtkWidget *se, const gchar *filename)
+load_and_show_syntax_window (GtkWidget *se, const gchar *filename,
+                             const gchar *encoding)
 {
   gboolean ok;
 
   gtk_source_buffer_begin_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
-  ok = psppire_window_load (PSPPIRE_WINDOW (se), filename, NULL);
+  ok = psppire_window_load (PSPPIRE_WINDOW (se), filename, encoding, NULL);
   gtk_source_buffer_end_not_undoable_action (PSPPIRE_SYNTAX_WINDOW (se)->buffer);
 
   if (ok )
@@ -688,10 +689,10 @@ create_syntax_window (void)
 void
 open_syntax_window (const char *file_name, const gchar *encoding)
 {
-  GtkWidget *se = psppire_syntax_window_new (encoding);
+  GtkWidget *se = psppire_syntax_window_new (NULL);
 
   if ( file_name)
-    load_and_show_syntax_window (se, file_name);
+    load_and_show_syntax_window (se, file_name, encoding);
 }
 
 
@@ -944,7 +945,8 @@ error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
   Loads the buffer from the file called FILENAME
 */
 gboolean
-syntax_load (PsppireWindow *window, const gchar *filename, gpointer not_used)
+syntax_load (PsppireWindow *window, const gchar *filename,
+             const gchar *encoding, gpointer not_used)
 {
   GError *err = NULL;
   gchar *text_locale = NULL;
@@ -954,8 +956,6 @@ syntax_load (PsppireWindow *window, const gchar *filename, gpointer not_used)
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
   GtkTextBuffer *buffer = GTK_TEXT_BUFFER (sw->buffer);
-  gchar *encoding;
-  char *mime_type;
 
   /* FIXME: What if it's a very big file ? */
   if ( ! g_file_get_contents (filename, &text_locale, &len_locale, &err) )
@@ -965,13 +965,24 @@ syntax_load (PsppireWindow *window, const gchar *filename, gpointer not_used)
       return FALSE;
     }
 
-  /* Determine the file's encoding and update sw->encoding.  (The ordering is
-     important here because encoding_guess_whole_file() often returns its
-     argument instead of a copy of it.) */
-  encoding = g_strdup (encoding_guess_whole_file (sw->encoding, text_locale,
-                                                  len_locale));
-  g_free (sw->encoding);
-  sw->encoding = encoding;
+  if (!encoding || !encoding[0])
+    {
+      /* Determine the file's encoding and update sw->encoding.  (The ordering
+         is important here because encoding_guess_whole_file() often returns
+         its argument instead of a copy of it.) */
+      char *guessed_encoding;
+
+      guessed_encoding = g_strdup (encoding_guess_whole_file (sw->encoding,
+                                                              text_locale,
+                                                              len_locale));
+      g_free (sw->encoding);
+      sw->encoding = guessed_encoding;
+    }
+  else
+    {
+      g_free (sw->encoding);
+      sw->encoding = g_strdup (encoding);
+    }
 
   text_utf8 = recode_substring_pool ("UTF-8", encoding,
                                      ss_buffer (text_locale, len_locale),
@@ -993,9 +1004,7 @@ syntax_load (PsppireWindow *window, const gchar *filename, gpointer not_used)
 
   free (text_utf8);
 
-  mime_type = xasprintf ("text/x-spss-syntax; charset=%s", sw->encoding);
-  add_most_recent (filename, mime_type);
-  free (mime_type);
+  add_most_recent (filename, "text/x-spss-syntax", sw->encoding);
 
   return TRUE;
 }

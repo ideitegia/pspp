@@ -332,7 +332,8 @@ name_has_suffix (const gchar *name)
 }
 
 static gboolean
-load_file (PsppireWindow *de, const gchar *file_name, gpointer syn)
+load_file (PsppireWindow *de, const gchar *file_name, const char *encoding,
+           gpointer syn)
 {
   const char *mime_type = NULL;
   gchar *syntax = NULL;
@@ -352,8 +353,12 @@ load_file (PsppireWindow *de, const gchar *file_name, gpointer syn)
       syntax_gen_string (&filename, ss_cstr (utf8_file_name));
       
       g_free (utf8_file_name);
-      
-      syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
+
+      if (encoding && encoding[0])
+        syntax = g_strdup_printf ("GET FILE=%s ENCODING='%s'.",
+                                  ds_cstr (&filename), encoding);
+      else
+        syntax = g_strdup_printf ("GET FILE=%s.", ds_cstr (&filename));
       ds_destroy (&filename);
     }
   else
@@ -372,7 +377,7 @@ load_file (PsppireWindow *de, const gchar *file_name, gpointer syn)
       else if (name_has_sav_suffix (file_name))
 	mime_type = "application/x-spss-sav";
       
-      add_most_recent (file_name, mime_type);
+      add_most_recent (file_name, mime_type, encoding);
     }
 
   return ok;
@@ -762,7 +767,7 @@ on_recent_data_select (GtkMenuShell *menushell,
 
   g_free (uri);
 
-  open_data_window (window, file, NULL);
+  open_data_window (window, file, NULL, NULL);
 
   g_free (file);
 }
@@ -825,7 +830,7 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
   free (encoding);
 
-  if ( psppire_window_load (PSPPIRE_WINDOW (se), file, NULL) ) 
+  if ( psppire_window_load (PSPPIRE_WINDOW (se), file, encoding, NULL) ) 
     gtk_widget_show (se);
   else
     gtk_widget_destroy (se);
@@ -1368,7 +1373,8 @@ create_data_window (void)
 }
 
 void
-open_data_window (PsppireWindow *victim, const char *file_name, gpointer hint)
+open_data_window (PsppireWindow *victim, const char *file_name,
+                  const char *encoding, gpointer hint)
 {
   GtkWidget *window;
 
@@ -1381,7 +1387,7 @@ open_data_window (PsppireWindow *victim, const char *file_name, gpointer hint)
   else
     window = psppire_data_window_new (NULL);
 
-  psppire_window_load (PSPPIRE_WINDOW (window), file_name, hint);
+  psppire_window_load (PSPPIRE_WINDOW (window), file_name, encoding, hint);
   gtk_widget_show_all (window);
 }
 

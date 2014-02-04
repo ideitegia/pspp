@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ text_data_import_assistant (PsppireDataWindow *dw)
     case GTK_RESPONSE_APPLY:
       {
 	gchar *fn = g_path_get_basename (ia->file.file_name);
-	open_data_window (PSPPIRE_WINDOW (dw), fn, generate_syntax (ia));
+	open_data_window (PSPPIRE_WINDOW (dw), fn, NULL, generate_syntax (ia));
 	g_free (fn);
       }
       break;

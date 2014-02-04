@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -101,7 +101,8 @@ PsppireDataWindow *psppire_data_window_for_data_store (PsppireDataStore *);
 
 bool psppire_data_window_is_empty (PsppireDataWindow *);
 void create_data_window (void);
-void open_data_window (PsppireWindow *victim, const char *file_name, gpointer hint);
+void open_data_window (PsppireWindow *victim, const char *file_name,
+                       const char *encoding, gpointer hint);
 
 G_END_DECLS
 

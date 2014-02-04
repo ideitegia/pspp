@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ initialize (const char *data_file)
       /* Check to see if the file is a .sav or a .por file.  If not
          assume that it is a syntax file */
       if (res == ANY_YES)
-	open_data_window (NULL, filename, NULL);
+	open_data_window (NULL, filename, NULL, NULL);
       else if (res == ANY_NO)
         {
           create_data_window ();
