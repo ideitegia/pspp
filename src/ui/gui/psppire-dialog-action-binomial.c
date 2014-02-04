@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2012  Free Software Foundation
+   Copyright (C) 2012, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 #include "psppire-dialog-action-binomial.h"
 #include "psppire-value-entry.h"
+
+#include <float.h>
 
 #include "dialog-common.h"
 #include "helper.h"
@@ -141,7 +143,7 @@ generate_syntax (PsppireDialogAction *a)
   ds_init_cstr (&str, "NPAR TEST\n\t/BINOMIAL");
 
   if ( get_proportion (scd, &prop))
-    ds_put_c_format (&str, "(%g)", prop);
+    ds_put_c_format (&str, "(%.*g)", DBL_DIG + 1, prop);
 
   ds_put_cstr (&str, " =");
 

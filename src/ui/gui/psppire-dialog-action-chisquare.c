@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 #include <config.h>
 
 #include "psppire-dialog-action-chisquare.h"
+
+#include <float.h>
 
 #include "psppire-var-view.h"
 
@@ -80,7 +82,7 @@ generate_syntax (PsppireDialogAction *act)
 
 	  gtk_tree_model_get (GTK_TREE_MODEL (ls), &iter, 0, &v, -1);
 
-	  ds_put_c_format (&dss, " %g", v);
+	  ds_put_c_format (&dss, " %.*g", DBL_DIG + 1, v);
 	}
     }
 

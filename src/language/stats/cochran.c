@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "language/stats/cochran.h"
 
+#include <float.h>
 #include <gsl/gsl_cdf.h>
 #include <stdbool.h>
 
@@ -169,8 +170,10 @@ show_freqs_box (const struct one_sample_test *ost, const struct cochran *ct)
   tab_joint_text (table, 1, 0, 2, 0,
 		  TAT_TITLE | TAB_CENTER, _("Value"));
 
-  tab_text_format (table, 1, 1, 0, _("Success (%g)"), ct->success);
-  tab_text_format (table, 2, 1, 0, _("Failure (%g)"), ct->failure);
+  tab_text_format (table, 1, 1, 0, _("Success (%.*g)"),
+                   DBL_DIG + 1, ct->success);
+  tab_text_format (table, 2, 1, 0, _("Failure (%.*g)"),
+                   DBL_DIG + 1, ct->failure);
 
   tab_hline (table, TAL_2, 0, tab_nc (table) - 1, column_headers);
   tab_vline (table, TAL_2, row_headers, 0, tab_nr (table) - 1);

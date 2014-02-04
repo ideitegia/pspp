@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "dialog-common.h"
 
+#include <float.h>
 #include <gl/c-xvasprintf.h>
 #include <language/stats/aggregate.h>
 
@@ -432,11 +433,11 @@ on_acr_change (const struct aggregate *agg, GtkTreeView *tv)
   gtk_entry_set_text (GTK_ENTRY (agg->summary_var_label_entry), label);
   gtk_entry_set_text (GTK_ENTRY (agg->summary_sv_entry), srcvar);
   
-  text = c_xasprintf ("%g", arg1);
+  text = c_xasprintf ("%.*g", DBL_DIG + 1, arg1);
   gtk_entry_set_text (GTK_ENTRY (agg->summary_arg1_entry), text);
   g_free (text);
 
-  text = c_xasprintf ("%g", arg2);
+  text = c_xasprintf ("%.*g", DBL_DIG + 1, arg2);
   gtk_entry_set_text (GTK_ENTRY (agg->summary_arg2_entry), text);
   g_free (text);
 
@@ -681,10 +682,10 @@ append_summary_spec (const struct aggregate *agg, GtkTreeIter *iter, GString *st
       ds_put_cstr (&dss, srcvar);
 
       if ( arity > 0)
-	ds_put_c_format (&dss, ", %g", arg1);
+	ds_put_c_format (&dss, ", %.*g", DBL_DIG + 1, arg1);
 
       if ( arity > 1)
-	ds_put_c_format (&dss, ", %g", arg2);
+	ds_put_c_format (&dss, ", %.*g", DBL_DIG + 1, arg2);
 
       ds_put_cstr (&dss, ")");
 

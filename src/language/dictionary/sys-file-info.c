@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <float.h>
 #include <stdlib.h>
 
 #include "data/attributes.h"
@@ -560,11 +561,13 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
           double x, y;
           mv_get_range (mv, &x, &y);
           if (x == LOWEST)
-            cp += sprintf (cp, "LOWEST THRU %g", y);
+            cp += sprintf (cp, "LOWEST THRU %.*g", DBL_DIG + 1, y);
           else if (y == HIGHEST)
-            cp += sprintf (cp, "%g THRU HIGHEST", x);
+            cp += sprintf (cp, "%.*g THRU HIGHEST", DBL_DIG + 1, x);
           else
-            cp += sprintf (cp, "%g THRU %g", x, y);
+            cp += sprintf (cp, "%.*g THRU %.*g",
+                           DBL_DIG + 1, x,
+                           DBL_DIG + 1, y);
           cnt++;
         }
       for (i = 0; i < mv_n_values (mv); i++)
@@ -573,7 +576,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
           if (cnt++ > 0)
             cp += sprintf (cp, "; ");
           if (var_is_numeric (v))
-            cp += sprintf (cp, "%g", value->f);
+            cp += sprintf (cp, "%.*g", DBL_DIG + 1, value->f);
           else
             {
               int width = var_get_width (v);

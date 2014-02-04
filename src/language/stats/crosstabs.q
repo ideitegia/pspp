@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <float.h>
 #include <gsl/gsl_cdf.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1944,8 +1945,8 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
 	case 1:
 	case 2:
 	  if (var_is_numeric (rv))
-	    sprintf (buf, _("For cohort %s = %g"),
-		     var_to_string (rv), pt->rows[i - 1].f);
+	    sprintf (buf, _("For cohort %s = %.*g"),
+		     var_to_string (rv), DBL_DIG + 1, pt->rows[i - 1].f);
 	  else
 	    sprintf (buf, _("For cohort %s = %.*s"),
 		     var_to_string (rv),

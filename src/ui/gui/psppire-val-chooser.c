@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011  Free Software Foundation
+   Copyright (C) 2011, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <gtk/gtk.h>
 #include "dialog-common.h"
 #include "psppire-val-chooser.h"
@@ -452,7 +453,7 @@ old_value_to_string (const GValue *src, GValue *dest)
     {
     case OV_NUMERIC:
       {
-	gchar *text = g_strdup_printf ("%g", ov->v.v);
+	gchar *text = g_strdup_printf ("%.*g", DBL_DIG + 1, ov->v.v);
 	g_value_set_string (dest, text);
 	g_free (text);
       }
@@ -476,10 +477,10 @@ old_value_to_string (const GValue *src, GValue *dest)
 
 	g_unichar_to_utf8 (0x2013, en_dash);
 
-	text = g_strdup_printf ("%g %s %g",
-				       ov->v.range[0],
-				       en_dash,
-				       ov->v.range[1]);
+	text = g_strdup_printf ("%.*g %s %.*g",
+                                DBL_DIG + 1, ov->v.range[0],
+                                en_dash,
+                                DBL_DIG + 1, ov->v.range[1]);
 	g_value_set_string (dest, text);
 	g_free (text);
       }
@@ -491,9 +492,9 @@ old_value_to_string (const GValue *src, GValue *dest)
 
 	g_unichar_to_utf8 (0x2013, en_dash);
 
-	text = g_strdup_printf ("LOWEST %s %g",
+	text = g_strdup_printf ("LOWEST %s %.*g",
 				en_dash,
-				ov->v.range[1]);
+				DBL_DIG + 1, ov->v.range[1]);
 
 	g_value_set_string (dest, text);
 	g_free (text);
@@ -506,8 +507,8 @@ old_value_to_string (const GValue *src, GValue *dest)
 
 	g_unichar_to_utf8 (0x2013, en_dash);
 
-	text = g_strdup_printf ("%g %s HIGHEST",
-				ov->v.range[0],
+	text = g_strdup_printf ("%.*g %s HIGHEST",
+				DBL_DIG + 1, ov->v.range[0],
 				en_dash);
 
 	g_value_set_string (dest, text);
@@ -548,7 +549,7 @@ old_value_append_syntax (struct string *str, const struct old_value *ov)
   switch (ov->type)
     {
     case OV_NUMERIC:
-      ds_put_c_format (str, "%g", ov->v.v);
+      ds_put_c_format (str, "%.*g", DBL_DIG + 1, ov->v.v);
       break;
     case OV_STRING:
       {
@@ -568,17 +569,17 @@ old_value_append_syntax (struct string *str, const struct old_value *ov)
       ds_put_cstr (str, "ELSE");
       break;
     case OV_RANGE:
-      ds_put_c_format (str, "%g THRU %g",
-			      ov->v.range[0],
-			      ov->v.range[1]);
+      ds_put_c_format (str, "%.*g THRU %.*g",
+                       DBL_DIG + 1, ov->v.range[0],
+                       DBL_DIG + 1, ov->v.range[1]);
       break;
     case OV_LOW_UP:
-      ds_put_c_format (str, "LOWEST THRU %g",
-			      ov->v.range[1]);
+      ds_put_c_format (str, "LOWEST THRU %*gg",
+                       DBL_DIG + 1, ov->v.range[1]);
       break;
     case OV_HIGH_DOWN:
-      ds_put_c_format (str, "%g THRU HIGHEST",
-			      ov->v.range[0]);
+      ds_put_c_format (str, "%.*g THRU HIGHEST",
+                       DBL_DIG + 1, ov->v.range[0]);
       break;
     default:
       g_warning ("Invalid type in old recode value");
@@ -612,7 +613,7 @@ psppire_val_chooser_get_status (PsppireValChooser *vr, struct old_value *ov)
 static gchar *
 num_to_string (gdouble x)
 {
-  return g_strdup_printf ("%g", x);
+  return g_strdup_printf ("%.*g", DBL_DIG + 1, x);
 }
 
 

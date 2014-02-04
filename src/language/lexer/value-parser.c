@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "value-parser.h"
 
+#include <float.h>
 #include <stdbool.h>
 
 #include "data/data-in.h"
@@ -62,15 +63,15 @@ parse_num_range (struct lexer *lexer,
       if (*y < *x)
         {
           double t;
-          msg (SW, _("The high end of the range (%g) is below the low end (%g).  "
-                     "The range will be treated as if reversed."),
-               *y, *x);
+          msg (SW, _("The high end of the range (%.*g) is below the low end "
+                     "(%.*g).  The range will be treated as if reversed."),
+               DBL_DIG + 1, *y, DBL_DIG + 1, *x);
           t = *x;
           *x = *y;
           *y = t;
         }
       else if (*x == *y)
-        msg (SW, _("Ends of range are equal (%g)."), *x);
+        msg (SW, _("Ends of range are equal (%.*g)."), DBL_DIG + 1, *x);
 
       return true;
     }

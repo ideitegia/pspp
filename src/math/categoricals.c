@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "math/categoricals.h"
 #include "math/interaction.h"
 
+#include <float.h>
 #include <stdio.h>
 
 #include "data/case.h"
@@ -252,7 +253,7 @@ categoricals_dump (const struct categoricals *cat)
 
 		  assert (vn->var == var);
 
-		  printf ("%g(%d)", val->f, valn->index);
+		  printf ("%.*g(%d)", DBL_DIG + 1, val->f, valn->index);
 		  if (vv < iact->n_vars - 1)
 		    printf (", ");
 		}

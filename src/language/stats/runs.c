@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis. -*-c-*-
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "language/stats/runs.h"
 
+#include <float.h>
 #include <gsl/gsl_cdf.h>
 #include <math.h>
 
@@ -164,8 +165,9 @@ runs_execute (const struct dataset *ds,
 	      }
 	    casegrouper_destroy (grouper);
 	    if (multimodal)
-	      msg (MW, _("Multiple modes exist for variable `%s'.  Using %g as the threshold value."),
-		   var_get_name (var), run->cutpoint);
+	      msg (MW, _("Multiple modes exist for variable `%s'.  "
+                         "Using %.*g as the threshold value."),
+		   var_get_name (var), DBL_DIG + 1, run->cutpoint);
 	  }
       }
       break;

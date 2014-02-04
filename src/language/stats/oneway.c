@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_matrix.h>
 #include <math.h>
@@ -1332,7 +1333,8 @@ show_contrast_coeffs (const struct oneway_spec *cmd, const struct oneway_workspa
 
 	  ds_destroy (&vstr);
 
-	  tab_text_format (t, count + 2, c_num + 2, TAB_RIGHT, "%g", coeffn->coeff);
+	  tab_text_format (t, count + 2, c_num + 2, TAB_RIGHT, "%.*g",
+                           DBL_DIG + 1, coeffn->coeff);
 	}
       ++c_num;
     }

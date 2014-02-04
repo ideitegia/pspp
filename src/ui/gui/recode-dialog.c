@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011, 2012, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 #include <gtk/gtk.h>
 
+#include <float.h>
 #include <xalloc.h>
 #include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
@@ -104,7 +105,7 @@ new_value_to_string (const GValue *src, GValue *dest)
     {
     case NV_NUMERIC:
       {
-	gchar *text = g_strdup_printf ("%g", nv->v.v);
+	gchar *text = g_strdup_printf ("%.*g", DBL_DIG + 1, nv->v.v);
 	g_value_set_string (dest, text);
 	g_free (text);
       }
@@ -314,7 +315,7 @@ recode_different_dialog (PsppireDataWindow *de)
 static gchar *
 num_to_string (gdouble x)
 {
-  return g_strdup_printf ("%g", x);
+  return g_strdup_printf ("%.*g", DBL_DIG + 1, x);
 }
 
 /* Callback which gets called when a new row is selected
@@ -956,7 +957,7 @@ new_value_append_syntax (struct string *dds, const struct new_value *nv)
   switch (nv->type)
     {
     case NV_NUMERIC:
-      ds_put_c_format (dds, "%g", nv->v.v);
+      ds_put_c_format (dds, "%.*g", DBL_DIG + 1, nv->v.v);
       break;
     case NV_STRING:
       syntax_gen_string (dds, ss_cstr (nv->v.s));

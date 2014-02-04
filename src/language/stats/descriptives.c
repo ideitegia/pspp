@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2009-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
@@ -1002,17 +1003,18 @@ display (struct dsc_proc *dsc)
 
       nc = 0;
       tab_text (t, nc++, i + 1, TAB_LEFT, var_to_string (dv->v));
-      tab_text_format (t, nc++, i + 1, 0, "%g", dv->valid);
+      tab_text_format (t, nc++, i + 1, 0, "%.*g", DBL_DIG + 1, dv->valid);
       if (dsc->format == DSC_SERIAL)
-	tab_text_format (t, nc++, i + 1, 0, "%g", dv->missing);
+	tab_text_format (t, nc++, i + 1, 0, "%.*g", DBL_DIG + 1, dv->missing);
 
       for (j = 0; j < DSC_N_STATS; j++)
 	if (dsc->show_stats & (1ul << j))
 	  tab_double (t, nc++, i + 1, TAB_NONE, dv->stats[j], NULL);
     }
 
-  tab_title (t, _("Valid cases = %g; cases with missing value(s) = %g."),
-	     dsc->valid, dsc->missing_listwise);
+  tab_title (t, _("Valid cases = %.*g; cases with missing value(s) = %.*g."),
+	     DBL_DIG + 1, dsc->valid,
+             DBL_DIG + 1, dsc->missing_listwise);
 
   tab_submit (t);
 }

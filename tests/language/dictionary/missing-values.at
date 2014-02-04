@@ -7,38 +7,159 @@ DATA LIST NOTABLE/str1 1-5 (A) str2 6-8 (A) date1 9-19 (DATE) num1 20-25
 
 * Numeric missing values.
 MISSING VALUES date1 num1 (1).
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES date1 num1 (1, 2).
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES date1 num1 (1, 2, 3).
+DISPLAY DICTIONARY date1 num1.
+MISSING VALUES date1 num1 (9999998, 9999984, 3).
+DISPLAY DICTIONARY date1 num1.
 
 * Numeric missing values using the first variable's format.
 MISSING VALUES num1 date1 ('1').
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES num1 date1 ('1', '2').
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES num1 date1 ('1', '2', '3').
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES date1 num1 ('06-AUG-05').
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES date1 num1 ('06-AUG-05', '01-OCT-78').
+DISPLAY DICTIONARY date1 num1.
 MISSING VALUES date1 num1 ('06-AUG-05', '01-OCT-78', '14-FEB-81').
+DISPLAY DICTIONARY date1 num1.
 
 * Ranges of numeric missing values.
 MISSING VALUES num1 (1 THRU 2).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (LO THRU 2).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (LOWEST THRU 2).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (1 THRU HI).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (1 THRU HIGHEST).
+DISPLAY DICTIONARY num1.
 
 * A range of numeric missing values, plus an individual value.
 MISSING VALUES num1 (1 THRU 2, 3).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (LO THRU 2, 3).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (LOWEST THRU 2, 3).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (1 THRU HI, -1).
+DISPLAY DICTIONARY num1.
 MISSING VALUES num1 (1 THRU HIGHEST, -1).
+DISPLAY DICTIONARY num1.
 
 * String missing values.
 MISSING VALUES str1 str2 longstr ('abc  ','def').
+DISPLAY DICTIONARY str1 str2 longstr.
 
 * May mix variable types when clearing missing values.
 MISSING VALUES ALL ().
+DISPLAY DICTIONARY
 ])
-AT_CHECK([pspp -O format=csv missing-values.sps])
+AT_CHECK([pspp -o pspp.csv missing-values.sps])
+AT_CHECK([sed -n '/Format/s/,.*/:/p
+s/"//g
+s/^,Missing Values: \([[^,]]*\),.*/\1/p
+/^$/p' pspp.csv
+], [0], [dnl
+date1:
+1
+num1:
+1
+
+date1:
+1; 2
+num1:
+1; 2
+
+date1:
+1; 2; 3
+num1:
+1; 2; 3
+
+date1:
+9999998; 9999984; 3
+num1:
+9999998; 9999984; 3
+
+date1:
+1
+num1:
+1
+
+date1:
+1; 2
+num1:
+1; 2
+
+date1:
+1; 2; 3
+num1:
+1; 2; 3
+
+date1:
+13342665600
+num1:
+13342665600
+
+date1:
+13342665600; 12495427200
+num1:
+13342665600; 12495427200
+
+date1:
+13342665600; 12495427200; 12570336000
+num1:
+13342665600; 12495427200; 12570336000
+
+num1:
+1 THRU 2
+
+num1:
+LOWEST THRU 2
+
+num1:
+LOWEST THRU 2
+
+num1:
+1 THRU HIGHEST
+
+num1:
+1 THRU HIGHEST
+
+num1:
+1 THRU 2; 3
+
+num1:
+LOWEST THRU 2; 3
+
+num1:
+LOWEST THRU 2; 3
+
+num1:
+1 THRU HIGHEST; -1
+
+num1:
+1 THRU HIGHEST; -1
+
+str1:
+abc  ; def  @&t@
+str2:
+abc; def
+longstr:
+abc     ; def     @&t@
+
+str1:
+str2:
+date1:
+num1:
+longstr:
+])
 AT_CLEANUP
 
 AT_SETUP([MISSING VALUES invalid cases])

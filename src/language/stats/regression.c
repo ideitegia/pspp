@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <stdbool.h>
 
 #include <gsl/gsl_cdf.h>
@@ -949,9 +950,9 @@ reg_stats_anova (const linreg * c, const struct variable *var)
 
 
   /* Degrees of freedom */
-  tab_text_format (t, 3, 1, TAB_RIGHT, "%g", c->dfm);
-  tab_text_format (t, 3, 2, TAB_RIGHT, "%g", c->dfe);
-  tab_text_format (t, 3, 3, TAB_RIGHT, "%g", c->dft);
+  tab_text_format (t, 3, 1, TAB_RIGHT, "%.*g", DBL_DIG + 1, c->dfm);
+  tab_text_format (t, 3, 2, TAB_RIGHT, "%.*g", DBL_DIG + 1, c->dfe);
+  tab_text_format (t, 3, 3, TAB_RIGHT, "%.*g", DBL_DIG + 1, c->dft);
 
   /* Mean Squares */
   tab_double (t, 4, 1, TAB_RIGHT, msm, NULL);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "language/stats/binomial.h"
 
+#include <float.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 
@@ -202,7 +203,8 @@ binomial_execute (const struct dataset *ds,
 
 	  if ( bst->cutpoint != SYSMIS)
 	    {
-	      ds_put_format (&catstr[0], "<= %g", bst->cutpoint);
+	      ds_put_format (&catstr[0], "<= %.*g",
+                             DBL_DIG + 1, bst->cutpoint);
 	    }
           else
             {

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "select-cases-dialog.h"
+#include <float.h>
 #include <gtk/gtk.h>
 #include "executor.h"
 #include "psppire-dialog.h"
@@ -388,9 +389,9 @@ generate_syntax_filter (const struct select_cases_dialog *scd)
 	    gtk_spin_button_get_value (GTK_SPIN_BUTTON (scd->spinbutton));
 
 	  ds_put_c_format (&dss,
-				  "COMPUTE %s = RV.UNIFORM (0,1) < %g.\n",
+				  "COMPUTE %s = RV.UNIFORM (0,1) < %.*g.\n",
 				  filter,
-				  percentage / 100.0 );
+                                  DBL_DIG + 1, percentage / 100.0 );
 	}
       else
 	{

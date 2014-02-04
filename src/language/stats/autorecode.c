@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <stdlib.h>
 
 #include "data/case.h"
@@ -323,7 +324,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
                                              str, src_width);
 	    }
 	  else
-	    recoded_value = c_xasprintf ("%g", from->f);
+	    recoded_value = c_xasprintf ("%.*g", DBL_DIG + 1, from->f);
 	  
 	  /* Remove trailing whitespace */
           len = strlen (recoded_value);

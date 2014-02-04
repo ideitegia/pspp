@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "output/charts/plot-hist.h"
 
+#include <float.h>
 #include <gsl/gsl_randist.h>
 
 #include "data/val-type.h"
@@ -103,7 +104,8 @@ hist_draw_bar (cairo_t *cr, const struct xrchart_geometry *geom,
 
   if (label)
     draw_tick (cr, geom, SCALE_ABSCISSA, bins > 10,
-	       x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
+	       x_pos + width / 2.0, "%.*g",
+               DBL_DIG + 1, (upper + lower) / 2.0);
 }
 
 void

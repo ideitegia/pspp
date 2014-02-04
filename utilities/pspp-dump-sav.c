@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <float.h>
 #include <getopt.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -332,7 +333,7 @@ read_header (struct sfm_reader *r)
           : "<error>");
   printf ("\t%17s: %"PRId32"\n", "Weight index", weight_index);
   printf ("\t%17s: %"PRId32"\n", "Number of cases", ncases);
-  printf ("\t%17s: %g\n", "Compression bias", r->bias);
+  printf ("\t%17s: %.*g\n", "Compression bias", DBL_DIG + 1, r->bias);
   printf ("\t%17s: %s\n", "Creation date", creation_date);
   printf ("\t%17s: %s\n", "Creation time", creation_time);
   printf ("\t%17s: \"%s\"\n", "File label", file_label);
@@ -476,11 +477,11 @@ read_variable_record (struct sfm_reader *r)
             {
               double low = read_float (r);
               double high = read_float (r);
-              printf (" %g...%g", low, high);
+              printf (" %.*g...%.*g", DBL_DIG + 1, low, DBL_DIG + 1, high);
               missing_value_code = -missing_value_code - 2;
             }
           for (i = 0; i < missing_value_code; i++)
-            printf (" %g", read_float (r));
+            printf (" %.*g", DBL_DIG + 1, read_float (r));
         }
       else if (width > 0)
         {
@@ -509,7 +510,7 @@ print_untyped_value (struct sfm_reader *r, char raw_value[8])
     if (!isprint (raw_value[n_printable]))
       break;
 
-  printf ("%g/\"%.*s\"", value, n_printable, raw_value);
+  printf ("%.*g/\"%.*s\"", DBL_DIG + 1, value, n_printable, raw_value);
 }
 
 /* Reads value labels from sysfile R and inserts them into the
@@ -718,20 +719,20 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
     sys_error (r, "Bad size (%zu) or count (%zu) on extension 4.",
                size, count);
 
-  printf ("\tsysmis: %g (%a)\n", sysmis, sysmis);
+  printf ("\tsysmis: %.*g (%a)\n", DBL_DIG + 1, sysmis, sysmis);
   if (sysmis != SYSMIS)
-    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
-              sysmis, sysmis, "SYSMIS");
+    sys_warn (r, "File specifies unexpected value %.*g (%a) as %s.",
+              DBL_DIG + 1, sysmis, sysmis, "SYSMIS");
 
-  printf ("\thighest: %g (%a)\n", highest, highest);
+  printf ("\thighest: %.*g (%a)\n", DBL_DIG + 1, highest, highest);
   if (highest != HIGHEST)
-    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
-              highest, highest, "HIGHEST");
+    sys_warn (r, "File specifies unexpected value %.*g (%a) as %s.",
+              DBL_DIG + 1, highest, highest, "HIGHEST");
 
-  printf ("\tlowest: %g (%a)\n", lowest, lowest);
+  printf ("\tlowest: %.*g (%a)\n", DBL_DIG + 1, lowest, lowest);
   if (lowest != LOWEST && lowest != SYSMIS)
-    sys_warn (r, "File specifies unexpected value %g (%a) as %s.",
-              lowest, lowest, "LOWEST");
+    sys_warn (r, "File specifies unexpected value %.*g (%a) as %s.",
+              DBL_DIG + 1, lowest, lowest, "LOWEST");
 }
 
 static void
@@ -1254,7 +1255,7 @@ read_simple_compressed_data (struct sfm_reader *r, int max_cases)
           switch (opcode)
             {
             default:
-              printf ("%g", opcode - r->bias);
+              printf ("%.*g", DBL_DIG + 1, opcode - r->bias);
               if (width != 0)
                 printf (", but this is a string variable (width=%d)", width);
               printf ("\n");

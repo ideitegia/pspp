@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include <data/datasheet.h>
 
 #include <ctype.h>
+#include <float.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -153,9 +154,10 @@ check_datasheet_casereader (struct mc *mc, struct casereader *reader,
                 {
                   if (width == 0)
                     mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
-                              "%g != %g",
+                              "%.*g != %.*g",
                               row, col, n_rows, n_columns,
-                              case_num_idx (c, col), array[row][col].f);
+                              DBL_DIG + 1, case_num_idx (c, col),
+                              DBL_DIG + 1, array[row][col].f);
                   else
                     mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
                               "'%.*s' != '%.*s'",
@@ -217,8 +219,8 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
               {
                 if (width == 0)
                   mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
-                            "%g != %g", row, col, n_rows, n_columns,
-                            v.f, av->f);
+                            "%.*g != %.*g", row, col, n_rows, n_columns,
+                            DBL_DIG + 1, v.f, DBL_DIG + 1, av->f);
                 else
                   mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
                             "'%.*s' != '%.*s'",

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -367,7 +367,8 @@ xrchart_write_scale (cairo_t *cr, struct xrchart_geometry *geom,
     {
       double pos = (s + lower) * tick_interval;
       draw_tick (cr, geom, orient, false,
-		 s * tick_interval * geom->axis[orient].scale, "%g", pos);
+		 s * tick_interval * geom->axis[orient].scale, "%.*g",
+                 DBL_DIG + 1, pos);
     }
 }
 

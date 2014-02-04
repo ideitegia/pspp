@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -150,9 +151,9 @@ compute_num_vec (void *compute_, struct ccase **c, casenumber case_num)
                        "as an index into vector %s."),
                  vector_get_name (compute->vector));
           else
-            msg (SW, _("When executing COMPUTE: %g is not a valid value as "
+            msg (SW, _("When executing COMPUTE: %.*g is not a valid value as "
                        "an index into vector %s."),
-                 index, vector_get_name (compute->vector));
+                 DBL_DIG + 1, index, vector_get_name (compute->vector));
           return TRNS_CONTINUE;
         }
 
@@ -208,9 +209,9 @@ compute_str_vec (void *compute_, struct ccase **c, casenumber case_num)
         }
       else if (rindx < 1 || rindx > vector_get_var_cnt (compute->vector))
         {
-          msg (SW, _("When executing COMPUTE: %g is not a valid value as "
+          msg (SW, _("When executing COMPUTE: %.*g is not a valid value as "
                      "an index into vector %s."),
-               index, vector_get_name (compute->vector));
+               DBL_DIG + 1, index, vector_get_name (compute->vector));
           return TRNS_CONTINUE;
         }
 

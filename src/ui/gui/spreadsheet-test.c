@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2013  Free Software Foundation
+   Copyright (C) 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include <config.h>
 
+#include <float.h>
 #include <gtk/gtk.h>
 
 #include "psppire-spreadsheet-model.h"
@@ -78,7 +79,7 @@ on_clicked (GtkButton *button, struct xxx *stuff)
 	const int width = caseproto_get_width (proto, i);
 	const union value *val = case_data_idx (c, i);
 	if (0 == width)
-	  printf ("%g ", val->f);
+	  printf ("%.*g ", DBL_DIG + 1, val->f);
 	else
 	  {
 	    char *ss = xzalloc (width + 1);

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2008, 2010, 2011, 2012, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 #include "psppire-dialog-action-logistic.h"
 #include "psppire-value-entry.h"
+
+#include <float.h>
 
 #include "dialog-common.h"
 #include "helper.h"
@@ -165,13 +167,14 @@ generate_syntax (PsppireDialogAction *a)
 
   ds_put_cstr (&str, "\n\t/CRITERIA =");
 
-  syntax_gen_pspp (&str, " CUT(%g)", rd->cut_point);
+  syntax_gen_pspp (&str, " CUT(%.*g)", DBL_DIG + 1, rd->cut_point);
 
   syntax_gen_pspp (&str, " ITERATE(%d)", rd->max_iterations);
 
   if (rd->conf)
     {
-      syntax_gen_pspp (&str, "\n\t/PRINT = CI(%g)", rd->conf_level);
+      syntax_gen_pspp (&str, "\n\t/PRINT = CI(%.*g)",
+                       DBL_DIG + 1, rd->conf_level);
     }
 
   if (rd->constant) 

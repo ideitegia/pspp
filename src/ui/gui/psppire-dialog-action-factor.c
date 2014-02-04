@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation
+   Copyright (C) 2009, 2010, 2011, 2012, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 #include <config.h>
 
 #include "psppire-dialog-action-factor.h"
+
+#include <float.h>
 
 #include "psppire-var-view.h"
 #include "dialog-common.h"
@@ -71,7 +73,8 @@ generate_syntax (PsppireDialogAction *act)
   if ( rd->extraction.explicit_nfactors )
     ds_put_c_format (&str, "FACTORS (%d)", rd->extraction.n_factors);
   else
-    ds_put_c_format (&str, "MINEIGEN (%g)", rd->extraction.mineigen);
+    ds_put_c_format (&str, "MINEIGEN (%.*g)",
+                     DBL_DIG + 1, rd->extraction.mineigen);
 
   /*
     The CRITERIA = ITERATE subcommand is overloaded.
