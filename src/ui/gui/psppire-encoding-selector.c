@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -207,5 +207,6 @@ psppire_encoding_selector_get_encoding (GtkWidget *selector)
         }
     }
   g_list_free (list);
-  return encoding;
+
+  return encoding && !strcmp (encoding, "Auto") ? NULL : encoding;
 }

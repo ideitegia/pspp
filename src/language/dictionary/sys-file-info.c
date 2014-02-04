@@ -73,21 +73,50 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   struct tab_table *t;
   struct casereader *reader;
   struct sfm_read_info info;
+  char *encoding;
   int r, i;
 
-  lex_match_id (lexer, "FILE");
-  lex_match (lexer, T_EQUALS);
-
-  h = fh_parse (lexer, FH_REF_FILE, NULL);
-  if (!h)
-    return CMD_FAILURE;
-
-  reader = sfm_open_reader (h, NULL, &d, &info);
-  if (!reader)
+  h = NULL;
+  encoding = NULL;
+  for (;;)
     {
-      fh_unref (h);
-      return CMD_FAILURE;
+      lex_match (lexer, T_SLASH);
+
+      if (lex_match_id (lexer, "FILE") || lex_is_string (lexer))
+	{
+	  lex_match (lexer, T_EQUALS);
+
+          fh_unref (h);
+	  h = fh_parse (lexer, FH_REF_FILE, NULL);
+	  if (h == NULL)
+            goto error;
+	}
+      else if (lex_match_id (lexer, "ENCODING"))
+        {
+	  lex_match (lexer, T_EQUALS);
+
+          if (!lex_force_string (lexer))
+            goto error;
+
+          free (encoding);
+          encoding = ss_xstrdup (lex_tokss (lexer));
+
+          lex_get (lexer);
+        }
+      else
+        break;
     }
+
+  if (h == NULL)
+    {
+      lex_sbc_missing ("FILE");
+      goto error;
+    }
+
+  reader = sfm_open_reader (h, encoding, &d, &info);
+  if (!reader)
+    goto error;
+
   casereader_destroy (reader);
 
   t = tab_create (2, 11 + (info.product_ext != NULL));
@@ -184,6 +213,11 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   fh_unref (h);
   sfm_read_info_destroy (&info);
   return CMD_SUCCESS;
+
+error:
+  fh_unref (h);
+  free (encoding);
+  return CMD_FAILURE;
 }
 
 /* DISPLAY utility. */

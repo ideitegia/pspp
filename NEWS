@@ -4,10 +4,13 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
-Changes from 0.8.2 to 0.8.3:
+Changes since 0.8.2:
 
  * REGRESSION now recognises /STATISTICS=CI(x) which causes confidence
    intervals for the coefficients to be printed.
+
+ * The SYSFILE INFO command now accepts an ENCODING subcommand to
+   specify the character encoding of string data in the system file.
 
 Changes from 0.8.1 to 0.8.2:
 

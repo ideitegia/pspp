@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include "ui/gui/helper.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog-action.h"
+#include "ui/gui/psppire-encoding-selector.h"
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-window.h"
 #include "ui/gui/psppire.h"
@@ -445,9 +446,11 @@ sysfile_info (PsppireDataWindow *de)
       struct string filename;
       gchar *file_name =
 	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-
       gchar *utf8_file_name = g_filename_to_utf8 (file_name, -1, NULL, NULL,
                                                   NULL);
+
+      const gchar *encoding = psppire_encoding_selector_get_encoding (
+        gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
 
       gchar *syntax;
 
@@ -457,7 +460,11 @@ sysfile_info (PsppireDataWindow *de)
 
       g_free (utf8_file_name);
 
-      syntax = g_strdup_printf ("SYSFILE INFO %s.", ds_cstr (&filename));
+      if (encoding)
+        syntax = g_strdup_printf ("SYSFILE INFO %s ENCODING='%s'.",
+                                  ds_cstr (&filename), encoding);
+      else
+        syntax = g_strdup_printf ("SYSFILE INFO %s.", ds_cstr (&filename));
       g_free (execute_syntax_string (de, syntax));
     }
 
