@@ -64,7 +64,6 @@ struct _PsppireMeansLayer
   GtkWidget *label;
   GtkWidget *back;
   GtkWidget *forward;
-  GtkWidget *selector;
 };
 
 
@@ -77,11 +76,11 @@ GType      psppire_means_layer_get_type        (void);
 GType      psppire_means_layer_model_get_type        (void);
 GtkWidget * psppire_means_layer_new (void);
 
-void       psppire_means_layer_set_source (PsppireMeansLayer *ml, GtkWidget *w);
-
 void       psppire_means_layer_clear (PsppireMeansLayer *ml);
 GtkTreeModel *psppire_means_layer_get_model_n (PsppireMeansLayer *ml, gint n);
+GtkTreeModel *psppire_means_layer_get_model (PsppireMeansLayer *ml);
 
+void psppire_means_layer_update (PsppireMeansLayer *ml);
 
 G_END_DECLS
 

@@ -53,6 +53,7 @@
 #include "ui/gui/psppire-syntax-window.h"
 #include "ui/gui/psppire-selector.h"
 #include "ui/gui/psppire-var-view.h"
+#include "ui/gui/psppire-means-layer.h"
 #include "ui/gui/psppire-window-register.h"
 #include "ui/gui/widgets.h"
 #include "ui/source-init-opts.h"
@@ -95,9 +96,11 @@ initialize (const char *data_file)
   journal_init ();
   textdomain (PACKAGE);
 
+  /* FIXME: This should be implemented with a GtkInterface */
   psppire_selector_set_default_selection_func (GTK_TYPE_ENTRY, insert_source_row_into_entry);
   psppire_selector_set_default_selection_func (PSPPIRE_VAR_VIEW_TYPE, insert_source_row_into_tree_view);
   psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
+  psppire_selector_set_default_selection_func (PSPPIRE_TYPE_MEANS_LAYER, insert_source_row_into_layers);
 
   if (data_file)
     {

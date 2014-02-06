@@ -100,6 +100,8 @@ psppire_dialog_action_means_activate (GtkAction *a)
   GtkBuilder *xml = builder_new ("means.ui");
 
   GtkWidget *vb =   get_widget_assert   (xml, "alignment3");
+  GtkWidget *selector = get_widget_assert   (xml, "layer-selector");
+  
   act->layer = psppire_means_layer_new ();
   gtk_container_add (GTK_CONTAINER (vb), act->layer);
   gtk_widget_show (act->layer);
@@ -112,7 +114,10 @@ psppire_dialog_action_means_activate (GtkAction *a)
 		"predicate", var_is_numeric,
 		NULL);
 
-  psppire_means_layer_set_source (PSPPIRE_MEANS_LAYER (act->layer), pda->source);
+  g_object_set (selector,
+		"dest-widget", act->layer,
+		NULL);
+
 
   psppire_dialog_action_set_valid_predicate (pda, (void *) dialog_state_valid);
   psppire_dialog_action_set_refresh (pda, dialog_refresh);

@@ -24,6 +24,7 @@
 
 #include "psppire-dict.h"
 #include "psppire-dictview.h"
+#include "psppire-means-layer.h"
 #include "psppire-var-ptr.h"
 #include "psppire-var-view.h"
 #include "psppire-select-dest.h"
@@ -87,23 +88,22 @@ insert_source_row_into_entry (GtkTreeIter iter,
 }
 
 
-void
-insert_source_row_into_tree_view (GtkTreeIter iter,
-				  GtkWidget *dest,
-				  GtkTreeModel *model,
-				  gpointer data
-				  )
+
+static void
+insert_source_row_into_tree_model (GtkTreeIter source_iter,
+				     GtkTreeModel *dest_model,
+				     GtkTreeModel *source_model,
+				     gpointer data)
 {
   GtkTreePath *path;
   GtkTreeIter dest_iter;
   GtkTreeIter dict_iter;
   gint *row ;
-  GtkTreeModel *destmodel = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
 
   const struct variable *var;
   GtkTreeModel *dict;
 
-  get_base_model (model, &iter, &dict, &dict_iter);
+  get_base_model (source_model, &source_iter, &dict, &dict_iter);
 
   path = gtk_tree_model_get_path (dict, &dict_iter);
 
@@ -111,12 +111,40 @@ insert_source_row_into_tree_view (GtkTreeIter iter,
 
   var = psppire_dict_get_variable (PSPPIRE_DICT (dict), *row);
 
-  gtk_list_store_append (GTK_LIST_STORE (destmodel),  &dest_iter);
+  gtk_list_store_append (GTK_LIST_STORE (dest_model),  &dest_iter);
 
-  gtk_list_store_set (GTK_LIST_STORE (destmodel), &dest_iter, 0, var, -1);
+  gtk_list_store_set (GTK_LIST_STORE (dest_model), &dest_iter, 0, var, -1);
 
   gtk_tree_path_free (path);
 }
+
+
+
+void
+insert_source_row_into_tree_view (GtkTreeIter iter,
+				  GtkWidget *dest,
+				  GtkTreeModel *model,
+				  gpointer data)
+{
+  GtkTreeModel *destmodel = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
+
+  insert_source_row_into_tree_model (iter, destmodel, model, data);
+}
+
+
+void
+insert_source_row_into_layers (GtkTreeIter iter,
+			       GtkWidget *dest,
+			       GtkTreeModel *model,
+			       gpointer data)
+{
+  GtkTreeModel *destmodel = psppire_means_layer_get_model (PSPPIRE_MEANS_LAYER (dest));
+
+  insert_source_row_into_tree_model (iter, destmodel, model, data);
+
+  psppire_means_layer_update (PSPPIRE_MEANS_LAYER (dest));
+}
+
 
 
 

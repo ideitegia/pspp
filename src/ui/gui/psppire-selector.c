@@ -59,9 +59,9 @@
 #include <config.h>
 
 #include "psppire-dictview.h"
-#include "psppire-var-view.h"
 #include "psppire-dict.h"
 #include "psppire-select-dest.h"
+#include "psppire-means-layer.h"
 
 #include <gtk/gtk.h>
 
@@ -530,6 +530,7 @@ on_dest_treeview_select (GtkTreeSelection *treeselection, gpointer data)
   set_direction (selector, PSPPIRE_SELECTOR_DEST_TO_SOURCE);
 }
 
+
 /* Callback for source deselection, when the dest is GtkEntry */
 static void
 de_select_selection_entry (PsppireSelector *selector)
@@ -537,22 +538,46 @@ de_select_selection_entry (PsppireSelector *selector)
   gtk_entry_set_text (GTK_ENTRY (selector->dest), "");
 }
 
+
+static void  de_select_tree_model (GtkTreeSelection *selection, GtkTreeModel *model);
+
+/* Callback for source deselection, when the dest is PsppireMeansLayer */
+static void
+de_select_selection_means_layer (PsppireSelector *selector)
+{
+  PsppireMeansLayer *ml = PSPPIRE_MEANS_LAYER (selector->dest);
+  GtkTreeView *tv = GTK_TREE_VIEW (ml->var_view);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (tv);
+
+  GtkTreeModel *model = psppire_means_layer_get_model (ml);
+
+  g_return_if_fail (selector->select_items);
+
+  de_select_tree_model (selection, model);
+}
+
 /* Callback for source deselection, when the dest is GtkTreeView */
 static void
 de_select_selection_tree_view (PsppireSelector *selector)
 {
-  GList *item;
-
   GtkTreeSelection* selection =
     gtk_tree_view_get_selection ( GTK_TREE_VIEW (selector->dest));
 
   GtkTreeModel *model =
     gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
 
+  g_return_if_fail (selector->select_items);
+
+  de_select_tree_model (selection, model);
+}
+
+static void 
+de_select_tree_model (GtkTreeSelection *selection, GtkTreeModel *model)
+{
+  GList *item;
+
   GList *selected_rows =
     gtk_tree_selection_get_selected_rows (selection, NULL);
-
-  g_return_if_fail (selector->select_items);
 
   /* Convert paths to RowRefs */
   for (item = g_list_first (selected_rows);
@@ -615,6 +640,9 @@ de_select_selection (PsppireSelector *selector)
 
   else if ( GTK_IS_ENTRY (selector->dest))
     de_select_selection_entry (selector);
+
+  else if ( PSPPIRE_IS_MEANS_LAYER (selector->dest))
+    de_select_selection_means_layer (selector);
 
   else
     g_assert_not_reached ();
@@ -928,7 +956,18 @@ set_tree_view_dest (PsppireSelector *selector,
 			    G_CALLBACK (on_dest_model_changed), selector);
 }
 
+static void
+set_layer_dest (PsppireSelector *selector,
+		    PsppireMeansLayer *dest)
+{
+  GtkTreeSelection* selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (dest->var_view));
 
+  gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
+
+
+  g_signal_connect (selection, "changed", G_CALLBACK (on_dest_treeview_select),
+		    selector);
+}
 
 
 /* Callback for when the DEST GtkEntry is selected (clicked) */
@@ -1005,10 +1044,14 @@ update_subjects (PsppireSelector *selector)
     {
       set_tree_view_dest (selector, GTK_TREE_VIEW (selector->dest));
     }
-
   else if ( GTK_IS_ENTRY (selector->dest))
-    set_entry_dest (selector, GTK_ENTRY (selector->dest));
-
+    {
+      set_entry_dest (selector, GTK_ENTRY (selector->dest));
+    }
+  else if (PSPPIRE_IS_MEANS_LAYER (selector->dest))
+    {
+      set_layer_dest (selector, PSPPIRE_MEANS_LAYER (selector->dest));
+    }
   else if (GTK_IS_TEXT_VIEW (selector->dest))
     {
       /* Nothing to be done */
@@ -1078,15 +1121,17 @@ GType
 psppire_selector_orientation_get_type (void)
 {
   static GType etype = 0;
-  if (etype == 0) {
-    static const GEnumValue values[] = {
-      { PSPPIRE_SELECT_SOURCE_BEFORE_DEST, "PSPPIRE_SELECT_SOURCE_BEFORE_DEST", "source before destination" },
-      { PSPPIRE_SELECT_SOURCE_AFTER_DEST, "PSPPIRE_SELECT_SOURCE_AFTER_DEST", "source after destination" },
-      { PSPPIRE_SELECT_SOURCE_ABOVE_DEST, "PSPPIRE_SELECT_SOURCE_ABOVE_DEST", "source above destination" },
-      { PSPPIRE_SELECT_SOURCE_BELOW_DEST, "PSPPIRE_SELECT_SOURCE_BELOW_DEST", "source below destination" },
-      { 0, NULL, NULL }
-    };
-    etype = g_enum_register_static (g_intern_static_string ("PsppireSelectorOrientation"), values);
-  }
+  if (etype == 0)
+    {
+      static const GEnumValue values[] =
+	{
+	  { PSPPIRE_SELECT_SOURCE_BEFORE_DEST, "PSPPIRE_SELECT_SOURCE_BEFORE_DEST", "source before destination" },
+	  { PSPPIRE_SELECT_SOURCE_AFTER_DEST, "PSPPIRE_SELECT_SOURCE_AFTER_DEST", "source after destination" },
+	  { PSPPIRE_SELECT_SOURCE_ABOVE_DEST, "PSPPIRE_SELECT_SOURCE_ABOVE_DEST", "source above destination" },
+	  { PSPPIRE_SELECT_SOURCE_BELOW_DEST, "PSPPIRE_SELECT_SOURCE_BELOW_DEST", "source below destination" },
+	  { 0, NULL, NULL }
+	};
+      etype = g_enum_register_static (g_intern_static_string ("PsppireSelectorOrientation"), values);
+    }
   return etype;
 }
