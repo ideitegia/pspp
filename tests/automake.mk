@@ -230,8 +230,6 @@ EXTRA_DIST += \
         tests/language/data-io/test.ods
 
 CLEANFILES += *.save pspp.* foo*
-
-EXTRA_DIST += tests/OChangeLog
 
 # Autotest testsuite
 

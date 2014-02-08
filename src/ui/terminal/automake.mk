@@ -33,5 +33,3 @@ src_ui_terminal_pspp_LDFLAGS = $(PSPP_LDFLAGS) $(PG_LDFLAGS)
 if RELOCATABLE_VIA_LD
 src_ui_terminal_pspp_LDFLAGS += `$(RELOCATABLE_LDFLAGS) $(bindir)`
 endif
-
-EXTRA_DIST += src/ui/terminal/OChangeLog

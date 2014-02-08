@@ -12,4 +12,4 @@ examples_DATA = \
 	examples/regress.sps \
 	examples/regress_categorical.sps
 
-EXTRA_DIST += examples/OChangeLog $(examples_DATA)
+EXTRA_DIST += $(examples_DATA)

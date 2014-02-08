@@ -6,5 +6,3 @@ language_tests_sources = \
 	src/language/tests/moments-test.c \
 	src/language/tests/paper-size.c \
 	src/language/tests/pool-test.c 
-
-EXTRA_DIST += src/language/tests/OChangeLog

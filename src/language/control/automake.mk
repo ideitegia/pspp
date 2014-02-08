@@ -8,5 +8,3 @@ language_control_sources = \
 	src/language/control/loop.c \
 	src/language/control/repeat.c \
 	src/language/control/temporary.c
-
-EXTRA_DIST += src/language/control/OChangeLog

@@ -123,6 +123,4 @@ src_data_libdata_la_SOURCES = \
 	src/data/vector.c \
 	src/data/vector.h
 
-EXTRA_DIST += \
-	src/data/OChangeLog \
-	src/data/sys-file-encoding.pl
+EXTRA_DIST += src/data/sys-file-encoding.pl

@@ -9,5 +9,3 @@ noinst_LTLIBRARIES += src/ui/libuicommon.la
 src_ui_libuicommon_la_SOURCES = \
 	src/ui/source-init-opts.c src/ui/source-init-opts.h \
 	src/ui/syntax-gen.c src/ui/syntax-gen.h
-
-EXTRA_DIST += src/ui/OChangeLog

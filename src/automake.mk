@@ -37,7 +37,3 @@ include $(top_srcdir)/src/math/automake.mk
 include $(top_srcdir)/src/output/automake.mk
 include $(top_srcdir)/src/language/automake.mk
 include $(top_srcdir)/src/ui/automake.mk
-
-
-
-EXTRA_DIST += src/OChangeLog

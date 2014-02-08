@@ -34,5 +34,3 @@ nodist_src_language_liblanguage_la_SOURCES = \
 	$(src_language_stats_built_sources)  \
 	$(language_tests_built_sources) \
 	$(expressions_built_sources)
-
-EXTRA_DIST += src/language/OChangeLog

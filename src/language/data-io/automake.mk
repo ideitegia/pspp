@@ -31,5 +31,3 @@ language_data_io_sources = \
 all_q_sources += $(src_language_data_io_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_data_io_built_sources:.c=.q)
 CLEANFILES += $(src_language_data_io_built_sources)
-
-EXTRA_DIST += src/language/data-io/OChangeLog

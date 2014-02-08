@@ -6,5 +6,3 @@ include $(top_srcdir)/lib/tukey/automake.mk
 if HAVE_GUI
 include $(top_srcdir)/lib/gtk-contrib/automake.mk
 endif
-
-EXTRA_DIST += lib/OChangeLog

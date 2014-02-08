@@ -33,5 +33,3 @@ src_math_libpspp_math_la_SOURCES = \
 	src/math/trimmed-mean.c src/math/trimmed-mean.h \
 	src/math/tukey-hinges.c src/math/tukey-hinges.h \
 	src/math/wilcoxon-sig.c src/math/wilcoxon-sig.h
-
-EXTRA_DIST += src/math/OChangeLog

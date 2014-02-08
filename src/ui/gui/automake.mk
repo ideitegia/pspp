@@ -48,7 +48,6 @@ UI_FILES = \
 	src/ui/gui/var-type-dialog.ui
 
 EXTRA_DIST += \
-	src/ui/gui/OChangeLog \
 	src/ui/gui/artwork/actions/.empty \
 	src/ui/gui/artwork/apps/scalable/.empty \
 	src/ui/gui/gen-dot-desktop.sh \
