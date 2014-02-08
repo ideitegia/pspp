@@ -316,6 +316,13 @@ the at-sign (@samp{@@}).  Subsequent characters may also be digits, octothorpes
 (@samp{#}), dollar signs (@samp{$}), underscores (@samp{_}), or full
 stops (@samp{.}).  The variable name is padded on the right with spaces.
 
+The @samp{name} fields should be unique within a system file.  System
+files written by SPSS that contain very long string variables with
+similar names sometimes contain duplicate names that are later
+eliminated by resolving the very long string names (@pxref{Very Long
+String Record}).  PSPP handles duplicates by assigning them new,
+unique names.
+
 @item int32 label_len;
 This field is present only if @code{has_var_label} is set to 1.  It is
 set to the length, in characters, of the variable label.  The

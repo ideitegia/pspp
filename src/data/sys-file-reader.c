@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2007, 2009-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1090,7 +1090,14 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
 
       var = rec->var = dict_create_var (dict, name, rec->width);
       if (var == NULL)
-        sys_error (r, rec->pos, _("Duplicate variable name `%s'."), name);
+        {
+          char *new_name = dict_make_unique_var_name (dict, NULL, NULL);
+          sys_warn (r, rec->pos, _("Renaming variable with duplicate name "
+                                   "`%s' to `%s'."),
+                    name, new_name);
+          var = rec->var = dict_create_var_assert (dict, new_name, rec->width);
+          free (new_name);
+        }
 
       /* Set the short name the same as the long name. */
       var_set_short_name (var, 0, name);

@@ -1755,6 +1755,8 @@ do
 done
 AT_CLEANUP
 
+dnl SPSS-generated system file can contain duplicate variable names
+dnl (see bug #41475).
 AT_SETUP([duplicate variable name])
 AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
@@ -1777,9 +1779,20 @@ do
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
 ])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav' near offset 0xd4: Duplicate variable name `VAR1'.
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0],
+   [warning: `sys-file.sav' near offset 0xd4: Renaming variable with duplicate name `VAR1' to `VAR001'.
+
+Variable,Description,,Position
+var1,Format: F8.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+var001,Format: F8.0,,2
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
 ])
 done
 AT_CLEANUP

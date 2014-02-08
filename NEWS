@@ -20,6 +20,9 @@ Changes since 0.8.2:
    - File|Display Data File Information|External File... now allows an
      encoding to be selected.
 
+ * System files that contain duplicate variable names may now be read
+   successfully (bug #41475).
+
 Changes from 0.8.1 to 0.8.2:
 
  * Charts are now rendered with colours from the Tango palette instead
