@@ -68,6 +68,7 @@ static int describe_variable (const struct variable *v, struct tab_table *t,
 int
 cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 {
+  struct sfm_reader *sfm_reader;
   struct file_handle *h;
   struct dictionary *d;
   struct tab_table *t;
@@ -113,7 +114,11 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
       goto error;
     }
 
-  reader = sfm_open_reader (h, encoding, &d, &info);
+  sfm_reader = sfm_open (h);
+  if (sfm_reader == NULL)
+    goto error;
+
+  reader = sfm_decode (sfm_reader, encoding, &d, &info);
   if (!reader)
     goto error;
 

@@ -25,8 +25,39 @@
 #include "libpspp/float-format.h"
 #include "libpspp/integer-format.h"
 
-/* Reading system files. */
+/* Reading system files.
 
+   To read a system file:
+
+      1. Open it with sfm_open().
+
+      2. Figure out what encoding to read it with.  sfm_get_encoding() can
+         help.
+
+      3. Obtain a casereader with sfm_decode().
+
+   If, after step 1 or 2, you decide that you don't want the system file
+   anymore, you can close it with sfm_close().  Otherwise, don't call
+   sfm_close(), because sfm_decode() consumes it. */
+
+struct dictionary;
+struct file_handle;
+struct sfm_read_info;
+
+/* Opening and closing an sfm_reader. */
+struct sfm_reader *sfm_open (struct file_handle *);
+bool sfm_close (struct sfm_reader *);
+
+/* Obtaining information about an sfm_reader before . */
+const char *sfm_get_encoding (const struct sfm_reader *);
+
+/* Decoding a system file's dictionary and obtaining a casereader. */
+struct casereader *sfm_decode (struct sfm_reader *, const char *encoding,
+                               struct dictionary **, struct sfm_read_info *);
+
+/* Detecting whether a file is a system file. */
+bool sfm_detect (FILE *);
+
 /* System file info that doesn't fit in struct dictionary.
 
    The strings in this structure are encoded in UTF-8.  (They are normally in
@@ -51,12 +82,5 @@ struct sfm_read_info
   };
 
 void sfm_read_info_destroy (struct sfm_read_info *);
-
-struct dictionary;
-struct file_handle;
-struct casereader *sfm_open_reader (struct file_handle *, const char *encoding,
-                                    struct dictionary **,
-                                    struct sfm_read_info *);
-bool sfm_detect (FILE *);
 
 #endif /* sys-file-reader.h */

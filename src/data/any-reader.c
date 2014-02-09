@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,7 +96,15 @@ any_reader_open (struct file_handle *handle, const char *encoding,
         if (result == ANY_ERROR)
           return NULL;
         else if (result == ANY_YES)
-          return sfm_open_reader (handle, encoding, dict, NULL);
+          {
+            struct sfm_reader *r;
+
+            r = sfm_open (handle);
+            if (r == NULL)
+              return NULL;
+
+            return sfm_decode (r, encoding, dict, NULL);
+          }
 
         result = try_detect (fh_get_file_name (handle), pfm_detect);
         if (result == ANY_ERROR)

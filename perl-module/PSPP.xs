@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -755,17 +755,26 @@ CODE:
  struct file_handle *fh =
  	 fh_create_file (NULL, name, fh_default_properties () );
  struct dictionary *dict;
+ struct sfm_reader *r;
 
  sri = xmalloc (sizeof (*sri));
- sri->reader = sfm_open_reader (fh, NULL, &dict, &sri->opts);
-
- if ( sri->reader != NULL)
-   sri->dict = create_pspp_dict (dict);
+ r = sfm_open (fh);
+ if (r)
+   {
+     sri->reader = sfm_decode (r, NULL, &dict, &sri->opts);
+     if (sri->reader)
+       sri->dict = create_pspp_dict (dict);
+     else
+       {
+	 free (sri);
+	 sri = NULL;
+       }
+   }
  else
    {
      free (sri);
      sri = NULL;
-   }
+   } 
 
  RETVAL = sri;
  OUTPUT:

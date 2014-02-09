@@ -157,6 +157,16 @@ struct sfm_reader
     /* Resource tracking. */
     struct pool *pool;          /* All system file state. */
 
+    /* File data. */
+    struct sfm_read_info info;
+    struct sfm_header_record header;
+    struct sfm_var_record *vars;
+    size_t n_vars;
+    struct sfm_value_label_record *labels;
+    size_t n_labels;
+    struct sfm_document_record *document;
+    struct sfm_extension_record *extensions[32];
+
     /* File state. */
     struct file_handle *fh;     /* File handle. */
     struct fh_lock *lock;       /* Mutual exclusion for file handle. */
@@ -192,8 +202,6 @@ struct sfm_reader
   };
 
 static const struct casereader_class sys_file_casereader_class;
-
-static bool close_reader (struct sfm_reader *);
 
 static struct variable *lookup_var_by_index (struct sfm_reader *, off_t,
                                              const struct sfm_var_record *,
@@ -236,24 +244,18 @@ static bool read_compressed_float (struct sfm_reader *, double *)
 
 static char *fix_line_ends (const char *);
 
-static int parse_int (struct sfm_reader *, const void *data, size_t ofs);
-static double parse_float (struct sfm_reader *, const void *data, size_t ofs);
+static int parse_int (const struct sfm_reader *, const void *data, size_t ofs);
+static double parse_float (const struct sfm_reader *,
+                           const void *data, size_t ofs);
 
 static bool read_variable_record (struct sfm_reader *,
                                   struct sfm_var_record *);
 static bool read_value_label_record (struct sfm_reader *,
-                                     struct sfm_value_label_record *,
-                                     size_t n_vars);
+                                     struct sfm_value_label_record *);
 static struct sfm_document_record *read_document_record (struct sfm_reader *);
 static bool read_extension_record (struct sfm_reader *, int subtype,
                                    struct sfm_extension_record **);
 static bool skip_extension_record (struct sfm_reader *, int subtype);
-
-static const char *choose_encoding (
-  struct sfm_reader *,
-  const struct sfm_header_record *,
-  const struct sfm_extension_record *ext_integer,
-  const struct sfm_extension_record *ext_encoding);
 
 static struct text_record *open_text_record (
   struct sfm_reader *, const struct sfm_extension_record *,
@@ -282,8 +284,6 @@ static const char *text_parse_counted_string (struct sfm_reader *,
                                               struct text_record *);
 static size_t text_pos (const struct text_record *);
 static const char *text_get_all (const struct text_record *);
-
-static bool close_reader (struct sfm_reader *r);
 
 /* Dictionary reader. */
 
@@ -293,6 +293,9 @@ enum which_format
     WRITE_FORMAT
   };
 
+static bool read_dictionary (struct sfm_reader *);
+static bool read_record (struct sfm_reader *, int type,
+                         size_t *allocated_vars, size_t *allocated_labels);
 static bool read_header (struct sfm_reader *, struct sfm_read_info *,
                          struct sfm_header_record *);
 static void parse_header (struct sfm_reader *,
@@ -355,52 +358,19 @@ sfm_read_info_destroy (struct sfm_read_info *info)
     }
 }
 
-/* Opens the system file designated by file handle FH for reading.  Reads the
-   system file's dictionary into *DICT.
-
-   Ordinarily the reader attempts to automatically detect the character
-   encoding based on the file's contents.  This isn't always possible,
-   especially for files written by old versions of SPSS or PSPP, so specifying
-   a nonnull ENCODING overrides the choice of character encoding.
-
-   If INFO is non-null, then it receives additional info about the system file,
-   which the caller must eventually free with sfm_read_info_destroy() when it
-   is no longer needed. */
-struct casereader *
-sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
-                 struct dictionary **dictp, struct sfm_read_info *infop)
+/* Tries to open FH for reading as a system file.  Returns an sfm_reader if
+   successful, otherwise NULL. */
+struct sfm_reader *
+sfm_open (struct file_handle *fh)
 {
-  struct sfm_reader *r = NULL;
-  struct sfm_read_info *volatile info;
-
-  struct sfm_header_record header;
-
-  struct sfm_var_record *vars;
-  size_t n_vars, allocated_vars;
-
-  struct sfm_value_label_record *labels;
-  size_t n_labels, allocated_labels;
-
-  struct sfm_document_record *document;
-
-  struct sfm_extension_record *extensions[32];
-
-  struct dictionary *dict = NULL;
-  size_t i;
+  struct sfm_reader *r;
 
   /* Create and initialize reader. */
-  r = pool_create_container (struct sfm_reader, pool);
+  r = xzalloc (sizeof *r);
+  r->pool = pool_create ();
+  pool_register (r->pool, free, r);
   r->fh = fh_ref (fh);
-  r->lock = NULL;
-  r->file = NULL;
-  r->pos = 0;
-  r->error = false;
   r->opcode_idx = sizeof r->opcodes;
-  r->corruption_warning = false;
-  r->zin_buf = r->zout_buf = NULL;
-
-  info = infop ? infop : xmalloc (sizeof *info);
-  memset (info, 0, sizeof *info);
 
   /* TRANSLATORS: this fragment will be interpolated into
      messages in fh_lock() that identify types of files. */
@@ -416,152 +386,225 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
       goto error;
     }
 
-  /* Read header. */
-  if (!read_header (r, info, &header))
+  if (!read_dictionary (r))
     goto error;
 
-  vars = NULL;
-  n_vars = allocated_vars = 0;
+  return r;
+error:
+  sfm_close (r);
+  return NULL;
+}
 
-  labels = NULL;
-  n_labels = allocated_labels = 0;
+static bool
+read_dictionary (struct sfm_reader *r)
+{
+  size_t allocated_vars;
+  size_t allocated_labels;
 
-  document = NULL;
+  if (!read_header (r, &r->info, &r->header))
+    return false;
 
-  memset (extensions, 0, sizeof extensions);
-
+  allocated_vars = 0;
+  allocated_labels = 0;
   for (;;)
     {
-      int subtype;
       int type;
-      bool ok;
 
       if (!read_int (r, &type))
-        goto error;
+        return false;
       if (type == 999)
+        break;
+      if (!read_record (r, type, &allocated_vars, &allocated_labels))
+        return false;
+    }
+
+  if (!skip_bytes (r, 4))
+    return false;
+
+  if (r->compression == SFM_COMP_ZLIB && !read_zheader (r))
+    return false;
+
+  return true;
+}
+
+static bool
+read_record (struct sfm_reader *r, int type,
+             size_t *allocated_vars, size_t *allocated_labels)
+{
+  int subtype;
+
+  switch (type)
+    {
+    case 2:
+      if (r->n_vars >= *allocated_vars)
+        r->vars = pool_2nrealloc (r->pool, r->vars, allocated_vars,
+                                  sizeof *r->vars);
+      return read_variable_record (r, &r->vars[r->n_vars++]);
+
+    case 3:
+      if (r->n_labels >= *allocated_labels)
+        r->labels = pool_2nrealloc (r->pool, r->labels, allocated_labels,
+                                    sizeof *r->labels);
+      return read_value_label_record (r, &r->labels[r->n_labels++]);
+
+    case 4:
+      /* A Type 4 record is always immediately after a type 3 record,
+         so the code for type 3 records reads the type 4 record too. */
+      sys_error (r, r->pos, _("Misplaced type 4 record."));
+      return false;
+
+    case 6:
+      if (r->document != NULL)
         {
-          int dummy;
-          if (!read_int (r, &dummy))
-            goto error;
-          break;
+          sys_error (r, r->pos, _("Duplicate type 6 (document) record."));
+          return false;
         }
+      r->document = read_document_record (r);
+      return r->document != NULL;
 
-      switch (type)
+    case 7:
+      if (!read_int (r, &subtype))
+        return false;
+      else if (subtype < 0
+               || subtype >= sizeof r->extensions / sizeof *r->extensions)
         {
-        case 2:
-          if (n_vars >= allocated_vars)
-            vars = pool_2nrealloc (r->pool, vars, &allocated_vars,
-                                   sizeof *vars);
-          ok = read_variable_record (r, &vars[n_vars++]);
-          break;
+          sys_warn (r, r->pos,
+                    _("Unrecognized record type 7, subtype %d.  Please "
+                      "send a copy of this file, and the syntax which "
+                      "created it to %s."),
+                    subtype, PACKAGE_BUGREPORT);
+          return skip_extension_record (r, subtype);
+        }
+      else if (r->extensions[subtype] != NULL)
+        {
+          sys_warn (r, r->pos,
+                    _("Record type 7, subtype %d found here has the same "
+                      "type as the record found near offset 0x%llx.  "
+                      "Please send a copy of this file, and the syntax "
+                      "which created it to %s."),
+                    subtype, (long long int) r->extensions[subtype]->pos,
+                    PACKAGE_BUGREPORT);
+          return skip_extension_record (r, subtype);
+        }
+      else
+        return read_extension_record (r, subtype, &r->extensions[subtype]);
 
+    default:
+      sys_error (r, r->pos, _("Unrecognized record type %d."), type);
+      return false;
+    }
+
+  NOT_REACHED ();
+}
+
+/* Returns the character encoding obtained from R, or a null pointer if R
+   doesn't have an indication of its character encoding.  */
+const char *
+sfm_get_encoding (const struct sfm_reader *r)
+{
+  /* The EXT_ENCODING record is the best way to determine dictionary
+     encoding. */
+  if (r->extensions[EXT_ENCODING])
+    return r->extensions[EXT_ENCODING]->data;
+
+  /* But EXT_INTEGER is better than nothing as a fallback. */
+  if (r->extensions[EXT_INTEGER])
+    {
+      int codepage = parse_int (r, r->extensions[EXT_INTEGER]->data, 7 * 4);
+      const char *encoding;
+
+      switch (codepage)
+        {
+        case 1:
+          return "EBCDIC-US";
+
+        case 2:
         case 3:
-          if (n_labels >= allocated_labels)
-            labels = pool_2nrealloc (r->pool, labels, &allocated_labels,
-                                     sizeof *labels);
-          ok = read_value_label_record (r, &labels[n_labels++], n_vars);
+          /* These ostensibly mean "7-bit ASCII" and "8-bit ASCII"[sic]
+             respectively.  However, many files have character code 2 but data
+             which are clearly not ASCII.  Therefore, ignore these values. */
           break;
 
         case 4:
-          /* A Type 4 record is always immediately after a type 3 record,
-             so the code for type 3 records reads the type 4 record too. */
-          sys_error (r, r->pos, _("Misplaced type 4 record."));
-          ok = false;
-          break;
-
-        case 6:
-          if (document != NULL)
-            {
-              sys_error (r, r->pos, _("Duplicate type 6 (document) record."));
-              ok = false;
-              break;
-            }
-          document = read_document_record (r);
-          ok = document != NULL;
-          break;
-
-        case 7:
-          if (!read_int (r, &subtype))
-            goto error;
-          if (subtype < 0 || subtype >= sizeof extensions / sizeof *extensions)
-            {
-              sys_warn (r, r->pos,
-                        _("Unrecognized record type 7, subtype %d.  Please "
-                          "send a copy of this file, and the syntax which "
-                          "created it to %s."),
-                        subtype, PACKAGE_BUGREPORT);
-              ok = skip_extension_record (r, subtype);
-            }
-          else if (extensions[subtype] != NULL)
-            {
-              sys_warn (r, r->pos,
-                        _("Record type 7, subtype %d found here has the same "
-                          "type as the record found near offset 0x%llx.  "
-                          "Please send a copy of this file, and the syntax "
-                          "which created it to %s."),
-                        subtype, (long long int) extensions[subtype]->pos,
-                        PACKAGE_BUGREPORT);
-              ok = skip_extension_record (r, subtype);
-            }
-          else
-            ok = read_extension_record (r, subtype, &extensions[subtype]);
-          break;
+          return "MS_KANJI";
 
         default:
-          sys_error (r, r->pos, _("Unrecognized record type %d."), type);
-          ok = false;
+          encoding = sys_get_encoding_from_codepage (codepage);
+          if (encoding != NULL)
+            return encoding;
           break;
         }
-      if (!ok)
-        goto error;
     }
 
-  if (r->compression == SFM_COMP_ZLIB && !read_zheader (r))
-    goto error;
+  /* If the file magic number is EBCDIC then its character data is too. */
+  if (!strcmp (r->header.magic, EBCDIC_MAGIC))
+    return "EBCDIC-US";
 
-  /* Now actually parse what we read.
+  return NULL;
+}
 
-     First, figure out the correct character encoding, because this determines
-     how the rest of the header data is to be interpreted. */
-  dict = dict_create (encoding
-                      ? encoding
-                      : choose_encoding (r, &header, extensions[EXT_INTEGER],
-                                         extensions[EXT_ENCODING]));
+/* Decodes the dictionary read from R, saving it into into *DICT.  Character
+   strings in R are decoded using ENCODING, or an encoding obtained from R if
+   ENCODING is null, or the locale encoding if R specifies no encoding.
+
+   If INFOP is non-null, then it receives additional info about the system
+   file, which the caller must eventually free with sfm_read_info_destroy()
+   when it is no longer needed.
+
+   This function consumes R.  The caller must use it again later, even to
+   destroy it with sfm_close(). */
+struct casereader *
+sfm_decode (struct sfm_reader *r, const char *encoding,
+            struct dictionary **dictp, struct sfm_read_info *infop)
+{
+  struct dictionary *dict;
+  size_t i;
+
+  if (encoding == NULL)
+    {
+      encoding = sfm_get_encoding (r);
+      if (encoding == NULL)
+        encoding = locale_charset ();
+    }
+
+  dict = dict_create (encoding);
   r->encoding = dict_get_encoding (dict);
 
   /* These records don't use variables at all. */
-  if (document != NULL)
-    parse_document (dict, document);
+  if (r->document != NULL)
+    parse_document (dict, r->document);
 
-  if (extensions[EXT_INTEGER] != NULL
-      && !parse_machine_integer_info (r, extensions[EXT_INTEGER], info))
+  if (r->extensions[EXT_INTEGER] != NULL
+      && !parse_machine_integer_info (r, r->extensions[EXT_INTEGER], &r->info))
     goto error;
 
-  if (extensions[EXT_FLOAT] != NULL)
-    parse_machine_float_info (r, extensions[EXT_FLOAT]);
+  if (r->extensions[EXT_FLOAT] != NULL)
+    parse_machine_float_info (r, r->extensions[EXT_FLOAT]);
 
-  if (extensions[EXT_PRODUCT_INFO] != NULL)
-    parse_extra_product_info (r, extensions[EXT_PRODUCT_INFO], info);
+  if (r->extensions[EXT_PRODUCT_INFO] != NULL)
+    parse_extra_product_info (r, r->extensions[EXT_PRODUCT_INFO], &r->info);
 
-  if (extensions[EXT_FILE_ATTRS] != NULL)
-    parse_data_file_attributes (r, extensions[EXT_FILE_ATTRS], dict);
+  if (r->extensions[EXT_FILE_ATTRS] != NULL)
+    parse_data_file_attributes (r, r->extensions[EXT_FILE_ATTRS], dict);
 
-  parse_header (r, &header, info, dict);
+  parse_header (r, &r->header, &r->info, dict);
 
   /* Parse the variable records, the basis of almost everything else. */
-  if (!parse_variable_records (r, dict, vars, n_vars))
+  if (!parse_variable_records (r, dict, r->vars, r->n_vars))
     goto error;
 
   /* Parse value labels and the weight variable immediately after the variable
      records.  These records use indexes into var_recs[], so we must parse them
      before those indexes become invalidated by very long string variables. */
-  for (i = 0; i < n_labels; i++)
-    if (!parse_value_labels (r, dict, vars, n_vars, &labels[i]))
+  for (i = 0; i < r->n_labels; i++)
+    if (!parse_value_labels (r, dict, r->vars, r->n_vars, &r->labels[i]))
       goto error;
-  if (header.weight_idx != 0)
+  if (r->header.weight_idx != 0)
     {
-      struct variable *weight_var = lookup_var_by_index (r, 76, vars, n_vars,
-                                                         header.weight_idx);
+      struct variable *weight_var;
+
+      weight_var = lookup_var_by_index (r, 76, r->vars, r->n_vars,
+                                        r->header.weight_idx);
       if (weight_var != NULL)
         {
           if (var_is_numeric (weight_var))
@@ -573,51 +616,52 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
         }
     }
 
-  if (extensions[EXT_DISPLAY] != NULL)
-    parse_display_parameters (r, extensions[EXT_DISPLAY], dict);
+  if (r->extensions[EXT_DISPLAY] != NULL)
+    parse_display_parameters (r, r->extensions[EXT_DISPLAY], dict);
 
   /* The following records use short names, so they need to be parsed before
      parse_long_var_name_map() changes short names to long names. */
-  if (extensions[EXT_MRSETS] != NULL)
-    parse_mrsets (r, extensions[EXT_MRSETS], dict);
+  if (r->extensions[EXT_MRSETS] != NULL)
+    parse_mrsets (r, r->extensions[EXT_MRSETS], dict);
 
-  if (extensions[EXT_MRSETS2] != NULL)
-    parse_mrsets (r, extensions[EXT_MRSETS2], dict);
+  if (r->extensions[EXT_MRSETS2] != NULL)
+    parse_mrsets (r, r->extensions[EXT_MRSETS2], dict);
 
-  if (extensions[EXT_LONG_STRINGS] != NULL
-      && !parse_long_string_map (r, extensions[EXT_LONG_STRINGS], dict))
+  if (r->extensions[EXT_LONG_STRINGS] != NULL
+      && !parse_long_string_map (r, r->extensions[EXT_LONG_STRINGS], dict))
     goto error;
 
   /* Now rename variables to their long names. */
-  parse_long_var_name_map (r, extensions[EXT_LONG_NAMES], dict);
+  parse_long_var_name_map (r, r->extensions[EXT_LONG_NAMES], dict);
 
   /* The following records use long names, so they need to follow renaming. */
-  if (extensions[EXT_VAR_ATTRS] != NULL)
+  if (r->extensions[EXT_VAR_ATTRS] != NULL)
     {
-      parse_variable_attributes (r, extensions[EXT_VAR_ATTRS], dict);
+      parse_variable_attributes (r, r->extensions[EXT_VAR_ATTRS], dict);
 
       /* Roles use the $@Role attribute.  */
       assign_variable_roles (r, dict);
     }
 
-  if (extensions[EXT_LONG_LABELS] != NULL
-      && !parse_long_string_value_labels (r, extensions[EXT_LONG_LABELS],
+  if (r->extensions[EXT_LONG_LABELS] != NULL
+      && !parse_long_string_value_labels (r, r->extensions[EXT_LONG_LABELS],
                                           dict))
     goto error;
-  if (extensions[EXT_LONG_MISSING] != NULL
-    && !parse_long_string_missing_values (r, extensions[EXT_LONG_MISSING],
-                                          dict))
+  if (r->extensions[EXT_LONG_MISSING] != NULL
+      && !parse_long_string_missing_values (r, r->extensions[EXT_LONG_MISSING],
+                                            dict))
     goto error;
 
   /* Warn if the actual amount of data per case differs from the
      amount that the header claims.  SPSS version 13 gets this
      wrong when very long strings are involved, so don't warn in
      that case. */
-  if (header.nominal_case_size != -1 && header.nominal_case_size != n_vars
-      && info->version_major != 13)
+  if (r->header.nominal_case_size != -1
+      && r->header.nominal_case_size != r->n_vars
+      && r->info.version_major != 13)
     sys_warn (r, -1, _("File header claims %d variable positions but "
                        "%zu were read from file."),
-              header.nominal_case_size, n_vars);
+              r->header.nominal_case_size, r->n_vars);
 
   /* Create an index of dictionary variable widths for
      sfm_read_case to use.  We cannot use the `struct variable's
@@ -628,10 +672,10 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
   r->proto = caseproto_ref_pool (dict_get_proto (dict), r->pool);
 
   *dictp = dict;
-  if (infop != info)
+  if (infop)
     {
-      sfm_read_info_destroy (info);
-      free (info);
+      *infop = r->info;
+      memset (&r->info, 0, sizeof r->info);
     }
 
   return casereader_create_sequential
@@ -640,23 +684,18 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
                                        &sys_file_casereader_class, r);
 
 error:
-  if (infop != info)
-    {
-      sfm_read_info_destroy (info);
-      free (info);
-    }
-
-  close_reader (r);
+  sfm_close (r);
   dict_destroy (dict);
   *dictp = NULL;
   return NULL;
 }
 
-/* Closes a system file after we're done with it.
+/* Closes R, which should have been returned by sfm_open() but not already
+   closed with sfm_decode() or this function.
    Returns true if an I/O error has occurred on READER, false
    otherwise. */
-static bool
-close_reader (struct sfm_reader *r)
+bool
+sfm_close (struct sfm_reader *r)
 {
   bool error;
 
@@ -674,6 +713,7 @@ close_reader (struct sfm_reader *r)
       r->file = NULL;
     }
 
+  sfm_read_info_destroy (&r->info);
   fh_unlock (r->lock);
   fh_unref (r->fh);
 
@@ -688,7 +728,7 @@ static void
 sys_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
   struct sfm_reader *r = r_;
-  close_reader (r);
+  sfm_close (r);
 }
 
 /* Returns true if FILE is an SPSS system file,
@@ -913,8 +953,7 @@ read_variable_record (struct sfm_reader *r, struct sfm_var_record *record)
 /* Reads value labels from R into RECORD. */
 static bool
 read_value_label_record (struct sfm_reader *r,
-                         struct sfm_value_label_record *record,
-                         size_t n_vars)
+                         struct sfm_value_label_record *record)
 {
   size_t i;
   int type;
@@ -967,12 +1006,12 @@ read_value_label_record (struct sfm_reader *r,
      record. */
   if (!read_uint (r, &record->n_vars))
     return false;
-  if (record->n_vars < 1 || record->n_vars > n_vars)
+  if (record->n_vars < 1 || record->n_vars > r->n_vars)
     {
       sys_error (r, r->pos - 4,
                  _("Number of variables associated with a value label (%zu) "
                    "is not between 1 and the number of variables (%zu)."),
-                 record->n_vars, n_vars);
+                 record->n_vars, r->n_vars);
       return false;
     }
 
@@ -1412,54 +1451,6 @@ parse_machine_integer_info (struct sfm_reader *r,
               integer_representation, expected_integer_format);
 
   return true;
-}
-
-static const char *
-choose_encoding (struct sfm_reader *r,
-                 const struct sfm_header_record *header,
-                 const struct sfm_extension_record *ext_integer,
-                 const struct sfm_extension_record *ext_encoding)
-{
-  /* The EXT_ENCODING record is a more reliable way to determine dictionary
-     encoding. */
-  if (ext_encoding)
-    return ext_encoding->data;
-
-  /* But EXT_INTEGER is better than nothing as a fallback. */
-  if (ext_integer)
-    {
-      int codepage = parse_int (r, ext_integer->data, 7 * 4);
-      const char *encoding;
-
-      switch (codepage)
-        {
-        case 1:
-          return "EBCDIC-US";
-
-        case 2:
-        case 3:
-          /* These ostensibly mean "7-bit ASCII" and "8-bit ASCII"[sic]
-             respectively.  However, there are known to be many files in the wild
-             with character code 2, yet have data which are clearly not ASCII.
-             Therefore we ignore these values. */
-          break;
-
-        case 4:
-          return "MS_KANJI";
-
-        default:
-          encoding = sys_get_encoding_from_codepage (codepage);
-          if (encoding != NULL)
-            return encoding;
-          break;
-        }
-    }
-
-  /* If the file magic number is EBCDIC then its character data is too. */
-  if (!strcmp (header->magic, EBCDIC_MAGIC))
-    return "EBCDIC-US";
-
-  return locale_charset ();
 }
 
 /* Parses record type 7, subtype 4. */
@@ -3095,13 +3086,13 @@ read_uint64 (struct sfm_reader *r, unsigned long long int *x)
 }
 
 static int
-parse_int (struct sfm_reader *r, const void *data, size_t ofs)
+parse_int (const struct sfm_reader *r, const void *data, size_t ofs)
 {
   return integer_get (r->integer_format, (const uint8_t *) data + ofs, 4);
 }
 
 static double
-parse_float (struct sfm_reader *r, const void *data, size_t ofs)
+parse_float (const struct sfm_reader *r, const void *data, size_t ofs)
 {
   return float_get_double (r->float_format, (const uint8_t *) data + ofs);
 }
