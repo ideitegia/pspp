@@ -543,9 +543,9 @@ sfm_open_reader (struct file_handle *fh, const char *volatile encoding,
       if (var_is_numeric (weight_var))
         dict_set_weight (dict, weight_var);
       else
-        sys_error (r, -1, _("Weighting variable must be numeric "
-                            "(not string variable `%s')."),
-                   var_get_name (weight_var));
+        sys_warn (r, -1, _("Ignoring string variable `%s' set "
+                           "as weighting variable."),
+                  var_get_name (weight_var));
     }
 
   if (extensions[EXT_DISPLAY] != NULL)

@@ -2091,9 +2091,20 @@ do
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
 ])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+DISPLAY DICTIONARY.
 ])
-  AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
-   [error: `sys-file.sav': Weighting variable must be numeric (not string variable `STR1').
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0],
+   [warning: `sys-file.sav': Ignoring string variable `STR1' set as weighting variable.
+
+Variable,Description,,Position
+num1,Format: F8.0,,1
+,Measure: Scale,,
+,Display Alignment: Right,,
+,Display Width: 8,,
+str1,Format: A4,,2
+,Measure: Nominal,,
+,Display Alignment: Left,,
+,Display Width: 4,,
 ])
 done
 AT_CLEANUP
