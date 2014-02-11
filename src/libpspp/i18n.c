@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -149,52 +149,72 @@ recode_string_len (const char *to, const char *from,
    small. */
 static ssize_t
 try_recode (iconv_t conv,
-            const char *ip, size_t inbytes,
-            char *op_, size_t outbytes)
+            const char *in, size_t inbytes,
+            char *out_, size_t outbytes)
 {
   /* FIXME: Need to ensure that this char is valid in the target encoding */
   const char fallbackchar = '?';
-  char *op = op_;
+  char *out = out_;
+  int i;
 
   /* Put the converter into the initial shift state, in case there was any
      state information left over from its last usage. */
   iconv (conv, NULL, 0, NULL, 0);
 
-  while (iconv (conv, (ICONV_CONST char **) &ip, &inbytes,
-                &op, &outbytes) == -1)
-    switch (errno)
-      {
-      case EINVAL:
-        if (outbytes < 2)
-          return -1;
-        *op++ = fallbackchar;
-        *op = '\0';
-        return op - op_;
+  /* Do two rounds of iconv() calls:
 
-      case EILSEQ:
-        if (outbytes == 0)
-          return -1;
-        *op++ = fallbackchar;
-        outbytes--;
-        ip++;
-        inbytes--;
-        break;
+     - The first round does the bulk of the conversion using the
+       caller-supplied input data..
 
-      case E2BIG:
-        return -1;
+     - The second round flushes any leftover output.  This has a real effect
+       with input encodings that use combining diacritics, e.g. without the
+       second round the last character tends to gets dropped when converting
+       from windows-1258 to other encodings.
+  */
+  for (i = 0; i < 2; i++)
+    {
+      ICONV_CONST char **inp = i ? NULL : (ICONV_CONST char **) &in;
+      size_t *inbytesp = i ? NULL : &inbytes;
 
-      default:
-        /* should never happen */
-        fprintf (stderr, "Character conversion error: %s\n", strerror (errno));
-        NOT_REACHED ();
-        break;
-      }
+      while (iconv (conv, inp, inbytesp, &out, &outbytes) == -1)
+        switch (errno)
+          {
+          case EINVAL:
+            if (outbytes < 2)
+              return -1;
+            *out++ = fallbackchar;
+            *out = '\0';
+            return out - out_;
+
+          case EILSEQ:
+            if (outbytes == 0)
+              return -1;
+            *out++ = fallbackchar;
+            outbytes--;
+            if (inp)
+              {
+                in++;
+                inbytes--;
+              }
+            break;
+
+          case E2BIG:
+            return -1;
+
+          default:
+            /* should never happen */
+            fprintf (stderr, "Character conversion error: %s\n",
+                     strerror (errno));
+            NOT_REACHED ();
+            break;
+          }
+    }
 
   if (outbytes == 0)
     return -1;
 
-  *op = '\0';
-  return op - op_;
+  *out = '\0';
+  return out - out_;
 }
 
 /* Converts the string TEXT, which should be encoded in FROM-encoding, to a

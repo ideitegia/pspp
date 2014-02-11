@@ -32,6 +32,11 @@ CHECK_I18N_RECODE([invalid UTF-8 to ISO-8859-1], [UTF-8], [ISO-8859-1],
 CHECK_I18N_RECODE([truncated UTF-8 to ISO-8559-1], [UTF-8], [ISO-8859-1],
                   [xy\302], [xy?])
 
+# Checks for a bug that caused the last character to be dropped in conversions
+# from encodings that have combining diacritics (e.g. windows-1258).
+CHECK_I18N_RECODE([dropped final character in windows-1258], [windows-1258],
+                  [UTF8], [aeiou], [aeiou])
+
 dnl The input to this test is 7 bytes long and the expected output is 9 bytes.
 dnl So it should exercise the E2BIG case 
 CHECK_I18N_RECODE([from ISO-8859-1 to UTF-8 with overflow], 
