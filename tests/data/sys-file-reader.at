@@ -2475,30 +2475,102 @@ AT_KEYWORDS([sack synthetic system file negative multiple response])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 1; 1; 0; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+2; dnl Layout code
+16; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52"; s64 "PSPP synthetic test file";
+i8 0 *3;
 
-dnl Numeric variable, no label or missing values.
-2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
+dnl $a
+2; 0; 0; 0; 0x050800 *2; i8 0x82; i8 0xa0; s6 "";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
 
-dnl Multiple response sets.
-7; 7; 1; COUNT("a=C");
-7; 19; 1; COUNT("xyz=D");
+dnl $b
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+2; 0; 0; 0; 0x050800 *2; s8 "E";
+2; 0; 0; 0; 0x050800 *2; s8 "F";
+2; 0; 0; 0; 0x050800 *2; s8 "G";
 
+dnl $c
+2; 4; 0; 0; 0x010400 *2; s8 "H";
+2; 4; 0; 0; 0x010400 *2; s8 "I";
+2; 4; 0; 0; 0x010400 *2; s8 "J";
+
+dnl $d
+2; 0; 0; 0; 0x050800 *2; s8 "K";
+2; 0; 0; 0; 0x050800 *2; s8 "L";
+2; 0; 0; 0; 0x050800 *2; s8 "M";
+
+dnl $e
+2; 6; 0; 0; 0x010600 *2; s8 "N";
+2; 6; 0; 0; 0x010600 *2; s8 "O";
+2; 6; 0; 0; 0x010600 *2; s8 "P";
+
+dnl Machine integer info record.
+7; 3; 4; 8; 1; 2; 3; -1; 1; 1; ENDIAN; 932;
+
+7; 7; 1;
+COUNT(
+  "$a=C 10 my mcgroup "; i8 0x82; i8 0xa0; " b c"; i8 10;
+  "b=D2 55 0  g e f d"; i8 10;
+  "$c=D4 "; i8 0x82; i8 0xcd; i8 0x82; i8 0xa2; " 10 mdgroup #2 h i j"; i8 10);
+
+7; 19; 1;
+COUNT(
+  "$d=E 1 2 34 13 third mdgroup k l m"; i8 10;
+  "e=E 11 6 choice 0  n o p"; i8 10);
+
+dnl Character encoding record.
+7; 20; 1; 9; "shift_jis";
+
+dnl Dictionary termination record.
 999; 0;
 ])
 for variant in \
-	"be 15a9bf44d0cd6186a60629b77079c5a5" \
-	"le 161c99aca5e7a3684df096137e72ce5b"
+	"be 8832b331e09557a1ac0bf4e31611428a" \
+	"le 1c1dcd9930864632402b5c635395cb51"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
 ])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+MRSETS /DISPLAY NAME=ALL.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: `a' does not begin with `$' at offset 2 in MRSETS record.
+warning: `sys-file.sav': Multiple response set name `b' does not begin with `$'.
 
-warning: `sys-file.sav' near offset 0xeb: `xyz' does not begin with `$' at offset 4 in MRSETS record.
+warning: `sys-file.sav': Multiple response set name `e' does not begin with `$'.
+
+Table: Multiple Response Sets
+Name,Variables,Details
+$a,"あ
+b
+c
+","Multiple category set
+Label: my mcgroup
+"
+$c,"h
+i
+j
+","Multiple dichotomy set
+Label: mdgroup #2
+Label source: Provided by user
+Counted value: `はい'
+Category label source: Variable labels
+"
+$d,"k
+l
+m
+","Multiple dichotomy set
+Label: third mdgroup
+Label source: Provided by user
+Counted value: 34
+Category label source: Value labels of counted value
+"
 ])
 done
 AT_CLEANUP
@@ -2588,7 +2660,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Unexpected label source value `2' following `E' at offset 7 in MRSETS record.
+warning: `sys-file.sav' near offset 0xd8: Unexpected label source value following `E' at offset 7 in MRSETS record.
 
 warning: `sys-file.sav' near offset 0xd8: Expecting digit at offset 7 in MRSETS record.
 ])
@@ -2772,7 +2844,7 @@ do
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
 warning: `sys-file.sav' near offset 0xd8: Missing new-line parsing variable names at offset 13 in MRSETS record.
 
-warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
+warning: `sys-file.sav': MRSET $a has only one variable.
 ])
 done
 AT_CLEANUP
@@ -2802,9 +2874,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: Duplicate variable name NUM1 at offset 18 in MRSETS record.
+warning: `sys-file.sav': MRSET $a contains duplicate variable name NUM1.
 
-warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
+warning: `sys-file.sav': MRSET $a has only one variable.
 ])
 done
 AT_CLEANUP
@@ -2835,9 +2907,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xf8: MRSET $a contains both string and numeric variables.
+warning: `sys-file.sav': MRSET $a contains both string and numeric variables.
 
-warning: `sys-file.sav' near offset 0xf8: MRSET $a has only 1 variables.
+warning: `sys-file.sav': MRSET $a has only one variable.
 ])
 done
 AT_CLEANUP
@@ -2867,7 +2939,7 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
+warning: `sys-file.sav': MRSET $a has only one variable.
 ])
 done
 AT_CLEANUP
@@ -2897,9 +2969,9 @@ do
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
+warning: `sys-file.sav': MRSET $a has only one variable.
 
-warning: `sys-file.sav' near offset 0xd8: MRSET $b has only 0 variables.
+warning: `sys-file.sav': MRSET $b has no variables.
 ])
 done
 AT_CLEANUP

@@ -142,6 +142,20 @@ struct sfm_document_record
     size_t n_lines;
   };
 
+struct sfm_mrset
+  {
+    const char *name;           /* Name. */
+    const char *label;          /* Human-readable label for group. */
+    enum mrset_type type;       /* Group type. */
+    const char **vars;          /* Constituent variables' names. */
+    size_t n_vars;              /* Number of constituent variables. */
+
+    /* MRSET_MD only. */
+    enum mrset_md_cat_source cat_source; /* Source of category labels. */
+    bool label_from_var_label;  /* 'label' taken from variable label? */
+    const char *counted;        /* Counted value, as string. */
+  };
+
 struct sfm_extension_record
   {
     int subtype;                /* Record subtype. */
@@ -165,6 +179,8 @@ struct sfm_reader
     struct sfm_value_label_record *labels;
     size_t n_labels;
     struct sfm_document_record *document;
+    struct sfm_mrset *mrsets;
+    size_t n_mrsets;
     struct sfm_extension_record *extensions[32];
 
     /* File state. */
@@ -320,7 +336,8 @@ static void parse_extra_product_info (struct sfm_reader *,
                                       struct sfm_read_info *);
 static void parse_mrsets (struct sfm_reader *,
                           const struct sfm_extension_record *,
-                          struct dictionary *);
+                          size_t *allocated_mrsets);
+static void decode_mrsets (struct sfm_reader *, struct dictionary *);
 static void parse_long_var_name_map (struct sfm_reader *,
                                      const struct sfm_extension_record *,
                                      struct dictionary *);
@@ -363,6 +380,7 @@ sfm_read_info_destroy (struct sfm_read_info *info)
 struct sfm_reader *
 sfm_open (struct file_handle *fh)
 {
+  size_t allocated_mrsets = 0;
   struct sfm_reader *r;
 
   /* Create and initialize reader. */
@@ -388,6 +406,12 @@ sfm_open (struct file_handle *fh)
 
   if (!read_dictionary (r))
     goto error;
+
+  if (r->extensions[EXT_MRSETS] != NULL)
+    parse_mrsets (r, r->extensions[EXT_MRSETS], &allocated_mrsets);
+
+  if (r->extensions[EXT_MRSETS2] != NULL)
+    parse_mrsets (r, r->extensions[EXT_MRSETS2], &allocated_mrsets);
 
   return r;
 error:
@@ -621,11 +645,7 @@ sfm_decode (struct sfm_reader *r, const char *encoding,
 
   /* The following records use short names, so they need to be parsed before
      parse_long_var_name_map() changes short names to long names. */
-  if (r->extensions[EXT_MRSETS] != NULL)
-    parse_mrsets (r, r->extensions[EXT_MRSETS], dict);
-
-  if (r->extensions[EXT_MRSETS2] != NULL)
-    parse_mrsets (r, r->extensions[EXT_MRSETS2], dict);
+  decode_mrsets (r, dict);
 
   if (r->extensions[EXT_LONG_STRINGS] != NULL
       && !parse_long_string_map (r, r->extensions[EXT_LONG_STRINGS], dict))
@@ -1500,40 +1520,30 @@ parse_extra_product_info (struct sfm_reader *r,
 /* Parses record type 7, subtype 7 or 19. */
 static void
 parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
-              struct dictionary *dict)
+              size_t *allocated_mrsets)
 {
   struct text_record *text;
-  struct mrset *mrset;
 
   text = open_text_record (r, record, false);
   for (;;)
     {
-      const char *counted = NULL;
-      const char *name;
-      const char *label;
-      struct stringi_set var_names;
+      struct sfm_mrset *mrset;
       size_t allocated_vars;
       char delimiter;
-      int width;
 
       /* Skip extra line feeds if present. */
       while (text_match (text, '\n'))
         continue;
 
-      mrset = xzalloc (sizeof *mrset);
+      if (r->n_mrsets >= *allocated_mrsets)
+        r->mrsets = pool_2nrealloc (r->pool, r->mrsets, allocated_mrsets,
+                                    sizeof *r->mrsets);
+      mrset = &r->mrsets[r->n_mrsets];
+      memset(mrset, 0, sizeof *mrset);
 
-      name = text_get_token (text, ss_cstr ("="), NULL);
-      if (name == NULL)
+      mrset->name = text_get_token (text, ss_cstr ("="), NULL);
+      if (mrset->name == NULL)
         break;
-      mrset->name = recode_string ("UTF-8", r->encoding, name, -1);
-
-      if (mrset->name[0] != '$')
-        {
-          sys_warn (r, record->pos,
-                    _("`%s' does not begin with `$' at offset %zu "
-                      "in MRSETS record."), mrset->name, text_pos (text));
-          break;
-        }
 
       if (text_match (text, 'C'))
         {
@@ -1570,9 +1580,9 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
             mrset->label_from_var_label = true;
           else if (strcmp (number, "1"))
             sys_warn (r, record->pos,
-                      _("Unexpected label source value `%s' following `E' "
+                      _("Unexpected label source value following `E' "
                         "at offset %zu in MRSETS record."),
-                      number, text_pos (text));
+                      text_pos (text));
         }
       else
         {
@@ -1585,28 +1595,22 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
 
       if (mrset->type == MRSET_MD)
         {
-          counted = text_parse_counted_string (r, text);
-          if (counted == NULL)
+          mrset->counted = text_parse_counted_string (r, text);
+          if (mrset->counted == NULL)
             break;
         }
 
-      label = text_parse_counted_string (r, text);
-      if (label == NULL)
+      mrset->label = text_parse_counted_string (r, text);
+      if (mrset->label == NULL)
         break;
-      if (label[0] != '\0')
-        mrset->label = recode_string ("UTF-8", r->encoding, label, -1);
 
-      stringi_set_init (&var_names);
       allocated_vars = 0;
-      width = INT_MAX;
       do
         {
-          const char *raw_var_name;
-          struct variable *var;
-          char *var_name;
+          const char *var;
 
-          raw_var_name = text_get_token (text, ss_cstr (" \n"), &delimiter);
-          if (raw_var_name == NULL)
+          var = text_get_token (text, ss_cstr (" \n"), &delimiter);
+          if (var == NULL)
             {
               if (delimiter != '\n')
                 sys_warn (r, record->pos,
@@ -1615,7 +1619,60 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
                           text_pos (text));
               break;
             }
-          var_name = recode_string ("UTF-8", r->encoding, raw_var_name, -1);
+
+          if (mrset->n_vars >= allocated_vars)
+            mrset->vars = pool_2nrealloc (r->pool, mrset->vars,
+                                          &allocated_vars,
+                                          sizeof *mrset->vars);
+          mrset->vars[mrset->n_vars++] = var;
+        }
+      while (delimiter != '\n');
+
+      r->n_mrsets++;
+    }
+  close_text_record (r, text);
+}
+
+static void
+decode_mrsets (struct sfm_reader *r, struct dictionary *dict)
+{
+  const struct sfm_mrset *s;
+
+  for (s = r->mrsets; s < &r->mrsets[r->n_mrsets]; s++)
+    {
+      struct stringi_set var_names;
+      struct mrset *mrset;
+      char *name;
+      int width;
+      size_t i;
+
+      name = recode_string ("UTF-8", r->encoding, s->name, -1);
+      if (name[0] != '$')
+        {
+          sys_warn (r, -1, _("Multiple response set name `%s' does not begin "
+                             "with `$'."),
+                    name);
+          free (name);
+          continue;
+        }
+
+      mrset = xzalloc (sizeof *mrset);
+      mrset->name = name;
+      mrset->type = s->type;
+      mrset->cat_source = s->cat_source;
+      mrset->label_from_var_label = s->label_from_var_label;
+      if (s->label[0] != '\0')
+        mrset->label = recode_string ("UTF-8", r->encoding, s->label, -1);
+
+      stringi_set_init (&var_names);
+      mrset->vars = xmalloc (s->n_vars * sizeof *mrset->vars);
+      width = INT_MAX;
+      for (i = 0; i < s->n_vars; i++)
+        {
+          struct variable *var;
+          char *var_name;
+
+          var_name = recode_string ("UTF-8", r->encoding, s->vars[i], -1);
 
           var = dict_lookup_var (dict, var_name);
           if (var == NULL)
@@ -1625,10 +1682,9 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
             }
           if (!stringi_set_insert (&var_names, var_name))
             {
-              sys_warn (r, record->pos,
-                        _("Duplicate variable name %s "
-                          "at offset %zu in MRSETS record."),
-                        var_name, text_pos (text));
+              sys_warn (r, -1,
+                        _("MRSET %s contains duplicate variable name %s."),
+                        mrset->name, var_name);
               free (var_name);
               continue;
             }
@@ -1641,25 +1697,23 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           if (mrset->n_vars
               && var_get_type (var) != var_get_type (mrset->vars[0]))
             {
-              sys_warn (r, record->pos,
+              sys_warn (r, -1,
                         _("MRSET %s contains both string and "
-                          "numeric variables."), name);
+                          "numeric variables."), mrset->name);
               continue;
             }
           width = MIN (width, var_get_width (var));
 
-          if (mrset->n_vars >= allocated_vars)
-            mrset->vars = x2nrealloc (mrset->vars, &allocated_vars,
-                                      sizeof *mrset->vars);
           mrset->vars[mrset->n_vars++] = var;
         }
-      while (delimiter != '\n');
 
       if (mrset->n_vars < 2)
         {
-          sys_warn (r, record->pos,
-                    _("MRSET %s has only %zu variables."), mrset->name,
-                    mrset->n_vars);
+          if (mrset->n_vars == 0)
+            sys_warn (r, -1, _("MRSET %s has no variables."), mrset->name);
+          else
+            sys_warn (r, -1, _("MRSET %s has only one variable."),
+                      mrset->name);
           mrset_destroy (mrset);
 	  stringi_set_destroy (&var_names);
           continue;
@@ -1670,18 +1724,15 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           mrset->width = width;
           value_init (&mrset->counted, width);
           if (width == 0)
-            mrset->counted.f = c_strtod (counted, NULL);
+            mrset->counted.f = c_strtod (s->counted, NULL);
           else
             value_copy_str_rpad (&mrset->counted, width,
-                                 (const uint8_t *) counted, ' ');
+                                 (const uint8_t *) s->counted, ' ');
         }
 
       dict_add_mrset (dict, mrset);
-      mrset = NULL;
       stringi_set_destroy (&var_names);
     }
-  mrset_destroy (mrset);
-  close_text_record (r, text);
 }
 
 /* Read record type 7, subtype 11, which specifies how variables
