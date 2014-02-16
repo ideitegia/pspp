@@ -606,12 +606,6 @@ read_extension_record (struct sfm_reader *r)
       read_machine_float_info (r, size, count);
       return;
 
-    case 5:
-      /* Variable sets information.  We don't use these yet.
-         They only apply to GUIs; see VARSETS on the APPLY
-         DICTIONARY command in SPSS documentation. */
-      break;
-
     case 6:
       /* DATE variable information.  We don't use it yet, but we
          should. */
