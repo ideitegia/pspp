@@ -2146,7 +2146,7 @@ AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
 "$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
-2; 2; 1; >>3<<; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
+2; 3; 1; >>3<<; -1; 100.0; "01 Jan 11"; "20:53:52"; s64 ""; i8 0 *3;
 
 dnl Numeric variable.
 2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
@@ -2159,8 +2159,8 @@ dnl End of dictionary.
 999; 0;
 ])
 for variant in \
-	"be 0c395354df56ea5ff374aafcc535d633" \
-	"le d977f684ea9d4648ed40f8c6dddde9f7"
+	"be e47d2d0e65846a9b534e004f0ae65083" \
+	"le e5e6e00f34c4697c7bee21f15f86c7e3"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
