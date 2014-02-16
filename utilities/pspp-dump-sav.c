@@ -768,6 +768,9 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
       const char *label;
       const char *variables;
 
+      while (text_match (text, '\n'))
+        continue;
+
       name = text_tokenize (text, '=');
       if (name == NULL)
         break;

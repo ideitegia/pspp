@@ -599,13 +599,14 @@ dnl Machine integer info record.
 7; 7; 1;
 COUNT(
   "$a=C 10 my mcgroup "; i8 0x82; i8 0xa0; " b c"; i8 10;
-  "$b=D2 55 0  g e f d"; i8 10;
+  "$b=D2 55 0  g e f d"; i8 10; i8 10;
   "$c=D4 "; i8 0x82; i8 0xcd; i8 0x82; i8 0xa2; " 10 mdgroup #2 h i j"; i8 10);
 
 7; 19; 1;
 COUNT(
+  i8 10;
   "$d=E 1 2 34 13 third mdgroup k l m"; i8 10;
-  "$e=E 11 6 choice 0  n o p"; i8 10);
+  "$e=E 11 6 choice 0  n o p"; i8 10; i8 10; i8 10; i8 10);
 
 dnl Character encoding record.
 7; 20; 1; 9; "shift_jis";
@@ -614,8 +615,8 @@ dnl Dictionary termination record.
 999; 0;
 ])
 for variant in \
-	"be fdf260a05220e08c748967dcb90d8b15" \
-	"le 4c9b0c0636bc0aa0cc16684c8188d1c7"
+	"be eab38c68398324ac1663161512a8516a" \
+	"le afc6173eed7f4c4e63dc4252bc18f6a2"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]

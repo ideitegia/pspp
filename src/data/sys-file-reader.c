@@ -1403,6 +1403,10 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
       char delimiter;
       int width;
 
+      /* Skip extra line feeds if present. */
+      while (text_match (text, '\n'))
+        continue;
+
       mrset = xzalloc (sizeof *mrset);
 
       name = text_get_token (text, ss_cstr ("="), NULL);

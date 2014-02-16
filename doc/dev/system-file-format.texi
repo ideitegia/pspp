@@ -735,8 +735,8 @@ The size of each element in the @code{mrsets} member. Always set to 1.
 The total number of bytes in @code{mrsets}.
 
 @item char mrsets[];
-A series of multiple response sets, each of which consists of the
-following:
+Zero or more line feeds (byte 0x0a), followed by a series of multiple
+response sets, each of which consists of the following:
 
 @itemize @bullet
 @item
@@ -786,7 +786,8 @@ The short names of the variables in the set, converted to lowercase,
 each separated from the previous by a single space.
 
 @item
-A line feed (byte 0x0a).
+One line feed (byte 0x0a).  Sometimes multiple, even hundreds, of line
+feeds are present.
 @end itemize
 @end table
 
