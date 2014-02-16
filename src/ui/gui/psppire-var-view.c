@@ -289,7 +289,10 @@ psppire_var_view_base_finalize (PsppireVarViewClass *class,
 static void
 psppire_var_view_init (PsppireVarView *vv)
 {
+  GtkTreeSelection* selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (vv));
   vv->cols = 0;
+
+  gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
 }
 
 
