@@ -19,7 +19,6 @@ GNULIB_MODULES = \
 	count-one-bits \
 	crc \
 	crypto/md4 \
-	crypto/md5 \
 	crypto/rijndael \
 	dirname \
 	dtoastr \

@@ -121,13 +121,8 @@ s8 "abcd"; s8 "efgh"; s8 "ijkl"; s8 "mnop"; s8 "qrst"; s8 "uvwx";
 s16 "yzABCDEFGHI"; s16 "JKLMNOPQR"; s16 "STUVWXYZ01";
 s16 "23456789abc"; s32 "defghijklmnopqstuvwxyzABC";
 ])
-for variant in \
-	"be ae072375af73d628a544cc2230dd72c9" \
-	"le 039a21ab64f68c65b240e782a6b0f563"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY FILE LABEL.
@@ -216,13 +211,8 @@ dnl Dictionary termination record.
 dnl Data.
 1.0; 2.0; 
 ])
-for variant in \
-	"be 413e7bc80a47fcd7e4c8020e8e120060" \
-	"le d7db9120b1ff28c83aa6fe9fc405d903"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -272,13 +262,8 @@ dnl Dictionary termination record.
 dnl Data.
 1.0; 2.0; 
 ])
-for variant in \
-	"be 3d17aae7d99538dc73c5cb42692b1038" \
-	"le 8ad1000df598617d5258f323c882d749"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -411,13 +396,8 @@ COUNT("abcdefghijklmnopq"); COUNT("value label for `abcdefghijklmnopq'");
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be b27d766d8a5ad9e901c8b244591a5942" \
-	"le eb2e93f3cc29acd605b80e6c3af25ba6"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -520,13 +500,8 @@ dnl Dictionary termination record.
 dnl Data.
 1.0;
 ])
-for variant in \
-	"be 3555f74f3e714a3a703de7df56ce6d24" \
-	"le ede5a0f805a1aab096ea86abf677ff34"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DOCUMENTS.
@@ -614,13 +589,8 @@ dnl Character encoding record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be eab38c68398324ac1663161512a8516a" \
-	"le afc6173eed7f4c4e63dc4252bc18f6a2"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 MRSETS /DISPLAY NAME=ALL.
@@ -701,13 +671,8 @@ dnl Extra product info.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 0e1cac77501322b012637dcaeb3858ab" \
-	"le ecffd25cae41bbc89c29487abe192016"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 SYSFILE INFO FILE='sys-file.sav'.
 ])
@@ -778,13 +743,8 @@ dnl Variable display parameters
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be c130d9345080579b8862b360924edbfa" \
-	"le 6fde96f5a7c7386bff6cca049cd84d6a"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -898,13 +858,8 @@ dnl Variable display parameters
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 3ace75689a0b7faa9360936bbfe26055" \
-	"le 6e93f35d19a9882eb53ffb1b067ef7cd"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1010,13 +965,8 @@ dnl Character encoding record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 8ea5a72f3ae6e732371e92a7719c3951" \
-	"le 02bcf02cf08b1e8fc80a858101ae22fc"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1083,13 +1033,8 @@ dnl Data.
 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#" * 9;
 "abcdefghijklmnopqrstuvwxyzABCDEF";
 ])
-for variant in \
-	"be 844a4704f669dfe292482e587d690133" \
-	"le b76025f602bdff6a42c1e0795a8b62ff"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1158,13 +1103,8 @@ dnl Character encoding record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 7fff0c04f697adf45f55d8be4aaa8712" \
-	"le 7331339199344aa58bc60d7d05d538a7"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY @ATTRIBUTES.
@@ -1257,13 +1197,8 @@ dnl Character encoding record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be b08b39cd005682f680d132d272f5158d" \
-	"le 176e4ac91197f5cb8732258033cfabdc"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1325,13 +1260,8 @@ s8 "vwxyzABC"; s8 "DEFG"; s8 "HIJKLMNO";
 i8 254 253 252 0 0 0 0 0; s8 "PQRSTUVW";
 
 ])
-for variant in \
-	"be c0670e436b068f45710b98f6f7d01dc5" \
-	"le 2e43a7f8861df4e714a192dfb3c8b2f4"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1389,13 +1319,8 @@ s8 "vwxyzABC"; s8 "DEFG"; s8 "HIJKLMNO";
 i8 254 253 252 0 0 0 0 0; s8 "PQRSTUVW";
 
 ])
-for variant in \
-	"be 2f0d25704ee497ae833213a3e4ff5e8b" \
-	"le 49f68a9e1ba02a2f7e9166686a0db9d9"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1453,13 +1378,8 @@ s8 "vwxyzABC"; s8 "DEFG"; s8 "HIJKLMNO";
 i8 254 253 252 0 0 0 0 0; s8 "PQRSTUVW";
 
 ])
-for variant in \
-	"be 668b85e3dee0797883e9933a096b8c18" \
-	"le 5e7a9c4e88cd2dbc2322943da663868e"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1556,13 +1476,8 @@ m4_divert_pop([PREPARE_TESTS])
 AT_SETUP([zcompressed data])
 AT_KEYWORDS([sack synthetic system file positive zlib])
 zcompressed_sack > sys-file.sack
-for variant in \
-	"be 2d706c3ca0cc9be7f1721f09d0d42179" \
-	"le 3f362f338d65b0a836b3c752cc3fc5bc"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -1601,13 +1516,8 @@ dnl Numeric variable.
 dnl Type 4 record.
 >>4<<;
 ])
-for variant in \
-	"be 6e0bb549fff1fd1af333d51b8a6e0f43" \
-	"le 7b62734edcee2a1689c463f2866d11b8"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1629,13 +1539,8 @@ dnl Numeric variable.
 dnl Type 8 record (not a valid type).
 >>8<<;
 ])
-for variant in \
-	"be dc8f078c23046ee7db74ec1003178a11" \
-	"le dc7f111642f0629f4370630fd092eee3"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1657,13 +1562,8 @@ dnl Numeric variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be c57e91aa426f61813c3ad91ea3a56dda" \
-	"le 5d1a6c114b135b219473c8ad5bb44bda"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], 
@@ -1685,13 +1585,8 @@ dnl Numeric variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be decb7ac6defa1ab3cc7a386d1843c1ae" \
-	"le 5279b6275633bac55d167faebccfdb14"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1713,13 +1608,8 @@ dnl Numeric variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 57e6ad709668bbf538e2efee4af49916" \
-	"le 523f14b611efa380bbadf7a16ea43fed"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1741,13 +1631,8 @@ dnl String variable with invalid width 256.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 170bb18589ba264a0ed2d57b41fe77e1" \
-	"le 9528b4b5936ef5630bbd3bdd60a123c3"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1772,13 +1657,8 @@ dnl Numeric variables.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be d8f5fd768ab1d641f9330a4840c71343" \
-	"le f01e123d384cdaa7c2f7fc4791325ebf"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
@@ -1811,13 +1691,8 @@ dnl Numeric variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 3c5ff8d8f146457a385ca92d3d23ca8a" \
-	"le 37e9f956d321ae57b0bf7fe2384e892b"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1839,13 +1714,8 @@ dnl Numeric variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be d1d0d4aedf9f053452c4b1e658ade5e2" \
-	"le df697575499fe12921185a3d23a5d61d"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1867,13 +1737,8 @@ dnl String variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be f833033be7b102fae19159989f62faa6" \
-	"le 9704ba828bb7a36ef0262838f6b7936b"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1896,13 +1761,8 @@ dnl String variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be c8f9ad2b2acd2918055e2b78c1e0b4b8" \
-	"le 1afab4d6aee90a6fe8d2dbf229e06409"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -1935,13 +1795,8 @@ dnl String variable, wrong width formats.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be c6ef5d8fded46443aba89adfafe15cad" \
-	"le fccaf1764c973892f2d5adbcc2c36fb7"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2024,13 +1879,8 @@ s16 "yzABCDEFGHI"; s16 "JKLMNOPQR"; s16 "STUVWXYZ01";
 s16 "23456789abc"; s32 "defghijklmnopqstuvwxyzABC";
 ])
 
-for variant in \
-	"be 26e815cfb41eaedb435ea3c81b96215c" \
-	"le 72d70456bd4dc88bb0a0fdb039ccdfa3"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
@@ -2084,13 +1934,8 @@ dnl String variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 82d30105e46c4896c24f9dcec26c4749" \
-	"le 32e235119be70050eb78bf4186a5a046"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
@@ -2126,13 +1971,8 @@ dnl String variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be cd9af924ff20bc75834aa2c696254c97" \
-	"le cbe0f2f514f5e95f27644d0b4314bc78"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -2158,13 +1998,8 @@ dnl Long string variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be e47d2d0e65846a9b534e004f0ae65083" \
-	"le e5e6e00f34c4697c7bee21f15f86c7e3"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], 
@@ -2192,13 +2027,8 @@ dnl Dictionary termination record.
 dnl Data.
 1.0;
 ])
-for variant in \
-	"be 18aa3348a216ed494efe28285b348fa8" \
-	"le 19b21522bcef1dcc60af328f923f307e"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -2228,13 +2058,8 @@ dnl Dictionary termination record.
 dnl Data.
 1.0;
 ])
-for variant in \
-	"be d8ef29c1b97f9ed226cbd938c9c49b6e" \
-	"le f6a560c5b62e2c472429d85294f36e61"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -2257,13 +2082,8 @@ dnl Numeric variable, no label or missing values.
 dnl Too-large extension record.
 7; 3; >>0xfffff000 * 2<<;
 ])
-for variant in \
-	"be 5a6679dc41ac349b0b73fc430937c05c" \
-	"le d4769c7f650cfbf160e0386d0d33be04"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -2289,13 +2109,8 @@ dnl Unknown extension record type.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be ac8395e27677408189bcb8655e56cc0e" \
-	"le e308bfcd51f1e3c28d7379c29271f9d6"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -2321,13 +2136,10 @@ dnl Machine integer info record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 21ec84826886b0a266d1360f8279d769" \
-	"le 15dcba7b2b89b7d8a21ebcc872f515af"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
-  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
 "warning: `sys-file.sav' near offset 0xd8: Record type 7, subtype 3 has bad count 9 (expected 8)."
@@ -2351,13 +2163,10 @@ dnl Machine integer info record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be d510ed28278649eee997fb6881a4c04f" \
-	"le fbf1eca561a4e243b7ae844ed1677035"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
-  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [1], [dnl
 error: `sys-file.sav' near offset 0xd8: Floating-point representation indicated by system file (2) differs from expected (1).
@@ -2381,19 +2190,15 @@ dnl Machine integer info record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 855123d16d5e1560b91d60753dad79ad 1" \
-	"le d6626b4fa2e46a91f26c2fc609b2f1e0 2"
-do
+for variant in "be 1" "le 2"; do
   set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+  AT_CHECK([sack --$[1] sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
   AT_CHECK_UNQUOTED([pspp -O format=csv sys-file.sps], [0], [dnl
-warning: \`sys-file.sav' near offset 0xd8: Integer format indicated by system file (3) differs from expected ($[3]).
+warning: \`sys-file.sav' near offset 0xd8: Integer format indicated by system file (3) differs from expected ($[2]).
 
 Variable,Description,,Position
 num1,Format: F8.0,,1
@@ -2421,13 +2226,10 @@ dnl Machine floating-point info record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 29c9a173638fbb8bb1efe1176c4d670f" \
-	"le 5cb49eb1084e5b9cd573a54705ff86a7"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
-  AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
+  AT_DATA([sys-file.sps], [dnl
+GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
 "warning: `sys-file.sav' near offset 0xd8: Record type 7, subtype 4 has bad count 4 (expected 3)."
@@ -2451,13 +2253,8 @@ dnl Machine floating-point info record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 1e7452d9bb0a2397bf6084a25437514e" \
-	"le f59f9a83f723cde1611869ff6d91d325"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps | sed 's/ [(].*/.../'], [0], [dnl
@@ -2530,13 +2327,8 @@ dnl Character encoding record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 8832b331e09557a1ac0bf4e31611428a" \
-	"le 1c1dcd9930864632402b5c635395cb51"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 MRSETS /DISPLAY NAME=ALL.
 ])
@@ -2590,13 +2382,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be c5e5656ba3d74c3a967850f29ad89970" \
-	"le 29f110509c3d6893a7d21ae2d66aad9d"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2620,13 +2407,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be a9e1dc63e2524882a5e3d2949a2da9d4" \
-	"le ac709ca1928f65f47a8c8efdd9454b50"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2650,13 +2432,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 8c710e85a0a1609d0d03dec80aaf5f94" \
-	"le 4682440b82f22d4bd2ac56afb7fa3152"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2682,13 +2459,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be fc5e5200d8f56b9a5a713e4a95313a3b" \
-	"le 578a61e8a06b20216612f566c2050879"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2712,13 +2484,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 23d0e2f65c7c5f93bbedcc0f2b260c69" \
-	"le c3860c1d80e08842264948056e72c0db"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2742,13 +2509,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be c9ce001723763e0698878b7e43a887e8" \
-	"le e258a1e4491d5a1d1e7d2272ef631a22"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2772,13 +2534,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 196d1266fa0e8e315769dcbe3130e3df" \
-	"le 23df1ba7b77a26da8ce1c2cfbcaadce0"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2802,13 +2559,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 86314bb0bbdfad48c10af8b8d8106d6e" \
-	"le 2b8d05ff501ca78e51f7110ce88a2364"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2832,13 +2584,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be cea939cf3e6a5f88cb45e8fa871c5e13" \
-	"le 52135afec082f50f37eafacadbb2cd65"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2864,13 +2611,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 4b1b5fa2dc22cf0afdd35422290b0a29" \
-	"le e4304b57976440a036f25f8dd8ac1404"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2897,13 +2639,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 0f130e967e4097823f85b8711eb20727" \
-	"le 4dc987b4303fd115f1cae9be3963acc9"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2929,13 +2666,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be 3a891e0a467afb3d622629c70f329ada" \
-	"le 432998ec08370510411af4f5207c015e"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2959,13 +2691,8 @@ dnl Multiple response sets.
 
 999; 0;
 ])
-for variant in \
-	"be d94549fece75560fe5b47f32713b63a1" \
-	"le 63028521d460df9e998b40a75a93c330"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -2992,13 +2719,8 @@ dnl Display parameters record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 7c0f1ae47ae11e37d435c4abaceca226" \
-	"le c29d05a1f8f15ed2201f31f8b787aaa0"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -3023,13 +2745,8 @@ dnl Display parameters record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 372b57e73c69b05047b60bf6c596e2a1" \
-	"le 2a550d8c5ceae4de7ced77df66e49d0f"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -3054,13 +2771,8 @@ dnl Display parameters record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be d43e7616b03743339f37292dec6c2204" \
-	"le 821533c29a070cefdd8f07f4e1741d2a"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -3085,13 +2797,8 @@ dnl Display parameters record.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be c54bc48b5767e2ec3a9ef31df790cb7c" \
-	"le a4d8b14af64221abe83adb417d110e10"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -3116,13 +2823,8 @@ dnl Long variable names.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be b67b6e3c1900e5a9cc691055008f0447" \
-	"le 26cc52e601f830f9087a0ea2bd9527df"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3155,13 +2857,8 @@ dnl Long variable names.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 9b4b4daa00084d984efb8f889bcb727c" \
-	"le c1b1470d5cd615106e9ae507c9948d8e"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3193,13 +2890,8 @@ dnl Very long string map.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 1309d8d9fb24bcf08952dce9b0f39a94" \
-	"le 94a39de88f8034001b3e467c4cc04d0f"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3234,13 +2926,8 @@ dnl Very long string map.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 1d09a44a46859e6eda28e053dd4b7a8b" \
-	"le 63b9ac0b3953f3e0d5ee248ebe257794"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3264,13 +2951,8 @@ dnl Numeric variable.
 2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
 3; >>0x7fffffff<<;
 ])
-for variant in \
-	"be 975b2668dde395ddf619977958b37412" \
-	"le 0c14aa278cfc2a4b801f91c14321f03b"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3296,13 +2978,8 @@ dnl Value label with missing type 4 record.
 dnl End of dictionary.
 >>999; 0<<;
 ])
-for variant in \
-	"be 5e1286ac92e3f25ff98492bc5019d608" \
-	"le b33c12f776bbcaa43aa3bfdd4799e0c0"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3325,13 +3002,8 @@ dnl Numeric variable.
 dnl Value label with no variables.
 3; 1; 1.0; i8 3; s7 "one"; 4; >>0<<;
 ])
-for variant in \
-	"be b0dcec30a936cbcad21c4f3d6fe10fcf" \
-	"le 3b9fdfce5c8c248048232fd6eac018e3"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3358,12 +3030,8 @@ dnl Value label that names long string variable.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 14053a4f09de4c7c4c55281534dd66f4" \
-	"le 8a61cc994c659fd66307d2f0fd64ce20"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3390,12 +3058,8 @@ dnl Value label that names numeric and string variables.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be 7577c456726a88f52bbef63a8b47bf1a" \
-	"le 3ba5c6af9ad0ae5cc88f9f63e726e414"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [ignore])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3423,13 +3087,8 @@ dnl Duplicate value labels.
 dnl End of dictionary.
 999; 0;
 ])
-for variant in \
-	"be ef0f5b2ebddb5a3bfcda16c93a2508f4" \
-	"le c00e27abd9a6c06bf29a108d7220435a"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3465,13 +3124,8 @@ dnl Variable attributes record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 0fc71f5e3cdb6b7f2dd73d011d4885c2" \
-	"le e519b44715400156a2bfe648eb5cff34"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3508,13 +3162,8 @@ dnl Variable attributes record.
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be 33dba37c2247e63c04bb74a7b472293d" \
-	"le 041025a9d9d9e21a7fabd90ba7341934"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [dnl
 GET FILE='sys-file.sav'.
 ])
@@ -3564,13 +3213,8 @@ COUNT("abcdefghijklmn"); COUNT("value label for `abcdefghijklmn'");
 dnl Dictionary termination record.
 999; 0;
 ])
-for variant in \
-	"be cf2e883dadb00e2c6404c09ea0a4e388" \
-	"le 89c340faf0a7e4a8c834f9687684c091"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
@@ -3606,13 +3250,8 @@ dnl Data.
 7.0; 8.0;
 dnl Missing record here.
 ])
-for variant in \
-	"be 6ee097c3934055d0c4564641636f4b5a" \
-	"le ae03fe1b888091d6938b5a436d44ac60"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 LIST.
 ])
@@ -3645,13 +3284,8 @@ dnl Data.
 1.0; 2.0;
 3.0;
 ])
-for variant in \
-	"be 4bcc085d7d8f0f09c6a4ba8064ffe61c" \
-	"le 7387fc5edd2740aff92c30ca688d6d9b"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 LIST.
 ])
@@ -3681,13 +3315,8 @@ dnl Data.
 s14 "one data item";
 s8 "partial";
 ])
-for variant in \
-	"be 4a9e84f9e679afb7bb71acd0bb7eab89" \
-	"le 30752606f14ee2deec2854e8e6de4b3b"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 LIST.
 ])
@@ -3731,13 +3360,8 @@ dnl Dictionary termination record.
 dnl Compressed data.
 i8 1 100 254 253 254 253; i8 255 251; "abcdefgh"; s8 "0123";
 ])
-for variant in \
-	"be ef01b16e2e397d979a3a7d20725ebe6d" \
-	"le 51f7a61e9bc68992469d16c55d6ecd88"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 LIST.
 ])
@@ -3754,13 +3378,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - bad zheader_ofs])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*zheader_ofs.*/>>i64 0<<;/' > sys-file.sack
-for variant in \
-	"be 6d5c32f34fa1bed6f9b8f7045d104fdc" \
-	"le 1f67fbda4f0021143e141fe8403c5a97"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Wrong ZLIB data header offset 0 (expected 0x178).
@@ -3771,13 +3390,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - bad ztrailer_ofs])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*ztrailer_ofs.*/>>i64 0<<;/' > sys-file.sack
-for variant in \
-	"be e2c8dec0c62d3d798825ad5906370634" \
-	"le c1cff4cdddeee80bf1580cbc26fa9fd5"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Impossible ZLIB trailer offset 0x0.
@@ -3790,13 +3404,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - invalid ztrailer_len])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*ztrailer_len.*/>>i64 12<<;/' > sys-file.sack
-for variant in \
-	"be 27f5203463bc4c7644382f24ae87f84c" \
-	"le 0035fa6ee7690720429715150ede85f4"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x178: Invalid ZLIB trailer length 12.
@@ -3808,13 +3417,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong ztrailer_len])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*ztrailer_len.*/>>i64 72<<;/' > sys-file.sack
-for variant in \
-	"be 2ba9ae97bc0a7f5dcfe36e2463b9d7cb" \
-	"le d737ea0a53ca5c6f20be359027171d73"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [warning: `sys-file.sav' near offset 0x190: End of ZLIB trailer (0x231) is not file size (0x219).
@@ -3826,13 +3430,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong ztrailer_bias])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*ztrailer_bias.*/>>i64 0<<;/' > sys-file.sack
-for variant in \
-	"be a5b56ab5e799a3626de2cdd7bd8d7a03" \
-	"le d7cd584c6d5a95df10ba640eb3f1f24f"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x1f1: ZLIB trailer bias (0) differs from file header bias (100.00).
@@ -3843,13 +3442,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong ztrailer_zero])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*ztrailer_zero.*/>>i64 100<<;/' > sys-file.sack
-for variant in \
-	"be 8d746abedb3e74cfdc22207f3455db92" \
-	"le 79cea017365cab35d59c7a300cfa66c1"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x1f9: ZLIB trailer "zero" field has nonzero value 100.
@@ -3860,13 +3454,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong block_size])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*block_size.*/>>0x1000<<;/' > sys-file.sack
-for variant in \
-	"be 8d5a1caa56be8892d453faf1047005ca" \
-	"le 7daa1bd57b192893b313a351202e179b"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x1fd: ZLIB trailer specifies unexpected 4096-byte block size.
@@ -3877,13 +3466,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong n_blocks])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*n_blocks.*/>>2<<;/' > sys-file.sack
-for variant in \
-	"be cd29596fd6bf4a2f651febe820a7955f" \
-	"le 8fc1f718dfd2abac7c3442c1055d4cab"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: 48-byte ZLIB trailer specifies 2 data blocks (expected 1).
@@ -3894,13 +3478,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong uncompressed_ofs])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*uncompressed_ofs.*/i64 >>0x177<<;/' > sys-file.sack
-for variant in \
-	"be 5546120fe6161dc6ed20aec48d8e74a4" \
-	"le 86fafd625ed5ceaa1bff4fc7f500b6ab"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported uncompressed data offset 0x177, when 0x178 was expected.
@@ -3911,13 +3490,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - wrong compressed_ofs])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*@%:@ compressed_ofs.*/i64 >>0x191<<;/' > sys-file.sack
-for variant in \
-	"be 652e28f8d3f8e4ce47ad18d0f30e7bb9" \
-	"le ebf2c647f2d7c47858d4f5ed683526e6"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported compressed data offset 0x191, when 0x190 was expected.
@@ -3978,13 +3552,8 @@ i64 0x12405;  # compressed_ofs
 0x100000;     # uncompressed_size
 0x12345;      # compressed_size
 ])
-for variant in \
-	"be 72ebf57bffa340afe16ed79959faac09" \
-	"le 80b34e98f6b181dcc2e8ca4ba13f768d"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [warning: `sys-file.sav' near offset 0x1a8: ZLIB block descriptor 0 reported block size 0x100000, when 0x3ff000 was expected.
@@ -3996,13 +3565,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - uncompressed_size > block_size])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*uncompressed_size.*/>>0x400000<<;/' > sys-file.sack
-for variant in \
-	"be 9bb74ef407fe0b79e43c388eedc28212" \
-	"le 6f145fb5f820c513f50b6f81310cdad5"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [warning: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reported block size 0x400000, when at most 0x3ff000 was expected.
@@ -4014,13 +3578,8 @@ AT_SETUP([zcompressed data - compression expands data too much])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*uncompressed_size.*/>>50<<;/
 s/.*@%:@ compressed_size.*/>>100<<;/' > sys-file.sack
-for variant in \
-	"be e11cadde5f0855c965a1cb388dedc36e" \
-	"le 37953e71462b6554c5644fec8b539164"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x201: ZLIB block descriptor 0 reports compressed size 100 and uncompressed size 50.
@@ -4031,13 +3590,8 @@ AT_CLEANUP
 AT_SETUP([zcompressed data - compressed sizes don't add up])
 AT_KEYWORDS([sack synthetic system file negative zlib])
 zcompressed_sack | sed 's/.*@%:@ compressed_size.*/>>88<<;/' > sys-file.sack
-for variant in \
-	"be 366eaf85be1f26fb6549e2f8ee393628" \
-	"le a756e5125e6a908cb4990f66cc419bef"
-do
-  set $variant
-  AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
-])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
   AT_DATA([sys-file.sps], [GET FILE='sys-file.sav'.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [1], [error: `sys-file.sav' near offset 0x219: ZLIB trailer is at offset 0x1e9 but 0x1e8 would be expected from block descriptors.

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 
 #include "gl/c-ctype.h"
 #include "gl/error.h"
-#include "gl/md5.h"
 #include "gl/intprops.h"
 #include "gl/progname.h"
 #include "gl/xalloc.h"
@@ -311,10 +310,7 @@ stdout.  A data item is one of the following\n\
     by the enclosed data items themselves.\n\
 \n\
 optionally followed by an asterisk and a positive integer, which\n\
-specifies a repeat count for the data item.\n\
-\n\
-The md5sum of the data written to stdout is written to stderr as\n\
-16 hexadecimal digits followed by a new-line.\n",
+specifies a repeat count for the data item.\n",
           program_name, program_name);
   exit (EXIT_SUCCESS);
 }
@@ -527,8 +523,6 @@ int
 main (int argc, char **argv)
 {
   struct buffer output;
-  uint8_t digest[16];
-  int i;
 
   set_program_name (argv[0]);
   input_file_name = parse_options (argc, argv);
@@ -558,11 +552,6 @@ main (int argc, char **argv)
     fclose (input);
 
   fwrite (output.data, output.size, 1, stdout);
-
-  md5_buffer ((const char *) output.data, output.size, digest);
-  for (i = 0; i < sizeof digest; i++)
-    fprintf (stderr, "%02x", digest[i]);
-  putc ('\n', stderr);
 
   return 0;
 }
