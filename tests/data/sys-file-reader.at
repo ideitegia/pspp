@@ -2872,7 +2872,7 @@ warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
 done
 AT_CLEANUP
 
-AT_SETUP([only one variable in mrset])
+AT_SETUP([zero or one variable in mrset])
 AT_KEYWORDS([sack synthetic system file negative multiple response])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
@@ -2883,13 +2883,13 @@ dnl Numeric variable, no label or missing values.
 2; 0; 0; 0; 0x050800 *2; s8 "NUM1";
 
 dnl Multiple response sets.
-7; 7; 1; COUNT("$a=C 0  NUM1"; i8 10);
+7; 7; 1; COUNT("$a=C 0  NUM1"; i8 10; "$b=C 0  "; i8 10);
 
 999; 0;
 ])
 for variant in \
-	"be 3a891e0a467afb3d622629c70f329ada" \
-	"le 432998ec08370510411af4f5207c015e"
+	"be d94549fece75560fe5b47f32713b63a1" \
+	"le 63028521d460df9e998b40a75a93c330"
 do
   set $variant
   AT_CHECK_UNQUOTED([sack --$[1] sys-file.sack > sys-file.sav], [0], [], [$[2]
@@ -2898,6 +2898,8 @@ do
 ])
   AT_CHECK([pspp -O format=csv sys-file.sps], [0], [dnl
 warning: `sys-file.sav' near offset 0xd8: MRSET $a has only 1 variables.
+
+warning: `sys-file.sav' near offset 0xd8: MRSET $b has only 0 variables.
 ])
 done
 AT_CLEANUP

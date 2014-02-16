@@ -832,12 +832,6 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
         break;
 
       variables = text_tokenize (text, '\n');
-      if (variables == NULL)
-        {
-          sys_warn (r, "missing variable names following label "
-                    "at offset %zu in mrsets record", text_pos (text));
-          break;
-        }
 
       printf ("\t\"%s\": multiple %s set",
               name, type == MRSET_MC ? "category" : "dichotomy");
@@ -849,7 +843,10 @@ read_mrsets (struct sfm_reader *r, size_t size, size_t count)
         printf (", label \"%s\"", label);
       if (label_from_var_label)
         printf (", label from variable label");
-      printf(", variables \"%s\"\n", variables);
+      if (variables != NULL)
+        printf(", variables \"%s\"\n", variables);
+      else
+        printf(", no variables\n");
     }
   close_text_record (text);
 }

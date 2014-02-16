@@ -1495,10 +1495,11 @@ parse_mrsets (struct sfm_reader *r, const struct sfm_extension_record *record,
           raw_var_name = text_get_token (text, ss_cstr (" \n"), &delimiter);
           if (raw_var_name == NULL)
             {
-              sys_warn (r, record->pos,
-                        _("Missing new-line parsing variable names "
-                          "at offset %zu in MRSETS record."),
-                        text_pos (text));
+              if (delimiter != '\n')
+                sys_warn (r, record->pos,
+                          _("Missing new-line parsing variable names "
+                            "at offset %zu in MRSETS record."),
+                          text_pos (text));
               break;
             }
           var_name = recode_string ("UTF-8", r->encoding, raw_var_name, -1);

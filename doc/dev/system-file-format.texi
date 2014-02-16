@@ -785,6 +785,12 @@ A space.
 The short names of the variables in the set, converted to lowercase,
 each separated from the previous by a single space.
 
+Even though a multiple response set must have at least two variables,
+some system files contain multiple response sets with no variables at
+all.  The source and meaning of these multiple response sets is
+unknown.  (Perhaps they arise from creating a multiple response set
+then deleting all the variables that it contains?)
+
 @item
 One line feed (byte 0x0a).  Sometimes multiple, even hundreds, of line
 feeds are present.
