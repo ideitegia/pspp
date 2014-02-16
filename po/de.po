@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-01-13 21:25-0800\n"
-"PO-Revision-Date: 2014-01-20 19:08+0100\n"
+"PO-Revision-Date: 2014-02-09 11:26+0100\n"
 "Last-Translator: Matthias Keil <matthias.keil@ymail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "Language: de_DE\n"
@@ -2127,7 +2127,7 @@ msgid "Attribute"
 msgstr "Attribute"
 
 #: src/language/dictionary/sys-file-info.c:486
-#, fuzzy, c-format
+#, c-format
 msgid "Label: %s"
 msgstr "Label: %s"
 
@@ -2436,7 +2436,7 @@ msgstr "Gruppe2"
 #: src/language/stats/crosstabs.q:874 src/language/stats/crosstabs.q:1219
 #: src/language/stats/crosstabs.q:1604 src/language/stats/frequencies.q:884
 msgid "Total"
-msgstr "Total"
+msgstr "Gesamt"
 
 #: src/language/stats/binomial.c:252 src/language/stats/chisquare.c:202
 #: src/language/stats/crosstabs.q:1302 src/language/stats/crosstabs.q:1349
@@ -2614,7 +2614,7 @@ msgstr ""
 #: src/language/stats/t-test-one-sample.c:161
 #: src/language/stats/t-test-paired.c:182 src/language/stats/frequencies.q:108
 msgid "S.E. Mean"
-msgstr ""
+msgstr "Standardfehler des Mittelwertes"
 
 #: src/language/stats/descriptives.c:108 src/language/stats/frequencies.q:111
 msgid "Std Dev"
@@ -2847,7 +2847,7 @@ msgstr "Niedrigster"
 #: src/language/stats/examine.c:1305 src/language/stats/logistic.c:1393
 #: src/language/stats/means.c:1064 src/language/stats/reliability.c:542
 msgid "Case Processing Summary"
-msgstr ""
+msgstr "Zusammenfassung der Fallverarbeitung"
 
 #: src/language/stats/examine.c:1321 src/language/stats/means.c:1075
 #: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:871
@@ -3183,7 +3183,7 @@ msgstr ""
 
 #: src/language/stats/logistic.c:327
 msgid "All predicted values are either 1 or 0"
-msgstr ""
+msgstr "Alle vorhergesagten Werte sind entweder 1 oder 0"
 
 #: src/language/stats/logistic.c:525
 msgid "Dependent variable's values are not dichotomous."
@@ -3214,24 +3214,20 @@ msgid "Cut point value must be in the range [0,1]"
 msgstr ""
 
 #: src/language/stats/logistic.c:1148
-#, fuzzy
 msgid "Dependent Variable Encoding"
-msgstr "_Abhängige Variable(n):"
+msgstr "Codierung abhängiger Variablen"
 
 #: src/language/stats/logistic.c:1157
-#, fuzzy
 msgid "Original Value"
-msgstr "Alter Wert"
+msgstr "Ursprünglicher Wert"
 
 #: src/language/stats/logistic.c:1158
-#, fuzzy
 msgid "Internal Value"
-msgstr "Alter Wert"
+msgstr "Interner Wert"
 
 #: src/language/stats/logistic.c:1209
-#, fuzzy
 msgid "Variables in the Equation"
-msgstr "Variableninformationen:"
+msgstr "Variablen in der Gleichung "
 
 #: src/language/stats/logistic.c:1218 src/language/stats/logistic.c:1364
 #: src/language/stats/logistic.c:1559
@@ -3280,32 +3276,28 @@ msgid "Model Summary"
 msgstr "Modellzusammenfassung"
 
 #: src/language/stats/logistic.c:1365
-#, fuzzy
 msgid "-2 Log likelihood"
-msgstr "-2 Log likelihood"
+msgstr "-2 Log Likelihood"
 
 #: src/language/stats/logistic.c:1369
 msgid "Cox & Snell R Square"
-msgstr "Cox & Snell R Quadrat"
+msgstr "Cox & Snell R-Quadrat"
 
 #: src/language/stats/logistic.c:1373
 msgid "Nagelkerke R Square"
-msgstr "Nagelkerke R Quadrat"
+msgstr "Nagelkerke R-Quadrat"
 
 #: src/language/stats/logistic.c:1402
-#, fuzzy
 msgid "Unweighted Cases"
-msgstr "Fälle gewichten"
+msgstr "Ungewichtete Fälle"
 
 #: src/language/stats/logistic.c:1407
-#, fuzzy
 msgid "Included in Analysis"
-msgstr "_Benutzerdefiniert fehlende Werte in Analyse mit einschließen"
+msgstr "Einbezogen in Analyse"
 
 #: src/language/stats/logistic.c:1408
-#, fuzzy
 msgid "Missing Cases"
-msgstr "Fehlende Werte"
+msgstr "Fehlende Fälle"
 
 #: src/language/stats/logistic.c:1457
 msgid "Categorical Variables' Codings"
@@ -3331,26 +3323,24 @@ msgid "Classification Table"
 msgstr "Klassifikationstabelle"
 
 #: src/language/stats/logistic.c:1563
-#, fuzzy
 msgid "Predicted"
-msgstr "_Vorhergesagte Werte"
+msgstr "Vorhergesagt"
 
 #: src/language/stats/logistic.c:1569
-#, fuzzy
 msgid "Observed"
-msgstr "Beobachtung"
+msgstr "Beobachtet"
 
 #: src/language/stats/logistic.c:1575
-#, fuzzy
 msgid ""
 "Percentage\n"
 "Correct"
-msgstr "Prozentwerte"
+msgstr ""
+"Prozentsatz\n"
+"der Richtigen"
 
 #: src/language/stats/logistic.c:1579
-#, fuzzy
 msgid "Overall Percentage"
-msgstr "Prozentwerte"
+msgstr "Gesamtprozentsatz"
 
 #: src/language/stats/jonckheere-terpstra.c:364
 msgid "Jonckheere-Terpstra Test"
@@ -3587,7 +3577,7 @@ msgstr "df2"
 
 #: src/language/stats/oneway.c:1227
 msgid "Test of Homogeneity of Variances"
-msgstr ""
+msgstr "Test der Homogenität der Varianzen"
 
 #: src/language/stats/oneway.c:1300
 msgid "Contrast Coefficients"
@@ -3638,7 +3628,7 @@ msgstr "(J) %s"
 #: src/language/stats/oneway.c:1581 src/language/stats/t-test-indep.c:295
 #: src/language/stats/t-test-one-sample.c:97
 msgid "Mean Difference"
-msgstr ""
+msgstr "Mittlere Differenz"
 
 #: src/language/stats/oneway.c:1582
 msgid "(I - J)"
@@ -4014,38 +4004,38 @@ msgstr "Gruppenstatistiken"
 
 #: src/language/stats/t-test-indep.c:279
 msgid "Independent Samples Test"
-msgstr ""
+msgstr "Test bei unabhängigen Stichproben"
 
 #: src/language/stats/t-test-indep.c:287
 msgid "Levene's Test for Equality of Variances"
-msgstr ""
+msgstr "Levene-Test der Varianzgleichheit"
 
 #: src/language/stats/t-test-indep.c:288
 msgid "t-test for Equality of Means"
-msgstr ""
+msgstr "T-Test für die Mittelwertgleichheit"
 
 #: src/language/stats/t-test-indep.c:296
 msgid "Std. Error Difference"
-msgstr ""
+msgstr "Stdfehler der Differenz"
 
 #: src/language/stats/t-test-indep.c:301
 #: src/language/stats/t-test-one-sample.c:89
 #: src/language/stats/t-test-paired.c:300
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
-msgstr ""
+msgstr "%g%% Konfidenzintervall der Differenz"
 
 #: src/language/stats/t-test-indep.c:317
 msgid "Equal variances assumed"
-msgstr ""
+msgstr "Varianzen sind gleich"
 
 #: src/language/stats/t-test-indep.c:349
 msgid "Equal variances not assumed"
-msgstr ""
+msgstr "Varianzen sind nicht gleich"
 
 #: src/language/stats/t-test-one-sample.c:79
 msgid "One-Sample Test"
-msgstr ""
+msgstr "Test bei einer Sichprobe"
 
 #: src/language/stats/t-test-one-sample.c:84
 #, c-format
@@ -4054,11 +4044,11 @@ msgstr "Testwert = %f"
 
 #: src/language/stats/t-test-one-sample.c:156
 msgid "One-Sample Statistics"
-msgstr ""
+msgstr "Statistik bei einer Stichprobe"
 
 #: src/language/stats/t-test-paired.c:177
 msgid "Paired Sample Statistics"
-msgstr ""
+msgstr "Statistik bei gepaarten Stichproben"
 
 #: src/language/stats/t-test-paired.c:189
 #: src/language/stats/t-test-paired.c:244
@@ -4069,7 +4059,7 @@ msgstr "Paar %d"
 
 #: src/language/stats/t-test-paired.c:231
 msgid "Paired Samples Correlations"
-msgstr ""
+msgstr "Korrelationen bei gepaarten Stichproben"
 
 #: src/language/stats/t-test-paired.c:234
 msgid "Correlation"
@@ -4082,15 +4072,15 @@ msgstr "%s & %s"
 
 #: src/language/stats/t-test-paired.c:290
 msgid "Paired Samples Test"
-msgstr ""
+msgstr "Test bei gepaarten Stichproben"
 
 #: src/language/stats/t-test-paired.c:297
 msgid "Paired Differences"
-msgstr ""
+msgstr "Gepaarte Differenzen"
 
 #: src/language/stats/t-test-paired.c:308
 msgid "Std. Error Mean"
-msgstr ""
+msgstr "Std.fehler des Mittelwertes"
 
 #: src/language/stats/t-test-paired.c:329
 #, c-format
@@ -5601,9 +5591,8 @@ msgstr "Kontraste %d von %d"
 
 #: src/ui/gui/psppire-dialog-action-paired.c:161 src/ui/gui/examine.ui:266
 #: src/ui/gui/indep-samples.ui:69 src/ui/gui/t-test.ui:250
-#, fuzzy
 msgid "O_ptions..."
-msgstr "Optionen..."
+msgstr "_Optionen..."
 
 #: src/ui/gui/psppire-dialog-action-paired.c:168
 msgid "Paired Samples T Test"
@@ -5922,7 +5911,7 @@ msgstr "Umkodieren in andere Variable: Alte und neue Werte"
 
 #: src/ui/gui/recode-dialog.c:906
 msgid "Recode into Same Variables: Old and New Values"
-msgstr "Umkodieren in andere Variable: Alte und neue Werte"
+msgstr "Umkodieren in dieselbe Variable: Alte und neue Werte"
 
 #: src/ui/gui/select-cases-dialog.c:63
 #, c-format
@@ -6070,9 +6059,9 @@ msgid "Line"
 msgstr "Zeile"
 
 #: src/ui/gui/t-test-options.c:65
-#, fuzzy, c-format
+#, c-format
 msgid "Con_fidence Interval: %2d %%"
-msgstr "%g%% Konfidenzintervall"
+msgstr "_Konfidenzintervall: %2d %%"
 
 #: src/ui/gui/val-labs-dialog.c:540
 #, c-format
@@ -6867,18 +6856,16 @@ msgid "Create a new variable at the current position"
 msgstr ""
 
 #: src/ui/gui/data-sheet.ui:65
-#, fuzzy
 msgid "Insert Case"
-msgstr "Fälle einfügen"
+msgstr "_Fall einfügen"
 
 #: src/ui/gui/data-sheet.ui:66
 msgid "Create a new case at the current position"
 msgstr ""
 
 #: src/ui/gui/data-sheet.ui:73 src/ui/gui/var-sheet.ui:49
-#, fuzzy
 msgid "Go To Variable..."
-msgstr "_Variablen..."
+msgstr "_Gehe zu Variable..."
 
 #: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:490
 #: src/ui/gui/var-sheet.ui:50
@@ -6914,14 +6901,12 @@ msgid "_Find..."
 msgstr "_Suchen..."
 
 #: src/ui/gui/data-sheet.ui:132
-#, fuzzy
 msgid "Sort _Ascending"
-msgstr "Aufsteigend"
+msgstr "_Aufsteigend"
 
 #: src/ui/gui/data-sheet.ui:139
-#, fuzzy
 msgid "Sort _Descending"
-msgstr "Absteigend"
+msgstr "A_bsteigend"
 
 #: src/ui/gui/descriptives.ui:115 src/ui/gui/factor.ui:183
 #: src/ui/gui/recode.ui:606
@@ -6953,19 +6938,16 @@ msgid "Explore"
 msgstr "Explorative Datenanalyse"
 
 #: src/ui/gui/examine.ui:51
-#, fuzzy
 msgid "_Label Cases by:"
-msgstr "Fallbeschriftung"
+msgstr "Fallb_eschriftung"
 
 #: src/ui/gui/examine.ui:101
-#, fuzzy
 msgid "_Factor List:"
-msgstr "Faktorenliste"
+msgstr "F_aktorenliste"
 
 #: src/ui/gui/examine.ui:150 src/ui/gui/means.ui:110
-#, fuzzy
 msgid "_Dependent List:"
-msgstr "Liste der abhänigen Variablen"
+msgstr "Liste der ab_hänigen Variablen"
 
 #: src/ui/gui/examine.ui:310
 msgid "Explore: Statistics"
@@ -6973,17 +6955,15 @@ msgstr "Explorative Datenanalyse: Statistiken"
 
 #: src/ui/gui/examine.ui:327 src/ui/gui/oneway.ui:196
 msgid "_Descriptives"
-msgstr "_Deskriptive´"
+msgstr "_Deskriptive"
 
 #: src/ui/gui/examine.ui:341
-#, fuzzy
 msgid "_Extremes"
-msgstr "Ausreißer"
+msgstr "_Ausreißer"
 
 #: src/ui/gui/examine.ui:355
-#, fuzzy
 msgid "_Percentiles"
-msgstr "Perzentile"
+msgstr "_Perzentile"
 
 #: src/ui/gui/examine.ui:392
 msgid "Explore: Options"
@@ -6994,9 +6974,8 @@ msgid "Exclude cases _listwise"
 msgstr "_Listenweiser Fallausschluss"
 
 #: src/ui/gui/examine.ui:431
-#, fuzzy
 msgid "Exclude cases _pairwise"
-msgstr "Paarweiser Fallausschluss"
+msgstr "_Paarweiser Fallausschluss"
 
 #: src/ui/gui/examine.ui:447
 #, fuzzy
@@ -7152,33 +7131,28 @@ msgid "Include _missing values"
 msgstr "_Fehlende Werte mit einschließen"
 
 #: src/ui/gui/frequencies.ui:177
-#, fuzzy
 msgid "Ch_arts..."
-msgstr "Diagramme..."
+msgstr "_Diagramme..."
 
 #: src/ui/gui/frequencies.ui:192
-#, fuzzy
 msgid "Frequency _Tables..."
-msgstr "Häufigkeitstabellen..."
+msgstr "_Häufigkeitstabellen..."
 
 #: src/ui/gui/frequencies.ui:243
 msgid "Frequencies: Frequency Tables"
 msgstr "Häufigkeiten: Häufigkeitstabellen"
 
 #: src/ui/gui/frequencies.ui:280
-#, fuzzy
 msgid "_Always"
-msgstr "Immer"
+msgstr "_Immer"
 
 #: src/ui/gui/frequencies.ui:297
-#, fuzzy
 msgid "_Never"
-msgstr "Niemals"
+msgstr "_Niemals"
 
 #: src/ui/gui/frequencies.ui:317
-#, fuzzy
 msgid "If no _more than "
-msgstr "Wenn nicht mehr als "
+msgstr "_Wenn nicht mehr als "
 
 #: src/ui/gui/frequencies.ui:349
 msgid "values"
@@ -7189,24 +7163,20 @@ msgid "Display frequency tables"
 msgstr "Häufigkeitstabellen anzeigen"
 
 #: src/ui/gui/frequencies.ui:397
-#, fuzzy
 msgid "A_scending value"
-msgstr "Aufsteigende Werte"
+msgstr "_Aufsteigenden Werte"
 
 #: src/ui/gui/frequencies.ui:414
-#, fuzzy
 msgid "D_escending value"
-msgstr "Absteigende Werte"
+msgstr "A_bsteigenden Werte"
 
 #: src/ui/gui/frequencies.ui:431
-#, fuzzy
 msgid "Ascending _frequency"
-msgstr "Aufsteigende Häufigkeiten"
+msgstr "Aufs_teigende Häufigkeiten"
 
 #: src/ui/gui/frequencies.ui:448
-#, fuzzy
 msgid "Descending f_requency"
-msgstr "Absteigende Häufigkeiten"
+msgstr "Ab_steigende Häufigkeiten"
 
 #: src/ui/gui/frequencies.ui:471
 msgid "Order by"
@@ -7277,19 +7247,16 @@ msgid "Independent-Samples T Test"
 msgstr "T-Test bei unabhängigen Stichproben"
 
 #: src/ui/gui/indep-samples.ui:54
-#, fuzzy
 msgid "_Define Groups..."
-msgstr "Gruppenvariable"
+msgstr "Gruppen _definieren"
 
 #: src/ui/gui/indep-samples.ui:133 src/ui/gui/t-test.ui:172
-#, fuzzy
 msgid "_Test Variable(s):"
-msgstr "Testvariable(n):"
+msgstr "_Testvariable(n):"
 
 #: src/ui/gui/indep-samples.ui:180
-#, fuzzy
 msgid "_Grouping Variable:"
-msgstr "_Zielvariable:"
+msgstr "_Gruppenvariable:"
 
 #: src/ui/gui/indep-samples.ui:238
 msgid "Define Groups"
@@ -7297,11 +7264,11 @@ msgstr "Gruppenvariable"
 
 #: src/ui/gui/indep-samples.ui:278
 msgid "Group_2 value:"
-msgstr "Wert Gruppe_1:"
+msgstr "Wert Gruppe_2:"
 
 #: src/ui/gui/indep-samples.ui:292
 msgid "Group_1 value:"
-msgstr "Wert Gruppe_2:"
+msgstr "Wert Gruppe_1:"
 
 #: src/ui/gui/indep-samples.ui:375
 msgid "_Use specified values:"
@@ -7360,14 +7327,12 @@ msgid "Test Distribution"
 msgstr "Zu testende Verteilung"
 
 #: src/ui/gui/logistic.ui:7
-#, fuzzy
 msgid "Logistic Regression"
-msgstr "Regression"
+msgstr "Logistische Regression"
 
 #: src/ui/gui/logistic.ui:32
-#, fuzzy
 msgid "_Options..."
-msgstr "Optionen..."
+msgstr "_Optionen..."
 
 #: src/ui/gui/logistic.ui:47 src/ui/gui/regression.ui:47
 #: src/ui/gui/syntax-editor.ui:45
@@ -7383,26 +7348,24 @@ msgid "_Independent"
 msgstr "_Unabhängige Variable(n)"
 
 #: src/ui/gui/logistic.ui:239
-#, fuzzy
 msgid "Logistic Regression: Options"
-msgstr "Lineare Regression: Statistiken"
+msgstr "Logistische Regression: Optionen"
 
 #: src/ui/gui/logistic.ui:259
 msgid "CI for _exp(B): "
-msgstr ""
+msgstr "Konfidenzintervall für exp(B)"
 
 #: src/ui/gui/logistic.ui:336
 msgid "Classification cu_toff: "
-msgstr ""
+msgstr "Klassifikationssch_wellenwert"
 
 #: src/ui/gui/logistic.ui:347
-#, fuzzy
 msgid "_Maximum Iterations: "
-msgstr "Ma_ximale Anzahl der Iterationsschritte für Konvergenz:"
+msgstr "_Maximale Anzahl der Iterationen:"
 
 #: src/ui/gui/logistic.ui:364
 msgid "Include _constant in model"
-msgstr ""
+msgstr "K_onstante in Modell einschließen"
 
 #: src/ui/gui/means.ui:8
 #, fuzzy
@@ -7475,9 +7438,8 @@ msgid "Contrast 1 of 1"
 msgstr "Kontrast 1 von 1"
 
 #: src/ui/gui/paired-samples.ui:113
-#, fuzzy
 msgid "_Test Pair(s):"
-msgstr "Variablenpaar(e):"
+msgstr "_Variablenpaar(e):"
 
 #: src/ui/gui/psppire.ui:7
 msgid "Weight Cases"
@@ -8309,9 +8271,8 @@ msgid "Compare _Means"
 msgstr "_Mittelwerte vergleichen"
 
 #: src/ui/gui/data-editor.ui:329
-#, fuzzy
 msgid "_Means..."
-msgstr "_Mittelwert"
+msgstr "_Mittelwerte..."
 
 #: src/ui/gui/data-editor.ui:336
 msgid "_One Sample T Test..."
@@ -8359,9 +8320,8 @@ msgid "_Linear..."
 msgstr "_Linear..."
 
 #: src/ui/gui/data-editor.ui:419
-#, fuzzy
 msgid "_Binary Logistic..."
-msgstr "_Statistiken..."
+msgstr "_Binär Logistisch..."
 
 #: src/ui/gui/data-editor.ui:425
 msgid "_Non-Parametric Statistics"
