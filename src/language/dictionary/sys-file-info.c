@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <float.h>
 #include <stdlib.h>
 
@@ -36,11 +37,16 @@
 #include "language/lexer/lexer.h"
 #include "language/lexer/variable-parser.h"
 #include "libpspp/array.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/i18n.h"
 #include "libpspp/message.h"
 #include "libpspp/misc.h"
+#include "libpspp/pool.h"
 #include "libpspp/string-array.h"
 #include "output/tab.h"
+#include "output/text-item.h"
 
+#include "gl/localcharset.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
 
@@ -63,6 +69,9 @@ enum
 
 static int describe_variable (const struct variable *v, struct tab_table *t,
                               int r, int pc, int flags);
+
+static void report_encodings (const struct file_handle *,
+                              const struct sfm_reader *);
 
 /* SYSFILE INFO utility. */
 int
@@ -117,6 +126,13 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   sfm_reader = sfm_open (h);
   if (sfm_reader == NULL)
     goto error;
+
+  if (encoding && !strcasecmp (encoding, "detect"))
+    {
+      report_encodings (h, sfm_reader);
+      fh_unref (h);
+      return CMD_SUCCESS;
+    }
 
   reader = sfm_decode (sfm_reader, encoding, &d, &info);
   if (!reader)
@@ -191,7 +207,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                    : info.compression == SFM_COMP_SIMPLE ? "SAV"
                    : "ZSAV");
 
-  tab_text (t, 0, r, TAB_LEFT, _("Charset:"));
+  tab_text (t, 0, r, TAB_LEFT, _("Encoding:"));
   tab_text (t, 1, r++, TAB_LEFT, dict_get_encoding (d));
 
   tab_submit (t);
@@ -744,4 +760,342 @@ display_vectors (const struct dictionary *dict, int sorted)
   tab_submit (t);
 
   free (vl);
+}
+
+/* Encoding analysis. */
+
+/* This list of encodings is taken from http://encoding.spec.whatwg.org/, as
+   retrieved February 2014.  Encodings not supported by glibc and encodings
+   relevant only to HTML have been removed. */
+static const char *encoding_names[] = {
+  "utf-8",
+  "windows-1252",
+  "iso-8859-2",
+  "iso-8859-3",
+  "iso-8859-4",
+  "iso-8859-5",
+  "iso-8859-6",
+  "iso-8859-7",
+  "iso-8859-8",
+  "iso-8859-10",
+  "iso-8859-13",
+  "iso-8859-14",
+  "iso-8859-16",
+  "macintosh",
+  "windows-874",
+  "windows-1250",
+  "windows-1251",
+  "windows-1253",
+  "windows-1254",
+  "windows-1255",
+  "windows-1256",
+  "windows-1257",
+  "windows-1258",
+  "koi8-r",
+  "koi8-u",
+  "ibm866",
+  "gb18030",
+  "big5",
+  "euc-jp",
+  "iso-2022-jp",
+  "shift_jis",
+  "euc-kr",
+};
+#define N_ENCODING_NAMES (sizeof encoding_names / sizeof *encoding_names)
+
+struct encoding
+  {
+    uint64_t encodings;
+    char **utf8_strings;
+    unsigned int hash;
+  };
+
+static char **
+recode_strings (struct pool *pool,
+                char **strings, bool *ids, size_t n,
+                const char *encoding)
+{
+  char **utf8_strings;
+  size_t i;
+
+  utf8_strings = pool_alloc (pool, n * sizeof *utf8_strings);
+  for (i = 0; i < n; i++)
+    {
+      struct substring utf8;
+      int error;
+
+      error = recode_pedantically ("UTF-8", encoding, ss_cstr (strings[i]),
+                                   pool, &utf8);
+      if (!error)
+        {
+          ss_rtrim (&utf8, ss_cstr (" "));
+          utf8.string[utf8.length] = '\0';
+
+          if (ids[i] && !id_is_plausible (utf8.string, false))
+            error = EINVAL;
+        }
+
+      if (error)
+        return NULL;
+
+      utf8_strings[i] = utf8.string;
+    }
+
+  return utf8_strings;
+}
+
+static struct encoding *
+find_duplicate_encoding (struct encoding *encodings, size_t n_encodings,
+                         char **utf8_strings, size_t n_strings,
+                         unsigned int hash)
+{
+  struct encoding *e;
+
+  for (e = encodings; e < &encodings[n_encodings]; e++)
+    {
+      int i;
+
+      if (e->hash != hash)
+        goto next_encoding;
+
+      for (i = 0; i < n_strings; i++)
+        if (strcmp (utf8_strings[i], e->utf8_strings[i]))
+          goto next_encoding;
+
+      return e;
+    next_encoding:;
+    }
+
+  return NULL;
+}
+
+static bool
+all_equal (const struct encoding *encodings, size_t n_encodings,
+           size_t string_idx)
+{
+  const char *s0;
+  size_t i;
+
+  s0 = encodings[0].utf8_strings[string_idx];
+  for (i = 1; i < n_encodings; i++)
+    if (strcmp (s0, encodings[i].utf8_strings[string_idx]))
+      return false;
+
+  return true;
+}
+
+static int
+equal_prefix (const struct encoding *encodings, size_t n_encodings,
+              size_t string_idx)
+{
+  const char *s0;
+  size_t prefix;
+  size_t i;
+
+  s0 = encodings[0].utf8_strings[string_idx];
+  prefix = strlen (s0);
+  for (i = 1; i < n_encodings; i++)
+    {
+      const char *si = encodings[i].utf8_strings[string_idx];
+      size_t j;
+
+      for (j = 0; j < prefix; j++)
+        if (s0[j] != si[j])
+          {
+            prefix = j;
+            if (!prefix)
+              return 0;
+            break;
+          }
+    }
+
+  while (prefix > 0 && s0[prefix - 1] != ' ')
+    prefix--;
+  return prefix;
+}
+
+static int
+equal_suffix (const struct encoding *encodings, size_t n_encodings,
+              size_t string_idx)
+{
+  const char *s0;
+  size_t s0_len;
+  size_t suffix;
+  size_t i;
+
+  s0 = encodings[0].utf8_strings[string_idx];
+  s0_len = strlen (s0);
+  suffix = s0_len;
+  for (i = 1; i < n_encodings; i++)
+    {
+      const char *si = encodings[i].utf8_strings[string_idx];
+      size_t si_len = strlen (si);
+      size_t j;
+
+      if (si_len < suffix)
+        suffix = si_len;
+      for (j = 0; j < suffix; j++)
+        if (s0[s0_len - j - 1] != si[si_len - j - 1])
+          {
+            suffix = j;
+            if (!suffix)
+              return 0;
+            break;
+          }
+    }
+
+  while (suffix > 0 && s0[s0_len - suffix] != ' ')
+    suffix--;
+  return suffix;
+}
+
+static void
+report_encodings (const struct file_handle *h, const struct sfm_reader *r)
+{
+  char **titles;
+  char **strings;
+  bool *ids;
+  struct encoding encodings[N_ENCODING_NAMES];
+  size_t n_encodings, n_strings, n_unique_strings;
+  size_t i, j;
+  struct tab_table *t;
+  struct text_item *text;
+  struct pool *pool;
+  size_t row;
+
+  pool = pool_create ();
+  n_strings = sfm_get_strings (r, pool, &titles, &ids, &strings);
+
+  n_encodings = 0;
+  for (i = 0; i < N_ENCODING_NAMES; i++)
+    {
+      char **utf8_strings;
+      struct encoding *e;
+      unsigned int hash;
+
+      utf8_strings = recode_strings (pool, strings, ids, n_strings,
+                                     encoding_names[i]);
+      if (!utf8_strings)
+        continue;
+
+      /* Hash utf8_strings. */
+      hash = 0;
+      for (j = 0; j < n_strings; j++)
+        hash = hash_string (utf8_strings[j], hash);
+
+      /* If there's a duplicate encoding, just mark it. */
+      e = find_duplicate_encoding (encodings, n_encodings,
+                                   utf8_strings, n_strings, hash);
+      if (e)
+        {
+          e->encodings |= UINT64_C (1) << i;
+          continue;
+        }
+
+      e = &encodings[n_encodings++];
+      e->encodings = UINT64_C (1) << i;
+      e->utf8_strings = utf8_strings;
+      e->hash = hash;
+    }
+  if (!n_encodings)
+    {
+      msg (SW, _("No valid encodings found."));
+      pool_destroy (pool);
+      return;
+    }
+
+  text = text_item_create_format (
+    TEXT_ITEM_PARAGRAPH,
+    _("The following table lists the encodings that can successfully read %s, "
+      "by specifying the encoding name on the GET command's ENCODING "
+      "subcommand.  Encodings that yield identical text are listed "
+      "together."), fh_get_name (h));
+  text_item_submit (text);
+
+  t = tab_create (2, n_encodings + 1);
+  tab_title (t, _("Usable encodings for %s."), fh_get_name (h));
+  tab_headers (t, 1, 0, 1, 0);
+  tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 1, n_encodings);
+  tab_hline (t, TAL_1, 0, 1, 1);
+  tab_text (t, 0, 0, TAB_RIGHT, "#");
+  tab_text (t, 1, 0, TAB_LEFT, _("Encodings"));
+  for (i = 0; i < n_encodings; i++)
+    {
+      struct string s;
+
+      ds_init_empty (&s);
+      for (j = 0; j < 64; j++)
+        if (encodings[i].encodings & (UINT64_C (1) << j))
+          ds_put_format (&s, "%s, ", encoding_names[j]);
+      ds_chomp (&s, ss_cstr (", "));
+
+      tab_text_format (t, 0, i + 1, TAB_RIGHT, "%d", i + 1);
+      tab_text (t, 1, i + 1, TAB_LEFT, ds_cstr (&s));
+      ds_destroy (&s);
+    }
+  tab_submit (t);
+
+  n_unique_strings = 0;
+  for (i = 0; i < n_strings; i++)
+    if (!all_equal (encodings, n_encodings, i))
+      n_unique_strings++;
+  if (!n_unique_strings)
+    {
+      pool_destroy (pool);
+      return;
+    }
+
+  text = text_item_create_format (
+    TEXT_ITEM_PARAGRAPH,
+    _("The following table lists text strings in the file dictionary that "
+      "the encodings above interpret differently, along with those "
+      "interpretations."));
+  text_item_submit (text);
+
+  t = tab_create (3, (n_encodings * n_unique_strings) + 1);
+  tab_title (t, _("%s encoded text strings."), fh_get_name (h));
+  tab_headers (t, 1, 0, 1, 0);
+  tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 2, n_encodings * n_unique_strings);
+  tab_hline (t, TAL_1, 0, 2, 1);
+
+  tab_text (t, 0, 0, TAB_LEFT, _("Purpose"));
+  tab_text (t, 1, 0, TAB_RIGHT, "#");
+  tab_text (t, 2, 0, TAB_LEFT, _("Text"));
+
+  row = 1;
+  for (i = 0; i < n_strings; i++)
+    if (!all_equal (encodings, n_encodings, i))
+      {
+        int prefix = equal_prefix (encodings, n_encodings, i);
+        int suffix = equal_suffix (encodings, n_encodings, i);
+
+        tab_joint_text (t, 0, row, 0, row + n_encodings - 1,
+                        TAB_LEFT, titles[i]);
+        tab_hline (t, TAL_1, 0, 2, row);
+        for (j = 0; j < n_encodings; j++)
+          {
+            const char *s = encodings[j].utf8_strings[i] + prefix;
+
+            tab_text_format (t, 1, row, TAB_RIGHT, "%d", j + 1);
+            if (prefix || suffix)
+              {
+                size_t len = strlen (s) - suffix;
+                struct string entry;
+
+                ds_init_empty (&entry);
+                if (prefix)
+                  ds_put_cstr (&entry, "...");
+                ds_put_substring (&entry, ss_buffer (s, len));
+                if (suffix)
+                  ds_put_cstr (&entry, "...");
+                tab_text (t, 2, row, TAB_LEFT, ds_cstr (&entry));
+              }
+            else
+              tab_text (t, 2, row, TAB_LEFT, s);
+            row++;
+          }
+      }
+  tab_submit (t);
+
+  pool_destroy (pool);
 }

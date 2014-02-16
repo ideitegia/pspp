@@ -50,6 +50,8 @@ bool sfm_close (struct sfm_reader *);
 
 /* Obtaining information about an sfm_reader before . */
 const char *sfm_get_encoding (const struct sfm_reader *);
+size_t sfm_get_strings (const struct sfm_reader *, struct pool *pool,
+                        char ***labels, bool **ids, char ***values);
 
 /* Decoding a system file's dictionary and obtaining a casereader. */
 struct casereader *sfm_decode (struct sfm_reader *, const char *encoding,

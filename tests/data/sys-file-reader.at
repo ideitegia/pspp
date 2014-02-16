@@ -1530,6 +1530,42 @@ AT_CLEANUP
 
 AT_BANNER([system file reader - negative])
 
+AT_SETUP([unspecified character encoding])
+AT_KEYWORDS([sack synthetic system file positive])
+AT_DATA([sys-file.sack], [dnl
+dnl File header.
+"$FL2"; s60 "$(#) SPSS DATA FILE PSPP synthetic test file";
+2; dnl Layout code
+4; dnl Nominal case size
+0; dnl Not compressed
+0; dnl Not weighted
+0; dnl No cases.
+100.0; dnl Bias.
+"01 Jan 11"; "20:53:52";
+"PSPP synthetic test file: "; i8 244; i8 245; i8 246; i8 248; s34 "";
+i8 0 *3;
+
+dnl Numeric variables.
+2; 0; 0; 0; 0x050800 *2; s8 "A";
+2; 0; 0; 0; 0x050800 *2; s8 "B";
+2; 0; 0; 0; 0x050800 *2; s8 "C";
+2; 0; 0; 0; 0x050800 *2; s8 "D";
+
+dnl Dictionary termination record.
+999; 0;
+])
+for variant in be le; do
+  AT_CHECK([sack --$variant sys-file.sack > sys-file.sav])
+  AT_DATA([sys-file.sps], [dnl
+GET 'sys-file.sav'.
+])
+  AT_CHECK([pspp -O format=csv sys-file.sps], [0], [stdout])
+  AT_CHECK([sed 's/default encoding.*For/default encoding.  For/' stdout], [0], [dnl
+"warning: `sys-file.sav': This system file does not indicate its own character encoding.  Using default encoding.  For best results, specify an encoding explicitly.  Use SYSFILE INFO with ENCODING=""DETECT"" to analyze the possible encodings."
+])
+done
+AT_CLEANUP
+
 AT_SETUP([misplaced type 4 record])
 AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl

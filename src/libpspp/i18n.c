@@ -148,12 +148,10 @@ recode_string_len (const char *to, const char *from,
    Returns the output length if successful, -1 if the output buffer is too
    small. */
 static ssize_t
-try_recode (iconv_t conv,
+try_recode (iconv_t conv, char fallbackchar,
             const char *in, size_t inbytes,
             char *out_, size_t outbytes)
 {
-  /* FIXME: Need to ensure that this char is valid in the target encoding */
-  const char fallbackchar = '?';
   char *out = out_;
   int i;
 
@@ -181,14 +179,18 @@ try_recode (iconv_t conv,
           {
           case EINVAL:
             if (outbytes < 2)
-              return -1;
+              return -E2BIG;
+            if (!fallbackchar)
+              return -EINVAL;
             *out++ = fallbackchar;
             *out = '\0';
             return out - out_;
 
           case EILSEQ:
             if (outbytes == 0)
-              return -1;
+              return -E2BIG;
+            if (!fallbackchar)
+              return -EILSEQ;
             *out++ = fallbackchar;
             outbytes--;
             if (inp)
@@ -199,7 +201,7 @@ try_recode (iconv_t conv,
             break;
 
           case E2BIG:
-            return -1;
+            return -E2BIG;
 
           default:
             /* should never happen */
@@ -211,7 +213,7 @@ try_recode (iconv_t conv,
     }
 
   if (outbytes == 0)
-    return -1;
+    return -E2BIG;
 
   *out = '\0';
   return out - out_;
@@ -518,6 +520,57 @@ filename_to_utf8 (const char *filename)
   return recode_string ("UTF-8", filename_encoding (), filename, -1);
 }
 
+static int
+recode_substring_pool__ (const char *to, const char *from,
+                         struct substring text, char fallbackchar,
+                         struct pool *pool, struct substring *out)
+{
+  size_t bufsize;
+  iconv_t conv ;
+
+  if (to == NULL)
+    to = default_encoding;
+
+  if (from == NULL)
+    from = default_encoding;
+
+  conv = create_iconv (to, from);
+
+  if ( (iconv_t) -1 == conv )
+    {
+      if (fallbackchar)
+        {
+          out->string = pool_malloc (pool, text.length + 1);
+          out->length = text.length;
+          memcpy (out->string, text.string, text.length);
+          out->string[out->length] = '\0';
+          return 0;
+        }
+      else
+        return EPROTO;
+    }
+
+  for (bufsize = text.length + 1; bufsize > text.length; bufsize *= 2)
+    {
+      char *output = pool_malloc (pool, bufsize);
+      ssize_t retval;
+
+      retval = try_recode (conv, fallbackchar, text.string, text.length,
+                           output, bufsize);
+      if (retval >= 0)
+        {
+          *out = ss_buffer (output, retval);
+          return 0;
+        }
+      pool_free (pool, output);
+
+      if (retval != -E2BIG)
+        return -retval;
+    }
+
+  NOT_REACHED ();
+}
+
 /* Converts the string TEXT, which should be encoded in FROM-encoding, to a
    dynamically allocated string in TO-encoding.  Any characters which cannot be
    converted will be represented by '?'.
@@ -533,42 +586,32 @@ struct substring
 recode_substring_pool (const char *to, const char *from,
                        struct substring text, struct pool *pool)
 {
-  size_t outbufferlength;
-  iconv_t conv ;
+  struct substring out;
 
-  if (to == NULL)
-    to = default_encoding;
-
-  if (from == NULL)
-    from = default_encoding;
-
-  conv = create_iconv (to, from);
-
-  if ( (iconv_t) -1 == conv )
-    {
-      struct substring out;
-
-      out.string = pool_malloc (pool, text.length + 1);
-      out.length = text.length;
-      memcpy (out.string, text.string, text.length);
-      out.string[out.length] = '\0';
-      return out;
-    }
-
-  for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
-    if ( outbufferlength > text.length)
-      {
-        char *output = pool_malloc (pool, outbufferlength);
-        ssize_t output_len = try_recode (conv, text.string, text.length,
-                                         output, outbufferlength);
-        if (output_len >= 0)
-          return ss_buffer (output, output_len);
-        pool_free (pool, output);
-      }
-
-  NOT_REACHED ();
+  recode_substring_pool__ (to, from, text, '?', pool, &out);
+  return out;
 }
 
+/* Converts the string TEXT, which should be encoded in FROM-encoding, to a
+   dynamically allocated string in TO-encoding.  On success, returns 0, and the
+   converted null-terminated string, allocated from POOL with pool_malloc(), is
+   stored in *OUT.  On failure, returns a positive errno value.
+
+   The function fails with an error if any part of the input string is not
+   valid in the declared input encoding. */
+int
+recode_pedantically (const char *to, const char *from,
+                     struct substring text, struct pool *pool,
+                     struct substring *out)
+{
+  int error;
+
+  error = recode_substring_pool__ (to, from, text, 0, pool, out);
+  if (error)
+    *out = ss_empty ();
+  return error;
+}
+
 void
 i18n_init (void)
 {

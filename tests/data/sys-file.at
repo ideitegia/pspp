@@ -321,7 +321,7 @@ AT_BANNER([system files -- very long strings])
 AT_SETUP([read very long strings written by SPSS 13])
 AT_CHECK([cp $top_srcdir/tests/data/v13.sav .])
 AT_DATA([sys-file.sps], [dnl
-GET FILE='v13.sav'.
+GET FILE='v13.sav' ENCODING='utf-8'.
 DISPLAY VARIABLES.
 LIST.
 ])
@@ -355,7 +355,7 @@ AT_CLEANUP
 AT_SETUP([read very long strings written by SPSS 14])
 AT_CHECK([cp $top_srcdir/tests/data/v14.sav .])
 AT_DATA([sys-file.sps], [dnl
-GET FILE='v14.sav'.
+GET FILE='v14.sav' ENCODING='utf-8'.
 DISPLAY VARIABLES.
 LIST.
 ])

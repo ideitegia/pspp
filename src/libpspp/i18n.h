@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,6 +40,9 @@ char *recode_string_pool (const char *to, const char *from,
 			  const char *text, int length, struct pool *);
 struct substring recode_substring_pool (const char *to, const char *from,
                                         struct substring text, struct pool *);
+int recode_pedantically (const char *to, const char *from,
+                         struct substring text, struct pool *,
+                         struct substring *out);
 
 size_t recode_string_len (const char *to, const char *from,
                           const char *text, int len);

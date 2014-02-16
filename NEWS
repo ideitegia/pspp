@@ -9,9 +9,6 @@ Changes since 0.8.2:
  * REGRESSION now recognises /STATISTICS=CI(x) which causes confidence
    intervals for the coefficients to be printed.
 
- * The SYSFILE INFO command now accepts an ENCODING subcommand to
-   specify the character encoding of string data in the system file.
-
  * PSPPIRE graphical user interface improvements:
 
    - File|Open now allows an encoding to be selected for opening
@@ -20,8 +17,17 @@ Changes since 0.8.2:
    - File|Display Data File Information|External File... now allows an
      encoding to be selected.
 
- * System files that contain duplicate variable names may now be read
-   successfully (bug #41475).
+ * System file related improvements:
+
+   - With ENCODING="DETECT", SYSFILE INFO can now help the user to
+     pick an encoding for reading a system file that does not identify
+     its own encoding
+
+   - SYSFILE INFO now accepts an ENCODING subcommand to specify the
+     character encoding of string data in the system file.
+
+   - System files that contain duplicate variable names may now be
+     read successfully (bug #41475).
 
 Changes from 0.8.1 to 0.8.2:
 

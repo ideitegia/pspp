@@ -110,7 +110,7 @@ struct sfm_var_record
   {
     off_t pos;
     int width;
-    char name[8];
+    char name[9];
     int print_format;
     int write_format;
     int missing_value_code;
@@ -567,6 +567,156 @@ sfm_get_encoding (const struct sfm_reader *r)
   return NULL;
 }
 
+struct get_strings_aux
+  {
+    struct pool *pool;
+    char **titles;
+    char **strings;
+    bool *ids;
+    size_t allocated;
+    size_t n;
+  };
+
+static void
+add_string__ (struct get_strings_aux *aux,
+              const char *string, bool id, char *title)
+{
+  if (aux->n >= aux->allocated)
+    {
+      aux->allocated = 2 * (aux->allocated + 1);
+      aux->titles = pool_realloc (aux->pool, aux->titles,
+                                  aux->allocated * sizeof *aux->titles);
+      aux->strings = pool_realloc (aux->pool, aux->strings,
+                                   aux->allocated * sizeof *aux->strings);
+      aux->ids = pool_realloc (aux->pool, aux->ids,
+                               aux->allocated * sizeof *aux->ids);
+    }
+
+  aux->titles[aux->n] = title;
+  aux->strings[aux->n] = pool_strdup (aux->pool, string);
+  aux->ids[aux->n] = id;
+  aux->n++;
+}
+
+static void PRINTF_FORMAT (3, 4)
+add_string (struct get_strings_aux *aux,
+            const char *string, const char *title, ...)
+{
+  va_list args;
+
+  va_start (args, title);
+  add_string__ (aux, string, false, pool_vasprintf (aux->pool, title, args));
+  va_end (args);
+}
+
+static void PRINTF_FORMAT (3, 4)
+add_id (struct get_strings_aux *aux, const char *id, const char *title, ...)
+{
+  va_list args;
+
+  va_start (args, title);
+  add_string__ (aux, id, true, pool_vasprintf (aux->pool, title, args));
+  va_end (args);
+}
+
+/* Retrieves significant string data from R in its raw format, to allow the
+   caller to try to detect the encoding in use.
+
+   Returns the number of strings retrieved N.  Sets each of *TITLESP, *IDSP,
+   and *STRINGSP to an array of N elements allocated from POOL.  For each I in
+   0...N-1, UTF-8 string *TITLESP[I] describes *STRINGSP[I], which is in
+   whatever encoding system file R uses.  *IDS[I] is true if *STRINGSP[I] must
+   be a valid PSPP language identifier, false if *STRINGSP[I] is free-form
+   text. */
+size_t
+sfm_get_strings (const struct sfm_reader *r, struct pool *pool,
+                 char ***titlesp, bool **idsp, char ***stringsp)
+{
+  const struct sfm_mrset *mrset;
+  struct get_strings_aux aux;
+  size_t var_idx;
+  size_t i, j, k;
+
+  aux.pool = pool;
+  aux.titles = NULL;
+  aux.strings = NULL;
+  aux.ids = NULL;
+  aux.allocated = 0;
+  aux.n = 0;
+
+  var_idx = 0;
+  for (i = 0; i < r->n_vars; i++)
+    if (r->vars[i].width != -1)
+      add_id (&aux, r->vars[i].name, _("Variable %zu"), ++var_idx);
+
+  var_idx = 0;
+  for (i = 0; i < r->n_vars; i++)
+    if (r->vars[i].width != -1)
+      {
+        var_idx++;
+        if (r->vars[i].label)
+          add_string (&aux, r->vars[i].label, _("Variable %zu Label"),
+                      var_idx);
+      }
+
+  k = 0;
+  for (i = 0; i < r->n_labels; i++)
+    for (j = 0; j < r->labels[i].n_labels; j++)
+      add_string (&aux, r->labels[i].labels[j].label,
+                  _("Value Label %zu"), k++);
+
+  add_string (&aux, r->header.creation_date, _("Creation Date"));
+  add_string (&aux, r->header.creation_time, _("Creation Time"));
+  add_string (&aux, r->header.eye_catcher, _("Product"));
+  add_string (&aux, r->header.file_label, _("File Label"));
+
+  if (r->extensions[EXT_PRODUCT_INFO])
+    add_string (&aux, r->extensions[EXT_PRODUCT_INFO]->data,
+                _("Extra Product Info"));
+
+  if (r->document)
+    {
+      size_t i;
+
+      for (i = 0; i < r->document->n_lines; i++)
+        {
+          char line[81];
+
+          memcpy (line, r->document->documents + i * 80, 80);
+          line[80] = '\0';
+
+          add_string (&aux, line, _("Document Line %zu"), i + 1);
+        }
+    }
+
+  for (mrset = r->mrsets; mrset < &r->mrsets[r->n_mrsets]; mrset++)
+    {
+      size_t mrset_idx = mrset - r->mrsets + 1;
+
+      add_id (&aux, mrset->name, _("MRSET %zu"), mrset_idx);
+      if (mrset->label[0])
+        add_string (&aux, mrset->label, _("MRSET %zu Label"), mrset_idx);
+
+      /* Skip the variables because they ought to be duplicates. */
+
+      if (mrset->counted)
+        add_string (&aux, mrset->counted, _("MRSET %zu Counted Value"),
+                    mrset_idx);
+    }
+
+  /*  */
+  /* data file attributes */
+  /* variable attributes */
+  /* long var map */
+  /* long string value labels */
+  /* long string missing values */
+
+  *titlesp = aux.titles;
+  *idsp = aux.ids;
+  *stringsp = aux.strings;
+  return aux.n;
+}
+
 /* Decodes the dictionary read from R, saving it into into *DICT.  Character
    strings in R are decoded using ENCODING, or an encoding obtained from R if
    ENCODING is null, or the locale encoding if R specifies no encoding.
@@ -588,7 +738,16 @@ sfm_decode (struct sfm_reader *r, const char *encoding,
     {
       encoding = sfm_get_encoding (r);
       if (encoding == NULL)
-        encoding = locale_charset ();
+        {
+          sys_warn (r, -1, _("This system file does not indicate its own "
+                             "character encoding.  Using default encoding "
+                             "%s.  For best results, specify an encoding "
+                             "explicitly.  Use SYSFILE INFO with "
+                             "ENCODING=\"DETECT\" to analyze the possible "
+                             "encodings."),
+                    locale_charset ());
+          encoding = locale_charset ();
+        }
     }
 
   dict = dict_create (encoding);
@@ -906,7 +1065,7 @@ read_variable_record (struct sfm_reader *r, struct sfm_var_record *record)
       || !read_int (r, &record->missing_value_code)
       || !read_int (r, &record->print_format)
       || !read_int (r, &record->write_format)
-      || !read_bytes (r, record->name, sizeof record->name))
+      || !read_string (r, record->name, sizeof record->name))
     return false;
 
   if (has_variable_label == 1)
@@ -1242,7 +1401,7 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
       size_t i;
 
       name = recode_string_pool ("UTF-8", dict_encoding,
-                                 rec->name, 8, r->pool);
+                                 rec->name, -1, r->pool);
       name[strcspn (name, " ")] = '\0';
 
       if (!dict_id_is_valid (dict, name, false)

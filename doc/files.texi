@@ -179,8 +179,9 @@ is affected by these subcommands.
 file.  Sometimes, however, this does not work well,
 especially for files written by old versions of SPSS or @pspp{}.  Specify
 the @subcmd{ENCODING} subcommand with an @acronym{IANA} character set name as its string
-argument to override the default.  The @subcmd{ENCODING} subcommand is a @pspp{}
-extension.
+argument to override the default.  Use @cmd{SYSFILE INFO} to analyze
+the encodings that might be valid for a system file.  The
+@subcmd{ENCODING} subcommand is a @pspp{} extension.
 
 @cmd{GET} does not cause the data to be read, only the dictionary.  The data
 is read later, when a procedure is executed.
@@ -923,8 +924,10 @@ a system file and displays information on its dictionary.
 the file.  Sometimes, however, this does not work well, especially for
 files written by old versions of SPSS or @pspp{}.  Specify the
 @subcmd{ENCODING} subcommand with an @acronym{IANA} character set name
-as its string argument to override the default.  The @subcmd{ENCODING}
-subcommand is a @pspp{} extension.
+as its string argument to override the default, or specify
+@code{ENCODING='DETECT'} to analyze and report possibly valid
+encodings for the system file.  The @subcmd{ENCODING} subcommand is a
+@pspp{} extension.
 
 @cmd{SYSFILE INFO} does not affect the current active dataset.
 
