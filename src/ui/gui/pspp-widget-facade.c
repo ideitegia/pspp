@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -270,9 +270,7 @@ get_layout_location (GtkWidget *base,
   PangoRectangle logical;
   GtkRequisition req;
 
-  if (gtk_widget_get_direction (base) == GTK_TEXT_DIR_LTR)
-    xalign = xalign;
-  else
+  if (gtk_widget_get_direction (base) == GTK_TEXT_DIR_RTL)
     xalign = 1.0 - xalign;
 
   pango_layout_get_pixel_extents (layout, NULL, &logical);
