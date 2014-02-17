@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,8 +45,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 
   do
     {
-      /* Format spec for variables to create.  f.type==-1 if default is to
-	 be used. */
+      /* Format spec for variables to create. */
       struct fmt_spec f;
 
       if (!parse_DATA_LIST_vars (lexer, dataset_dict (ds),
@@ -77,7 +76,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	    }
 	}
       else
-	f.type = -1;
+	f = var_default_formats (0);
 
       /* Create each variable. */
       for (i = 0; i < nv; i++)
@@ -86,10 +85,7 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	  if (!new_var)
 	    msg (SE, _("There is already a variable named %s."), v[i]);
 	  else
-	    {
-	      if (f.type != -1)
-                var_set_both_formats (new_var, &f);
-	    }
+            var_set_both_formats (new_var, &f);
 	}
 
       /* Clean up. */
