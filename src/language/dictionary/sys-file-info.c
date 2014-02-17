@@ -1029,7 +1029,7 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
           ds_put_format (&s, "%s, ", encoding_names[j]);
       ds_chomp (&s, ss_cstr (", "));
 
-      tab_text_format (t, 0, i + 1, TAB_RIGHT, "%d", i + 1);
+      tab_text_format (t, 0, i + 1, TAB_RIGHT, "%zu", i + 1);
       tab_text (t, 1, i + 1, TAB_LEFT, ds_cstr (&s));
       ds_destroy (&s);
     }
@@ -1076,7 +1076,7 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
           {
             const char *s = encodings[j].utf8_strings[i] + prefix;
 
-            tab_text_format (t, 1, row, TAB_RIGHT, "%d", j + 1);
+            tab_text_format (t, 1, row, TAB_RIGHT, "%zu", j + 1);
             if (prefix || suffix)
               {
                 size_t len = strlen (s) - suffix;

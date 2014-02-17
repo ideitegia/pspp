@@ -217,7 +217,7 @@ categoricals_dump (const struct categoricals *cat)
 	}
       printf ("\n");
 
-      printf ("Number of interactions %d\n", cat->n_iap);
+      printf ("Number of interactions %zu\n", cat->n_iap);
       for (i = 0 ; i < cat->n_iap; ++i)
 	{
 	  int v;

@@ -1188,7 +1188,7 @@ read_value_label_record (struct sfm_reader *r,
   if (record->n_vars < 1 || record->n_vars > r->n_vars)
     {
       sys_error (r, r->pos - 4,
-                 _("Number of variables associated with a value label (%zu) "
+                 _("Number of variables associated with a value label (%u) "
                    "is not between 1 and the number of variables (%zu)."),
                  record->n_vars, r->n_vars);
       return false;
