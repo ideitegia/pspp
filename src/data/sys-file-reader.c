@@ -160,8 +160,8 @@ struct sfm_extension_record
   {
     int subtype;                /* Record subtype. */
     off_t pos;                  /* Starting offset in file. */
-    size_t size;                /* Size of data elements. */
-    size_t count;               /* Number of data elements. */
+    unsigned int size;          /* Size of data elements. */
+    unsigned int count;         /* Number of data elements. */
     void *data;                 /* Contents. */
   };
 
@@ -1141,7 +1141,7 @@ read_value_label_record (struct sfm_reader *r,
   record->pos = r->pos;
   if (!read_uint (r, &record->n_labels))
     return false;
-  if (record->n_labels > SIZE_MAX / sizeof *record->labels)
+  if (record->n_labels > UINT_MAX / sizeof *record->labels)
     {
       sys_error (r, r->pos - 4, _("Invalid number of labels %zu."),
                  record->n_labels);
