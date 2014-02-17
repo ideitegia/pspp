@@ -398,3 +398,19 @@ AT_BANNER([GET DATA Spreadsheet /TYPE=ODS])
 
 CHECK_SPREADSHEET_READER([ODS])
 
+
+AT_SETUP([GET DATA /TYPE=ODS crash])
+AT_SKIP_IF([test n$ODF_READ_SUPPORT != nyes])
+
+		     
+AT_CHECK([cp $top_srcdir/tests/language/data-io/newone.ods this.ods])dnl
+
+AT_DATA([crash.sps],[dnl
+GET DATA /TYPE=ODS /FILE='this.ods' /CELLRANGE=RANGE 'A1:C8'  /READNAMES=ON
+LIST.
+])
+
+AT_CHECK([pspp -O format=csv crash.sps], [0], [ignore])
+
+AT_CLEANUP
+

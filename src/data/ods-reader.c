@@ -986,8 +986,9 @@ ods_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 	  struct xml_value *xmv = xzalloc (sizeof *xmv);
 	  xmv->text = xmlTextReaderValue (r->rsd.xtr);
 	  xmv->value = val_string;	 
-	  xmv->type = type;
 	  val_string = NULL;
+	  xmv->type = type;
+	  type = NULL;
 
 	  for (col = 0; col < r->rsd.col_span; ++col)
 	    {
