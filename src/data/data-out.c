@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -200,16 +200,24 @@ char *
 data_out_stretchy (const union value *input, const char *encoding,
                    const struct fmt_spec *format, struct pool *pool)
 {
-  struct fmt_spec wide_format;
 
   if (fmt_get_category (format->type) & (FMT_CAT_BASIC | FMT_CAT_CUSTOM))
     {
-      /* XXX In the common case this wastes memory for 40 bytes of mostly
-         spaces. */
+      const struct fmt_number_style *style = settings_get_style (format->type);
+      struct fmt_spec wide_format;
+      char tmp[128];
+      size_t size;
+
       wide_format.type = format->type;
       wide_format.w = 40;
       wide_format.d = format->d;
-      format = &wide_format;
+
+      size = format->w + style->extra_bytes + 1;
+      if (size <= sizeof tmp)
+        {
+          output_number (input, &wide_format, tmp);
+          return pool_strdup (pool, tmp + strspn (tmp, " "));
+        }
     }
 
   return data_out_pool (input, encoding, format, pool);
