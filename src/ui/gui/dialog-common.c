@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,8 +43,9 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
 
   PsppireDict *dict;
   GtkTreeSelection *selection;
-  enum val_type type = -1;
+  enum val_type type;
   GList *list, *l;
+  bool have_type;
 
   while (GTK_IS_TREE_MODEL_FILTER (model))
     {
@@ -58,6 +59,7 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
   list = gtk_tree_selection_get_selected_rows (selection, &model);
 
   /* Iterate through the selection of the source treeview */
+  have_type = false;
   for (l = list; l ; l = l->next)
     {
       GtkTreePath *path = l->data;
@@ -71,16 +73,14 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
 
       gtk_tree_path_free (fpath);
 
-      if ( type != -1 )
-	{
-	  if ( var_get_type (v) != type )
-	    {
-	      retval = FALSE;
-	      break;
-	    }
-	}
+      if (have_type && var_get_type (v) != type)
+        {
+          retval = FALSE;
+          break;
+        }
 
       type = var_get_type (v);
+      have_type = true;
     }
 
   g_list_foreach (list, (GFunc) gtk_tree_path_free, NULL);
@@ -99,16 +99,14 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
       const struct variable *v;
       gtk_tree_model_get (model, &iter, 0, &v, -1);
 
-      if ( type != -1 )
-	{
-	  if ( var_get_type (v) != type )
-	    {
-	      retval = FALSE;
-	      break;
-	    }
-	}
+      if ( have_type && var_get_type (v) != type )
+        {
+          retval = FALSE;
+          break;
+        }
 
       type = var_get_type (v);
+      have_type = true;
     }
 
   return retval;
