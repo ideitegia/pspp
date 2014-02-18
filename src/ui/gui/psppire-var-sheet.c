@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1270,7 +1270,7 @@ on_edit_clear_variables (GtkAction *action, PsppireVarSheet *var_sheet)
       for (i = 1; i <= range_set_node_get_width (node); i++)
         {
           unsigned long row = range_set_node_get_end (node) - i;
-          if (row >= 0 && row < psppire_dict_get_var_cnt (dict))
+          if (row < psppire_dict_get_var_cnt (dict))
             psppire_dict_delete_variables (dict, row, 1);
         }
     }
