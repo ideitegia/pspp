@@ -305,10 +305,6 @@ gl_INIT
 
 AC_C_INLINE
 
-AC_CHECK_SIZEOF([size_t])
-SIZEOF_SIZE_T=$ac_cv_sizeof_size_t
-AC_SUBST([SIZEOF_SIZE_T])
-
 AC_C_BIGENDIAN
 
 AC_CHECK_FUNCS([__setfpucw fork execl isinf isnan finite getpid feholdexcept fpsetmask popen round])

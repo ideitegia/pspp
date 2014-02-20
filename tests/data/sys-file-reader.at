@@ -3124,9 +3124,6 @@ done
 AT_CLEANUP
 
 AT_SETUP([too many value labels])
-dnl Skip the test if multiplying a small number by INT32_MAX would not
-dnl cause an overflow in size_t.
-AT_SKIP_IF([test $SIZEOF_SIZE_T -gt 4])
 AT_KEYWORDS([sack synthetic system file negative])
 AT_DATA([sys-file.sack], [dnl
 dnl File header.
