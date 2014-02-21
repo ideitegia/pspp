@@ -124,10 +124,10 @@ print_space_trns_proc (void *t_, struct ccase **c,
     {
       double f = expr_evaluate_num (trns->expr, *c, case_num);
       if (f == SYSMIS)
-        msg (SW, _("The expression on PRINT SPACE evaluated to the "
-                   "system-missing value."));
+        msg (SW, _("The expression on %s evaluated to the "
+                   "system-missing value."), "PRINT SPACE");
       else if (f < 0 || f > INT_MAX)
-        msg (SW, _("The expression on PRINT SPACE evaluated to %g."), f);
+        msg (SW, _("The expression on %s evaluated to %g."), "PRINT SPACE", f);
       else
         n = f;
     }

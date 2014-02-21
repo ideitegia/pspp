@@ -220,7 +220,7 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
     }
   if (binary && fh == NULL)
     {
-      msg (SE, _("OUTFILE is required when binary formats are specified."));
+      msg (SE, _("%s is required when binary formats are specified."), "OUTFILE");
       goto error;
     }
 

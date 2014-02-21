@@ -236,11 +236,11 @@ read_inline_record (struct dfm_reader *r)
     {
       if (!lex_match_id (r->lexer, "END") || !lex_match_id (r->lexer, "DATA"))
         {
-          msg (SE, _("Missing END DATA while reading inline data.  "
+          msg (SE, _("Missing %s while reading inline data.  "
                      "This probably indicates a missing or incorrectly "
-                     "formatted END DATA command.  END DATA must appear "
+                     "formatted %s command.  %s must appear "
                      "by itself on a single line with exactly one space "
-                     "between words."));
+                     "between words."), "END DATA", "END DATA", "END DATA");
           lex_discard_rest_of_command (r->lexer);
         }
       return false;
@@ -573,7 +573,7 @@ dfm_eof (struct dfm_reader *r)
             msg (ME, _("Attempt to read beyond end-of-file on file %s."),
                  fh_get_name (r->fh));
           else
-            msg (ME, _("Attempt to read beyond END DATA."));
+            msg (ME, _("Attempt to read beyond %s."), "END DATA");
         }
     }
 

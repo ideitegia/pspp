@@ -102,7 +102,7 @@ change_permissions (const char *file_name, enum PER per)
 
   if (settings_get_safer_mode ())
     {
-      msg (SE, _("This command not allowed when the SAFER option is set."));
+      msg (SE, _("This command not allowed when the %s option is set."), "SAFER");
       return 0;
     }
 

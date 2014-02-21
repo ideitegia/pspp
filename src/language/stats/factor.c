@@ -1923,13 +1923,15 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
   if (idata->n_extractions == 0)
     {
-      msg (MW, _("The FACTOR criteria result in zero factors extracted. Therefore no analysis will be performed."));
+      msg (MW, _("The %s criteria result in zero factors extracted. Therefore no analysis will be performed."), "FACTOR");
       goto finish;
     }
 
   if (idata->n_extractions > factor->n_vars)
     {
-      msg (MW, _("The FACTOR criteria result in more factors than variables, which is not meaningful. No analysis will be performed."));
+      msg (MW, 
+	   _("The %s criteria result in more factors than variables, which is not meaningful. No analysis will be performed."), 
+	   "FACTOR");
       goto finish;
     }
     

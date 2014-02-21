@@ -174,7 +174,7 @@ must_not_have_else (struct do_if_trns *do_if)
 {
   if (has_else (do_if))
     {
-      msg (SE, _("This command may not follow ELSE in DO IF...END IF."));
+      msg (SE, _("This command may not follow %s in %s ... %s."), "ELSE", "DO IF", "END IF");
       return false;
     }
   else

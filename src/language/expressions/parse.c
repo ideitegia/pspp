@@ -1298,7 +1298,7 @@ parse_function (struct lexer *lexer, struct expression *e)
   if ((f->flags & OPF_PERM_ONLY) &&
       proc_in_temporary_transformations (e->ds))
     {
-      msg (SE, _("%s may not appear after TEMPORARY."), f->prototype);
+      msg (SE, _("%s may not appear after %s."), f->prototype, "TEMPORARY");
       goto fail;
     }
 

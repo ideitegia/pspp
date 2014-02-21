@@ -97,8 +97,8 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   bool ok;
 
   if (proc_make_temporary_transformations_permanent (ds))
-    msg (SW, _("FLIP ignores TEMPORARY.  "
-               "Temporary transformations will be made permanent."));
+    msg (SW, _("%s ignores %s.  "
+               "Temporary transformations will be made permanent."), "FLIP", "TEMPORARY");
 
   flip = pool_create_container (struct flip_pgm, pool);
   flip->n_vars = 0;
@@ -148,7 +148,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->file = pool_create_temp_file (flip->pool);
   if (flip->file == NULL)
     {
-      msg (SE, _("Could not create temporary file for FLIP."));
+      msg (SE, _("Could not create temporary file for %s."), "FLIP");
       goto error;
     }
 
@@ -330,14 +330,14 @@ flip_file (struct flip_pgm *flip)
   input_file = flip->file;
   if (fseeko (input_file, 0, SEEK_SET) != 0)
     {
-      msg (SE, _("Error rewinding FLIP file: %s."), strerror (errno));
+      msg (SE, _("Error rewinding %s file: %s."), "FLIP", strerror (errno));
       return false;
     }
 
   output_file = pool_create_temp_file (flip->pool);
   if (output_file == NULL)
     {
-      msg (SE, _("Error creating FLIP source file."));
+      msg (SE, _("Error creating %s source file."), "FLIP");
       return false;
     }
 
@@ -350,9 +350,9 @@ flip_file (struct flip_pgm *flip)
       if (read_cases != fread (input_buf, case_bytes, read_cases, input_file))
         {
           if (ferror (input_file))
-            msg (SE, _("Error reading FLIP file: %s."), strerror (errno));
+            msg (SE, _("Error reading %s file: %s."), "FLIP", strerror (errno));
           else
-            msg (SE, _("Unexpected end of file reading FLIP file."));
+            msg (SE, _("Unexpected end of file reading %s file."), "FLIP");
           return false;
         }
 
@@ -368,7 +368,7 @@ flip_file (struct flip_pgm *flip)
                                            + (off_t) i * flip->n_cases),
                       SEEK_SET) != 0)
             {
-              msg (SE, _("Error seeking FLIP source file: %s."),
+              msg (SE, _("Error seeking %s source file: %s."), "FLIP",
                    strerror (errno));
               return false;
             }
@@ -376,7 +376,7 @@ flip_file (struct flip_pgm *flip)
 	  if (fwrite (output_buf, sizeof *output_buf, read_cases, output_file)
 	      != read_cases)
             {
-              msg (SE, _("Error writing FLIP source file: %s."),
+              msg (SE, _("Error writing %s source file: %s."), "FLIP",
                    strerror (errno));
               return false;
             }
@@ -391,7 +391,7 @@ flip_file (struct flip_pgm *flip)
 
   if (fseeko (output_file, 0, SEEK_SET) != 0)
     {
-      msg (SE, _("Error rewinding FLIP source file: %s."), strerror (errno));
+      msg (SE, _("Error rewinding %s source file: %s."), "FLIP", strerror (errno));
       return false;
     }
   flip->file = output_file;
@@ -422,10 +422,10 @@ flip_casereader_read (struct casereader *reader, void *flip_)
         {
           case_unref (c);
           if (ferror (flip->file))
-            msg (SE, _("Error reading FLIP temporary file: %s."),
+            msg (SE, _("Error reading %s temporary file: %s."), "FLIP",
                  strerror (errno));
           else if (feof (flip->file))
-            msg (SE, _("Unexpected end of file reading FLIP temporary file."));
+            msg (SE, _("Unexpected end of file reading %s temporary file."), "FLIP");
           else
             NOT_REACHED ();
           flip->error = true;

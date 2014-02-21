@@ -336,7 +336,7 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
 	  if (lex_token (lexer) == T_ID
 	      && lex_id_match (ss_cstr ("THRU"), lex_tokss (lexer)))
 	    {
-	      msg (SE, _("THRU is not allowed with string variables."));
+	      msg (SE, _("%s is not allowed with string variables."), "THRU");
 	      return false;
 	    }
 	}

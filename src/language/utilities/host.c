@@ -127,7 +127,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   if (settings_get_safer_mode ())
     {
-      msg (SE, _("This command not allowed when the SAFER option is set."));
+      msg (SE, _("This command not allowed when the %s option is set."), "SAFER");
       return CMD_FAILURE;
     }
 

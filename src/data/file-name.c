@@ -170,7 +170,7 @@ fn_getenv_default (const char *key, const char *def)
 static FILE *
 safety_violation (const char *fn)
 {
-  msg (SE, _("Not opening pipe file `%s' because SAFER option set."), fn);
+  msg (SE, _("Not opening pipe file `%s' because %s option set."), fn, "SAFER");
   errno = EPERM;
   return NULL;
 }

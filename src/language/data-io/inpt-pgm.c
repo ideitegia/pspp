@@ -130,7 +130,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
               && lex_get_error_mode (lexer) != LEX_ERROR_TERMINAL)
             {
               if (result == CMD_EOF)
-                msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
+                msg (SE, _("Unexpected end-of-file within %s."), "INPUT PROGRAM");
               inside_input_program = false;
               destroy_input_program (inp);
               return result;
@@ -143,7 +143,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
 
   if (!saw_DATA_LIST && !saw_END_FILE)
     {
-      msg (SE, _("Input program must contain DATA LIST or END FILE."));
+      msg (SE, _("Input program must contain %s or %s."), "DATA LIST", "END FILE");
       destroy_input_program (inp);
       return CMD_FAILURE;
     }

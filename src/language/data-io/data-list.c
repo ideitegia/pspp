@@ -138,13 +138,12 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	{
           if (!in_input_program ())
             {
-              msg (SE, _("The END subcommand may only be used within "
-                         "INPUT PROGRAM."));
+              msg (SE, _("The %s subcommand may only be used within %s."), "END", "INPUT PROGRAM");
               goto error;
             }
 	  if (end)
 	    {
-	      msg (SE, _("The END subcommand may only be specified once."));
+	      msg (SE, _("The %s subcommand may only be specified once."), "END");
 	      goto error;
 	    }
 
@@ -252,7 +251,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 
   if (type != DP_FIXED && end != NULL)
     {
-      msg (SE, _("The END subcommand may be used only with DATA LIST FIXED."));
+      msg (SE, _("The %s subcommand may be used only with %s."), "END", "DATA LIST FIXED");
       goto error;
     }
 

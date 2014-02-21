@@ -534,7 +534,7 @@ npar_execute (struct casereader *input,
       const struct npar_test *test = specs->test[t];
       if ( NULL == test->execute )
 	{
-	  msg (SW, _("NPAR subcommand not currently implemented."));
+	  msg (SW, _("%s subcommand not currently implemented."), "NPAR");
 	  continue;
 	}
       test->execute (ds, casereader_clone (input), specs->filter, test, specs->exact, specs->timer);
@@ -688,7 +688,7 @@ npar_runs (struct lexer *lexer, struct dataset *ds,
 	}
       else
 	{
-	  lex_error (lexer, _("Expecting MEAN, MEDIAN, MODE or number"));
+	  lex_error (lexer, _("Expecting %s, %s, %s or a number."), "MEAN", "MEDIAN", "MODE");
 	  return 0;
 	}
 		  

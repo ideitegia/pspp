@@ -79,7 +79,7 @@ parse_num_range (struct lexer *lexer,
     {
       if (*x == LOWEST)
         {
-          msg (SE, _("LO or LOWEST must be part of a range."));
+          msg (SE, _("%s or %s must be part of a range."), "LO", "LOWEEST");
           return false;
         }
       *y = *x;

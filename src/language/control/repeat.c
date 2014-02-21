@@ -439,6 +439,6 @@ parse_strings (struct lexer *lexer, struct dummy_var *dv)
 int
 cmd_end_repeat (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
-  msg (SE, _("No matching DO REPEAT."));
+  msg (SE, _("No matching %s."), "DO REPEAT");
   return CMD_CASCADING_FAILURE;
 }

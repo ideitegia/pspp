@@ -30,6 +30,6 @@ cmd_use (struct lexer *lexer, struct dataset *ds UNUSED)
   if (lex_match (lexer, T_ALL))
     return CMD_SUCCESS;
 
-  msg (SW, _("Only USE ALL is currently implemented."));
+  msg (SW, _("Only %s is currently implemented."), "USE ALL");
   return CMD_FAILURE;
 }

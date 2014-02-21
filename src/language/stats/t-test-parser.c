@@ -120,8 +120,8 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
 	  if ( cut == true && var_is_alpha (gvar))
 	    {
-	      msg (SE, _("When applying GROUPS to a string variable, two "
-			 "values must be specified."));
+	      msg (SE, _("When applying %s to a string variable, two "
+			 "values must be specified."), "GROUPS");
 	      goto parse_failed;
 	    }
 	}
@@ -132,7 +132,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
 	  if (tt.n_vars > 0)
 	    {
-	      msg (SE, _("VARIABLES subcommand may not be used with PAIRS."));
+	      msg (SE, _("%s subcommand may not be used with %s."), "VARIABLES", "PAIRS");
 	      goto parse_failed;
 	    }
 
@@ -228,7 +228,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 	{
 	  if ( tt.mode == MODE_PAIRED)
 	    {
-	      msg (SE, _("VARIABLES subcommand may not be used with PAIRS."));
+	      msg (SE, _("%s subcommand may not be used with %s."), "VARIABLES", "PAIRS");
 	      goto parse_failed;
 	    }
 

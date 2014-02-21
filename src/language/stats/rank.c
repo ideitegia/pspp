@@ -318,7 +318,7 @@ parse_into (struct lexer *lexer, struct rank *cmd,
 	  const char *name = lex_tokcstr (lexer);
 
 	  if ( var_count >= subcase_get_n_fields (&cmd->sc) )
-            msg (SE, _("Too many variables in INTO clause."));
+            msg (SE, _("Too many variables in %s clause."), "INTO");
 	  else if ( dict_lookup_var (cmd->dict, name) != NULL )
             msg (SE, _("Variable %s already exists."), name);
           else if (string_set_contains (new_names, name))
@@ -820,7 +820,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
     {
       int v;
 
-      tab_output_text (0, _("Variables Created By RANK"));
+      tab_output_text_format (0, _("Variables Created By %s"), "RANK");
       tab_output_text (0, "");
 
       for (i = 0 ; i <  rank.n_rs ; ++i )
