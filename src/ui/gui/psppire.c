@@ -154,28 +154,28 @@ psppire_quit (void)
 struct icon_size
 {
   int resolution;  /* The dimension of the images which will be used */
-  size_t n_sizes;  /* The number of items in the array below.
-		      This may be zero, in which case the iconset will be wildcarded
-		      (used by default when no non-wildcarded set is available) */
+  size_t n_sizes;  /* The number of items in the array below. */
   const GtkIconSize *usage; /* An array determining for what the icon set is used */
 };
 
 static const GtkIconSize menus[] = {GTK_ICON_SIZE_MENU};
-static const GtkIconSize toolbar[] = {GTK_ICON_SIZE_LARGE_TOOLBAR};
+static const GtkIconSize large_toolbar[] = {GTK_ICON_SIZE_LARGE_TOOLBAR};
+static const GtkIconSize small_toolbar[] = {GTK_ICON_SIZE_SMALL_TOOLBAR};
 
 
 /* We currently have three icon sets viz: 16x16, 24x24 and 32x32
-   We use the 16x16 for menus, the 32x32 for the toolbar and 
-   the 24x24 for everything else.
+   We use the 16x16 for menus, the 32x32 for the large_toolbars and 
+   the 24x24 for small_toolbars.
 
-   Exactly one element of the following array should have its 2nd and 3rd
-   argument as zero.
+   The order of this array is pertinent.  The icons in the sets occuring
+   earlier in the array will be used a the wildcard (default) icon size,
+   if such an icon exists.
 */
 static const struct icon_size sizemap[] = 
 {
+  {24,  sizeof (small_toolbar) / sizeof (GtkIconSize), small_toolbar},
   {16,  sizeof (menus) / sizeof (GtkIconSize), menus},
-  {24, 0, 0},
-  {32,  sizeof (toolbar) / sizeof (GtkIconSize), toolbar}
+  {32,  sizeof (large_toolbar) / sizeof (GtkIconSize), large_toolbar}
 };
 
 
@@ -193,6 +193,7 @@ create_icon_factory (void)
     gint i;
     for (i = 0 ; i < ic->n_icons ; ++i)
       {
+	gboolean wildcarded = FALSE;
 	GtkIconSet *icon_set = gtk_icon_set_new ();
 	int r;
 	for (r = 0 ; r < sizeof (sizemap) / sizeof (sizemap[0]); ++r)
@@ -204,15 +205,26 @@ create_icon_factory (void)
 					       sizemap[r].resolution, sizemap[r].resolution,
 					       ic->icon_name[i]);
 	    const char *relocated_filename = relocate (filename);
+	    GFile *gf = g_file_new_for_path (relocated_filename);
+	    if (g_file_query_exists (gf, NULL))
+	      {
+		gtk_icon_source_set_filename (source, relocated_filename);
+		if (!wildcarded)
+		  {
+		    gtk_icon_source_set_size_wildcarded (source, TRUE);
+		    wildcarded = TRUE;
+		  }
+	      }
+	    g_object_unref (gf);
 
-	    gtk_icon_source_set_filename (source, relocated_filename);
-	    gtk_icon_source_set_size_wildcarded (source, sizemap[r].n_sizes <= 0);
 	    for (s = 0 ; s < sizemap[r].n_sizes ; ++s)
 	      gtk_icon_source_set_size (source, sizemap[r].usage[s]);
 	    if (filename != relocated_filename)
 	      free (CONST_CAST (char *, relocated_filename));
 	    g_free (filename);
-	    gtk_icon_set_add_source (icon_set, source);
+
+	    if ( gtk_icon_source_get_filename (source))
+	      gtk_icon_set_add_source (icon_set, source);
 	  }
       
 	gtk_icon_factory_add (factory, ic->icon_name[i], icon_set);
