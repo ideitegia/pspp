@@ -72,8 +72,8 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
   if (handle != NULL)
     {
       msg (SE, _("File handle %s is already defined.  "
-                 "Use CLOSE FILE HANDLE before redefining a file handle."),
-	   handle_name);
+                 "Use %s before redefining a file handle."),
+	   handle_name, "CLOSE FILE HANDLE");
       goto exit_free_handle_name;
     }
 
@@ -132,7 +132,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
         }
       else
         {
-          msg (SE, _("RECFORM must be specified with MODE=360."));
+          msg (SE, _("%s must be specified with %s."), "RECFORM", "MODE=360");
           goto exit_free_cmd;
         }
       break;

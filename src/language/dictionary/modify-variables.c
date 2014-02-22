@@ -89,8 +89,8 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
   size_t i;
 
   if (proc_make_temporary_transformations_permanent (ds))
-    msg (SE, _("MODIFY VARS may not be used after TEMPORARY.  "
-               "Temporary transformations will be made permanent."));
+    msg (SE, _("%s may not be used after %s.  "
+               "Temporary transformations will be made permanent."), "MODIFY VARS", "TEMPORARY");
 
   vm.reorder_vars = NULL;
   vm.reorder_cnt = 0;
@@ -229,8 +229,9 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	  if (already_encountered & 4)
 	    {
-	      msg (SE, _("KEEP subcommand may be given at most once.  It may "
-                   "not be given in conjunction with the DROP subcommand."));
+	      msg (SE, _("%s subcommand may be given at most once.  It may "
+			 "not be given in conjunction with the %s subcommand."),
+		   "KEEP", "DROP");
 	      goto done;
 	    }
 	  already_encountered |= 4;
@@ -272,9 +273,11 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	  if (already_encountered & 4)
 	    {
-	      msg (SE, _("DROP subcommand may be given at most once.  It may "
-                         "not be given in conjunction with the KEEP "
-                         "subcommand."));
+	      msg (SE, _("%s subcommand may be given at most once.  It may "
+                         "not be given in conjunction with the %s "
+                         "subcommand."),
+		   "DROP", "KEEP"
+		   );
 	      goto done;
 	    }
 	  already_encountered |= 4;

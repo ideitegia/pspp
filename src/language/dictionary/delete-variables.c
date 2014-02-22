@@ -37,16 +37,17 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
   bool ok;
 
   if (proc_make_temporary_transformations_permanent (ds))
-    msg (SE, _("DELETE VARIABLES may not be used after TEMPORARY.  "
-               "Temporary transformations will be made permanent."));
+    msg (SE, _("%s may not be used after %s.  "
+               "Temporary transformations will be made permanent."), 
+	 "DELETE VARIABLES", "TEMPORARY");
 
   if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt, PV_NONE))
     goto error;
   if (var_cnt == dict_get_var_cnt (dataset_dict (ds)))
     {
-      msg (SE, _("DELETE VARIABLES may not be used to delete all variables "
+      msg (SE, _("%s may not be used to delete all variables "
                  "from the active dataset dictionary.  "
-                 "Use NEW FILE instead."));
+                 "Use %s instead."), "DELETE VARIABLES", "NEW FILE");
       goto error;
     }
 

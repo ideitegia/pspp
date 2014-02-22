@@ -194,9 +194,9 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
   if (cmd.sbc_workspace)
     {
       if ( cmd.n_workspace[0] < 1024 && ! settings_get_testing_mode ())
-	msg (SE, _("WORKSPACE must be at least 1MB"));
+	msg (SE, _("%s must be at least 1MB"), "WORKSPACE");
       else if (cmd.n_workspace[0] <= 0)
-	msg (SE, _("WORKSPACE must be positive"));
+	msg (SE, _("%s must be positive"), "WORKSPACE");
       else
 	settings_set_workspace (cmd.n_workspace[0] * 1024L);
     }
@@ -404,14 +404,14 @@ stc_custom_epoch (struct lexer *lexer,
       lex_get (lexer);
       if (new_epoch < 1500)
         {
-          msg (SE, _("EPOCH must be 1500 or later."));
+          msg (SE, _("%s must be 1500 or later."), "EPOCH");
           return 0;
         }
       settings_set_epoch (new_epoch);
     }
   else
     {
-      lex_error (lexer, _("expecting AUTOMATIC or year"));
+      lex_error (lexer, _("expecting %s or year"), "AUTOMATIC");
       return 0;
     }
 
@@ -439,7 +439,7 @@ stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 	return 0;
       if (lex_integer (lexer) < 1)
 	{
-	  msg (SE, _("LENGTH must be at least 1."));
+	  msg (SE, _("%s must be at least %d."), "LENGTH", 1);
 	  return 0;
 	}
       page_length = lex_integer (lexer);
@@ -536,7 +536,7 @@ stc_custom_width (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set
 	return 0;
       if (lex_integer (lexer) < 40)
 	{
-	  msg (SE, _("WIDTH must be at least 40."));
+	  msg (SE, _("%s must be at least %d."), "WIDTH", 40);
 	  return 0;
 	}
       settings_set_viewwidth (lex_integer (lexer));
@@ -563,8 +563,9 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
   if (fmt_is_string (fmt.type))
     {
       char str[FMT_STRING_LEN_MAX + 1];
-      msg (SE, _("FORMAT requires numeric output format as an argument.  "
+      msg (SE, _("%s requires numeric output format as an argument.  "
 		 "Specified format %s is of type string."),
+	   "FORMAT",
 	   fmt_to_string (&fmt, str));
       return 0;
     }
@@ -1082,8 +1083,9 @@ cmd_preserve (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
     }
   else
     {
-      msg (SE, _("Too many PRESERVE commands without a RESTORE: at most "
+      msg (SE, _("Too many %s commands without a %s: at most "
                  "%d levels of saved settings are allowed."),
+	   "PRESERVE", "RESTORE",
            MAX_SAVED_SETTINGS);
       return CMD_CASCADING_FAILURE;
     }
@@ -1101,7 +1103,7 @@ cmd_restore (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
     }
   else
     {
-      msg (SE, _("RESTORE without matching PRESERVE."));
+      msg (SE, _("%s without matching %s."), "RESTORE", "PRESERVE");
       return CMD_FAILURE;
     }
 }

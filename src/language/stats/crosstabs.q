@@ -295,8 +295,8 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
                    : MV_NEVER);
   if (proc.mode == GENERAL && proc.exclude == MV_NEVER)
     {
-      msg (SE, _("Missing mode REPORT not allowed in general mode.  "
-		 "Assuming MISSING=TABLE."));
+      msg (SE, _("Missing mode %s not allowed in general mode.  "
+		 "Assuming %s."), "REPORT", "MISSING=TABLE");
       proc.exclude = MV_ANY;
     }
 
@@ -479,7 +479,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds,
   struct crosstabs_proc *proc = proc_;
   if (proc->n_pivots)
     {
-      msg (SE, _("VARIABLES must be specified before TABLES."));
+      msg (SE, _("%s must be specified before %s."), "VARIABLES", "TABLES");
       return 0;
     }
 

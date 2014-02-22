@@ -397,10 +397,13 @@ determine_charts (struct frq_proc *frq, const struct cmd_frequencies *cmd)
       if (hist->x_min != SYSMIS && hist->x_max != SYSMIS
           && hist->x_min >= hist->x_max)
         {
-          msg (SE, _("MAX for histogram must be greater than or equal to MIN, "
-                     "but MIN was specified as %.15g and MAX as %.15g.  "
-                     "MIN and MAX will be ignored."),
-               hist->x_min, hist->x_max);
+          msg (SE, _("%s for histogram must be greater than or equal to %s, "
+                     "but %s was specified as %.15g and %s as %.15g.  "
+                     "%s and %s will be ignored."),
+	       "MAX", "MIN", 
+	       "MIN", hist->x_min, 
+	       "MAX", hist->x_max,
+	       "MIN", "MAX");
           hist->x_min = hist->x_max = SYSMIS;
         }
     }
@@ -418,9 +421,13 @@ determine_charts (struct frq_proc *frq, const struct cmd_frequencies *cmd)
       if (pie->x_min != SYSMIS && pie->x_max != SYSMIS
           && pie->x_min >= pie->x_max)
         {
-          msg (SE, _("MAX for pie chart must be greater than or equal to MIN, "
-                     "but MIN was specified as %.15g and MAX as %.15g.  "
-                     "MIN and MAX will be ignored."), pie->x_min, pie->x_max);
+          msg (SE, _("%s for pie chart must be greater than or equal to %s, "
+                     "but %s was specified as %.15g and %s as %.15g.  "
+                     "%s and %s will be ignored."), 
+	       "MAX", "MIN", 
+	       "MIN", pie->x_min,
+	       "MAX", pie->x_max,
+	       "MIN", "MAX");
           pie->x_min = pie->x_max = SYSMIS;
         }
     }
@@ -725,7 +732,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
                   {
                     if (vf->groups != NULL)
                       msg (SE, _("Variables %s specified multiple times on "
-                                 "GROUPED subcommand."), var_get_name (v[i]));
+                                 "%s subcommand."), var_get_name (v[i]), "GROUPED");
                     else
                       {
                         vf->n_groups = nl;
@@ -734,8 +741,8 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
                     goto found;
                   }
               }
-            msg (SE, _("Variables %s specified on GROUPED but not on "
-                       "VARIABLES."), var_get_name (v[i]));
+            msg (SE, _("Variables %s specified on %s but not on "
+                       "%s."), var_get_name (v[i]), "GROUPED", "VARIABLES");
 
           found:;
           }
