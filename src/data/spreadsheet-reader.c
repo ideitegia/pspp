@@ -29,22 +29,32 @@
 #include <gl/c-xvasprintf.h>
 #include <stdlib.h>
 
+#ifdef ODF_READ_SUPPORT
+const bool ODF_READING_SUPPORTED = true;
+#else
+const bool ODF_READING_SUPPORTED = false;
+#endif
+
+#ifdef GNM_READ_SUPPORT
+const bool GNM_READING_SUPPORTED = true;
+#else
+const bool GNM_READING_SUPPORTED = false;
+#endif
 
 void 
 spreadsheet_destroy (struct spreadsheet *s)
 {
   switch (s->type)
     {
-#ifdef ODF_READ_SUPPORT
     case SPREADSHEET_ODS:
+      assert (ODF_READING_SUPPORTED);
       ods_destroy (s);
       break;
-#endif
-#ifdef GNM_READ_SUPPORT
+
     case SPREADSHEET_GNUMERIC:
+      assert (GNM_READING_SUPPORTED);
       gnumeric_destroy (s);
       break;
-#endif
     default:
       NOT_REACHED ();
       break;
@@ -53,17 +63,16 @@ spreadsheet_destroy (struct spreadsheet *s)
 
 
 struct casereader * 
-spreadsheet_make_reader (struct spreadsheet *s UNUSED,
-                         const struct spreadsheet_read_options *opts UNUSED)
+spreadsheet_make_reader (struct spreadsheet *s,
+                         const struct spreadsheet_read_options *opts)
 {
-#ifdef ODS_READ_SUPPORT
-  if ( s->type == SPREADSHEET_ODS)
-    return ods_make_reader (s, opts);
-#endif
-#ifdef GNM_READ_SUPPORT
-  if ( s->type == SPREADSHEET_GNUMERIC)
-    return gnumeric_make_reader (s, opts);
-#endif
+  if (ODF_READING_SUPPORTED)
+    if ( s->type == SPREADSHEET_ODS)
+      return ods_make_reader (s, opts);
+
+  if (GNM_READING_SUPPORTED)
+    if ( s->type == SPREADSHEET_GNUMERIC)
+      return gnumeric_make_reader (s, opts);
 
   return NULL;
 }
@@ -71,30 +80,28 @@ spreadsheet_make_reader (struct spreadsheet *s UNUSED,
 const char * 
 spreadsheet_get_sheet_name (struct spreadsheet *s, int n)
 {
-#ifdef ODF_READ_SUPPORT
-  if ( s->type == SPREADSHEET_ODS)
-    return ods_get_sheet_name (s, n);
-#endif
-#ifdef GNM_READ_SUPPORT
-  if ( s->type == SPREADSHEET_GNUMERIC)
-    return gnumeric_get_sheet_name (s, n);
-#endif
+  if (ODF_READING_SUPPORTED)
+    if ( s->type == SPREADSHEET_ODS)
+      return ods_get_sheet_name (s, n);
+
+  if (GNM_READING_SUPPORTED)
+    if ( s->type == SPREADSHEET_GNUMERIC)
+      return gnumeric_get_sheet_name (s, n);
 
   return NULL;
 }
 
+
 char * 
 spreadsheet_get_sheet_range (struct spreadsheet *s, int n)
 {
-#ifdef ODF_READ_SUPPORT
-  if ( s->type == SPREADSHEET_ODS)
-    return ods_get_sheet_range (s, n);
-#endif
+  if (ODF_READING_SUPPORTED)
+    if ( s->type == SPREADSHEET_ODS)
+      return ods_get_sheet_range (s, n);
 
-#ifdef GNM_READ_SUPPORT
-  if ( s->type == SPREADSHEET_GNUMERIC)
-    return gnumeric_get_sheet_range (s, n);
-#endif
+  if (GNM_READING_SUPPORTED)
+    if ( s->type == SPREADSHEET_GNUMERIC)
+      return gnumeric_get_sheet_range (s, n);
 
   return NULL;
 }

@@ -19,6 +19,9 @@ Changes since 0.8.2:
 
    - A problem with the Means dialog has been resolved (bug #41433).
 
+   - Several problems related to the input of spreadsheets have been
+     fixed (bug #41657, #41620
+
  * System file related improvements:
 
    - With ENCODING="DETECT", SYSFILE INFO can now help the user to
