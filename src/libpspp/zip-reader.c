@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -278,7 +278,7 @@ zip_header_read_next (struct zip_reader *zr)
   
   zr->members[zr->nm++] = zm;
 
-  zm->fp = fopen (zr->filename, "r");
+  zm->fp = fopen (zr->filename, "rb");
   zm->ref_cnt = 1;
   zm->errs = zr->errs;
 
@@ -301,7 +301,7 @@ zip_reader_create (const char *filename, struct string *errs)
 
   zr->nm = 0;
 
-  zr->fr = fopen (filename, "r");
+  zr->fr = fopen (filename, "rb");
   if (NULL == zr->fr)
     {
       ds_put_cstr (zr->errs, strerror (errno));
@@ -551,7 +551,8 @@ probe_magic (FILE *fp, uint32_t magic, off_t start, off_t stop, off_t *off)
 
   do
     {
-      fread (&byte, 1, 1, fp);
+      if (1 != fread (&byte, 1, 1, fp))
+	break;
 
       if ( byte == seq[state])
 	state++;
