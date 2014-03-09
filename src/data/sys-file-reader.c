@@ -1143,7 +1143,7 @@ read_value_label_record (struct sfm_reader *r,
     return false;
   if (record->n_labels > UINT_MAX / sizeof *record->labels)
     {
-      sys_error (r, r->pos - 4, _("Invalid number of labels %zu."),
+      sys_error (r, r->pos - 4, _("Invalid number of labels %u."),
                  record->n_labels);
       return false;
     }
@@ -1306,11 +1306,11 @@ read_extension_record (struct sfm_reader *r, int subtype,
       {
         if (type->size > 0 && record->size != type->size)
           sys_warn (r, record->pos,
-                    _("Record type 7, subtype %d has bad size %zu "
+                    _("Record type 7, subtype %d has bad size %u "
                       "(expected %d)."), subtype, record->size, type->size);
         else if (type->count > 0 && record->count != type->count)
           sys_warn (r, record->pos,
-                    _("Record type 7, subtype %d has bad count %zu "
+                    _("Record type 7, subtype %d has bad count %u "
                       "(expected %d)."), subtype, record->count, type->count);
         else if (type->count == 0 && type->size == 0)
           {
@@ -1915,7 +1915,7 @@ parse_display_parameters (struct sfm_reader *r,
   else
     {
       sys_warn (r, record->pos,
-                _("Extension 11 has bad count %zu (for %zu variables)."),
+                _("Extension 11 has bad count %u (for %zu variables)."),
                 record->count, n_vars);
       return;
     }
