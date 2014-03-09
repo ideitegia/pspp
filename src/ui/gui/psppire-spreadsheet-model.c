@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2013  Free Software Foundation
+   Copyright (C) 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 
 #include <config.h>
 #include <glib.h>
+
+#include <stdint.h>
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -210,7 +212,7 @@ tree_model_get_iter (GtkTreeModel * model, GtkTreeIter * iter,
   n = indices[0];
 
   iter->stamp = spreadsheetModel->stamp;
-  iter->user_data = (gpointer) n;
+  iter->user_data = (gpointer) (intptr_t) n;
 
   return TRUE;
 }
@@ -225,7 +227,7 @@ tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
   if (iter == NULL)
     return FALSE;
 
-  if ((gint) iter->user_data >= spreadsheetModel->spreadsheet->n_sheets - 1)
+  if ((intptr_t) iter->user_data >= spreadsheetModel->spreadsheet->n_sheets - 1)
     {
       iter->user_data = NULL;
       iter->stamp = 0;
@@ -254,7 +256,7 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
       {
         const char *x =
           spreadsheet_get_sheet_name (spreadsheetModel->spreadsheet,
-                                   (gint) iter->user_data);
+                                      (intptr_t) iter->user_data);
 	
         g_value_set_string (value, x);
       }
@@ -263,7 +265,7 @@ tree_model_get_value (GtkTreeModel * model, GtkTreeIter * iter,
       {
         char *x =
           spreadsheet_get_sheet_range (spreadsheetModel->spreadsheet,
-                                    (gint) iter->user_data);
+                                       (intptr_t) iter->user_data);
 
 	g_value_set_string (value, x ? x : _("(empty)"));
 	g_free (x);
@@ -290,7 +292,7 @@ tree_model_nth_child (GtkTreeModel * model, GtkTreeIter * iter,
     return FALSE;
 
   iter->stamp = spreadsheetModel->stamp;
-  iter->user_data = (gpointer) n;
+  iter->user_data = (gpointer) (intptr_t) n;
 
   return TRUE;
 }
@@ -319,7 +321,7 @@ tree_model_get_path (GtkTreeModel * model, GtkTreeIter * iter)
   PsppireSpreadsheetModel *spreadsheetModel =
     PSPPIRE_SPREADSHEET_MODEL (model);
   GtkTreePath *path;
-  gint index = (gint) iter->user_data;
+  gint index = (intptr_t) iter->user_data;
 
   g_return_val_if_fail (iter->stamp == spreadsheetModel->stamp, NULL);
 

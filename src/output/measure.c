@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #if HAVE_LC_PAPER
 #include <langinfo.h>
 #endif
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "data/file-name.h"
@@ -297,8 +298,8 @@ get_default_paper_size (int *h, int *v)
 
 #if HAVE_LC_PAPER
   /* LC_PAPER is a non-standard glibc extension. */
-  *h = (int) nl_langinfo(_NL_PAPER_WIDTH) * (72000 / 25.4);
-  *v = (int) nl_langinfo(_NL_PAPER_HEIGHT) * (72000 / 25.4);
+  *h = (intptr_t) nl_langinfo(_NL_PAPER_WIDTH) * (72000 / 25.4);
+  *v = (intptr_t) nl_langinfo(_NL_PAPER_HEIGHT) * (72000 / 25.4);
   if (*h > 0 && *v > 0)
      return true;
 #endif
