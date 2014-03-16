@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -200,6 +200,12 @@ csv_output_buffer (struct csv_writer *w, const char *s, size_t len)
       putc (w->opts.qualifier, w->file);
       for (p = s; p < &s[len]; p++)
         {
+          /* We are writing the output file in text mode, so transform any
+             explicit CR-LF line breaks into LF only, to allow the C library to
+             use correct system-specific new-lines. */
+          if (*p == '\r' && p[1] == '\n')
+            continue;
+
           if (*p == w->opts.qualifier)
             putc (w->opts.qualifier, w->file);
           putc (*p, w->file);
