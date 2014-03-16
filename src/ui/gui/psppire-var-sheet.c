@@ -252,7 +252,7 @@ on_var_column_edited (GtkCellRendererText *cell,
       break;
 
     case VS_LABEL:
-      var_set_label (var, new_text, false);
+      var_set_label (var, new_text);
       break;
 
     case VS_VALUES:

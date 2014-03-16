@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc
+   Copyright (C) 2005, 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1123,7 +1123,7 @@ rank_cmd (struct dataset *ds, const struct rank *cmd)
 
           var = dict_create_var_assert (d, rs->dest_names[i], 0);
           var_set_both_formats (var, &dest_format[rs->rfunc]);
-          var_set_label (var, rs->dest_labels[i], false);
+          var_set_label (var, rs->dest_labels[i]);
 
           iv->output_vars[j] = var;
         }

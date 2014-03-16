@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2008, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -639,7 +639,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
 
 	    free (dest[i]);
 	    if (dest_label[i])
-              var_set_label (destvar, dest_label[i], true);
+              var_set_label (destvar, dest_label[i]);
 
 	    v->dest = destvar;
 	  }

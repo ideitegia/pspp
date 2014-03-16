@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ struct variable
 
 static void var_set_print_format_quiet (struct variable *v, const struct fmt_spec *print);
 static void var_set_write_format_quiet (struct variable *v, const struct fmt_spec *write);
-static bool var_set_label_quiet (struct variable *v, const char *label, bool issue_warning);
+static void var_set_label_quiet (struct variable *v, const char *label);
 static void var_set_name_quiet (struct variable *v, const char *name);
 
 /* Creates and returns a new variable with the given NAME and
@@ -124,7 +124,7 @@ var_destroy (struct variable *v)
       mv_destroy (&v->miss);
       var_clear_short_names (v);
       val_labs_destroy (v->val_labs);
-      var_set_label_quiet (v, NULL, false);
+      var_set_label_quiet (v, NULL);
       attrset_destroy (var_get_attributes (v));
       free (v->name);
       ds_destroy (&v->name_and_label);
@@ -715,49 +715,18 @@ var_get_label (const struct variable *v)
 /* Sets V's variable label to UTF-8 encoded string LABEL, stripping off leading
    and trailing white space.  If LABEL is a null pointer or if LABEL is an
    empty string (after stripping white space), then V's variable label (if any)
-   is removed.
-
-   Variable labels are limited to 255 bytes in V's encoding (as returned by
-   var_get_encoding()).  If LABEL fits within this limit, this function returns
-   true.  Otherwise, the variable label is set to a truncated value, this
-   function returns false and, if ISSUE_WARNING is true, issues a warning.  */
-static bool
-var_set_label_quiet (struct variable *v, const char *label, bool issue_warning)
+   is removed. */
+static void
+var_set_label_quiet (struct variable *v, const char *label)
 {
-  bool truncated = false;
-
   free (v->label);
   v->label = NULL;
 
   if (label != NULL && label[strspn (label, CC_SPACES)])
-    {
-      const char *dict_encoding = var_get_encoding (v);
-      struct substring s = ss_cstr (label);
-      size_t trunc_len;
-
-      if (dict_encoding != NULL)
-        {
-          enum { MAX_LABEL_LEN = 255 };
-
-          trunc_len = utf8_encoding_trunc_len (label, dict_encoding,
-                                               MAX_LABEL_LEN);
-          if (ss_length (s) > trunc_len)
-            {
-              if (issue_warning)
-                msg (SW, _("Truncating variable label for variable `%s' to %d "
-                           "bytes."), var_get_name (v), MAX_LABEL_LEN);
-              ss_truncate (&s, trunc_len);
-              truncated = true;
-            }
-        }
-
-        v->label = ss_xstrdup (s);
-    }
+    v->label = xstrdup (label);
 
   ds_destroy (&v->name_and_label);
   ds_init_empty (&v->name_and_label);
-
-  return truncated;
 }
 
 
@@ -765,21 +734,13 @@ var_set_label_quiet (struct variable *v, const char *label, bool issue_warning)
 /* Sets V's variable label to UTF-8 encoded string LABEL, stripping off leading
    and trailing white space.  If LABEL is a null pointer or if LABEL is an
    empty string (after stripping white space), then V's variable label (if any)
-   is removed.
-
-   Variable labels are limited to 255 bytes in V's encoding (as returned by
-   var_get_encoding()).  If LABEL fits within this limit, this function returns
-   true.  Otherwise, the variable label is set to a truncated value, this
-   function returns false and, if ISSUE_WARNING is true, issues a warning.  */
-bool
-var_set_label (struct variable *v, const char *label, bool issue_warning)
+   is removed. */
+void
+var_set_label (struct variable *v, const char *label)
 {
   struct variable *ov = var_clone (v);
-  bool truncated = var_set_label_quiet (v, label, issue_warning);
-
+  var_set_label_quiet (v, label);
   dict_var_changed (v, VAR_TRAIT_LABEL, ov);
-
-  return truncated;
 }
 
 
@@ -787,7 +748,7 @@ var_set_label (struct variable *v, const char *label, bool issue_warning)
 void
 var_clear_label (struct variable *v)
 {
-  var_set_label (v, NULL, false);
+  var_set_label (v, NULL);
 }
 
 /* Returns true if V has a variable V,
@@ -1298,7 +1259,7 @@ var_clone (const struct variable *old_var)
   var_set_print_format_quiet (new_var, var_get_print_format (old_var));
   var_set_write_format_quiet (new_var, var_get_write_format (old_var));
   var_set_value_labels_quiet (new_var, var_get_value_labels (old_var));
-  var_set_label_quiet (new_var, var_get_label (old_var), false);
+  var_set_label_quiet (new_var, var_get_label (old_var));
   var_set_measure_quiet (new_var, var_get_measure (old_var));
   var_set_role_quiet (new_var, var_get_role (old_var));
   var_set_display_width_quiet (new_var, var_get_display_width (old_var));

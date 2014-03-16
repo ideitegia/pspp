@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -590,7 +590,7 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
           if (var_has_missing_values (dv) && !var_has_missing_values (mv))
             var_set_missing_values (mv, var_get_missing_values (dv));
           if (var_get_label (dv) && !var_get_label (mv))
-            var_set_label (mv, var_get_label (dv), false);
+            var_set_label (mv, var_get_label (dv));
         }
       else
         mv = dict_clone_var_assert (m, dv);

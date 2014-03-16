@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -750,7 +750,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         {
           char label[256];
           read_string (r, label);
-          var_set_label (v, label, false); /* XXX */
+          var_set_label (v, label); /* XXX */
         }
     }
 

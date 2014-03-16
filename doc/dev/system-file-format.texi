@@ -328,7 +328,7 @@ This field is present only if @code{has_var_label} is set to 1.  It is
 set to the length, in characters, of the variable label.  The
 documented maximum length varies from 120 to 255 based on SPSS
 version, but some files have been seen with longer labels.  PSPP
-accepts longer labels and truncates them to 255 bytes on input.
+accepts labels of any length.
 
 @item char label[];
 This field is present only if @code{has_var_label} is set to 1.  It has

@@ -31,6 +31,9 @@ Changes since 0.8.2:
    - SYSFILE INFO now accepts an ENCODING subcommand to specify the
      character encoding of string data in the system file.
 
+   - Variable labels over 255 bytes long are now accepted without
+     truncation (bug #41863).
+
    - System files that contain duplicate variable names may now be
      read successfully (bug #41475).
 
