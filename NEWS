@@ -11,6 +11,9 @@ Changes since 0.8.2:
 
  * PSPPIRE graphical user interface improvements:
 
+   - Dialog boxes with source  variable lists can now choose the sort
+     order;  right click and select from the popup menu.
+
    - File|Open now allows an encoding to be selected for opening
      system files.
 

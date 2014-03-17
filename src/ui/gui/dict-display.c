@@ -36,26 +36,45 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-static void
+
+void
 get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
-		GtkTreeModel **model, GtkTreeIter *iter
-		)
+		GtkTreeModel **model, GtkTreeIter *iter)
 {
   *model = top_model;
-  *iter = *top_iter;
-  while (GTK_IS_TREE_MODEL_FILTER (*model))
+
+  if ( iter)
+    *iter = *top_iter;
+
+  while ( ! PSPPIRE_IS_DICT (*model))
     {
-      GtkTreeIter parent_iter = *iter;
-      GtkTreeModelFilter *parent_model = GTK_TREE_MODEL_FILTER (*model);
+      GtkTreeIter parent_iter;
+      if (iter)
+	parent_iter = *iter;
 
-      *model = gtk_tree_model_filter_get_model (parent_model);
+      if ( GTK_IS_TREE_MODEL_FILTER (*model))
+	{
+	  GtkTreeModelFilter *parent_model = GTK_TREE_MODEL_FILTER (*model);
 
-      gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
-							iter,
-							&parent_iter);
+	  *model = gtk_tree_model_filter_get_model (parent_model);
+
+	  if (iter)
+	    gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
+							      iter,
+							      &parent_iter);
+	}
+      else if (GTK_IS_TREE_MODEL_SORT (*model))
+	{
+	  GtkTreeModelSort *parent_model = GTK_TREE_MODEL_SORT (*model);
+
+	  *model = gtk_tree_model_sort_get_model (parent_model);
+
+	  if (iter)
+	    gtk_tree_model_sort_convert_iter_to_child_iter (parent_model,
+							    iter,
+							    &parent_iter);
+	}
     }
-
-  g_assert (PSPPIRE_IS_DICT (*model));
 }
 
 

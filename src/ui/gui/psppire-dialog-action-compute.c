@@ -22,7 +22,7 @@
 #include <language/expressions/public.h>
 
 #include "psppire-var-view.h"
-
+#include "dict-display.h"
 #include "psppire-dialog.h"
 #include "psppire-keypad.h"
 #include "psppire-selector.h"
@@ -365,10 +365,10 @@ static void
 insert_source_row_into_text_view (GtkTreeIter iter,
 				  GtkWidget *dest,
 				  GtkTreeModel *model,
-				  gpointer data
-				  )
+				  gpointer data)
 {
   GtkTreePath *path;
+  GtkTreeModel *m;
   PsppireDict *dict;
   gint *idx;
   struct variable *var;
@@ -377,20 +377,8 @@ insert_source_row_into_text_view (GtkTreeIter iter,
 
   g_return_if_fail (GTK_IS_TEXT_VIEW (dest));
 
-  if ( GTK_IS_TREE_MODEL_FILTER (model))
-    {
-      dict = PSPPIRE_DICT (gtk_tree_model_filter_get_model
-			   (GTK_TREE_MODEL_FILTER(model)));
-
-      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER
-							(model),
-							&dict_iter, &iter);
-    }
-  else
-    {
-      dict = PSPPIRE_DICT (model);
-      dict_iter = iter;
-    }
+  get_base_model (model, &iter, &m, &dict_iter);
+  dict = PSPPIRE_DICT (m);
 
   path = gtk_tree_model_get_path (GTK_TREE_MODEL (dict), &dict_iter);
 
@@ -405,7 +393,6 @@ insert_source_row_into_text_view (GtkTreeIter iter,
   erase_selection (buffer);
 
   gtk_text_buffer_insert_at_cursor (buffer, var_get_name (var), -1);
-
 }
 
 static void

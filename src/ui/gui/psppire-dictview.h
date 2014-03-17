@@ -52,6 +52,7 @@ struct _PsppireDictView
   var_predicate_func *predicate;
   GtkWidget *menu;
   gboolean prefer_labels;
+  GtkTreeModel *sorted_model;
 };
 
 struct _PsppireDictViewClass

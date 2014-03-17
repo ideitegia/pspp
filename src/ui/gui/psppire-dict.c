@@ -625,6 +625,9 @@ tree_model_column_type (GtkTreeModel *model, gint index)
     case DICT_TVM_COL_VAR:
       return PSPPIRE_VAR_PTR_TYPE;
       break;
+    case DICT_TVM_COL_LABEL:
+      return G_TYPE_STRING;
+      break;
     default:
       g_return_val_if_reached ((GType)0);
       break;

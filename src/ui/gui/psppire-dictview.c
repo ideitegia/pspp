@@ -19,6 +19,7 @@
 #include <gtk/gtk.h>
 #include "psppire-dictview.h"
 #include "psppire-dict.h"
+#include "dict-display.h"
 #include "psppire-conf.h"
 #include <data/format.h>
 #include <libpspp/i18n.h>
@@ -32,7 +33,6 @@ static void psppire_dict_view_base_finalize (PsppireDictViewClass *, gpointer);
 static void psppire_dict_view_base_init     (PsppireDictViewClass *class);
 static void psppire_dict_view_class_init    (PsppireDictViewClass *class);
 static void psppire_dict_view_init          (PsppireDictView      *dict_view);
-
 
 GType
 psppire_dict_view_get_type (void)
@@ -81,18 +81,24 @@ enum
 };
 
 
+
 /* A GtkTreeModelFilterVisibleFunc to filter lines in the treeview */
 static gboolean
-filter_variables (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
+filter_variables (GtkTreeModel *tmodel, GtkTreeIter *titer, gpointer data)
 {
   var_predicate_func *predicate = data;
   struct variable *var;
-  PsppireDict *dict = PSPPIRE_DICT (model);
+  GtkTreeModel *model = NULL;
+  GtkTreeIter iter ;
+  PsppireDict *dict ;
+  GtkTreePath *path ;
+  gint *idx;
 
-  GtkTreePath *path = gtk_tree_model_get_path (model, iter);
+  get_base_model (tmodel, titer, &model, &iter);
 
-  gint *idx = gtk_tree_path_get_indices (path);
-
+  dict = PSPPIRE_DICT (model);
+  path = gtk_tree_model_get_path (model, &iter);
+  idx = gtk_tree_path_get_indices (path);
   var =  psppire_dict_get_variable (dict, *idx);
 
   gtk_tree_path_free (path);
@@ -100,18 +106,70 @@ filter_variables (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
   return predicate (var);
 }
 
+
+static gint
+unsorted (GtkTreeModel *model,
+     GtkTreeIter *a,
+     GtkTreeIter *b,
+     gpointer user_data)
+{
+  const struct variable *var_a;
+  const struct variable *var_b;
+
+
+  gtk_tree_model_get (model, a, DICT_TVM_COL_VAR,  &var_a, -1);
+  gtk_tree_model_get (model, b, DICT_TVM_COL_VAR,  &var_b, -1);
+
+  return compare_var_ptrs_by_dict_index (&var_a, &var_b, NULL);
+}
+
+static gint
+sort_by_name (GtkTreeModel *model,
+     GtkTreeIter *a,
+     GtkTreeIter *b,
+     gpointer user_data)
+{
+  const struct variable *var_a;
+  const struct variable *var_b;
+
+  gtk_tree_model_get (model, a, DICT_TVM_COL_VAR,  &var_a, -1);
+  gtk_tree_model_get (model, b, DICT_TVM_COL_VAR,  &var_b, -1);
+
+  return g_strcmp0 (var_get_name (var_a), var_get_name (var_b));
+}
+
+
+static gint
+sort_by_label (GtkTreeModel *model,
+     GtkTreeIter *a,
+     GtkTreeIter *b,
+     gpointer user_data)
+{
+  const struct variable *var_a;
+  const struct variable *var_b;
+
+  gtk_tree_model_get (model, a, DICT_TVM_COL_VAR,  &var_a, -1);
+  gtk_tree_model_get (model, b, DICT_TVM_COL_VAR,  &var_b, -1);
+
+  return g_strcmp0 (var_get_label (var_a), var_get_label (var_b));
+}
+
 static void
 set_model (PsppireDictView *dict_view)
 {
-  GtkTreeModel *model ;
+  GtkTreeModel *model = NULL;
 
   if ( dict_view->dict == NULL)
     return;
 
+  dict_view->sorted_model = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (dict_view->dict));
+  gtk_tree_sortable_set_default_sort_func (GTK_TREE_SORTABLE (dict_view->sorted_model), unsorted, dict_view, 0);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (dict_view->sorted_model), 
+					GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID, GTK_SORT_ASCENDING);
+
    if ( dict_view->predicate )
     {
-      model = gtk_tree_model_filter_new (GTK_TREE_MODEL (dict_view->dict),
-					 NULL);
+      model = gtk_tree_model_filter_new (dict_view->sorted_model,	 NULL);
 
       gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (model),
 					      filter_variables,
@@ -120,7 +178,7 @@ set_model (PsppireDictView *dict_view)
     }
   else
     {
-      model = GTK_TREE_MODEL (dict_view->dict);
+      model = dict_view->sorted_model;
       g_object_ref (model);
     }
 
@@ -250,46 +308,6 @@ psppire_dict_view_base_finalize (PsppireDictViewClass *class,
 }
 
 
-static void
-dv_get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
-		GtkTreeModel **model, GtkTreeIter *iter)
-{
-  *model = top_model;
-
-  if ( iter)
-    *iter = *top_iter;
-
-  while ( ! PSPPIRE_IS_DICT (*model))
-    {
-      GtkTreeIter parent_iter;
-      if (iter)
-	parent_iter = *iter;
-
-      if ( GTK_IS_TREE_MODEL_FILTER (*model))
-	{
-	  GtkTreeModelFilter *parent_model = GTK_TREE_MODEL_FILTER (*model);
-
-	  *model = gtk_tree_model_filter_get_model (parent_model);
-
-	  if (iter)
-	    gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
-							      iter,
-							      &parent_iter);
-	}
-      else if (GTK_IS_TREE_MODEL_SORT (*model))
-	{
-	  GtkTreeModelSort *parent_model = GTK_TREE_MODEL_SORT (*model);
-
-	  *model = gtk_tree_model_sort_get_model (parent_model);
-
-	  if (iter)
-	    gtk_tree_model_sort_convert_iter_to_child_iter (parent_model,
-							    iter,
-							    &parent_iter);
-	}
-    }
-}
-
 
 
 /* A GtkTreeCellDataFunc which renders the name and/or label of the
@@ -306,7 +324,7 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
   GtkTreeIter iter;
   GtkTreeModel *model;
 
-  dv_get_base_model (top_model, top_iter, &model, &iter);
+  get_base_model (top_model, top_iter, &model, &iter);
 
   gtk_tree_model_get (model,
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
@@ -432,7 +450,7 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
     const gchar *tip ;
     GtkTreeModel *m;
 
-    dv_get_base_model (tree_model, NULL, &m, NULL);
+    get_base_model (tree_model, NULL, &m, NULL);
 
     if ( PSPPIRE_DICT_VIEW (treeview)->prefer_labels )
       tip = var_get_name (var);
@@ -468,6 +486,46 @@ toggle_label_preference (GtkCheckMenuItem *checkbox, gpointer data)
 }
 
 
+static void
+set_sort_criteria (GtkCheckMenuItem *checkbox, PsppireDictView *dv, GtkTreeIterCompareFunc func)
+{
+  if (!gtk_check_menu_item_get_active (checkbox))
+    {
+      gtk_widget_queue_draw (GTK_WIDGET (dv));
+      return;
+    }
+
+
+  gtk_tree_sortable_set_default_sort_func (GTK_TREE_SORTABLE (dv->sorted_model), func, 0, 0);
+
+
+  gtk_widget_queue_draw (GTK_WIDGET (dv));
+}
+
+static void
+set_sort_criteria_name (GtkCheckMenuItem *checkbox, gpointer data)
+{
+  PsppireDictView *dv = PSPPIRE_DICT_VIEW (data);
+  set_sort_criteria (checkbox, dv, sort_by_name);
+}
+
+
+static void
+set_sort_criteria_label (GtkCheckMenuItem *checkbox, gpointer data)
+{
+  PsppireDictView *dv = PSPPIRE_DICT_VIEW (data);
+  set_sort_criteria (checkbox, dv, sort_by_label);
+}
+
+
+static void
+set_sort_criteria_unsorted (GtkCheckMenuItem *checkbox, gpointer data)
+{
+  PsppireDictView *dv = PSPPIRE_DICT_VIEW (data);
+  set_sort_criteria (checkbox, dv, unsorted);
+}
+
+
 
 static void
 psppire_dict_view_init (PsppireDictView *dict_view)
@@ -477,6 +535,7 @@ psppire_dict_view_init (PsppireDictView *dict_view)
   GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new ();
 
   dict_view->prefer_labels = TRUE;
+  dict_view->sorted_model = NULL;
 
   psppire_conf_get_boolean (psppire_conf_new (),
 			    G_OBJECT_TYPE_NAME (dict_view),
@@ -519,18 +578,36 @@ psppire_dict_view_init (PsppireDictView *dict_view)
 
 
   {
-    GtkWidget *checkbox =
+    GSList *group = NULL;
+    GtkWidget *item =
       gtk_check_menu_item_new_with_label  (_("Prefer variable labels"));
 
-    gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (checkbox),
+    gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item),
 				    dict_view->prefer_labels);
 
-    g_signal_connect (checkbox, "toggled",
+    g_signal_connect (item, "toggled",
 		      G_CALLBACK (toggle_label_preference), dict_view);
 
+    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), item);
 
-    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), checkbox);
+    item = gtk_separator_menu_item_new ();
+    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), item);
 
+    item = gtk_radio_menu_item_new_with_label (group, _("Unsorted (dictionary order)"));
+    group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (item));
+    gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item), TRUE);
+    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), item);
+    g_signal_connect (item, "toggled", G_CALLBACK (set_sort_criteria_unsorted), dict_view);
+
+    item = gtk_radio_menu_item_new_with_label (group, _("Sort by name"));
+    group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (item));
+    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), item);
+    g_signal_connect (item, "toggled", G_CALLBACK (set_sort_criteria_name), dict_view);
+
+    item = gtk_radio_menu_item_new_with_label (group, _("Sort by label"));
+    group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (item));
+    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), item);
+    g_signal_connect (item, "toggled", G_CALLBACK (set_sort_criteria_label), dict_view);
   }
 
   gtk_widget_show_all (dict_view->menu);
@@ -557,7 +634,7 @@ psppire_dict_view_iter_to_var (PsppireDictView *dict_view,
   GtkTreeModel *model;
   GtkTreeIter iter;
 
-  dv_get_base_model (top_model, top_iter, &model, &iter);
+  get_base_model (top_model, top_iter, &model, &iter);
 
   g_assert (PSPPIRE_IS_DICT (model));
 
