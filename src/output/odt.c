@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -386,6 +386,31 @@ odt_destroy (struct output_driver *driver)
 }
 
 static void
+write_xml_with_line_breaks (xmlTextWriterPtr writer, char *line)
+{
+  char *newline;
+  char *p;
+
+  for (p = line; *p; p = newline + 1)
+    {
+      newline = strchr (p, '\n');
+
+      if (!newline)
+        {
+          xmlTextWriterWriteString (writer, _xml(p));
+          return;
+        }
+
+      if (newline > p && newline[-1] == '\r')
+        newline[-1] = '\0';
+      else
+        *newline = '\0';
+      xmlTextWriterWriteString (writer, _xml(p));
+      xmlTextWriterWriteElement (writer, _xml("text:line-break"), _xml(""));
+    }
+}
+
+static void
 odt_submit_table (struct odt_driver *odt, struct table_item *item)
 {
   const struct table *tab = table_item_get_table (item);
@@ -458,7 +483,14 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
 	      else
 		xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
 
-	      xmlTextWriterWriteString (odt->content_wtr, _xml(cell.contents));
+	      if (strchr (cell.contents, '\n'))
+		{
+		  char *line = xstrdup (cell.contents);
+		  write_xml_with_line_breaks (odt->content_wtr, line);
+		  free (line);
+		}
+	      else
+		xmlTextWriterWriteString (odt->content_wtr, _xml(cell.contents));
 
 	      xmlTextWriterEndElement (odt->content_wtr); /* text:p */
 	      xmlTextWriterEndElement (odt->content_wtr); /* table:table-cell */
