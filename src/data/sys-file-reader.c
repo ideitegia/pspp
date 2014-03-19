@@ -1070,7 +1070,7 @@ read_variable_record (struct sfm_reader *r, struct sfm_var_record *record)
 
   if (has_variable_label == 1)
     {
-      enum { MAX_LABEL_LEN = 255 };
+      enum { MAX_LABEL_LEN = 65536 };
       unsigned int len, read_len;
 
       if (!read_uint (r, &len))
