@@ -486,7 +486,7 @@ xrchart_datum (cairo_t *cr, const struct xrchart_geometry *geom,
   double x_pos = (x - geom->axis[SCALE_ABSCISSA].min) * geom->axis[SCALE_ABSCISSA].scale + geom->axis[SCALE_ABSCISSA].data_min;
   double y_pos = (y - geom->axis[SCALE_ORDINATE].min) * geom->axis[SCALE_ORDINATE].scale + geom->axis[SCALE_ORDINATE].data_min;
 
-  xrchart_draw_marker (cr, x_pos, y_pos, XRMARKER_SQUARE, 15);
+  xrchart_draw_marker (cr, x_pos, y_pos, XRMARKER_CIRCLE, 10);
 }
 
 void
