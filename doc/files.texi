@@ -239,7 +239,7 @@ GET DATA /TYPE=@{GNM, ODS@}
         /SHEET=@{NAME '@var{sheet_name}', INDEX @var{n}@}
         /CELLRANGE=@{RANGE '@var{range}', FULL@}
         /READNAMES=@{ON, OFF@}
-        /ASSUMEDVARWIDTH=@var{n}.
+        /ASSUMEDSTRWIDTH=@var{n}.
 @end display
 
 @cindex Gnumeric
@@ -261,7 +261,7 @@ The format of each variable is determined by the format of the spreadsheet
 cell containing the first datum for the variable.
 If this cell is of string (text) format, then the width of the variable is
 determined from the length of the string it contains, unless the 
-@subcmd{ASSUMEDVARWIDTH} subcommand is given.
+@subcmd{ASSUMEDSTRWIDTH} subcommand is given.
 
 The @subcmd{SHEET} subcommand specifies the sheet within the spreadsheet file to read.
 There are two forms of the @subcmd{SHEET} subcommand.
@@ -289,7 +289,7 @@ the data from subsequent rows.  This is the default.
 If @subcmd{/READNAMES=OFF} is
 used, then the variables  receive automatically assigned names.
 
-The @subcmd{ASSUMEDVARWIDTH} subcommand specifies the maximum width of string
+The @subcmd{ASSUMEDSTRWIDTH} subcommand specifies the maximum width of string
 variables read  from the file.
 If omitted, the default value is determined from the length of the 
 string in the first spreadsheet cell for each variable.
@@ -302,7 +302,7 @@ string in the first spreadsheet cell for each variable.
 GET DATA /TYPE=PSQL
          /CONNECT=@{@var{connection info}@}
          /SQL=@{@var{query}@}
-         [/ASSUMEDVARWIDTH=@var{w}]
+         [/ASSUMEDSTRWIDTH=@var{w}]
          [/UNENCRYPTED]
          [/BSIZE=@var{n}].
 @end display
@@ -329,7 +329,7 @@ The format of the string is given in the postgres manual
 The @subcmd{SQL} subcommand is mandatory.
 It must be a valid SQL string to retrieve data from the database.
 
-The @subcmd{ASSUMEDVARWIDTH} subcommand specifies the maximum width of string
+The @subcmd{ASSUMEDSTRWIDTH} subcommand specifies the maximum width of string
 variables read  from the database.
 If omitted, the default value is determined from the length of the 
 string in the first value read for each variable.
