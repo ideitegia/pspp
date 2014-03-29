@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.8.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-01-13 21:25-0800\n"
-"PO-Revision-Date: 2014-01-26 18:20+0200\n"
+"PO-Revision-Date: 2014-03-26 18:20+0200\n"
 "Last-Translator: Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -6305,15 +6305,15 @@ msgstr "kiekis"
 
 #: src/language/stats/crosstabs.q:1178
 msgid "row %"
-msgstr "% eilutė"
+msgstr "% eilutėje"
 
 #: src/language/stats/crosstabs.q:1179
 msgid "column %"
-msgstr "% stulpelis"
+msgstr "% stulpelyje"
 
 #: src/language/stats/crosstabs.q:1180
 msgid "total %"
-msgstr "iš viso %"
+msgstr "% iš visų"
 
 #: src/language/stats/crosstabs.q:1181
 msgid "expected"
@@ -8320,7 +8320,7 @@ msgstr "_Regresija"
 
 #: src/ui/gui/data-editor.ui:412
 msgid "_Linear..."
-msgstr "_Tiesienė regresija..."
+msgstr "_Tiesinė regresija..."
 
 #: src/ui/gui/data-editor.ui:419
 msgid "_Binary Logistic..."
