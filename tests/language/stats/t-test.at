@@ -329,9 +329,9 @@ Table: Independent Samples Test
 ,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
 ,,,,,,,,,95% Confidence Interval of the Difference,
 ,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
-dep1,Equal variances assumed,3.75,.15,-1.12,3.00,.35,-.75,.56,-2.53,1.03
+dep1,Equal variances assumed,3.75,.15,-1.12,3.00,.35,-.75,.67,-2.89,1.39
 ,Equal variances not assumed,,,-1.34,2.78,.28,-.75,.56,-2.61,1.11
-dep2,Equal variances assumed,.60,.50,2.85,3.00,.07,3.00,1.15,-.67,6.67
+dep2,Equal variances assumed,.60,.50,2.85,3.00,.07,3.00,1.05,-.35,6.35
 ,Equal variances not assumed,,,2.60,1.68,.14,3.00,1.15,-2.98,8.98
 ])
 AT_CHECK([pspp -o ref.csv ref.sps])
@@ -739,7 +739,7 @@ Table: Independent Samples Test
 ,,Levene's Test for Equality of Variances,,t-test for Equality of Means,,,,,,
 ,,,,,,,,,95% Confidence Interval of the Difference,
 ,,F,Sig.,t,df,Sig. (2-tailed),Mean Difference,Std. Error Difference,Lower,Upper
-x,Equal variances assumed,1.13,.33,-2.32,6.00,.06,-.90,.38,-1.83,.03
+x,Equal variances assumed,1.13,.33,-2.32,6.00,.06,-.90,.39,-1.85,.05
 ,Equal variances not assumed,,,-2.38,4.70,.07,-.90,.38,-1.89,.09
 ])
 AT_CLEANUP

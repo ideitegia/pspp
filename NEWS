@@ -6,6 +6,10 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
 Changes since 0.8.2:
 
+ * Independent T-Tests displayed the standard error of the difference
+   and the confidence interval for the unequal variances case, where
+   the equal variances case should have been.  This has been fixed.
+
  * REGRESSION now recognises /STATISTICS=CI(x) which causes confidence
    intervals for the coefficients to be printed.
 

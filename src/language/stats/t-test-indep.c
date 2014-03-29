@@ -334,7 +334,7 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
     tab_double (t, 6, v * 2 + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p),   NULL);
     tab_double (t, 7, v * 2 + heading_rows, TAB_RIGHT, mean_diff, NULL);
 
-    std_err_diff = sqrt ((sigma0 / cc0) + (sigma1 / cc1));
+    std_err_diff = sqrt (pooled_variance * (1.0/cc0 + 1.0/cc1));
     tab_double (t, 8, v * 2 + heading_rows, TAB_RIGHT, std_err_diff, NULL);
 
 
@@ -347,6 +347,7 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
 
     /* Equal variances not assumed */
     tab_text (t, 1, v * 2 + heading_rows + 1,  TAB_LEFT, _("Equal variances not assumed"));
+    std_err_diff = sqrt ((sigma0 / cc0) + (sigma1 / cc1));
 
     se2 = sigma0 / cc0 + sigma1 / cc1;
     tval = mean_diff / sqrt (se2);
