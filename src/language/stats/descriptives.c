@@ -76,6 +76,7 @@ struct dsc_trns
     size_t var_cnt;             /* Number of variables. */
     enum dsc_missing_type missing_type; /* Treatment of missing values. */
     enum mv_class exclude;      /* Classes of missing values to exclude. */
+    struct variable *filter;    /* Dictionary FILTER BY variable. */
     struct casereader *z_reader; /* Reader for count, mean, stddev. */
     casenumber count;            /* Number left in this SPLIT FILE group.*/
     bool ok;
@@ -442,8 +443,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
       dsc->vars[i].moments = moments_create (dsc->max_moment);
 
   /* Data pass. */
-  grouper = casegrouper_create_splits (proc_open_filtering (ds, z_cnt == 0),
-                                       dict);
+  grouper = casegrouper_create_splits (proc_open_filtering (ds, false), dict);
   while (casegrouper_get_next_group (grouper, &group))
     calc_descriptives (dsc, group, ds);
   ok = casegrouper_destroy (grouper);
@@ -613,6 +613,15 @@ dump_z_table (struct dsc_proc *dsc)
   tab_submit (t);
 }
 
+static void
+descriptives_set_all_sysmis_zscores (const struct dsc_trns *t, struct ccase *c)
+{
+  const struct dsc_z_score *z;
+
+  for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
+    case_data_rw (c, z->z_var)->f = SYSMIS;
+}
+
 /* Transformation function to calculate Z-scores. Will return SYSMIS if any of
    the following are true: 1) mean or standard deviation is SYSMIS 2) score is
    SYSMIS 3) score is user missing and they were not included in the original
@@ -626,7 +635,18 @@ descriptives_trns_proc (void *trns_, struct ccase **c,
   struct dsc_trns *t = trns_;
   struct dsc_z_score *z;
   const struct variable **vars;
-  int all_sysmis = 0;
+
+  *c = case_unshare (*c);
+
+  if (t->filter)
+    {
+      double f = case_num (*c, t->filter);
+      if (f == 0.0 || var_is_num_missing (t->filter, f, MV_ANY))
+        {
+          descriptives_set_all_sysmis_zscores (t, *c);
+          return TRNS_CONTINUE;
+        }
+    }
 
   if (t->count <= 0)
     {
@@ -652,8 +672,8 @@ descriptives_trns_proc (void *trns_, struct ccase **c,
               msg (SE, _("Internal error processing Z scores"));
               t->ok = false;
             }
-          for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
-            z->mean = z->std_dev = SYSMIS;
+          descriptives_set_all_sysmis_zscores (t, *c);
+          return TRNS_CONTINUE;
         }
     }
   t->count--;
@@ -666,19 +686,18 @@ descriptives_trns_proc (void *trns_, struct ccase **c,
 	  double score = case_num (*c, *vars);
 	  if (var_is_num_missing (*vars, score, t->exclude))
 	    {
-	      all_sysmis = 1;
-	      break;
+              descriptives_set_all_sysmis_zscores (t, *c);
+	      return TRNS_CONTINUE;
 	    }
 	}
     }
 
-  *c = case_unshare (*c);
   for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
     {
       double input = case_num (*c, z->src_var);
       double *output = &case_data_rw (*c, z->z_var)->f;
 
-      if (z->mean == SYSMIS || z->std_dev == SYSMIS || all_sysmis
+      if (z->mean == SYSMIS || z->std_dev == SYSMIS
           || var_is_num_missing (z->src_var, input, t->exclude))
 	*output = SYSMIS;
       else
@@ -731,6 +750,7 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
       t->var_cnt = 0;
       t->vars = NULL;
     }
+  t->filter = dict_get_filter (dataset_dict (ds));
   t->z_reader = casewriter_make_reader (dsc->z_writer);
   t->count = 0;
   t->ok = true;
@@ -771,6 +791,7 @@ static void
 calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
                    struct dataset *ds)
 {
+  struct variable *filter = dict_get_filter (dataset_dict (ds));
   struct casereader *pass1, *pass2;
   casenumber count;
   struct ccase *c;
@@ -810,6 +831,13 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
   for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
     {
       double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
+
+      if (filter)
+        {
+          double f = case_num (c, filter);
+          if (f == 0.0 || var_is_num_missing (filter, f, MV_ANY))
+            continue;
+        }
 
       /* Check for missing values. */
       if (listwise_missing (dsc, c))
@@ -855,6 +883,13 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
         {
           double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
 
+          if (filter)
+            {
+              double f = case_num (c, filter);
+              if (f == 0.0 || var_is_num_missing (filter, f, MV_ANY))
+                continue;
+            }
+
           /* Check for missing values. */
           if (dsc->missing_type == DSC_LISTWISE && listwise_missing (dsc, c))
             continue;
@@ -876,7 +911,7 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
     }
 
   /* Calculate results. */
-  if (dsc->z_writer)
+  if (dsc->z_writer && count > 0)
     {
       c = case_create (casewriter_get_proto (dsc->z_writer));
       z_idx = 0;
@@ -919,7 +954,7 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
       if (dsc->calc_stats & (1ul << DSC_SUM))
         dv->stats[DSC_SUM] = W * dv->stats[DSC_MEAN];
 
-      if (dv->z_name)
+      if (dv->z_name && c != NULL)
         {
           case_data_rw_idx (c, z_idx++)->f = dv->stats[DSC_MEAN];
           case_data_rw_idx (c, z_idx++)->f = dv->stats[DSC_STDDEV];
