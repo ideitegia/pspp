@@ -984,7 +984,7 @@ syntax_load (PsppireWindow *window, const gchar *filename,
       sw->encoding = g_strdup (encoding);
     }
 
-  text_utf8 = recode_substring_pool ("UTF-8", encoding,
+  text_utf8 = recode_substring_pool ("UTF-8", sw->encoding,
                                      ss_buffer (text_locale, len_locale),
                                      NULL).string;
   free (text_locale);
