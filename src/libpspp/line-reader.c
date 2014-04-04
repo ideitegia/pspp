@@ -125,7 +125,7 @@ line_reader_for_fd (const char *encoding, int fd)
       && !strcmp (r->encoding, "ASCII"))
     {
       r->state = S_AUTO;
-      r->auto_encoding = xstrdup (encoding);
+      r->auto_encoding = encoding ? xstrdup (encoding) : NULL;
     }
   else
     r->state = r->encoding_info.unit == 1 ? S_UNIBYTE : S_MULTIBYTE;
