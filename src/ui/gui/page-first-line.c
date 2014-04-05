@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -150,6 +150,7 @@ create_lines_tree_view (GtkContainer *parent, struct import_assistant *ia)
   pspp_sheet_view_column_set_cell_data_func (column, ia->asst.fixed_renderer,
                                            render_line, NULL, NULL);
   pspp_sheet_view_column_set_resizable (column, TRUE);
+  pspp_sheet_view_column_set_expand (column, TRUE);
 
   max_line_length = 0;
   for (i = 0; i < ia->file.line_cnt; i++)
