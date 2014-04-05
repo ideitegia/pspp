@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.8.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-01-13 21:25-0800\n"
-"PO-Revision-Date: 2014-03-26 18:20+0200\n"
+"PO-Revision-Date: 2014-04-05 09:37+0300\n"
 "Last-Translator: Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com>\n"
 "Language-Team: Lithuanian <komp_lt@konferencijos.lt>\n"
 "Language: lt\n"
@@ -809,7 +809,7 @@ msgstr "Kintamojo vardas „%s“ kartojasi."
 
 #: src/data/sys-file-reader.c:1165
 msgid "Missing string continuation record."
-msgstr ""
+msgstr "Trūksta eilutės pratęsimo įrašo."
 
 #: src/data/sys-file-reader.c:1207
 #, c-format
@@ -1170,17 +1170,17 @@ msgstr ""
 #: src/data/sys-file-reader.c:3147
 #, c-format
 msgid "ZLIB initialization failed (%s)."
-msgstr ""
+msgstr "Nepavyko paruošti ZLIB (%s). "
 
 #: src/data/sys-file-reader.c:3158
 #, c-format
 msgid "Inconsistency at end of ZLIB stream (%s)."
-msgstr ""
+msgstr "ZLIB srauto gale yra nenuoseklumų (%s)."
 
 #: src/data/sys-file-reader.c:3212
 #, c-format
 msgid "ZLIB stream inconsistency (%s)."
-msgstr ""
+msgstr "ZLIB srautas yra nenuoseklus (%s)"
 
 #: src/data/sys-file-reader.c:3229
 msgid "Unexpected end of ZLIB compressed data."
@@ -1263,11 +1263,11 @@ msgstr "Nieko"
 
 #: src/data/variable.c:925
 msgid "Partition"
-msgstr ""
+msgstr "Skirstymas"
 
 #: src/data/variable.c:928
 msgid "Split"
-msgstr "padalijimas"
+msgstr "Padalijimas"
 
 #: src/data/variable.c:1039
 msgid "Left"
@@ -1709,11 +1709,11 @@ msgstr ""
 
 #: src/language/xforms/select-if.c:100
 msgid "Syntax error expecting OFF or BY.  Turning off case filtering."
-msgstr ""
+msgstr "Sintaksės klaida. Tikėtasi OFF arba BY. Atvejų atranka išjungiama."
 
 #: src/language/xforms/select-if.c:115
 msgid "The filter variable must be numeric."
-msgstr "Filtro kintamasis privalo būti skaitmeninis."
+msgstr "Kintamasis filtravimui privalo būti skaitmeninis."
 
 #: src/language/xforms/select-if.c:121
 msgid "The filter variable may not be scratch."
@@ -2526,7 +2526,7 @@ msgstr "Chi kvadratas"
 #: src/language/stats/t-test-one-sample.c:95
 #: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1278
 msgid "df"
-msgstr "laisv.l."
+msgstr "laisv. l."
 
 #: src/language/stats/chisquare.c:268 src/language/stats/cochran.c:220
 #: src/language/stats/friedman.c:288 src/language/stats/kruskal-wallis.c:352
@@ -2579,7 +2579,7 @@ msgstr "Vidurkis"
 #: src/language/stats/t-test-paired.c:181
 #: src/language/stats/t-test-paired.c:309
 msgid "Std. Deviation"
-msgstr "Std. nuokrypis"
+msgstr "St. nuokrypis"
 
 #: src/language/stats/correlations.c:191 src/language/stats/factor.c:1677
 msgid "Correlations"
@@ -2622,7 +2622,7 @@ msgstr "Vidur. s.pakl."
 
 #: src/language/stats/descriptives.c:108 src/language/stats/frequencies.q:111
 msgid "Std Dev"
-msgstr "Std. nuokrypis"
+msgstr "St. nuokrypis"
 
 #: src/language/stats/descriptives.c:109 src/language/stats/examine.c:966
 #: src/language/stats/means.c:419
@@ -2740,7 +2740,7 @@ msgstr "Praleistų N"
 #: src/language/stats/descriptives.c:1014
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
-msgstr "Galiojančių atvejai = %g; atvejų su praleistomis reikšmėmis = %g."
+msgstr "Galiojančių atvejų = %g; atvejų su praleistomis reikšmėmis = %g."
 
 #: src/language/stats/examine.c:74
 msgid " (missing)"
@@ -5136,7 +5136,7 @@ msgstr "Vidurkis = %.1f"
 #: src/output/charts/plot-hist-cairo.c:59
 #, c-format
 msgid "Std. Dev = %.2f"
-msgstr "Std. nuokrypis = %.2f"
+msgstr "St. nuokrypis = %.2f"
 
 #: src/output/charts/plot-hist-cairo.c:117
 msgid "HISTOGRAM"
