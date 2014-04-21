@@ -3,8 +3,7 @@
 AM_CPPFLAGS += -I$(top_srcdir)/src/language/stats
 
 src_language_stats_built_sources = \
-	src/language/stats/crosstabs.c \
-	src/language/stats/frequencies.c
+	src/language/stats/crosstabs.c
 
 language_stats_sources = \
 	src/language/stats/aggregate.c \
@@ -23,6 +22,7 @@ language_stats_sources = \
 	src/language/stats/flip.c \
 	src/language/stats/freq.c \
 	src/language/stats/freq.h \
+	src/language/stats/frequencies.c \
 	src/language/stats/friedman.c \
 	src/language/stats/friedman.h \
 	src/language/stats/glm.c \
