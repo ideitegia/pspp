@@ -141,6 +141,36 @@ Reading free-form data from INLINE.
 ])
 AT_CLEANUP
 
+dnl Check that histogram subcommand runs wihout crashing
+AT_SETUP([FREQUENCIES histogram crash])
+AT_DATA([frequencies.sps],
+  [data list notable list /x * w *.
+begin data.
+1  4
+34 10
+-9 15
+232 6
+11  4
+134 1
+9  5
+32 16
+-2 6
+2  16
+20  6
+end data.
+
+weight by w.
+
+frequencies /x 
+	    /format=notable 
+	    /statistics=none
+	    /histogram=minimum(0) maximum(50) percent(5) normal.
+])
+# Cannot use the CSV driver for this because it does not output charts
+# at all.
+AT_CHECK([pspp -O format=pdf frequencies.sps], [0], [ignore])
+AT_CLEANUP
+
 # Tests for a bug which crashed PSPP when the median and a histogram
 # were both requested.
 AT_SETUP([FREQUENCIES median with histogram crash])
