@@ -10,6 +10,7 @@ A syntax string containing non-printables: X'41204374726C4C0C63686172'END
 An integer: 98765END
 A floating point number: 3.142END
 A floating point number with default precision: 1.234000END
+A floating point number with given precision: 1.23399999999999998579END
 A literal %
 and finally a "concatination" of 6 different 20.309000 examples 23.09 of 100% conversions.
 ])

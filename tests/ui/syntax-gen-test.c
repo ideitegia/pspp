@@ -32,6 +32,7 @@ main (void)
   test_runner ("An integer: %dEND", 98765);
   test_runner ("A floating point number: %gEND", 3.142);
   test_runner ("A floating point number with default precision: %fEND", 1.234);
+  test_runner ("A floating point number with given precision: %.20fEND", 1.234);
   test_runner ("A literal %%");
 
   test_runner ("and %ss a %sq of %d different %f examples %g of 100%% conversions.",

@@ -232,6 +232,8 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
 {
   for (;;)
     {
+      char qualifier[16];
+      int precision = -1;
       char directive;
       size_t copy = strcspn (format, "%");
       ds_put_substring (output, ss_buffer (format, copy));
@@ -242,6 +244,17 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
       assert (*format == '%');
       format++;
       directive = *format++;
+      if (directive == '.')
+        {
+          int x = 0;
+          while (directive = *format++, c_isdigit (directive))
+            {
+              assert (x < 16);
+              qualifier[x++] = directive;
+            }
+          qualifier[x++] = '\0';
+          precision = atoi (qualifier);
+        }
       switch (directive)
         {
         case 's':
@@ -271,12 +284,21 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
         case 'f':
 	case 'g':
           {
-	    char conv[3];
+	    char conv[32];
             double d = va_arg (args, double);
-	    conv[0]='%';
-	    conv[1]=directive;
-	    conv[2]='\0';
-	    ds_put_c_format (output, conv, d);
+            int x = 0;
+	    conv[x++] = '%';
+            conv[x] = '\0';
+            if (precision != -1)
+              {
+                strcat (conv, ".");
+                strcat (conv, qualifier);
+                x += strlen (qualifier) + 1;
+              }
+	    conv[x++] = directive;
+	    conv[x++] = '\0';
+            
+            ds_put_c_format (output, conv, d);
             break;
           }
 
