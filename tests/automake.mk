@@ -31,7 +31,9 @@ check_PROGRAMS += \
 	tests/libpspp/tower-test \
 	tests/libpspp/u8-istream-test \
 	tests/libpspp/zip-test \
-	tests/output/render-test
+	tests/output/render-test \
+	tests/ui/syntax-gen-test
+
 
 check-programs: $(check_PROGRAMS)
 
@@ -214,6 +216,15 @@ tests_output_render_test_LDADD = \
 	src/libpspp-core.la \
 	$(CAIRO_LIBS)
 
+
+check_PROGRAMS += tests/ui/syntax-gen-test
+tests_ui_syntax_gen_test_SOURCES = tests/ui/syntax-gen-test.c
+tests_ui_syntax_gen_test_LDADD = \
+	src/ui/libuicommon.la \
+	src/libpspp-core.la \
+	$(CAIRO_LIBS)
+
+
 EXTRA_DIST += \
 	tests/coverage.sh \
 	tests/data/bcd-in.expected.cmp.gz \
@@ -361,6 +372,7 @@ TESTSUITE_AT = \
 	tests/output/paper-size.at \
 	tests/output/render.at \
 	tests/ui/terminal/main.at \
+	tests/ui/syntax-gen.at \
 	tests/perl-module.at
 
 TESTSUITE = $(srcdir)/tests/testsuite
