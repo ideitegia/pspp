@@ -301,9 +301,7 @@ syntax_gen_pspp_valist (struct string *output, const char *format,
 
      %d: Same as printf's %d.
 
-     %fp: The double argument is formatted precisely as a PSPP
-          number, as if with a call to syntax_gen_number with a
-          null FORMAT argument.
+     %f %g: Same as printf.
 
      %%: Literal %.
 
