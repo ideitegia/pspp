@@ -764,10 +764,10 @@ display_vectors (const struct dictionary *dict, int sorted)
 
 /* Encoding analysis. */
 
-/* This list of encodings is taken from http://encoding.spec.whatwg.org/, as
-   retrieved February 2014.  Encodings not supported by glibc and encodings
-   relevant only to HTML have been removed. */
 static const char *encoding_names[] = {
+  /* These encodings are from http://encoding.spec.whatwg.org/, as retrieved
+     February 2014.  Encodings not supported by glibc and encodings relevant
+     only to HTML have been removed. */
   "utf-8",
   "windows-1252",
   "iso-8859-2",
@@ -800,6 +800,10 @@ static const char *encoding_names[] = {
   "iso-2022-jp",
   "shift_jis",
   "euc-kr",
+
+  /* Added by user request. */
+  "ibm850",
+  "din_66003",
 };
 #define N_ENCODING_NAMES (sizeof encoding_names / sizeof *encoding_names)
 
