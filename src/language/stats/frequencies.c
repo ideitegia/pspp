@@ -1195,9 +1195,16 @@ freq_tab_to_hist (const struct frq_proc *frq, const struct freq_tab *ft,
         }
     }
 
-  /* Freedman-Diaconis' choice of bin width. */
+
   iqr = calculate_iqr (frq);
-  bin_width = 2 * iqr / pow (valid_freq, 1.0 / 3.0);
+
+  if (iqr > 0)
+    /* Freedman-Diaconis' choice of bin width. */
+    bin_width = 2 * iqr / pow (valid_freq, 1.0 / 3.0);
+
+  else
+    /* Sturges Rule */
+    bin_width = (x_max - x_min) / (1 + log2 (valid_freq));
 
   histogram = histogram_create (bin_width, x_min, x_max);
 
@@ -1355,7 +1362,8 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
     }
   calc_stats (vf, stat_value);
 
-  t = tab_create (3, ((frq->stats & FRQ_ST_MEDIAN) ? frq->n_stats - 1 : frq->n_stats) + frq->n_show_percentiles + 2);
+  t = tab_create (3, ((frq->stats & FRQ_ST_MEDIAN) ? frq->n_stats - 1 : frq->n_stats)
+		  + frq->n_show_percentiles + 2);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 

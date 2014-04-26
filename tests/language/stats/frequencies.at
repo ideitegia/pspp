@@ -516,6 +516,7 @@ FREQUENCIES
 	VAR=x
 	/PERCENTILES = 0 25 50 75 100.
 ])
+
 AT_CHECK([pspp -O format=csv frequencies.sps], [0],
   [Table: X
 Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
@@ -539,4 +540,37 @@ Percentiles,0,1.00
 ,75,4.75
 ,100,5.00
 ])
+AT_CLEANUP
+
+AT_SETUP([FREQUENCIES dichotomous histogram])
+AT_DATA([frequencies.sps], [dnl
+data list notable list /d4 *.
+begin data.
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+1 
+0 
+0 
+0 
+0 
+0 
+1 
+2 
+0 
+end data.
+
+FREQUENCIES
+	/VARIABLES = d4
+	/FORMAT=AVALUE TABLE
+	/HISTOGRAM=NORMAL
+	.
+])
+
+AT_CHECK([pspp frequencies.sps], [0],  [ignore])
 AT_CLEANUP
