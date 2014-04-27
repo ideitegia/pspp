@@ -1528,10 +1528,15 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 		      TAB_RIGHT, df,
 		      NULL);
 
-	  /* The Significance */
-	  tab_double (t, 7, (v * lines_per_variable) + i + 1 + n_contrasts,
-		      TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T,df),
-		      NULL);
+	  {
+	    double p = gsl_cdf_tdist_P (T, df);
+	    double q = gsl_cdf_tdist_Q (T, df);
+
+	    /* The Significance */
+	    tab_double (t, 7, (v * lines_per_variable) + i + 1 + n_contrasts,
+			TAB_RIGHT,  2 * ((T > 0) ? q : p),
+			NULL);
+	  }
 	}
 
       if ( v > 0 )
