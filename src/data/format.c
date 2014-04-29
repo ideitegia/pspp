@@ -1158,3 +1158,6 @@ get_fmt_desc (enum fmt_type type)
 }
 
 const struct fmt_spec F_8_0 = {FMT_F, 8, 0};
+const struct fmt_spec F_8_2 = {FMT_F, 8, 2};
+const struct fmt_spec F_4_3 = {FMT_F, 4, 3};
+const struct fmt_spec F_5_1 = {FMT_F, 5, 1};

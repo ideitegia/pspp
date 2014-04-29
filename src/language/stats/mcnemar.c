@@ -174,6 +174,8 @@ output_freq_table (variable_pair *vp,
   struct string val1str ;
   struct string val0str ;
 
+  tab_set_format (table, RC_WEIGHT, wfmt);
+
   ds_init_empty (&val0str);
   ds_init_empty (&val1str);
   
@@ -213,10 +215,10 @@ output_freq_table (variable_pair *vp,
   tab_text (table, header_cols + 0, 1, TAB_LEFT, ds_cstr (&val0str));
   tab_text (table, header_cols + 1, 1, TAB_LEFT, ds_cstr (&val1str));
 
-  tab_double (table, header_cols + 0, header_rows + 0, TAB_RIGHT, param->n00, wfmt);
-  tab_double (table, header_cols + 0, header_rows + 1, TAB_RIGHT, param->n01, wfmt);
-  tab_double (table, header_cols + 1, header_rows + 0, TAB_RIGHT, param->n10, wfmt);
-  tab_double (table, header_cols + 1, header_rows + 1, TAB_RIGHT, param->n11, wfmt);
+  tab_double (table, header_cols + 0, header_rows + 0, TAB_RIGHT, param->n00, NULL, RC_WEIGHT);
+  tab_double (table, header_cols + 0, header_rows + 1, TAB_RIGHT, param->n01, NULL, RC_WEIGHT);
+  tab_double (table, header_cols + 1, header_rows + 0, TAB_RIGHT, param->n10, NULL, RC_WEIGHT);
+  tab_double (table, header_cols + 1, header_rows + 1, TAB_RIGHT, param->n11, NULL, RC_WEIGHT);
 
   tab_submit (table);
 
@@ -238,6 +240,7 @@ output_statistics_table (const struct two_sample_test *t2s,
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
 
   tab_title (table, _("Test Statistics"));
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, 0, 1,  0, 1);
 
@@ -280,15 +283,15 @@ output_statistics_table (const struct two_sample_test *t2s,
       tab_text (table,  0, 1 + i, TAB_LEFT, ds_cstr (&pair_name));
       ds_destroy (&pair_name);
 
-      tab_double (table, 1, 1 + i, TAB_RIGHT, mc[i].n00 + mc[i].n01 + mc[i].n10 + mc[i].n11, wfmt);
+      tab_double (table, 1, 1 + i, TAB_RIGHT, mc[i].n00 + mc[i].n01 + mc[i].n10 + mc[i].n11, NULL, RC_WEIGHT);
 
       sig = gsl_cdf_binomial_P (mc[i].n01,  0.5,  mc[i].n01 + mc[i].n10);
 
-      tab_double (table, 2, 1 + i, TAB_RIGHT, 2 * sig, NULL);
-      tab_double (table, 3, 1 + i, TAB_RIGHT, sig, NULL);
+      tab_double (table, 2, 1 + i, TAB_RIGHT, 2 * sig, NULL, RC_PVALUE);
+      tab_double (table, 3, 1 + i, TAB_RIGHT, sig, NULL, RC_PVALUE);
 
       tab_double (table, 4, 1 + i, TAB_RIGHT, gsl_ran_binomial_pdf (mc[i].n01, 0.5, mc[i].n01 + mc[i].n10),
-		  NULL);
+		  NULL, RC_OTHER);
     }
 
   tab_submit (table);

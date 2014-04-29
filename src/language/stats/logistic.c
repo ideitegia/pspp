@@ -1168,8 +1168,8 @@ output_depvarmap (const struct lr_spec *cmd, const struct lr_result *res)
   tab_text (t,  0, 1 + heading_rows,  0, ds_cstr (&str));
 
 
-  tab_double (t, 1, 0 + heading_rows, 0, map_dependent_var (cmd, res, &res->y0), &F_8_0);
-  tab_double (t, 1, 1 + heading_rows, 0, map_dependent_var (cmd, res, &res->y1), &F_8_0);
+  tab_double (t, 1, 0 + heading_rows, 0, map_dependent_var (cmd, res, &res->y0), NULL, RC_INTEGER);
+  tab_double (t, 1, 1 + heading_rows, 0, map_dependent_var (cmd, res, &res->y1), NULL, RC_INTEGER);
   ds_destroy (&str);
 
   tab_submit (t);
@@ -1279,9 +1279,9 @@ output_variables (const struct lr_spec *cmd,
 	      gsl_blas_dgemv (CblasTrans, 1.0, subhessian, &vv.vector, 0, temp);
 	      gsl_blas_ddot (temp, &vv.vector, &wald);
 
-	      tab_double (t, 4, row, 0, wald, 0);
-	      tab_double (t, 5, row, 0, df, &F_8_0);
-	      tab_double (t, 6, row, 0, gsl_cdf_chisq_Q (wald, df), 0);
+	      tab_double (t, 4, row, 0, wald, NULL, RC_OTHER);
+	      tab_double (t, 5, row, 0, df, NULL, RC_INTEGER);
+	      tab_double (t, 6, row, 0, gsl_cdf_chisq_Q (wald, df), NULL, RC_PVALUE);
 
 	      idx_correction ++;
 	      summary = true;
@@ -1310,12 +1310,12 @@ output_variables (const struct lr_spec *cmd,
 	  tab_text (t, 1, row, TAB_LEFT | TAT_TITLE, _("Constant"));
 	}
 
-      tab_double (t, 2, row, 0, b, 0);
-      tab_double (t, 3, row, 0, sqrt (sigma2), 0);
-      tab_double (t, 4, row, 0, wald, 0);
-      tab_double (t, 5, row, 0, df, &F_8_0);
-      tab_double (t, 6, row, 0, gsl_cdf_chisq_Q (wald, df), 0);
-      tab_double (t, 7, row, 0, exp (b), 0);
+      tab_double (t, 2, row, 0, b, NULL, RC_OTHER);
+      tab_double (t, 3, row, 0, sqrt (sigma2), NULL, RC_OTHER);
+      tab_double (t, 4, row, 0, wald, NULL, RC_OTHER);
+      tab_double (t, 5, row, 0, df, NULL, RC_INTEGER);
+      tab_double (t, 6, row, 0, gsl_cdf_chisq_Q (wald, df), NULL, RC_PVALUE);
+      tab_double (t, 7, row, 0, exp (b), NULL, RC_OTHER);
 
       if (cmd->print & PRINT_CI)
 	{
@@ -1328,8 +1328,8 @@ output_variables (const struct lr_spec *cmd,
 
 	  if (row < last_ci)
 	    {
-	      tab_double (t, 8, row, 0, exp (b - wc), 0);
-	      tab_double (t, 9, row, 0, exp (b + wc), 0);
+	      tab_double (t, 8, row, 0, exp (b - wc), NULL, RC_OTHER);
+	      tab_double (t, 9, row, 0, exp (b + wc), NULL, RC_OTHER);
 	    }
 	}
     }
@@ -1363,15 +1363,15 @@ output_model_summary (const struct lr_result *res,
 
   tab_text (t,  0, 0, TAB_LEFT | TAT_TITLE, _("Step 1"));
   tab_text (t,  1, 0, TAB_CENTER | TAT_TITLE, _("-2 Log likelihood"));
-  tab_double (t,  1, 1, 0, -2 * log_likelihood, 0);
+  tab_double (t,  1, 1, 0, -2 * log_likelihood, NULL, RC_OTHER);
 
 
   tab_text (t,  2, 0, TAB_CENTER | TAT_TITLE, _("Cox & Snell R Square"));
   cox =  1.0 - exp((initial_log_likelihood - log_likelihood) * (2 / res->cc));
-  tab_double (t,  2, 1, 0, cox, 0);
+  tab_double (t,  2, 1, 0, cox, NULL, RC_OTHER);
 
   tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("Nagelkerke R Square"));
-  tab_double (t,  3, 1, 0, cox / ( 1.0 - exp(initial_log_likelihood * (2 / res->cc))), 0);
+  tab_double (t,  3, 1, 0, cox / ( 1.0 - exp(initial_log_likelihood * (2 / res->cc))), NULL, RC_OTHER);
 
 
   tab_submit (t);
@@ -1408,15 +1408,15 @@ case_processing_summary (const struct lr_result *res)
   tab_text (t,  0, 2, TAB_LEFT | TAT_TITLE, _("Missing Cases"));
   tab_text (t,  0, 3, TAB_LEFT | TAT_TITLE, _("Total"));
 
-  tab_double (t,  1, 1, 0, res->n_nonmissing, &F_8_0);
-  tab_double (t,  1, 2, 0, res->n_missing, &F_8_0);
+  tab_double (t,  1, 1, 0, res->n_nonmissing, NULL, RC_INTEGER);
+  tab_double (t,  1, 2, 0, res->n_missing, NULL, RC_INTEGER);
 
   total = res->n_nonmissing + res->n_missing;
-  tab_double (t,  1, 3, 0, total , &F_8_0);
+  tab_double (t,  1, 3, 0, total , NULL, RC_INTEGER);
 
-  tab_double (t,  2, 1, 0, 100 * res->n_nonmissing / (double) total, 0);
-  tab_double (t,  2, 2, 0, 100 * res->n_missing / (double) total, 0);
-  tab_double (t,  2, 3, 0, 100 * total / (double) total, 0);
+  tab_double (t,  2, 1, 0, 100 * res->n_nonmissing / (double) total, NULL, RC_OTHER);
+  tab_double (t,  2, 2, 0, 100 * res->n_missing / (double) total, NULL, RC_OTHER);
+  tab_double (t,  2, 3, 0, 100 * total / (double) total, NULL, RC_OTHER);
 
   tab_submit (t);
 }
@@ -1454,6 +1454,8 @@ output_categories (const struct lr_spec *cmd, const struct lr_result *res)
   nr = heading_rows + total_cats;
 
   t = tab_create (nc, nr);
+  tab_set_format (t, RC_WEIGHT, wfmt);
+
   tab_title (t, _("Categorical Variables' Codings"));
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -1511,11 +1513,11 @@ output_categories (const struct lr_spec *cmd, const struct lr_result *res)
 	  
 	  tab_text   (t, 1, heading_rows + r, 0, ds_cstr (&str));
 	  ds_destroy (&str);
-       	  tab_double (t, 2, heading_rows + r, 0, *freq, wfmt);
+       	  tab_double (t, 2, heading_rows + r, 0, *freq, NULL, RC_WEIGHT);
 
 	  for (x = 0; x < df; ++x)
 	    {
-	      tab_double (t, heading_columns + 1 + x, heading_rows + r, 0, (cat == x), &F_8_0);
+	      tab_double (t, heading_columns + 1 + x, heading_rows + r, 0, (cat == x), NULL, RC_INTEGER);
 	    }
 	  ++r;
 	}
@@ -1542,6 +1544,7 @@ output_classification_table (const struct lr_spec *cmd, const struct lr_result *
   const int nr = heading_rows + 3;
 
   struct tab_table *t = tab_create (nc, nr);
+  tab_set_format (t, RC_WEIGHT, wfmt);
 
   ds_init_empty (&sv0);
   ds_init_empty (&sv1);
@@ -1593,17 +1596,17 @@ output_classification_table (const struct lr_spec *cmd, const struct lr_result *
   ds_destroy (&sv0);
   ds_destroy (&sv1);
 
-  tab_double (t, heading_columns, 3,     0, res->tn, wfmt);
-  tab_double (t, heading_columns + 1, 4, 0, res->tp, wfmt);
+  tab_double (t, heading_columns, 3,     0, res->tn, NULL, RC_WEIGHT);
+  tab_double (t, heading_columns + 1, 4, 0, res->tp, NULL, RC_WEIGHT);
 
-  tab_double (t, heading_columns + 1, 3, 0, res->fp, wfmt);
-  tab_double (t, heading_columns,     4, 0, res->fn, wfmt);
+  tab_double (t, heading_columns + 1, 3, 0, res->fp, NULL, RC_WEIGHT);
+  tab_double (t, heading_columns,     4, 0, res->fn, NULL, RC_WEIGHT);
 
-  tab_double (t, heading_columns + 2, 3, 0, 100 * res->tn / (res->tn + res->fp), 0);
-  tab_double (t, heading_columns + 2, 4, 0, 100 * res->tp / (res->tp + res->fn), 0);
+  tab_double (t, heading_columns + 2, 3, 0, 100 * res->tn / (res->tn + res->fp), NULL, RC_OTHER);
+  tab_double (t, heading_columns + 2, 4, 0, 100 * res->tp / (res->tp + res->fn), NULL, RC_OTHER);
 
   tab_double (t, heading_columns + 2, 5, 0, 
-	      100 * (res->tp + res->tn) / (res->tp  + res->tn + res->fp + res->fn), 0);
+	      100 * (res->tp + res->tn) / (res->tp  + res->tn + res->fp + res->fn), NULL, RC_OTHER);
 
 
   tab_submit (t);

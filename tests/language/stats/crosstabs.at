@@ -175,9 +175,9 @@ Total,2.00,2.00,4.00
 
 Table: Chi-square tests.
 Statistic,Value,df,Asymp. Sig. (2-tailed)
-Pearson Chi-Square,2.00,2,.37
-Likelihood Ratio,2.77,2,.25
-Linear-by-Linear Association,.27,1,.60
+Pearson Chi-Square,2.00,2,.368
+Likelihood Ratio,2.77,2,.250
+Linear-by-Linear Association,.27,1,.602
 N of Valid Cases,4,,
 ]])
 AT_CLEANUP
@@ -207,6 +207,7 @@ CROSSTABS
     /STATISTICS=CHISQ
     /CELLS=COUNT ROW COLUMN TOTAL.
 ])
+
 AT_CHECK([pspp -O format=csv crosstabs.sps], [0],
   [[Variable,Value,Label
 v0,a ,
@@ -235,10 +236,10 @@ Total,4.00,2.00,6.00
 
 Table: Chi-square tests.
 Statistic,Value,df,Asymp. Sig. (2-tailed),Exact Sig. (2-tailed),Exact Sig. (1-tailed)
-Pearson Chi-Square,.38,1,.54,,
-Likelihood Ratio,.37,1,.54,,
-Fisher's Exact Test,,,,1.00,.60
-Continuity Correction,.00,1,1.00,,
+Pearson Chi-Square,.38,1,.540,,
+Likelihood Ratio,.37,1,.545,,
+Fisher's Exact Test,,,,1.000,.600
+Continuity Correction,.00,1,1.000,,
 N of Valid Cases,6,,,,
 
 Variable,Value,Label
@@ -268,10 +269,10 @@ Total,1.00,3.00,4.00
 
 Table: Chi-square tests.
 Statistic,Value,df,Asymp. Sig. (2-tailed),Exact Sig. (2-tailed),Exact Sig. (1-tailed)
-Pearson Chi-Square,.44,1,.50,,
-Likelihood Ratio,.68,1,.41,,
-Fisher's Exact Test,,,,1.00,.75
-Continuity Correction,.00,1,1.00,,
+Pearson Chi-Square,.44,1,.505,,
+Likelihood Ratio,.68,1,.410,,
+Fisher's Exact Test,,,,1.000,.750
+Continuity Correction,.00,1,1.000,,
 N of Valid Cases,4,,,,
 ]])
 AT_CLEANUP
@@ -343,13 +344,13 @@ Total,,3.00,1.00,4.00
 
 Table: Chi-square tests.
 z,Statistic,Value,df,Asymp. Sig. (2-tailed)
-1,Pearson Chi-Square,5.00,4,.29
-,Likelihood Ratio,5.00,4,.29
-,Linear-by-Linear Association,.01,1,.94
+1,Pearson Chi-Square,5.00,4,.287
+,Likelihood Ratio,5.00,4,.287
+,Linear-by-Linear Association,.01,1,.938
 ,N of Valid Cases,5,,
-2,Pearson Chi-Square,4.00,3,.26
-,Likelihood Ratio,4.50,3,.21
-,Linear-by-Linear Association,1.58,1,.21
+2,Pearson Chi-Square,4.00,3,.261
+,Likelihood Ratio,4.50,3,.212
+,Linear-by-Linear Association,1.58,1,.209
 ,N of Valid Cases,4,,
 
 Table: Symmetric measures.

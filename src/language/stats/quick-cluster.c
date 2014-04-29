@@ -432,14 +432,14 @@ quick_cluster_show_centers (struct Kmeans *kmeans, bool initial, const struct qc
 	      tab_double (t, i + 1, j + 4, TAB_CENTER,
 			  gsl_matrix_get (kmeans->centers,
 					  kmeans->group_order->data[i], j),
-			  var_get_print_format (qc->vars[j]));
+			  var_get_print_format (qc->vars[j]), RC_OTHER);
 	    }
 	  else
 	    {
 	      tab_double (t, i + 1, j + 4, TAB_CENTER,
 			  gsl_matrix_get (kmeans->initial_centers,
 					  kmeans->group_order->data[i], j),
-			  var_get_print_format (qc->vars[j]));
+			  var_get_print_format (qc->vars[j]), RC_OTHER);
 	    }
 	}
     }

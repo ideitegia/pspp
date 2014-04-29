@@ -221,6 +221,7 @@ show_ranks_box (const struct wilcoxon_state *ws,
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
 
   struct tab_table *table = tab_create (5, 1 + 4 * t2s->n_pairs);
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_title (table, _("Ranks"));
 
@@ -262,24 +263,24 @@ show_ranks_box (const struct wilcoxon_state *ws,
 
 
       /* N */
-      tab_double (table, 2, 1 + i * 4, TAB_RIGHT, ws[i].negatives.n, wfmt);
-      tab_double (table, 2, 2 + i * 4, TAB_RIGHT, ws[i].positives.n, wfmt);
-      tab_double (table, 2, 3 + i * 4, TAB_RIGHT, ws[i].n_zeros, wfmt);
+      tab_double (table, 2, 1 + i * 4, TAB_RIGHT, ws[i].negatives.n, NULL, RC_WEIGHT);
+      tab_double (table, 2, 2 + i * 4, TAB_RIGHT, ws[i].positives.n, NULL, RC_WEIGHT);
+      tab_double (table, 2, 3 + i * 4, TAB_RIGHT, ws[i].n_zeros, NULL, RC_WEIGHT);
 
       tab_double (table, 2, 4 + i * 4, TAB_RIGHT,
-		 ws[i].n_zeros + ws[i].positives.n + ws[i].negatives.n, wfmt);
+		  ws[i].n_zeros + ws[i].positives.n + ws[i].negatives.n, NULL, RC_WEIGHT);
 
       /* Sums */
-      tab_double (table, 4, 1 + i * 4, TAB_RIGHT, ws[i].negatives.sum, NULL);
-      tab_double (table, 4, 2 + i * 4, TAB_RIGHT, ws[i].positives.sum, NULL);
+      tab_double (table, 4, 1 + i * 4, TAB_RIGHT, ws[i].negatives.sum, NULL, RC_OTHER);
+      tab_double (table, 4, 2 + i * 4, TAB_RIGHT, ws[i].positives.sum, NULL, RC_OTHER);
 
 
       /* Means */
       tab_double (table, 3, 1 + i * 4, TAB_RIGHT,
-		 ws[i].negatives.sum / (double) ws[i].negatives.n, NULL);
+		  ws[i].negatives.sum / (double) ws[i].negatives.n, NULL, RC_OTHER);
 
       tab_double (table, 3, 2 + i * 4, TAB_RIGHT,
-		 ws[i].positives.sum / (double) ws[i].positives.n, NULL);
+		  ws[i].positives.sum / (double) ws[i].positives.n, NULL, RC_OTHER);
 
     }
 
@@ -347,11 +348,11 @@ show_tests_box (const struct wilcoxon_state *ws,
 
       z /= sqrt (n * (n + 1) * (2*n + 1)/24.0 - ws[i].tiebreaker / 48.0);
 
-      tab_double (table, 1 + i, 1, TAB_RIGHT, z, NULL);
+      tab_double (table, 1 + i, 1, TAB_RIGHT, z, NULL, RC_OTHER);
 
       tab_double (table, 1 + i, 2, TAB_RIGHT,
 		 2.0 * gsl_cdf_ugaussian_P (z),
-		 NULL);
+		  NULL, RC_PVALUE);
 
       if (exact)
 	{
@@ -362,8 +363,8 @@ show_tests_box (const struct wilcoxon_state *ws,
 	    }
 	  else
 	    {
-	      tab_double (table, 1 + i, 3, TAB_RIGHT, p, NULL);
-	      tab_double (table, 1 + i, 4, TAB_RIGHT, p / 2.0, NULL);
+	      tab_double (table, 1 + i, 3, TAB_RIGHT, p, NULL, RC_PVALUE);
+	      tab_double (table, 1 + i, 4, TAB_RIGHT, p / 2.0, NULL, RC_PVALUE);
 	    }
 	}
     }

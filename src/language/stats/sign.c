@@ -59,6 +59,7 @@ output_frequency_table (const struct two_sample_test *t2s,
   const struct variable *wv = dict_get_weight (dict);
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
 
+  tab_set_format (table, RC_WEIGHT, wfmt);
   tab_title (table, _("Frequencies"));
 
   tab_headers (table, 2, 0, 1, 0);
@@ -94,11 +95,11 @@ output_frequency_table (const struct two_sample_test *t2s,
       tab_text (table,  1, 3 + i * 4,  TAB_LEFT, _("Ties"));
       tab_text (table,  1, 4 + i * 4,  TAB_LEFT, _("Total"));
 
-      tab_double (table, 2, 1 + i * 4, TAB_RIGHT, param[i].neg, wfmt);
-      tab_double (table, 2, 2 + i * 4, TAB_RIGHT, param[i].pos, wfmt);
-      tab_double (table, 2, 3 + i * 4, TAB_RIGHT, param[i].ties, wfmt);
+      tab_double (table, 2, 1 + i * 4, TAB_RIGHT, param[i].neg, NULL, RC_WEIGHT);
+      tab_double (table, 2, 2 + i * 4, TAB_RIGHT, param[i].pos, NULL, RC_WEIGHT);
+      tab_double (table, 2, 3 + i * 4, TAB_RIGHT, param[i].ties, NULL, RC_WEIGHT);
       tab_double (table, 2, 4 + i * 4, TAB_RIGHT,
-		 param[i].ties + param[i].neg + param[i].pos, wfmt);
+		  param[i].ties + param[i].neg + param[i].pos, NULL, RC_WEIGHT);
     }
 
   tab_submit (table);
@@ -151,10 +152,10 @@ output_statistics_table (const struct two_sample_test *t2s,
       ds_destroy (&pair_name);
 
       tab_double (table, 1 + i, 1, TAB_RIGHT,
-		  param[i].one_tailed_sig * 2, NULL);
+		  param[i].one_tailed_sig * 2, NULL, RC_PVALUE);
 
-      tab_double (table, 1 + i, 2, TAB_RIGHT, param[i].one_tailed_sig, NULL);
-      tab_double (table, 1 + i, 3, TAB_RIGHT, param[i].point_prob, NULL);
+      tab_double (table, 1 + i, 2, TAB_RIGHT, param[i].one_tailed_sig, NULL, RC_PVALUE);
+      tab_double (table, 1 + i, 3, TAB_RIGHT, param[i].point_prob, NULL, RC_PVALUE);
     }
 
   tab_submit (table);

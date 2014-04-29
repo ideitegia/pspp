@@ -197,7 +197,7 @@ indep_summary (const struct tt *tt, struct indep_samples *is, const struct pair_
   struct string vallab0 ;
   struct string vallab1 ;
   struct tab_table *t = tab_create (cols, rows);
-
+  tab_set_format (t, RC_WEIGHT, wfmt);
   ds_init_empty (&vallab0);
   ds_init_empty (&vallab1);
 
@@ -248,10 +248,10 @@ indep_summary (const struct tt *tt, struct indep_samples *is, const struct pair_
 	  double cc, mean, sigma;
 	  moments_calculate (ps[v].mom[i], &cc, &mean, &sigma, NULL, NULL);
       
-	  tab_double (t, 2, v * 2 + i + heading_rows, TAB_RIGHT, cc, wfmt);
-	  tab_double (t, 3, v * 2 + i + heading_rows, TAB_RIGHT, mean, NULL);
-	  tab_double (t, 4, v * 2 + i + heading_rows, TAB_RIGHT, sqrt (sigma), NULL);
-	  tab_double (t, 5, v * 2 + i + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL);
+	  tab_double (t, 2, v * 2 + i + heading_rows, TAB_RIGHT, cc, NULL, RC_WEIGHT);
+	  tab_double (t, 3, v * 2 + i + heading_rows, TAB_RIGHT, mean, NULL, RC_OTHER);
+	  tab_double (t, 4, v * 2 + i + heading_rows, TAB_RIGHT, sqrt (sigma), NULL, RC_OTHER);
+	  tab_double (t, 5, v * 2 + i + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL, RC_OTHER);
 	}
     }
 
@@ -317,33 +317,33 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
     tab_text (t, 1, v * 2 + heading_rows, TAB_LEFT, _("Equal variances assumed"));
 
     df = cc0 + cc1 - 2.0;
-    tab_double (t, 5, v * 2 + heading_rows, TAB_RIGHT, df, NULL);
+    tab_double (t, 5, v * 2 + heading_rows, TAB_RIGHT, df, NULL, RC_OTHER);
     
     pooled_variance = ((cc0 - 1)* sigma0 + (cc1 - 1) * sigma1) / df ;
 
     tval = (mean0 - mean1) / sqrt (pooled_variance);
     tval /= sqrt ((cc0 + cc1) / (cc0 * cc1));
 
-    tab_double (t, 4, v * 2 + heading_rows, TAB_RIGHT, tval, NULL);
+    tab_double (t, 4, v * 2 + heading_rows, TAB_RIGHT, tval, NULL, RC_OTHER);
 
     p = gsl_cdf_tdist_P (tval, df);
     q = gsl_cdf_tdist_Q (tval, df);
 
     mean_diff = mean0 - mean1;
 
-    tab_double (t, 6, v * 2 + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p),   NULL);
-    tab_double (t, 7, v * 2 + heading_rows, TAB_RIGHT, mean_diff, NULL);
+    tab_double (t, 6, v * 2 + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p),   NULL, RC_PVALUE);
+    tab_double (t, 7, v * 2 + heading_rows, TAB_RIGHT, mean_diff, NULL, RC_OTHER);
 
     std_err_diff = sqrt (pooled_variance * (1.0/cc0 + 1.0/cc1));
-    tab_double (t, 8, v * 2 + heading_rows, TAB_RIGHT, std_err_diff, NULL);
+    tab_double (t, 8, v * 2 + heading_rows, TAB_RIGHT, std_err_diff, NULL, RC_OTHER);
 
 
     /* Now work out the confidence interval */
     q = (1 - tt->confidence)/2.0;  /* 2-tailed test */
 
     tval = gsl_cdf_tdist_Qinv (q, df);
-    tab_double (t,  9, v * 2 + heading_rows, TAB_RIGHT, mean_diff - tval * std_err_diff, NULL);
-    tab_double (t, 10, v * 2 + heading_rows, TAB_RIGHT, mean_diff + tval * std_err_diff, NULL);
+    tab_double (t,  9, v * 2 + heading_rows, TAB_RIGHT, mean_diff - tval * std_err_diff, NULL, RC_OTHER);
+    tab_double (t, 10, v * 2 + heading_rows, TAB_RIGHT, mean_diff + tval * std_err_diff, NULL, RC_OTHER);
 
     /* Equal variances not assumed */
     tab_text (t, 1, v * 2 + heading_rows + 1,  TAB_LEFT, _("Equal variances not assumed"));
@@ -351,7 +351,7 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
 
     se2 = sigma0 / cc0 + sigma1 / cc1;
     tval = mean_diff / sqrt (se2);
-    tab_double (t, 4, v * 2 + heading_rows + 1, TAB_RIGHT, tval, NULL);
+    tab_double (t, 4, v * 2 + heading_rows + 1, TAB_RIGHT, tval, NULL, RC_OTHER);
 
     {
       double p, q;
@@ -360,12 +360,12 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
       double df = pow2 (s0 + s1) ;
       df /= pow2 (s0) / (cc0 - 1) + pow2 (s1) / (cc1 - 1);
 
-      tab_double (t, 5, v * 2 + heading_rows + 1, TAB_RIGHT, df, NULL);
+      tab_double (t, 5, v * 2 + heading_rows + 1, TAB_RIGHT, df, NULL, RC_OTHER);
 
       p = gsl_cdf_tdist_P (tval, df);
       q = gsl_cdf_tdist_Q (tval, df);
 
-      tab_double (t, 6, v * 2 + heading_rows + 1, TAB_RIGHT, 2.0 * (tval > 0 ? q : p), NULL);
+      tab_double (t, 6, v * 2 + heading_rows + 1, TAB_RIGHT, 2.0 * (tval > 0 ? q : p), NULL, RC_PVALUE);
 
       /* Now work out the confidence interval */
       q = (1 - tt->confidence) / 2.0;  /* 2-tailed test */
@@ -373,12 +373,12 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
       tval = gsl_cdf_tdist_Qinv (q, df);
     }
 
-    tab_double (t, 7, v * 2 + heading_rows + 1, TAB_RIGHT, mean_diff, NULL);
-    tab_double (t, 8, v * 2 + heading_rows + 1, TAB_RIGHT, std_err_diff, NULL);
-    tab_double (t, 9, v * 2 + heading_rows + 1, TAB_RIGHT,  mean_diff - tval * std_err_diff, NULL);
-    tab_double (t, 10, v * 2 + heading_rows + 1, TAB_RIGHT, mean_diff + tval * std_err_diff, NULL);
+    tab_double (t, 7, v * 2 + heading_rows + 1, TAB_RIGHT, mean_diff, NULL, RC_OTHER);
+    tab_double (t, 8, v * 2 + heading_rows + 1, TAB_RIGHT, std_err_diff, NULL, RC_OTHER);
+    tab_double (t, 9, v * 2 + heading_rows + 1, TAB_RIGHT,  mean_diff - tval * std_err_diff, NULL, RC_OTHER);
+    tab_double (t, 10, v * 2 + heading_rows + 1, TAB_RIGHT, mean_diff + tval * std_err_diff, NULL, RC_OTHER);
 
-    tab_double (t, 2, v * 2 + heading_rows, TAB_CENTER, ps[v].lev, NULL);
+    tab_double (t, 2, v * 2 + heading_rows, TAB_CENTER, ps[v].lev, NULL, RC_OTHER);
 
 
     {
@@ -386,7 +386,7 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
       double df1 = 1;
       double df2 = cc0 + cc1 - 2;
       double q = gsl_cdf_fdist_Q (ps[v].lev, df1, df2);
-      tab_double (t, 3, v * 2 + heading_rows, TAB_CENTER, q, NULL);
+      tab_double (t, 3, v * 2 + heading_rows, TAB_CENTER, q, NULL, RC_OTHER);
     }
   }
 

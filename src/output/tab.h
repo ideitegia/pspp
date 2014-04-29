@@ -41,6 +41,15 @@
 #include "libpspp/compiler.h"
 #include "output/table.h"
 
+enum result_class
+  {
+    RC_INTEGER,
+    RC_WEIGHT,
+    RC_PVALUE,
+    RC_OTHER,
+    n_RC
+  };
+
 /* A table. */
 struct tab_table
   {
@@ -68,6 +77,8 @@ struct tab_table
 
     /* X and Y offsets. */
     int col_ofs, row_ofs;
+
+    const struct fmt_spec *fmtmap [n_RC];
   };
 
 struct tab_table *tab_cast (const struct table *);
@@ -106,6 +117,9 @@ void tab_box (struct tab_table *, int f_h, int f_v, int i_h, int i_v,
 /* Obsolete cell options. */
 #define TAT_TITLE TAB_EMPH      /* Title attributes. */
 
+void tab_set_format (struct tab_table *, enum result_class, const struct fmt_spec *);
+
+
 /* Cells. */
 struct fmt_spec;
 struct dictionary;
@@ -114,11 +128,8 @@ void tab_value (struct tab_table *, int c, int r, unsigned char opt,
 		const union value *, const struct variable *,
 		const struct fmt_spec *);
 
-void tab_fixed (struct tab_table *, int c, int r, unsigned char opt,
-		double v, int w, int d);
-
 void tab_double (struct tab_table *, int c, int r, unsigned char opt,
-		double v, const struct fmt_spec *);
+		 double v, const struct fmt_spec *, enum result_class );
 
 void tab_text (struct tab_table *, int c, int r, unsigned opt, const char *);
 void tab_text_format (struct tab_table *, int c, int r, unsigned opt,

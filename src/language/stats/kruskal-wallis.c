@@ -312,8 +312,8 @@ show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_grou
 	  var_append_value_name (nst->indep_var, &re->group, &str);
           
 	  tab_text   (table, 1, row, TAB_LEFT, ds_cstr (&str));
-	  tab_double (table, 2, row, TAB_LEFT, re->n, &F_8_0);
-	  tab_double (table, 3, row, TAB_LEFT, re->sum_of_ranks / re->n, 0);
+	  tab_double (table, 2, row, TAB_LEFT, re->n, NULL, RC_INTEGER);
+	  tab_double (table, 3, row, TAB_LEFT, re->sum_of_ranks / re->n, NULL, RC_OTHER);
           
 	  tot += re->n;
 	  row++;
@@ -321,7 +321,7 @@ show_ranks_box (const struct n_sample_test *nst, const struct kw *kw, int n_grou
 	}
 
       tab_double (table, 2, row, TAB_LEFT,
-		  tot, &F_8_0);
+		  tot, NULL, RC_INTEGER);
       tab_text (table, 1, row++, TAB_LEFT, _("Total"));
     }
 
@@ -367,14 +367,14 @@ show_sig_box (const struct n_sample_test *nst, const struct kw *kw)
 		);
 
       tab_double (table, column_headers + 1 + i, 1, 0,
-		  kw[i].h, 0);
+		  kw[i].h, NULL, RC_OTHER);
 
       tab_double (table, column_headers + 1 + i, 2, 0,
-		  df, &F_8_0);
+		  df, NULL, RC_INTEGER);
 
       tab_double (table, column_headers + 1 + i, 3, 0,
 		  gsl_cdf_chisq_Q (kw[i].h, df),
-		  0);
+		  NULL, RC_PVALUE);
     }
 
   tab_submit (table);

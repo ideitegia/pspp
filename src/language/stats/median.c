@@ -313,6 +313,7 @@ show_frequencies (const struct n_sample_test *nst, const struct results *results
   const int nr = column_headers + nst->n_vars * 2;
     
   struct tab_table *table = tab_create (nc, nr);
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
@@ -373,10 +374,10 @@ show_frequencies (const struct n_sample_test *nst, const struct results *results
 	{
 	  const struct val_node *vn = rs->sorted_array[i];
 	  tab_double (table, row_headers + i, column_headers + v * 2,
-		      0, vn->gt, wfmt);
+		      0, vn->gt, NULL, RC_WEIGHT);
 
 	  tab_double (table, row_headers + i, column_headers + v * 2 + 1,
-		    0, vn->le, wfmt);
+		      0, vn->le, NULL, RC_WEIGHT);
 	}
     }
 
@@ -401,6 +402,7 @@ show_test_statistics (const struct n_sample_test *nst,
   const int nr = column_headers + nst->n_vars;
     
   struct tab_table *table = tab_create (nc, nr);
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
@@ -438,19 +440,19 @@ show_test_statistics (const struct n_sample_test *nst,
 
 
       tab_double (table, row_headers + 0, column_headers + v,
-		  0, rs->n, wfmt);
+		  0, rs->n, NULL, RC_WEIGHT);
 
       tab_double (table, row_headers + 1, column_headers + v,
-		  0, rs->median, NULL);
+		  0, rs->median, NULL, RC_OTHER);
 
       tab_double (table, row_headers + 2, column_headers + v,
-		  0, rs->chisq, NULL);
+		  0, rs->chisq, NULL, RC_OTHER);
 
       tab_double (table, row_headers + 3, column_headers + v,
-		  0, df, wfmt);
+		  0, df, NULL, RC_WEIGHT);
 
       tab_double (table, row_headers + 4, column_headers + v,
-		  0, gsl_cdf_chisq_Q (rs->chisq, df), NULL);
+		  0, gsl_cdf_chisq_Q (rs->chisq, df), NULL, RC_PVALUE);
     }
   
   tab_submit (table);

@@ -167,7 +167,7 @@ paired_summary (const struct tt *tt, struct paired_samp *os)
   const int rows = n_pairs * 2 + heading_rows;
   struct tab_table *t = tab_create (cols, rows);
   const struct fmt_spec *wfmt = tt->wv ? var_get_print_format (tt->wv) : & F_8_0;
-
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_headers (t, 0, 0, heading_rows, 0);
   tab_box (t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols - 1, rows - 1);
   tab_box (t, -1, -1,       TAL_0, TAL_1, heading_cols, 0, cols - 1, rows - 1);
@@ -191,18 +191,18 @@ paired_summary (const struct tt *tt, struct paired_samp *os)
       /* first var */
       moments_calculate (pp->mom0, &cc, &mean, &sigma, NULL, NULL);
       tab_text (t, 1, v * 2 + heading_rows, TAB_LEFT, var_to_string (pp->var0));
-      tab_double (t, 3, v * 2 + heading_rows, TAB_RIGHT, cc, wfmt);
-      tab_double (t, 2, v * 2 + heading_rows, TAB_RIGHT, mean, NULL);
-      tab_double (t, 4, v * 2 + heading_rows, TAB_RIGHT, sqrt (sigma), NULL);
-      tab_double (t, 5, v * 2 + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL);
+      tab_double (t, 3, v * 2 + heading_rows, TAB_RIGHT, cc, NULL, RC_WEIGHT);
+      tab_double (t, 2, v * 2 + heading_rows, TAB_RIGHT, mean, NULL, RC_OTHER);
+      tab_double (t, 4, v * 2 + heading_rows, TAB_RIGHT, sqrt (sigma), NULL, RC_OTHER);
+      tab_double (t, 5, v * 2 + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL, RC_OTHER);
 
       /* second var */
       moments_calculate (pp->mom1, &cc, &mean, &sigma, NULL, NULL);
       tab_text (t, 1, v * 2 + 1 + heading_rows, TAB_LEFT, var_to_string (pp->var1));      
-      tab_double (t, 3, v * 2 + 1 + heading_rows, TAB_RIGHT, cc, wfmt);
-      tab_double (t, 2, v * 2 + 1 + heading_rows, TAB_RIGHT, mean, NULL);
-      tab_double (t, 4, v * 2 + 1 + heading_rows, TAB_RIGHT, sqrt (sigma), NULL);
-      tab_double (t, 5, v * 2 + 1 + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL);
+      tab_double (t, 3, v * 2 + 1 + heading_rows, TAB_RIGHT, cc, NULL, RC_WEIGHT);
+      tab_double (t, 2, v * 2 + 1 + heading_rows, TAB_RIGHT, mean, NULL, RC_OTHER);
+      tab_double (t, 4, v * 2 + 1 + heading_rows, TAB_RIGHT, sqrt (sigma), NULL, RC_OTHER);
+      tab_double (t, 5, v * 2 + 1 + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL, RC_OTHER);
     }
 
   tab_submit (t);
@@ -222,7 +222,7 @@ paired_correlations (const struct tt *tt, struct paired_samp *os)
   const int rows = n_pairs + heading_rows;
   struct tab_table *t = tab_create (cols, rows);
   const struct fmt_spec *wfmt = tt->wv ? var_get_print_format (tt->wv) : & F_8_0;
-
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_headers (t, 0, 0, heading_rows, 0);
   tab_box (t, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols - 1, rows - 1);
 
@@ -253,15 +253,15 @@ paired_correlations (const struct tt *tt, struct paired_samp *os)
       /* If this fails, then we're not dealing with missing values properly */
       assert (cc0 == cc1);
 
-      tab_double (t, 2, v + heading_rows, TAB_RIGHT, cc0, wfmt);
+      tab_double (t, 2, v + heading_rows, TAB_RIGHT, cc0, NULL, RC_WEIGHT);
 
       corr = pp->sum_of_prod / cc0  - (mean0 * mean1);
       corr /= sqrt (sigma0 * sigma1);
       corr *= cc0 / (cc0 - 1);
 
-      tab_double (t, 3, v + heading_rows, TAB_RIGHT, corr, NULL);
+      tab_double (t, 3, v + heading_rows, TAB_RIGHT, corr, NULL, RC_OTHER);
       tab_double (t, 4, v + heading_rows, TAB_RIGHT, 
-		  2.0 * significance_of_correlation (corr, cc0), NULL);
+		  2.0 * significance_of_correlation (corr, cc0), NULL, RC_OTHER);
     }
 
   tab_submit (t);
@@ -282,7 +282,7 @@ paired_test (const struct tt *tt, const struct paired_samp *os)
   const struct fmt_spec *wfmt = tt->wv ? var_get_print_format (tt->wv) : & F_8_0;
 
   struct tab_table *t = tab_create (cols, rows);
-
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_headers (t, 0, 0, heading_rows, 0);
   tab_box (t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols - 1, rows - 1);
   tab_hline (t, TAL_2, 0, cols - 1, 3);
@@ -333,23 +333,23 @@ paired_test (const struct tt *tt, const struct paired_samp *os)
       tval = mean * sqrt (cc / sigma);
       se_mean = sqrt (sigma / cc);
 
-      tab_double (t, 2, v + heading_rows, TAB_RIGHT, mean, NULL);
-      tab_double (t, 3, v + heading_rows, TAB_RIGHT, sqrt (sigma), NULL);
-      tab_double (t, 4, v + heading_rows, TAB_RIGHT, se_mean, NULL);
+      tab_double (t, 2, v + heading_rows, TAB_RIGHT, mean, NULL, RC_OTHER);
+      tab_double (t, 3, v + heading_rows, TAB_RIGHT, sqrt (sigma), NULL, RC_OTHER);
+      tab_double (t, 4, v + heading_rows, TAB_RIGHT, se_mean, NULL, RC_OTHER);
 
-      tab_double (t, 7, v + heading_rows, TAB_RIGHT, tval, NULL);
-      tab_double (t, 8, v + heading_rows, TAB_RIGHT, df, wfmt);
+      tab_double (t, 7, v + heading_rows, TAB_RIGHT, tval, NULL, RC_OTHER);
+      tab_double (t, 8, v + heading_rows, TAB_RIGHT, df, NULL, RC_WEIGHT);
 
 
       p = gsl_cdf_tdist_P (tval, df);
       q = gsl_cdf_tdist_Q (tval, df);
 
-      tab_double (t, 9, v + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p), NULL);
+      tab_double (t, 9, v + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p), NULL, RC_PVALUE);
 
       tval = gsl_cdf_tdist_Qinv ( (1.0 - tt->confidence) / 2.0, df);
 
-      tab_double (t, 5, v + heading_rows, TAB_RIGHT, mean - tval * se_mean, NULL);
-      tab_double (t, 6, v + heading_rows, TAB_RIGHT, mean + tval * se_mean, NULL);
+      tab_double (t, 5, v + heading_rows, TAB_RIGHT, mean - tval * se_mean, NULL, RC_OTHER);
+      tab_double (t, 6, v + heading_rows, TAB_RIGHT, mean + tval * se_mean, NULL, RC_OTHER);
     }
 
   tab_submit (t);

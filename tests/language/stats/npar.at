@@ -325,6 +325,7 @@ NPAR TESTS
   /EXPECTED = 6 10 3
   .
 ])
+
 AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
 Table: x
 ,Observed N,Expected N,Residual
@@ -348,7 +349,7 @@ Table: Test Statistics
 ,x,y
 Chi-Square,3.14,6.00
 df,5,3
-Asymp. Sig.,.68,.11
+Asymp. Sig.,.678,.112
 
 Table: y
 ,Observed N,Expected N,Residual
@@ -362,7 +363,7 @@ Table: Test Statistics
 ,y
 Chi-Square,10.61
 df,3
-Asymp. Sig.,.01
+Asymp. Sig.,.014
 
 Table: Frequencies
 ,x,,,,y,,,
@@ -376,8 +377,9 @@ Table: Test Statistics
 ,x,y
 Chi-Square,.13,4.13
 df,2,2
-Asymp. Sig.,.94,.13
+Asymp. Sig.,.936,.127
 ])
+
 AT_CLEANUP
 
 AT_SETUP([NPAR TESTS CHISQUARE expected values missing])
@@ -400,6 +402,7 @@ NPAR TESTS
   /EXPECTED = 3 4 5 4 3 1
   .
 ])
+
 AT_CHECK([pspp -O format=csv npar.sps], [1], [dnl
 "error: CHISQUARE test specified 6 expected values, but 4 distinct values were encountered in variable y."
 
@@ -407,8 +410,9 @@ Table: Test Statistics
 ,y
 Chi-Square,.00
 df,0
-Asymp. Sig.,1.00
+Asymp. Sig.,1.000
 ])
+
 AT_CLEANUP
 
 AT_SETUP([NPAR TESTS CHISQUARE with DESCRIPTIVES])
@@ -435,6 +439,7 @@ NPAR TESTS
   /STATISTICS=DESCRIPTIVES
   .
 ])
+
 AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
 Table: Frequencies
 ,x,,,,y,,,
@@ -453,7 +458,7 @@ Table: Test Statistics
 ,x,y
 Chi-Square,17.33,22.87
 df,7,7
-Asymp. Sig.,.02,.00
+Asymp. Sig.,.015,.002
 
 Table: Descriptive Statistics
 ,N,Mean,Std. Deviation,Minimum,Maximum
@@ -487,6 +492,7 @@ NPAR TESTS
   /STATISTICS=DESCRIPTIVES
   .
 ])
+
 AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
 Table: Frequencies
 ,x,,,,y,,,
@@ -505,7 +511,7 @@ Table: Test Statistics
 ,x,y
 Chi-Square,13.43,26.00
 df,7,7
-Asymp. Sig.,.06,.00
+Asymp. Sig.,.062,.001
 
 Table: Descriptive Statistics
 ,N,Mean,Std. Deviation,Minimum,Maximum
@@ -544,8 +550,8 @@ npar test
  /missing analysis
  /method=exact.
 ])
-AT_CHECK([pspp -o pspp.csv npar.sps])
-AT_CHECK([cat pspp.csv], [0], [dnl
+
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
 Table: Ranks
 ,,N,Mean Rank,Sum of Ranks
 first - second,Negative Ranks,8,6.00,48.00
@@ -556,10 +562,11 @@ first - second,Negative Ranks,8,6.00,48.00
 Table: Test Statistics
 ,first - second
 Z,-.18
-Asymp. Sig. (2-tailed),.86
-Exact Sig. (2-tailed),.89
-Exact Sig. (1-tailed),.45
+Asymp. Sig. (2-tailed),.861
+Exact Sig. (2-tailed),.893
+Exact Sig. (1-tailed),.446
 ])
+
 AT_CLEANUP
 
 AT_SETUP([NPAR TESTS WILCOXON with missing values])
@@ -590,11 +597,10 @@ npar test
  /wilcoxon=foo with bar (paired)
  /missing analysis
  /method=exact.
-
 ])
-AT_CHECK([pspp -o pspp.csv npar.sps])
+
 dnl This is the same output as the previous test.
-AT_CHECK([cat pspp.csv], [0], [dnl
+AT_CHECK([pspp -O format=csv npar.sps], [0], [dnl
 Table: Ranks
 ,,N,Mean Rank,Sum of Ranks
 first - second,Negative Ranks,8,6.00,48.00
@@ -605,9 +611,9 @@ first - second,Negative Ranks,8,6.00,48.00
 Table: Test Statistics
 ,first - second
 Z,-.18
-Asymp. Sig. (2-tailed),.86
-Exact Sig. (2-tailed),.89
-Exact Sig. (1-tailed),.45
+Asymp. Sig. (2-tailed),.861
+Exact Sig. (2-tailed),.893
+Exact Sig. (1-tailed),.446
 ])
 AT_CLEANUP
 
@@ -869,10 +875,8 @@ npar tests
 	.
 ])
 
-AT_CHECK([pspp -o pspp.csv npar-runs.sps])
-
-AT_CHECK([cat pspp.csv], [0], [dnl
-Table: Runs Test
+AT_CHECK([pspp -O format=csv npar-runs.sps], [0],
+[Table: Runs Test
 ,score
 Test Value (median),3.0000
 Cases < Test Value,177.0000
@@ -880,7 +884,7 @@ Cases ≥ Test Value,309.0000
 Total Cases,486.0000
 Number of Runs,12
 Z,-20.9931
-Asymp. Sig. (2-tailed),.0000
+Asymp. Sig. (2-tailed),.000
 
 Table: Runs Test
 ,score
@@ -890,7 +894,7 @@ Cases ≥ Test Value,227.0000
 Total Cases,486.0000
 Number of Runs,12
 Z,-21.0650
-Asymp. Sig. (2-tailed),.0000
+Asymp. Sig. (2-tailed),.000
 
 Table: Runs Test
 ,score
@@ -900,7 +904,7 @@ Cases ≥ Test Value,170.0000
 Total Cases,486.0000
 Number of Runs,11
 Z,-21.0742
-Asymp. Sig. (2-tailed),.0000
+Asymp. Sig. (2-tailed),.000
 ])
 
 AT_CLEANUP
@@ -927,9 +931,7 @@ npar tests
      /friedman = x y z.
 ])
 
-AT_CHECK([pspp -o pspp.csv npar-friedman.sps])
-
-AT_CHECK([cat pspp.csv], [0], [dnl
+AT_CHECK([pspp -O format=csv npar-friedman.sps], [0], [dnl
 Table: Ranks
 ,Mean Rank
 x,2.6500
@@ -940,7 +942,7 @@ Table: Test Statistics
 N,10
 Chi-Square,10.4737
 df,2
-Asymp. Sig.,.0053
+Asymp. Sig.,.005
 ])
 
 AT_CLEANUP
@@ -989,9 +991,7 @@ NPAR TESTS
      /M-W = height BY sex (0,1).
 ])
 
-AT_CHECK([pspp -o pspp.csv npar-mann-whitney.sps])
-
-AT_CHECK([cat pspp.csv], [0], [dnl
+AT_CHECK([pspp -O format=csv npar-mann-whitney.sps], [0], [dnl
 Table: Ranks
 ,N,,,Mean Rank,,Sum of Ranks,
 ,0,1,Total,0,1,0,1
@@ -999,7 +999,7 @@ height,15.0000,15.0000,30.0000,14.5333,16.4667,218.0000,247.0000
 
 Table: Test Statistics
 ,Mann-Whitney U,Wilcoxon W,Z,Asymp. Sig. (2-tailed)
-height,98.0000,218.0000,-.6020,.5472
+height,98.0000,218.0000,-.6020,.547
 ])
 
 

@@ -358,6 +358,7 @@ show_jt (const struct n_sample_test *nst, const struct jt *jt, const struct vari
 
   struct tab_table *table =
     tab_create (row_headers + 7, column_headers + nst->n_vars);
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
@@ -393,26 +394,26 @@ show_jt (const struct n_sample_test *nst, const struct jt *jt, const struct vari
                 var_to_string (nst->vars[i]) );
 
       tab_double (table, 1, i + row_headers, TAT_TITLE, 
-                  jt[0].levels, &F_8_0);
+                  jt[0].levels, NULL, RC_INTEGER);
  
       tab_double (table, 2, i + row_headers, TAT_TITLE, 
-                  jt[0].n, wfmt);
+                  jt[0].n, NULL, RC_WEIGHT);
 
       tab_double (table, 3, i + row_headers, TAT_TITLE, 
-                  jt[0].obs, 0);
+                  jt[0].obs, NULL, RC_OTHER);
 
       tab_double (table, 4, i + row_headers, TAT_TITLE, 
-                  jt[0].mean, 0);
+                  jt[0].mean, NULL, RC_OTHER);
 
       tab_double (table, 5, i + row_headers, TAT_TITLE, 
-                  jt[0].stddev, 0);
+                  jt[0].stddev, NULL, RC_OTHER);
 
       std_jt = (jt[0].obs - jt[0].mean) / jt[0].stddev;
       tab_double (table, 6, i + row_headers, TAT_TITLE, 
-                  std_jt, 0);
+                  std_jt, NULL, RC_OTHER);
 
       tab_double (table, 7, i + row_headers, TAT_TITLE, 
-                  2.0 * ((std_jt > 0) ? gsl_cdf_ugaussian_Q (std_jt) : gsl_cdf_ugaussian_P (std_jt)), 0);
+                  2.0 * ((std_jt > 0) ? gsl_cdf_ugaussian_Q (std_jt) : gsl_cdf_ugaussian_P (std_jt)), NULL, RC_PVALUE);
     }
   
   tab_submit (table);

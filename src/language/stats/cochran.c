@@ -154,6 +154,7 @@ show_freqs_box (const struct one_sample_test *ost, const struct cochran *ct)
   const int column_headers = 2;
   struct tab_table *table =
     tab_create (row_headers + 2, column_headers + ost->n_vars);
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
@@ -184,10 +185,10 @@ show_freqs_box (const struct one_sample_test *ost, const struct cochran *ct)
 		TAB_LEFT, var_to_string (ost->vars[i]));
 
       tab_double (table, 1, column_headers + i, 0,
-		  ct->hits[i], wfmt);
+		  ct->hits[i], NULL, RC_WEIGHT);
 
       tab_double (table, 2, column_headers + i, 0,
-		  ct->misses[i], wfmt);
+		  ct->misses[i], NULL, RC_WEIGHT);
     }
 
   tab_submit (table);
@@ -205,6 +206,9 @@ show_sig_box (const struct cochran *ch)
   const int column_headers = 0;
   struct tab_table *table =
     tab_create (row_headers + 1, column_headers + 4);
+
+
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
@@ -230,17 +234,17 @@ show_sig_box (const struct cochran *ch)
   tab_vline (table, TAL_2, row_headers, 0, tab_nr (table) - 1);
 
   tab_double (table, 1, column_headers, 
-	      0, ch->cc, wfmt);
+	      0, ch->cc, NULL, RC_WEIGHT);
 
   tab_double (table, 1, column_headers + 1, 
-	      0, ch->q, 0);
+	      0, ch->q, NULL, RC_OTHER);
 
   tab_double (table, 1, column_headers + 2, 
-	      0, ch->df, &F_8_0);
+	      0, ch->df, NULL, RC_INTEGER);
 
   tab_double (table, 1, column_headers + 3, 
 	      0, gsl_cdf_chisq_Q (ch->q, ch->df), 
-	      0);
+	      NULL, RC_PVALUE);
 
   tab_submit (table);
 }

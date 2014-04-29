@@ -1003,28 +1003,28 @@ show_anova_table (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 
       /* Sums of Squares */
-      tab_double (t, 2, i * 3 + 1, 0, pvw->ssa, NULL);
-      tab_double (t, 2, i * 3 + 3, 0, pvw->sst, NULL);
-      tab_double (t, 2, i * 3 + 2, 0, pvw->sse, NULL);
+      tab_double (t, 2, i * 3 + 1, 0, pvw->ssa, NULL, RC_OTHER);
+      tab_double (t, 2, i * 3 + 3, 0, pvw->sst, NULL, RC_OTHER);
+      tab_double (t, 2, i * 3 + 2, 0, pvw->sse, NULL, RC_OTHER);
 
 
       /* Degrees of freedom */
-      tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
-      tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
-      tab_fixed (t, 3, i * 3 + 3, 0, n - 1, 4, 0);
+      tab_double (t, 3, i * 3 + 1, 0, df1, NULL, RC_INTEGER);
+      tab_double (t, 3, i * 3 + 2, 0, df2,  NULL, RC_INTEGER); 
+      tab_double (t, 3, i * 3 + 3, 0, n - 1, NULL, RC_INTEGER); 
 
       /* Mean Squares */
-      tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
-      tab_double (t, 4, i * 3 + 2, TAB_RIGHT, pvw->mse, NULL);
+      tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL, RC_OTHER);
+      tab_double (t, 4, i * 3 + 2, TAB_RIGHT, pvw->mse, NULL, RC_OTHER);
 
       {
 	const double F = msa / pvw->mse ;
 
 	/* The F value */
-	tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
+	tab_double (t, 5, i * 3 + 1, 0,  F, NULL, RC_OTHER);
 
 	/* The significance */
-	tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL);
+	tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL, RC_PVALUE);
       }
     }
 
@@ -1053,6 +1053,7 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
     n_rows += ws->actual_number_of_groups + 1;
 
   t = tab_create (n_cols, n_rows);
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_headers (t, 2, 0, 2, 0);
 
   /* Put a frame around the entire box, and vertical lines inside */
@@ -1129,29 +1130,29 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 
 	  /* Now fill in the numbers ... */
 
-	  tab_double (t, 2, row + count, 0, n, wfmt);
+	  tab_double (t, 2, row + count, 0, n, NULL, RC_WEIGHT);
 
-	  tab_double (t, 3, row + count, 0, mean, NULL);
+	  tab_double (t, 3, row + count, 0, mean, NULL, RC_OTHER);
 
-	  tab_double (t, 4, row + count, 0, std_dev, NULL);
+	  tab_double (t, 4, row + count, 0, std_dev, NULL, RC_OTHER);
 
 
-	  tab_double (t, 5, row + count, 0, std_error, NULL);
+	  tab_double (t, 5, row + count, 0, std_error, NULL, RC_OTHER);
 
 	  /* Now the confidence interval */
 
 	  T = gsl_cdf_tdist_Qinv (q, n - 1);
 
 	  tab_double (t, 6, row + count, 0,
-		      mean - T * std_error, NULL);
+		      mean - T * std_error, NULL, RC_OTHER);
 
 	  tab_double (t, 7, row + count, 0,
-		      mean + T * std_error, NULL);
+		      mean + T * std_error, NULL, RC_OTHER);
 
 	  /* Min and Max */
 
-	  tab_double (t, 8, row + count, 0,  dd->minimum, fmt);
-	  tab_double (t, 9, row + count, 0,  dd->maximum, fmt);
+	  tab_double (t, 8, row + count, 0,  dd->minimum, fmt, RC_OTHER);
+	  tab_double (t, 9, row + count, 0,  dd->maximum, fmt, RC_OTHER);
 	}
 
       if (categoricals_is_complete (cats))
@@ -1169,27 +1170,27 @@ show_descriptives (const struct oneway_spec *cmd, const struct oneway_workspace 
 	tab_text (t, 1, row + count,
 		  TAB_LEFT | TAT_TITLE, _("Total"));
 
-	tab_double (t, 2, row + count, 0, n, wfmt);
+	tab_double (t, 2, row + count, 0, n, NULL, RC_WEIGHT);
 
-	tab_double (t, 3, row + count, 0, mean, NULL);
+	tab_double (t, 3, row + count, 0, mean, NULL, RC_OTHER);
 
-	tab_double (t, 4, row + count, 0, std_dev, NULL);
+	tab_double (t, 4, row + count, 0, std_dev, NULL, RC_OTHER);
 
-	tab_double (t, 5, row + count, 0, std_error, NULL);
+	tab_double (t, 5, row + count, 0, std_error, NULL, RC_OTHER);
 
 	/* Now the confidence interval */
 	T = gsl_cdf_tdist_Qinv (q, n - 1);
 
 	tab_double (t, 6, row + count, 0,
-		    mean - T * std_error, NULL);
+		    mean - T * std_error, NULL, RC_OTHER);
 
 	tab_double (t, 7, row + count, 0,
-		    mean + T * std_error, NULL);
+		    mean + T * std_error, NULL, RC_OTHER);
 
 
 	/* Min and Max */
-	tab_double (t, 8, row + count, 0,  ws->dd_total[v]->minimum, fmt);
-	tab_double (t, 9, row + count, 0,  ws->dd_total[v]->maximum, fmt);
+	tab_double (t, 8, row + count, 0,  ws->dd_total[v]->minimum, fmt, RC_OTHER);
+	tab_double (t, 9, row + count, 0,  ws->dd_total[v]->maximum, fmt, RC_OTHER);
       }
 
       row += categoricals_n_total (cats) + 1;
@@ -1244,12 +1245,12 @@ show_homogeneity (const struct oneway_spec *cmd, const struct oneway_workspace *
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
-      tab_double (t, 1, v + 1, TAB_RIGHT, F, NULL);
-      tab_fixed (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
-      tab_fixed (t, 3, v + 1, TAB_RIGHT, df2, 8, 0);
+      tab_double (t, 1, v + 1, TAB_RIGHT, F, NULL, RC_OTHER);
+      tab_double (t, 2, v + 1, TAB_RIGHT, df1, NULL, RC_INTEGER);
+      tab_double (t, 3, v + 1, TAB_RIGHT, df2, NULL, RC_INTEGER);
 
       /* Now the significance */
-      tab_double (t, 4, v + 1, TAB_RIGHT, gsl_cdf_fdist_Q (F, df1, df2), NULL);
+      tab_double (t, 4, v + 1, TAB_RIGHT, gsl_cdf_fdist_Q (F, df1, df2), NULL, RC_PVALUE);
     }
 
   tab_submit (t);
@@ -1474,18 +1475,18 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	  df_numerator = pow2 (df_numerator);
 
 	  tab_double (t,  3, (v * lines_per_variable) + i + 1,
-		      TAB_RIGHT, contrast_value, NULL);
+		      TAB_RIGHT, contrast_value, NULL, RC_OTHER);
 
 	  tab_double (t,  3, (v * lines_per_variable) + i + 1 +
 		      n_contrasts,
-		      TAB_RIGHT, contrast_value, NULL);
+		      TAB_RIGHT, contrast_value, NULL, RC_OTHER);
 
 	  std_error_contrast = sqrt (pvw->mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_double (t,  4, (v * lines_per_variable) + i + 1,
 		      TAB_RIGHT, std_error_contrast,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  T = fabs (contrast_value / std_error_contrast);
 
@@ -1493,19 +1494,18 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 
 	  tab_double (t,  5, (v * lines_per_variable) + i + 1,
 		      TAB_RIGHT, T,
-		      NULL);
+		      NULL, RC_OTHER);
 
 
 	  /* Degrees of Freedom */
-	  tab_fixed (t,  6, (v * lines_per_variable) + i + 1,
-		     TAB_RIGHT,  df,
-		     8, 0);
+	  tab_double (t,  6, (v * lines_per_variable) + i + 1,
+		     TAB_RIGHT,  df, NULL, RC_INTEGER);
 
 
 	  /* Significance TWO TAILED !!*/
 	  tab_double (t,  7, (v * lines_per_variable) + i + 1,
 		      TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T, df),
-		      NULL);
+		      NULL, RC_PVALUE);
 
 	  /* Now for the Variances NOT Equal case */
 
@@ -1513,20 +1513,20 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	  tab_double (t,  4,
 		      (v * lines_per_variable) + i + 1 + n_contrasts,
 		      TAB_RIGHT, sec_vneq,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  T = contrast_value / sec_vneq;
 	  tab_double (t,  5,
 		      (v * lines_per_variable) + i + 1 + n_contrasts,
 		      TAB_RIGHT, T,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  df = df_numerator / df_denominator;
 
 	  tab_double (t,  6,
 		      (v * lines_per_variable) + i + 1 + n_contrasts,
 		      TAB_RIGHT, df,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  {
 	    double p = gsl_cdf_tdist_P (T, df);
@@ -1535,7 +1535,7 @@ show_contrast_tests (const struct oneway_spec *cmd, const struct oneway_workspac
 	    /* The Significance */
 	    tab_double (t, 7, (v * lines_per_variable) + i + 1 + n_contrasts,
 			TAB_RIGHT,  2 * ((T > 0) ? q : p),
-			NULL);
+			NULL, RC_PVALUE);
 	  }
 	}
 
@@ -1643,24 +1643,24 @@ show_comparisons (const struct oneway_spec *cmd, const struct oneway_workspace *
 
 	      moments1_calculate (dd_j->mom, &weight_j, &mean_j, &var_j, 0, 0);
 
-	      tab_double  (t, 3, r + rx, 0, mean_i - mean_j, 0);
+	      tab_double  (t, 3, r + rx, 0, mean_i - mean_j, NULL, RC_OTHER);
 
 	      std_err = pvw->mse;
 	      std_err *= weight_i + weight_j;
 	      std_err /= weight_i * weight_j;
 	      std_err = sqrt (std_err);
 
-	      tab_double  (t, 4, r + rx, 0, std_err, 0);
+	      tab_double  (t, 4, r + rx, 0, std_err, NULL, RC_OTHER);
 	  
-	      tab_double (t, 5, r + rx, 0, 2 * multiple_comparison_sig (std_err, pvw, dd_i, dd_j, ph), 0);
+	      tab_double (t, 5, r + rx, 0, 2 * multiple_comparison_sig (std_err, pvw, dd_i, dd_j, ph), NULL, RC_PVALUE);
 
 	      half_range = mc_half_range (cmd, pvw, std_err, dd_i, dd_j, ph);
 
 	      tab_double (t, 6, r + rx, 0,
-			   (mean_i - mean_j) - half_range, 0 );
+			  (mean_i - mean_j) - half_range, NULL, RC_OTHER);
 
 	      tab_double (t, 7, r + rx, 0,
-			   (mean_i - mean_j) + half_range, 0 );
+			  (mean_i - mean_j) + half_range, NULL, RC_OTHER);
 
 	      rx++;
 	    }

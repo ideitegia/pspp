@@ -184,6 +184,7 @@ binomial_execute (const struct dataset *ds,
 	var_get_print_format (wvar) : & F_8_0;
 
       struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1);
+      tab_set_format (table, RC_WEIGHT, wfmt);
 
       tab_title (table, _("Binomial Test"));
 
@@ -221,31 +222,31 @@ binomial_execute (const struct dataset *ds,
           tab_text (table, 1, 3 + v * 3, TAB_LEFT, _("Total"));
 
           /* Test Prop */
-          tab_double (table, 5, 1 + v * 3, TAB_NONE, bst->p, NULL);
+          tab_double (table, 5, 1 + v * 3, TAB_NONE, bst->p, NULL, RC_OTHER);
 
           /* Category labels */
           tab_text (table, 2, 1 + v * 3, TAB_NONE, ds_cstr (&catstr[0]));
 	  tab_text (table, 2, 2 + v * 3, TAB_NONE, ds_cstr (&catstr[1]));
 
           /* Observed N */
-          tab_double (table, 3, 1 + v * 3, TAB_NONE, cat[0][v].count, wfmt);
-          tab_double (table, 3, 2 + v * 3, TAB_NONE, cat[1][v].count, wfmt);
+          tab_double (table, 3, 1 + v * 3, TAB_NONE, cat[0][v].count, NULL, RC_WEIGHT);
+          tab_double (table, 3, 2 + v * 3, TAB_NONE, cat[1][v].count, NULL, RC_WEIGHT);
 
           n_total = cat[0][v].count + cat[1][v].count;
-          tab_double (table, 3, 3 + v * 3, TAB_NONE, n_total, wfmt);
+          tab_double (table, 3, 3 + v * 3, TAB_NONE, n_total, NULL, RC_WEIGHT);
 
           /* Observed Proportions */
           tab_double (table, 4, 1 + v * 3, TAB_NONE,
-                     cat[0][v].count / n_total, NULL);
+		      cat[0][v].count / n_total, NULL, RC_OTHER);
           tab_double (table, 4, 2 + v * 3, TAB_NONE,
-                     cat[1][v].count / n_total, NULL);
+		      cat[1][v].count / n_total, NULL, RC_OTHER);
 
           tab_double (table, 4, 3 + v * 3, TAB_NONE,
-                     (cat[0][v].count + cat[1][v].count) / n_total, NULL);
+		      (cat[0][v].count + cat[1][v].count) / n_total, NULL, RC_OTHER);
 
           /* Significance */
           sig = calculate_binomial (cat[0][v].count, cat[1][v].count, bst->p);
-          tab_double (table, 6, 1 + v * 3, TAB_NONE, sig, NULL);
+          tab_double (table, 6, 1 + v * 3, TAB_NONE, sig, NULL, RC_PVALUE);
 
 	  ds_destroy (&catstr[0]);
 	  ds_destroy (&catstr[1]);

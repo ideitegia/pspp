@@ -1044,7 +1044,7 @@ display (struct dsc_proc *dsc)
 
       for (j = 0; j < DSC_N_STATS; j++)
 	if (dsc->show_stats & (1ul << j))
-	  tab_double (t, nc++, i + 1, TAB_NONE, dv->stats[j], NULL);
+	  tab_double (t, nc++, i + 1, TAB_NONE, dv->stats[j], NULL, RC_OTHER);
     }
 
   tab_title (t, _("Valid cases = %.*g; cases with missing value(s) = %.*g."),

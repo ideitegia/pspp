@@ -34,8 +34,8 @@ ONEWAY
 	.
 ])
 
-AT_CHECK([pspp -O format=csv oneway.sps], [0], 
-[Table: Descriptives
+AT_CHECK([pspp -O format=csv oneway.sps], [0], [dnl
+Table: Descriptives
 ,,,,,,95% Confidence Interval for Mean,,,
 ,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
 Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
@@ -45,11 +45,11 @@ Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
 
 Table: Test of Homogeneity of Variances
 ,Levene Statistic,df1,df2,Sig.
-Breaking Strain,.09,2,12,.91
+Breaking Strain,.09,2,12,.913
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-Breaking Strain,Between Groups,20.13,2,10.07,5.12,.02
+Breaking Strain,Between Groups,20.13,2,10.07,5.12,.025
 ,Within Groups,23.60,12,1.97,,
 ,Total,43.73,14,,,
 
@@ -61,10 +61,10 @@ Contrast,1,-2,1,1
 
 Table: Contrast Tests
 ,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
-Breaking Strain,Assume equal variances,1,3.80,1.54,2.47,12,.03
-,,2,1.80,.89,2.03,12,.07
-,Does not assume equal,1,3.80,1.48,2.56,8.74,.03
-,,2,1.80,.92,1.96,7.72,.09
+Breaking Strain,Assume equal variances,1,3.80,1.54,2.47,12,.029
+,,2,1.80,.89,2.03,12,.065
+,Does not assume equal,1,3.80,1.48,2.56,8.74,.031
+,,2,1.80,.92,1.96,7.72,.086
 ])
 AT_CLEANUP
 
@@ -118,11 +118,11 @@ Breaking Strain,Aspeger,5,2.20,1.30,.58,.58,3.82,1.00,4.00
 
 Table: Test of Homogeneity of Variances
 ,Levene Statistic,df1,df2,Sig.
-Breaking Strain,1.09,1,5,.35
+Breaking Strain,1.09,1,5,.345
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-Breaking Strain,Between Groups,2.41,1,2.41,1.07,.35
+Breaking Strain,Between Groups,2.41,1,2.41,1.07,.349
 ,Within Groups,11.30,5,2.26,,
 ,Total,13.71,6,,,
 
@@ -134,10 +134,10 @@ Contrast,1,-2,2
 
 Table: Contrast Tests
 ,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
-Breaking Strain,Assume equal variances,1,2.60,2.52,1.03,5,.35
-,,2,1.30,1.26,1.03,5,.35
-,Does not assume equal,1,2.60,3.22,.81,1.32,.54
-,,2,1.30,1.61,.81,1.32,.54
+Breaking Strain,Assume equal variances,1,2.60,2.52,1.03,5,.349
+,,2,1.30,1.26,1.03,5,.349
+,Does not assume equal,1,2.60,3.22,.81,1.32,.539
+,,2,1.30,1.61,.81,1.32,.539
 
 Variable,Value,Label
 S,2.00,
@@ -151,11 +151,11 @@ Breaking Strain,Bloggs,3,3.00,1.00,.58,.52,5.48,2.00,4.00
 
 Table: Test of Homogeneity of Variances
 ,Levene Statistic,df1,df2,Sig.
-Breaking Strain,.92,1,6,.37
+Breaking Strain,.92,1,6,.374
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-Breaking Strain,Between Groups,7.50,1,7.50,3.75,.10
+Breaking Strain,Between Groups,7.50,1,7.50,3.75,.101
 ,Within Groups,12.00,6,2.00,,
 ,Total,19.50,7,,,
 
@@ -167,10 +167,10 @@ Contrast,1,-2,2
 
 Table: Contrast Tests
 ,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
-Breaking Strain,Assume equal variances,1,4.00,2.07,1.94,6,.10
-,,2,2.00,1.03,1.94,6,.10
-,Does not assume equal,1,4.00,1.83,2.19,5.88,.07
-,,2,2.00,.91,2.19,5.88,.07
+Breaking Strain,Assume equal variances,1,4.00,2.07,1.94,6,.101
+,,2,2.00,1.03,1.94,6,.101
+,Does not assume equal,1,4.00,1.83,2.19,5.88,.072
+,,2,2.00,.91,2.19,5.88,.072
 ])
 
 AT_CLEANUP
@@ -321,7 +321,7 @@ QUALITY,11.00,5,12.20,1.30,.58,10.58,13.82,11.00,14.00
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-QUALITY,Between Groups,20.13,2,10.07,5.12,.02
+QUALITY,Between Groups,20.13,2,10.07,5.12,.025
 ,Within Groups,23.60,12,1.97,,
 ,Total,43.73,14,,,
 ])
@@ -362,11 +362,11 @@ ONEWAY
 AT_CHECK([pspp -O format=csv oneway-homogeneity.sps], [0], 
 [Table: Test of Homogeneity of Variances
 ,Levene Statistic,df1,df2,Sig.
-QUALITY,.09,2,12,.91
+QUALITY,.09,2,12,.913
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-QUALITY,Between Groups,20.13,2,10.07,5.12,.02
+QUALITY,Between Groups,20.13,2,10.07,5.12,.025
 ,Within Groups,23.60,12,1.97,,
 ,Total,43.73,14,,,
 ])
@@ -414,10 +414,12 @@ ONEWAY x y z by g
 	/CONTRAST 2 -9 7  0
 	.
 ])
+
 AT_CHECK([pspp -o pspp.csv multivar.sps])
+
 dnl Some machines return 3.88 instead of 3.87 below (see bug #31611).
-AT_CHECK([sed 's/^,Within Groups,3.88/,Within Groups,3.87/' pspp.csv], [0],
-[Table: Descriptives
+AT_CHECK([sed 's/^,Within Groups,3.88/,Within Groups,3.87/' pspp.csv], [0], [dnl
+Table: Descriptives
 ,,,,,,95% Confidence Interval for Mean,,,
 ,,N,Mean,Std. Deviation,Std. Error,Lower Bound,Upper Bound,Minimum,Maximum
 x,10.00,3,3.67,4.62,2.67,-7.81,15.14,1.00,9.00
@@ -438,19 +440,19 @@ z,10.00,3,3.67,4.73,2.73,-8.07,15.41,.00,9.00
 
 Table: Test of Homogeneity of Variances
 ,Levene Statistic,df1,df2,Sig.
-x,18.76,3,20,.00
-y,71.41,3,20,.00
-z,.89,3,20,.46
+x,18.76,3,20,.000
+y,71.41,3,20,.000
+z,.89,3,20,.463
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-x,Between Groups,56.16,3,18.72,2.92,.06
+x,Between Groups,56.16,3,18.72,2.92,.059
 ,Within Groups,128.34,20,6.42,,
 ,Total,184.50,23,,,
-y,Between Groups,7.75,3,2.58,13.33,.00
+y,Between Groups,7.75,3,2.58,13.33,.000
 ,Within Groups,3.87,20,.19,,
 ,Total,11.63,23,,,
-z,Between Groups,17.47,3,5.82,.62,.61
+z,Between Groups,17.47,3,5.82,.62,.610
 ,Within Groups,187.87,20,9.39,,
 ,Total,205.33,23,,,
 
@@ -462,18 +464,18 @@ Contrast,1,3,2,0,-5
 
 Table: Contrast Tests
 ,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
-x,Assume equal variances,1,-7.40,6.67,1.11,20,.28
-,,2,6.26,12.32,.51,20,.62
-,Does not assume equal,1,-7.40,10.04,-.74,4.53,.50
-,,2,6.26,5.85,1.07,2.87,.37
-y,Assume equal variances,1,-6.88,1.16,5.94,20,.00
-,,2,3.50,2.14,1.63,20,.12
-,Does not assume equal,1,-6.88,.91,-7.51,7.00,.00
-,,2,3.50,1.32,2.65,7.00,.03
-z,Assume equal variances,1,-9.70,8.07,1.20,20,.24
-,,2,11.73,14.91,.79,20,.44
-,Does not assume equal,1,-9.70,9.57,-1.01,3.64,.37
-,,2,11.73,14.53,.81,9.88,.44
+x,Assume equal variances,1,-7.40,6.67,1.11,20,.280
+,,2,6.26,12.32,.51,20,.617
+,Does not assume equal,1,-7.40,10.04,-.74,4.53,.497
+,,2,6.26,5.85,1.07,2.87,.366
+y,Assume equal variances,1,-6.88,1.16,5.94,20,.000
+,,2,3.50,2.14,1.63,20,.118
+,Does not assume equal,1,-6.88,.91,-7.51,7.00,.000
+,,2,3.50,1.32,2.65,7.00,.033
+z,Assume equal variances,1,-9.70,8.07,1.20,20,.243
+,,2,11.73,14.91,.79,20,.440
+,Does not assume equal,1,-9.70,9.57,-1.01,3.64,.373
+,,2,11.73,14.53,.81,9.88,.438
 ])
 
 AT_CLEANUP
@@ -727,25 +729,25 @@ ONEWAY
 AT_CHECK([pspp -O format=csv oneway-sidak.sps], [0], 
 [Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-score,Between Groups,54.9500,3,18.3167,7.0449,.0031
+score,Between Groups,54.9500,3,18.3167,7.0449,.003
 ,Within Groups,41.6000,16,2.6000,,
 ,Total,96.5500,19,,,
 
 Table: Multiple Comparisons (score)
 ,,,Mean Difference,,,95% Confidence Interval,
 ,(I) program,(J) program,(I - J),Std. Error,Sig.,Lower Bound,Upper Bound
-Šidák,1.0000,2.0000,3.0000,1.0198,.0561,-.0575,6.0575
-,,3.0000,-.4000,1.0198,.9993,-3.4575,2.6575
-,,4.0000,3.2000,1.0198,.0375,.1425,6.2575
-,2.0000,1.0000,-3.0000,1.0198,.0561,-6.0575,.0575
-,,3.0000,-3.4000,1.0198,.0250,-6.4575,-.3425
-,,4.0000,.2000,1.0198,1.0000,-2.8575,3.2575
-,3.0000,1.0000,.4000,1.0198,.9993,-2.6575,3.4575
-,,2.0000,3.4000,1.0198,.0250,.3425,6.4575
-,,4.0000,3.6000,1.0198,.0166,.5425,6.6575
-,4.0000,1.0000,-3.2000,1.0198,.0375,-6.2575,-.1425
-,,2.0000,-.2000,1.0198,1.0000,-3.2575,2.8575
-,,3.0000,-3.6000,1.0198,.0166,-6.6575,-.5425
+Šidák,1.0000,2.0000,3.0000,1.0198,.056,-.0575,6.0575
+,,3.0000,-.4000,1.0198,.999,-3.4575,2.6575
+,,4.0000,3.2000,1.0198,.038,.1425,6.2575
+,2.0000,1.0000,-3.0000,1.0198,.056,-6.0575,.0575
+,,3.0000,-3.4000,1.0198,.025,-6.4575,-.3425
+,,4.0000,.2000,1.0198,1.000,-2.8575,3.2575
+,3.0000,1.0000,.4000,1.0198,.999,-2.6575,3.4575
+,,2.0000,3.4000,1.0198,.025,.3425,6.4575
+,,4.0000,3.6000,1.0198,.017,.5425,6.6575
+,4.0000,1.0000,-3.2000,1.0198,.038,-6.2575,-.1425
+,,2.0000,-.2000,1.0198,1.000,-3.2575,2.8575
+,,3.0000,-3.6000,1.0198,.017,-6.6575,-.5425
 ])
 
 AT_CLEANUP
@@ -861,13 +863,13 @@ AT_CHECK([pspp -O format=csv oneway-bad-contrast.sps], [0], [dnl
 
 Table: ANOVA
 ,,Sum of Squares,df,Mean Square,F,Sig.
-height,Between Groups,92629.63,1,92629.63,120.77,.00
+height,Between Groups,92629.63,1,92629.63,120.77,.000
 ,Within Groups,4601.87,6,766.98,,
 ,Total,97231.50,7,,,
-weight,Between Groups,2451.65,1,2451.65,174.59,.00
+weight,Between Groups,2451.65,1,2451.65,174.59,.000
 ,Within Groups,84.25,6,14.04,,
 ,Total,2535.90,7,,,
-temperature,Between Groups,1.80,1,1.80,.13,.73
+temperature,Between Groups,1.80,1,1.80,.13,.733
 ,Within Groups,84.55,6,14.09,,
 ,Total,86.36,7,,,
 
@@ -880,24 +882,24 @@ Contrast,1,-1,1
 
 Table: Contrast Tests
 ,,Contrast,Value of Contrast,Std. Error,t,df,Sig. (2-tailed)
-height,Assume equal variances,1,-222.27,20.23,10.99,6,.00
-,,2,-666.80,60.68,10.99,6,.00
-,,3,-2000.40,182.03,10.99,6,.00
-,Does not assume equal,1,-222.27,27.67,-8.03,2.00,.02
-,,2,-666.80,83.02,-8.03,2.00,.02
-,,3,-2000.40,249.07,-8.03,2.00,.02
-weight,Assume equal variances,1,-36.16,2.74,13.21,6,.00
-,,2,-108.48,8.21,13.21,6,.00
-,,3,-325.44,24.63,13.21,6,.00
-,Does not assume equal,1,-36.16,2.19,-16.48,5.42,.00
-,,2,-108.48,6.58,-16.48,5.42,.00
-,,3,-325.44,19.75,-16.48,5.42,.00
-temperature,Assume equal variances,1,-.98,2.74,.36,6,.73
-,,2,-2.94,8.22,.36,6,.73
-,,3,-8.83,24.67,.36,6,.73
-,Does not assume equal,1,-.98,2.07,-.47,4.19,.66
-,,2,-2.94,6.22,-.47,4.19,.66
-,,3,-8.83,18.66,-.47,4.19,.66
+height,Assume equal variances,1,-222.27,20.23,10.99,6,.000
+,,2,-666.80,60.68,10.99,6,.000
+,,3,-2000.40,182.03,10.99,6,.000
+,Does not assume equal,1,-222.27,27.67,-8.03,2.00,.015
+,,2,-666.80,83.02,-8.03,2.00,.015
+,,3,-2000.40,249.07,-8.03,2.00,.015
+weight,Assume equal variances,1,-36.16,2.74,13.21,6,.000
+,,2,-108.48,8.21,13.21,6,.000
+,,3,-325.44,24.63,13.21,6,.000
+,Does not assume equal,1,-36.16,2.19,-16.48,5.42,.000
+,,2,-108.48,6.58,-16.48,5.42,.000
+,,3,-325.44,19.75,-16.48,5.42,.000
+temperature,Assume equal variances,1,-.98,2.74,.36,6,.733
+,,2,-2.94,8.22,.36,6,.733
+,,3,-8.83,24.67,.36,6,.733
+,Does not assume equal,1,-.98,2.07,-.47,4.19,.660
+,,2,-2.94,6.22,-.47,4.19,.660
+,,3,-8.83,18.66,-.47,4.19,.660
 ])
 
 AT_CLEANUP

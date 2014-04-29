@@ -185,5 +185,8 @@ int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
 
 extern const struct fmt_spec F_8_0 ;
+extern const struct fmt_spec F_8_2 ;
+extern const struct fmt_spec F_4_3 ;
+extern const struct fmt_spec F_5_1 ;
 
 #endif /* data/format.h */

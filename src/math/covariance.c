@@ -813,6 +813,6 @@ covariance_dump_enc (const struct covariance *cov, const struct ccase *c,
   for (i = 0 ; i < cov->dim; ++i)
     {
       double v = get_val (cov, i, c);
-      tab_double (t, i, row, 0, v, i < cov->n_vars ? NULL : &F_8_0);
+      tab_double (t, i, row, 0, v, i < cov->n_vars ? NULL : &F_8_0, RC_OTHER);
     }
 }

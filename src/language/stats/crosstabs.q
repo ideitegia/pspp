@@ -867,6 +867,7 @@ make_summary_table (struct crosstabs_proc *proc)
   int i;
 
   summary = tab_create (7, 3 + proc->n_pivots);
+  tab_set_format (summary, RC_WEIGHT, &proc->weight_format);
   tab_title (summary, _("Summary."));
   tab_headers (summary, 1, 0, 3, 0);
   tab_joint_text (summary, 1, 0, 6, 0, TAB_CENTER, _("Cases"));
@@ -911,8 +912,7 @@ make_summary_table (struct crosstabs_proc *proc)
       n[2] = n[0] + n[1];
       for (i = 0; i < 3; i++)
         {
-          tab_double (summary, i * 2 + 1, 0, TAB_RIGHT, n[i],
-                      &proc->weight_format);
+          tab_double (summary, i * 2 + 1, 0, TAB_RIGHT, n[i], NULL, RC_WEIGHT);
           tab_text_format (summary, i * 2 + 2, 0, TAB_RIGHT, "%.1f%%",
                            n[i] / n[2] * 100.);
         }
@@ -928,10 +928,10 @@ make_summary_table (struct crosstabs_proc *proc)
 
 static struct tab_table *create_crosstab_table (struct crosstabs_proc *,
                                                 struct pivot_table *);
-static struct tab_table *create_chisq_table (struct pivot_table *);
-static struct tab_table *create_sym_table (struct pivot_table *);
-static struct tab_table *create_risk_table (struct pivot_table *);
-static struct tab_table *create_direct_table (struct pivot_table *);
+static struct tab_table *create_chisq_table (struct crosstabs_proc *proc, struct pivot_table *);
+static struct tab_table *create_sym_table (struct crosstabs_proc *proc, struct pivot_table *);
+static struct tab_table *create_risk_table (struct crosstabs_proc *proc, struct pivot_table *);
+static struct tab_table *create_direct_table (struct crosstabs_proc *proc, struct pivot_table *);
 static void display_dimensions (struct crosstabs_proc *, struct pivot_table *,
                                 struct tab_table *, int first_difference);
 static void display_crosstabulation (struct crosstabs_proc *,
@@ -987,17 +987,17 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   if (proc->cells)
     table = create_crosstab_table (proc, pt);
   if (proc->statistics & (1u << CRS_ST_CHISQ))
-    chisq = create_chisq_table (pt);
+    chisq = create_chisq_table (proc, pt);
   if (proc->statistics & ((1u << CRS_ST_PHI) | (1u << CRS_ST_CC)
                           | (1u << CRS_ST_BTAU) | (1u << CRS_ST_CTAU)
                           | (1u << CRS_ST_GAMMA) | (1u << CRS_ST_CORR)
                           | (1u << CRS_ST_KAPPA)))
-    sym = create_sym_table (pt);
+    sym = create_sym_table (proc, pt);
   if (proc->statistics & (1u << CRS_ST_RISK))
-    risk = create_risk_table (pt);
+    risk = create_risk_table (proc, pt);
   if (proc->statistics & ((1u << CRS_ST_LAMBDA) | (1u << CRS_ST_UC)
                           | (1u << CRS_ST_D) | (1u << CRS_ST_ETA)))
-    direct = create_direct_table (pt);
+    direct = create_direct_table (proc, pt);
 
   row0 = row1 = 0;
   while (find_crosstab (pt, &row0, &row1))
@@ -1198,6 +1198,7 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   table = tab_create (x.n_consts + 1 + x.n_cols + 1,
                       (x.n_entries / x.n_cols) * 3 / 2 * proc->n_cells + 10);
   tab_headers (table, x.n_consts + 1, 0, 2, 0);
+  tab_set_format (table, RC_WEIGHT, &proc->weight_format);
 
   /* First header line. */
   tab_joint_text (table, x.n_consts + 1, 0,
@@ -1263,13 +1264,14 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 }
 
 static struct tab_table *
-create_chisq_table (struct pivot_table *pt)
+create_chisq_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 {
   struct tab_table *chisq;
 
   chisq = tab_create (6 + (pt->n_vars - 2),
                       pt->n_entries / pt->n_cols * 3 / 2 * N_CHISQ + 10);
   tab_headers (chisq, 1 + (pt->n_vars - 2), 0, 1, 0);
+  tab_set_format (chisq, RC_WEIGHT, &proc->weight_format);
 
   tab_title (chisq, _("Chi-square tests."));
 
@@ -1290,12 +1292,15 @@ create_chisq_table (struct pivot_table *pt)
 
 /* Symmetric measures. */
 static struct tab_table *
-create_sym_table (struct pivot_table *pt)
+create_sym_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 {
   struct tab_table *sym;
 
   sym = tab_create (6 + (pt->n_vars - 2),
                     pt->n_entries / pt->n_cols * 7 + 10);
+
+  tab_set_format (sym, RC_WEIGHT, &proc->weight_format);
+
   tab_headers (sym, 2 + (pt->n_vars - 2), 0, 1, 0);
   tab_title (sym, _("Symmetric measures."));
 
@@ -1313,13 +1318,14 @@ create_sym_table (struct pivot_table *pt)
 
 /* Risk estimate. */
 static struct tab_table *
-create_risk_table (struct pivot_table *pt)
+create_risk_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 {
   struct tab_table *risk;
 
   risk = tab_create (4 + (pt->n_vars - 2), pt->n_entries / pt->n_cols * 4 + 10);
   tab_headers (risk, 1 + pt->n_vars - 2, 0, 2, 0);
   tab_title (risk, _("Risk estimate."));
+  tab_set_format (risk, RC_WEIGHT, &proc->weight_format);
 
   tab_offset (risk, pt->n_vars - 2, 0);
   tab_joint_text_format (risk, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE,
@@ -1337,7 +1343,7 @@ create_risk_table (struct pivot_table *pt)
 
 /* Directional measures. */
 static struct tab_table *
-create_direct_table (struct pivot_table *pt)
+create_direct_table (struct crosstabs_proc *proc, struct pivot_table *pt)
 {
   struct tab_table *direct;
 
@@ -1345,6 +1351,7 @@ create_direct_table (struct pivot_table *pt)
                        pt->n_entries / pt->n_cols * 7 + 10);
   tab_headers (direct, 3 + (pt->n_vars - 2), 0, 1, 0);
   tab_title (direct, _("Directional measures."));
+  tab_set_format (direct, RC_WEIGHT, &proc->weight_format);
 
   tab_offset (direct, pt->n_vars - 2, 0);
   tab_text (direct, 0, 0, TAB_LEFT | TAT_TITLE, _("Category"));
@@ -1807,22 +1814,22 @@ display_chisq (struct pivot_table *pt, struct tab_table *chisq,
       tab_text (chisq, 0, 0, TAB_LEFT, gettext (chisq_stats[i]));
       if (i != 2)
 	{
-	  tab_double (chisq, 1, 0, TAB_RIGHT, chisq_v[i], NULL);
-	  tab_double (chisq, 2, 0, TAB_RIGHT, df[i], &pt->weight_format);
+	  tab_double (chisq, 1, 0, TAB_RIGHT, chisq_v[i], NULL, RC_OTHER);
+	  tab_double (chisq, 2, 0, TAB_RIGHT, df[i], NULL, RC_WEIGHT);
 	  tab_double (chisq, 3, 0, TAB_RIGHT,
-		     gsl_cdf_chisq_Q (chisq_v[i], df[i]), NULL);
+		      gsl_cdf_chisq_Q (chisq_v[i], df[i]), NULL, RC_PVALUE);
 	}
       else
 	{
 	  *showed_fisher = true;
-	  tab_double (chisq, 4, 0, TAB_RIGHT, fisher2, NULL);
-	  tab_double (chisq, 5, 0, TAB_RIGHT, fisher1, NULL);
+	  tab_double (chisq, 4, 0, TAB_RIGHT, fisher2, NULL, RC_PVALUE);
+	  tab_double (chisq, 5, 0, TAB_RIGHT, fisher1, NULL, RC_PVALUE);
 	}
       tab_next_row (chisq);
     }
 
   tab_text (chisq, 0, 0, TAB_LEFT, _("N of Valid Cases"));
-  tab_double (chisq, 1, 0, TAB_RIGHT, pt->total, &pt->weight_format);
+  tab_double (chisq, 1, 0, TAB_RIGHT, pt->total, NULL, RC_WEIGHT);
   tab_next_row (chisq);
 
   tab_offset (chisq, 0, -1);
@@ -1887,17 +1894,17 @@ display_symmetric (struct crosstabs_proc *proc, struct pivot_table *pt,
 	}
 
       tab_text (sym, 1, 0, TAB_LEFT, gettext (stats[i]));
-      tab_double (sym, 2, 0, TAB_RIGHT, sym_v[i], NULL);
+      tab_double (sym, 2, 0, TAB_RIGHT, sym_v[i], NULL, RC_OTHER);
       if (sym_ase[i] != SYSMIS)
-	tab_double (sym, 3, 0, TAB_RIGHT, sym_ase[i], NULL);
+	tab_double (sym, 3, 0, TAB_RIGHT, sym_ase[i], NULL, RC_OTHER);
       if (sym_t[i] != SYSMIS)
-	tab_double (sym, 4, 0, TAB_RIGHT, sym_t[i], NULL);
-      /*tab_double (sym, 5, 0, TAB_RIGHT, normal_sig (sym_v[i]), NULL);*/
+	tab_double (sym, 4, 0, TAB_RIGHT, sym_t[i], NULL, RC_OTHER);
+      /*tab_double (sym, 5, 0, TAB_RIGHT, normal_sig (sym_v[i]), NULL, RC_PVALUE);*/
       tab_next_row (sym);
     }
 
   tab_text (sym, 0, 0, TAB_LEFT, _("N of Valid Cases"));
-  tab_double (sym, 2, 0, TAB_RIGHT, pt->total, &pt->weight_format);
+  tab_double (sym, 2, 0, TAB_RIGHT, pt->total, NULL, RC_WEIGHT);
   tab_next_row (sym);
 
   tab_offset (sym, 0, -1);
@@ -1955,14 +1962,14 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
 	}
 
       tab_text (risk, 0, 0, TAB_LEFT, buf);
-      tab_double (risk, 1, 0, TAB_RIGHT, risk_v[i], NULL);
-      tab_double (risk, 2, 0, TAB_RIGHT, lower[i], NULL);
-      tab_double (risk, 3, 0, TAB_RIGHT, upper[i], NULL);
+      tab_double (risk, 1, 0, TAB_RIGHT, risk_v[i], NULL, RC_OTHER);
+      tab_double (risk, 2, 0, TAB_RIGHT, lower[i], NULL, RC_OTHER);
+      tab_double (risk, 3, 0, TAB_RIGHT, upper[i], NULL, RC_OTHER);
       tab_next_row (risk);
     }
 
   tab_text (risk, 0, 0, TAB_LEFT, _("N of Valid Cases"));
-  tab_double (risk, 1, 0, TAB_RIGHT, pt->total, &pt->weight_format);
+  tab_double (risk, 1, 0, TAB_RIGHT, pt->total, NULL, RC_WEIGHT);
   tab_next_row (risk);
 
   tab_offset (risk, 0, -1);
@@ -2077,12 +2084,12 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 	    }
       }
 
-      tab_double (direct, 3, 0, TAB_RIGHT, direct_v[i], NULL);
+      tab_double (direct, 3, 0, TAB_RIGHT, direct_v[i], NULL, RC_OTHER);
       if (direct_ase[i] != SYSMIS)
-	tab_double (direct, 4, 0, TAB_RIGHT, direct_ase[i], NULL);
+	tab_double (direct, 4, 0, TAB_RIGHT, direct_ase[i], NULL, RC_OTHER);
       if (direct_t[i] != SYSMIS)
-	tab_double (direct, 5, 0, TAB_RIGHT, direct_t[i], NULL);
-      /*tab_double (direct, 6, 0, TAB_RIGHT, normal_sig (direct_v[i]), NULL);*/
+	tab_double (direct, 5, 0, TAB_RIGHT, direct_t[i], NULL, RC_OTHER);
+      /*tab_double (direct, 6, 0, TAB_RIGHT, normal_sig (direct_v[i]), NULL, RC_PVALUE);*/
       tab_next_row (direct);
     }
 

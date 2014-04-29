@@ -246,7 +246,7 @@ show_ranks_box (const struct one_sample_test *ost, const struct friedman *fr)
 		TAB_LEFT, var_to_string (ost->vars[i]));
 
       tab_double (table, 1, row_headers + i,
-		  0, fr->rank_sum[i] / fr->cc, 0);
+		  0, fr->rank_sum[i] / fr->cc, NULL, RC_OTHER);
     }
 
   tab_submit (table);
@@ -266,6 +266,7 @@ show_sig_box (const struct one_sample_test *ost, const struct friedman *fr)
   const int column_headers = 0;
   struct tab_table *table =
     tab_create (row_headers + 1, column_headers + (ft->kendalls_w ? 5 : 4));
+  tab_set_format (table, RC_WEIGHT, wfmt);
 
   tab_headers (table, row_headers, 0, column_headers, 0);
 
@@ -297,21 +298,21 @@ show_sig_box (const struct one_sample_test *ost, const struct friedman *fr)
 
   row = 0;
   tab_double (table, 1, column_headers + row++, 
-	      0, fr->cc, wfmt);
+	      0, fr->cc, NULL, RC_WEIGHT);
 
   if (ft->kendalls_w)
     tab_double (table, 1, column_headers + row++, 
-		0, fr->w, 0);
+		0, fr->w, NULL, RC_OTHER);
 
   tab_double (table, 1, column_headers + row++, 
-	      0, fr->chi_sq, 0);
+	      0, fr->chi_sq, NULL, RC_OTHER);
 
   tab_double (table, 1, column_headers + row++, 
-	      0, ost->n_vars - 1, &F_8_0);
+	      0, ost->n_vars - 1, NULL, RC_INTEGER);
 
   tab_double (table, 1, column_headers + row++, 
 	      0, gsl_cdf_chisq_Q (fr->chi_sq, ost->n_vars - 1), 
-	      0);
+	      NULL, RC_PVALUE);
 
   tab_submit (table);
 }

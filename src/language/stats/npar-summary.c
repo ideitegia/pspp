@@ -164,11 +164,11 @@ do_summary_box (const struct descriptives *desc,
       col = 1;
       if (desc != NULL)
         {
-          tab_double (table, col++, 2 + v, 0, desc[v].n, fmt);
-          tab_double (table, col++, 2 + v, 0, desc[v].mean, fmt);
-          tab_double (table, col++, 2 + v, 0, desc[v].std_dev, fmt);
-          tab_double (table, col++, 2 + v, 0, desc[v].min, fmt);
-          tab_double (table, col++, 2 + v, 0, desc[v].max, fmt);
+          tab_double (table, col++, 2 + v, 0, desc[v].n, fmt, RC_OTHER);
+          tab_double (table, col++, 2 + v, 0, desc[v].mean, fmt, RC_OTHER);
+          tab_double (table, col++, 2 + v, 0, desc[v].std_dev, fmt, RC_OTHER);
+          tab_double (table, col++, 2 + v, 0, desc[v].min, fmt, RC_OTHER);
+          tab_double (table, col++, 2 + v, 0, desc[v].max, fmt, RC_OTHER);
         }
     }
 

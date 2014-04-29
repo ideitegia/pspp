@@ -325,25 +325,25 @@ AT_CHECK([pspp -O format=csv  correlations.sps], [0],
 [Table: Correlations
 ,,var4,var5
 var1,Pearson Correlation,.5693,-.0519
-,Sig. (2-tailed),.0000,.6232
+,Sig. (2-tailed),.000,.623
 ,N,93,92
 var2,Pearson Correlation,.3792,-.0407
-,Sig. (2-tailed),.0002,.6985
+,Sig. (2-tailed),.000,.698
 ,N,95,93
 var3,Pearson Correlation,.3699,-.0543
-,Sig. (2-tailed),.0002,.6029
+,Sig. (2-tailed),.000,.603
 ,N,95,94
 
 Table: Correlations
 ,,var1,var2
 var3,Pearson Correlation,.6964,.5615
-,Sig. (2-tailed),.0000,.0000
+,Sig. (2-tailed),.000,.000
 ,N,96,97
 var4,Pearson Correlation,.5693,.3792
-,Sig. (2-tailed),.0000,.0002
+,Sig. (2-tailed),.000,.000
 ,N,93,95
 var5,Pearson Correlation,-.0519,-.0407
-,Sig. (2-tailed),.6232,.6985
+,Sig. (2-tailed),.623,.698
 ,N,92,93
 ])
 

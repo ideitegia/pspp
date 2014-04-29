@@ -605,6 +605,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
   const int nc = heading_columns + cmd->n_percentiles;
 
   t = tab_create (nc, nr);
+
   tab_title (t, _("Percentiles"));
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -724,7 +725,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 			      heading_rows + v * rows_per_var + i * rows_per_cat,
 			      0,
 			      percentile_calculate (es->percentiles[p], cmd->pc_alg),
-			      0);
+			      NULL, RC_OTHER);
               
 		  if (cmd->ptiles[p] == 25.0)
 		    {
@@ -732,7 +733,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 				  heading_rows + v * rows_per_var + i * rows_per_cat + 1,
 				  0,
 				  hinges[0],
-				  0);
+				  NULL, RC_OTHER);
 		    }
 		  else if (cmd->ptiles[p] == 50.0)
 		    {
@@ -740,7 +741,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 				  heading_rows + v * rows_per_var + i * rows_per_cat + 1,
 				  0,
 				  hinges[1],
-				  0);
+				  NULL, RC_OTHER);
 		    }
 		  else if (cmd->ptiles[p] == 75.0)
 		    {
@@ -748,7 +749,7 @@ percentiles_report (const struct examine *cmd, int iact_idx)
 				  heading_rows + v * rows_per_var + i * rows_per_cat + 1,
 				  0,
 				  hinges[2],
-				  0);
+				  NULL, RC_OTHER);
 		    }
 		}
 
@@ -784,6 +785,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
   const int nc = 2 + heading_columns;
 
   t = tab_create (nc, nr);
+
   tab_title (t, _("Descriptives"));
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -889,12 +891,12 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat,
-                      0, m1, 0);
+                      0, m1, NULL, RC_OTHER);
 
           tab_double (t,
                       1 + iact->n_vars + 3,
                       heading_rows + v * rows_per_var + i * rows_per_cat,
-                      0, calc_semean (m2, m0), 0);
+                      0, calc_semean (m2, m0), NULL, RC_OTHER);
 
           tab_text_format (t,
                            1 + iact->n_vars,
@@ -914,7 +916,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 1,
-                      0, m1 - tval * calc_semean (m2, m0), 0);
+                      0, m1 - tval * calc_semean (m2, m0), NULL, RC_OTHER);
 
 
           tab_text (t,
@@ -927,7 +929,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 2,
-                      0, m1 + tval * calc_semean (m2, m0), 0);
+                      0, m1 + tval * calc_semean (m2, m0), NULL, RC_OTHER);
 
 
           tab_text (t,
@@ -942,7 +944,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       heading_rows + v * rows_per_var + i * rows_per_cat + 3,
                       0,
                       trimmed_mean_calculate (es->trimmed_mean),
-                      0);
+                      NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -956,7 +958,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       heading_rows + v * rows_per_var + i * rows_per_cat + 4,
                       0,
                       percentile_calculate (es->quartiles[1], cmd->pc_alg),
-                      0);
+                      NULL, RC_OTHER);
 
 
           tab_text (t,
@@ -969,7 +971,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 5,
-                      0, m2, 0);
+                      0, m2, NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -981,7 +983,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 6,
-                      0, sqrt (m2), 0);
+                      0, sqrt (m2), NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -995,7 +997,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       heading_rows + v * rows_per_var + i * rows_per_cat + 7,
                       0, 
                       es->minima[0].val,
-                      0);
+                      NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -1009,7 +1011,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       heading_rows + v * rows_per_var + i * rows_per_cat + 8,
                       0, 
                       es->maxima[0].val,
-                      0);
+                      NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -1023,7 +1025,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       heading_rows + v * rows_per_var + i * rows_per_cat + 9,
                       0, 
                       es->maxima[0].val - es->minima[0].val,
-                      0);
+                      NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -1039,7 +1041,7 @@ descriptives_report (const struct examine *cmd, int iact_idx)
                       0,
                       percentile_calculate (es->quartiles[2], cmd->pc_alg) - 
                       percentile_calculate (es->quartiles[0], cmd->pc_alg),
-                      0);
+                      NULL, RC_OTHER);
 
 
 
@@ -1054,12 +1056,12 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 11,
-                      0, m3, 0);
+                      0, m3, NULL, RC_OTHER);
 
           tab_double (t,
                       1 + iact->n_vars + 3,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 11,
-                      0, calc_seskew (m0), 0);
+                      0, calc_seskew (m0), NULL, RC_OTHER);
 
           tab_text (t,
                     1 + iact->n_vars,
@@ -1071,12 +1073,12 @@ descriptives_report (const struct examine *cmd, int iact_idx)
           tab_double (t,
                       1 + iact->n_vars + 2,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 12,
-                      0, m4, 0);
+                      0, m4, NULL, RC_OTHER);
 
           tab_double (t,
                       1 + iact->n_vars + 3,
                       heading_rows + v * rows_per_var + i * rows_per_cat + 12,
-                      0, calc_sekurt (m0), 0);
+                      0, calc_sekurt (m0), NULL, RC_OTHER);
         }
 
       free (prev_val);
@@ -1103,6 +1105,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
   const int nc = 2 + heading_columns;
 
   t = tab_create (nc, nr);
+
   tab_title (t, _("Extreme Values"));
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -1219,7 +1222,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
                           heading_rows + v * rows_per_var + i * rows_per_cat + e,
                           TAB_RIGHT,
                           e + 1,
-                          &F_8_0);
+                          NULL, RC_INTEGER);
 
               /* The casenumber */
               if (cmd->id_var)
@@ -1236,14 +1239,14 @@ extremes_report (const struct examine *cmd, int iact_idx)
                             heading_rows + v * rows_per_var + i * rows_per_cat + e,
                             TAB_RIGHT,
                             es->maxima[e].identity.f,
-                            &F_8_0);
+                            NULL, RC_INTEGER);
 
               tab_double (t,
                          heading_columns + 1,
                          heading_rows + v * rows_per_var + i * rows_per_cat + e,
                          0,
                          es->maxima[e].val,
-                         var_get_print_format (cmd->dep_vars[v]));
+			  var_get_print_format (cmd->dep_vars[v]), RC_OTHER);
                          
 
               tab_double (t,
@@ -1251,7 +1254,7 @@ extremes_report (const struct examine *cmd, int iact_idx)
                           heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
                           TAB_RIGHT,
                           e + 1,
-                          &F_8_0);
+                          NULL, RC_INTEGER);
 
               /* The casenumber */
               if (cmd->id_var)
@@ -1268,14 +1271,14 @@ extremes_report (const struct examine *cmd, int iact_idx)
                             heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
                             TAB_RIGHT,
                             es->minima[e].identity.f,
-                            &F_8_0);
+                            NULL, RC_INTEGER);
 
               tab_double (t,
                           heading_columns + 1,
                           heading_rows + v * rows_per_var + i * rows_per_cat + cmd->disp_extremes + e,
                           0,
                           es->minima[e].val,
-                          var_get_print_format (cmd->dep_vars[v]));
+                          var_get_print_format (cmd->dep_vars[v]), RC_OTHER);
             }
         }
       free (prev_val);
@@ -1302,6 +1305,7 @@ summary_report (const struct examine *cmd, int iact_idx)
   const int nc = 6 + heading_columns;
 
   t = tab_create (nc, nr);
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_title (t, _("Case Processing Summary"));
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -1416,7 +1420,7 @@ summary_report (const struct examine *cmd, int iact_idx)
 			heading_rows + n_cats * v + i,
 			0,
 			es[v].non_missing,
-			wfmt);
+			NULL, RC_WEIGHT);
 
 
 	    tab_text_format (t, 
@@ -1433,7 +1437,7 @@ summary_report (const struct examine *cmd, int iact_idx)
 			heading_rows + n_cats * v + i,
 			0,
 			es[v].missing,
-			wfmt);
+			NULL, RC_WEIGHT);
 
 	    tab_text_format (t, 
 			     heading_columns + 3,
@@ -1447,7 +1451,7 @@ summary_report (const struct examine *cmd, int iact_idx)
 			heading_rows + n_cats * v + i,
 			0,
 			total,
-			wfmt);
+			NULL, RC_WEIGHT);
 
 	    /* This can only be 100% can't it? */
 	    tab_text_format (t, 

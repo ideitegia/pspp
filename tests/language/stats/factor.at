@@ -1818,6 +1818,7 @@ FACTOR /VARIABLES=TRAIT1 TO TRAIT5
     /EXTRACTION=PC
     /PRINT=DEFAULT DET UNIVARIATE ROTATION SIG CORRELATION.
 ])
+
 AT_CHECK([pspp -O format=csv factor-norotate.sps], [0], [dnl
 Table: Descriptive Statistics
 ,Mean,Std. Deviation,Analysis N
@@ -1834,11 +1835,11 @@ Correlations,TRAIT1,1.00,.30,.88,1.00,.54
 ,TRAIT3,.88,-.02,1.00,.87,.13
 ,TRAIT4,1.00,.33,.87,1.00,.54
 ,TRAIT5,.54,.84,.13,.54,1.00
-Sig. (1-tailed),TRAIT1,,.26,.00,.00,.10
-,TRAIT2,.26,,.48,.24,.01
-,TRAIT3,.00,.48,,.01,.39
-,TRAIT4,.00,.24,.01,,.10
-,TRAIT5,.10,.01,.39,.10,
+Sig. (1-tailed),TRAIT1,,.260,.004,.000,.103
+,TRAIT2,.260,,.482,.238,.009
+,TRAIT3,.004,.482,,.006,.390
+,TRAIT4,.000,.238,.006,,.103
+,TRAIT5,.103,.009,.390,.103,
 Determinant,.00,,,,,
 
 Table: Communalities

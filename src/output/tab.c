@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -78,12 +78,26 @@ tab_create (int nc, int nr)
   memset (t->rh, 0, nc * (nr + 1));
 
   t->rv = pool_nmalloc (t->container, nr, nc + 1);
+  memset (t->fmtmap, 0, sizeof (*t->fmtmap) * n_RC);
+
   memset (t->rv, TAL_GAP, nr * (nc + 1));
+
+  t->fmtmap[RC_PVALUE] = &F_4_3;
+  t->fmtmap[RC_INTEGER] = &F_8_0;
+  t->fmtmap[RC_OTHER] = settings_get_format ();
 
   t->col_ofs = t->row_ofs = 0;
 
   return t;
 }
+
+
+void 
+tab_set_format (struct tab_table *t, enum result_class rc, const struct fmt_spec *fmt)
+{
+  t->fmtmap[rc] = fmt;
+}
+
 
 /* Sets the width and height of a table, in columns and rows,
    respectively.  Use only to reduce the size of a table, since it
@@ -386,51 +400,13 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
   table->ct[c + r * table->cf] = opt;
 }
 
-/* Sets cell (C,R) in TABLE, with options OPT, to have value VAL
-   with NDEC decimal places. */
-void
-tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
-	   double val, int w, int d)
-{
-  struct fmt_spec f;
-  union value double_value;
-  char *s;
-
-  assert (c >= 0);
-  assert (c < tab_nc (table));
-  assert (r >= 0);
-  assert (r < tab_nr (table));
-
-  f = fmt_for_output (FMT_F, w, d);
-
-#if DEBUGGING
-  if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= tab_nc (table)
-      || r + table->row_ofs >= tab_nr (table))
-    {
-      printf ("tab_fixed(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
-	      "(%d,%d)\n",
-	      c, table->col_ofs, c + table->col_ofs,
-	      r, table->row_ofs, r + table->row_ofs,
-	      tab_nc (table), tab_nr (table));
-      return;
-    }
-#endif
-
-  double_value.f = val;
-  s = data_out_stretchy (&double_value, C_ENCODING, &f, table->container);
-
-  table->cc[c + r * table->cf] = s + strspn (s, " ");
-  table->ct[c + r * table->cf] = opt;
-}
-
 /* Sets cell (C,R) in TABLE, with options OPT, to have value VAL as
    formatted by FMT.
    If FMT is null, then the default print format will be used.
 */
 void
 tab_double (struct tab_table *table, int c, int r, unsigned char opt,
-	   double val, const struct fmt_spec *fmt)
+	    double val, const struct fmt_spec *fmt, enum result_class rc)
 {
   union value double_value ;
   char *s;
@@ -440,9 +416,9 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
   assert (r >= 0);
   assert (r < tab_nr (table));
 
-  if ( fmt == NULL)
-    fmt = settings_get_format ();
-
+  if (fmt == NULL)
+    fmt = table->fmtmap[rc];
+  
   fmt_check_output (fmt);
 
 #if DEBUGGING

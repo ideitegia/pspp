@@ -71,6 +71,7 @@ one_sample_test (const struct tt *tt, const struct one_samp *os)
   const struct fmt_spec *wfmt = tt->wv ? var_get_print_format (tt->wv) : & F_8_0;
 
   struct tab_table *t = tab_create (cols, rows);
+  tab_set_format (t, RC_WEIGHT, wfmt);
 
   tab_headers (t, 0, 0, heading_rows, 0);
   tab_box (t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols - 1, rows - 1);
@@ -119,19 +120,19 @@ one_sample_test (const struct tt *tt, const struct one_samp *os)
       q = gsl_cdf_tdist_Q (tval, df);
 
       tab_text (t, 0, v + heading_rows, TAB_LEFT, var_to_string (per_var_stats->var));
-      tab_double (t, 1, v + heading_rows, TAB_RIGHT, tval, NULL);
-      tab_double (t, 2, v + heading_rows, TAB_RIGHT, df, wfmt);
+      tab_double (t, 1, v + heading_rows, TAB_RIGHT, tval, NULL, RC_OTHER);
+      tab_double (t, 2, v + heading_rows, TAB_RIGHT, df, NULL, RC_WEIGHT);
 
       /* Multiply by 2 to get 2-tailed significance, makeing sure we've got
 	 the correct tail*/
-      tab_double (t, 3, v + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p), NULL);
+      tab_double (t, 3, v + heading_rows, TAB_RIGHT, 2.0 * (tval > 0 ? q : p), NULL, RC_PVALUE);
 
-      tab_double (t, 4, v + heading_rows, TAB_RIGHT, mean_diff,  NULL);
+      tab_double (t, 4, v + heading_rows, TAB_RIGHT, mean_diff,  NULL, RC_OTHER);
 
       tval = gsl_cdf_tdist_Qinv ( (1.0 - tt->confidence) / 2.0, df);
 
-      tab_double (t, 5, v + heading_rows, TAB_RIGHT, mean_diff - tval * se_mean, NULL);
-      tab_double (t, 6, v + heading_rows, TAB_RIGHT, mean_diff + tval * se_mean, NULL);
+      tab_double (t, 5, v + heading_rows, TAB_RIGHT, mean_diff - tval * se_mean, NULL, RC_OTHER);
+      tab_double (t, 6, v + heading_rows, TAB_RIGHT, mean_diff + tval * se_mean, NULL, RC_OTHER);
     }
 
   tab_submit (t);
@@ -148,7 +149,7 @@ one_sample_summary (const struct tt *tt, const struct one_samp *os)
   const int rows = tt->n_vars + heading_rows;
   struct tab_table *t = tab_create (cols, rows);
   const struct fmt_spec *wfmt = tt->wv ? var_get_print_format (tt->wv) : & F_8_0;
-
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_headers (t, 0, 0, heading_rows, 0);
   tab_box (t, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols - 1, rows - 1);
   tab_hline (t, TAL_2, 0, cols - 1, 1);
@@ -168,10 +169,10 @@ one_sample_summary (const struct tt *tt, const struct one_samp *os)
       moments_calculate (m, &cc, &mean, &sigma, NULL, NULL);
 
       tab_text (t, 0, v + heading_rows, TAB_LEFT, var_to_string (per_var_stats->var));
-      tab_double (t, 1, v + heading_rows, TAB_RIGHT, cc, wfmt);
-      tab_double (t, 2, v + heading_rows, TAB_RIGHT, mean, NULL);
-      tab_double (t, 3, v + heading_rows, TAB_RIGHT, sqrt (sigma), NULL);
-      tab_double (t, 4, v + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL);
+      tab_double (t, 1, v + heading_rows, TAB_RIGHT, cc, NULL, RC_WEIGHT);
+      tab_double (t, 2, v + heading_rows, TAB_RIGHT, mean, NULL, RC_OTHER);
+      tab_double (t, 3, v + heading_rows, TAB_RIGHT, sqrt (sigma), NULL, RC_OTHER);
+      tab_double (t, 4, v + heading_rows, TAB_RIGHT, sqrt (sigma / cc), NULL, RC_OTHER);
     }
 
   tab_submit (t);

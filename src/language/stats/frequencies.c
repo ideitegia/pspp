@@ -286,6 +286,7 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
 
   n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (6, n_categories + 2);
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_headers (t, 0, 0, 1, 0);
 
   for (x = 0; x < 6; x++)
@@ -308,10 +309,10 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
         tab_text (t, 0, r, TAB_LEFT, label);
 
       tab_value (t, 1, r, TAB_NONE, &f->value, vf->var, NULL);
-      tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
-      tab_double (t, 3, r, TAB_NONE, percent, NULL);
-      tab_double (t, 4, r, TAB_NONE, valid_percent, NULL);
-      tab_double (t, 5, r, TAB_NONE, cum_total, NULL);
+      tab_double (t, 2, r, TAB_NONE, f->count, NULL, RC_WEIGHT);
+      tab_double (t, 3, r, TAB_NONE, percent, NULL, RC_OTHER);
+      tab_double (t, 4, r, TAB_NONE, valid_percent, NULL, RC_OTHER);
+      tab_double (t, 5, r, TAB_NONE, cum_total, NULL, RC_OTHER);
       r++;
     }
   for (; f < &ft->valid[n_categories]; f++)
@@ -325,9 +326,9 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
         tab_text (t, 0, r, TAB_LEFT, label);
 
       tab_value (t, 1, r, TAB_NONE, &f->value, vf->var, NULL);
-      tab_double (t, 2, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 2, r, TAB_NONE, f->count, NULL, RC_WEIGHT);
       tab_double (t, 3, r, TAB_NONE,
-		     f->count / ft->total_cases * 100.0, NULL);
+		  f->count / ft->total_cases * 100.0, NULL, RC_OTHER);
       tab_text (t, 4, r, TAB_NONE, _("Missing"));
       r++;
     }
@@ -337,9 +338,9 @@ dump_freq_table (const struct var_freqs *vf, const struct variable *wv)
   tab_hline (t, TAL_2, 0, 5, r);
   tab_joint_text (t, 0, r, 1, r, TAB_RIGHT | TAT_TITLE, _("Total"));
   tab_vline (t, TAL_0, 1, r, r);
-  tab_double (t, 2, r, TAB_NONE, cum_freq, wfmt);
-  tab_fixed (t, 3, r, TAB_NONE, 100.0, 5, 1);
-  tab_fixed (t, 4, r, TAB_NONE, 100.0, 5, 1);
+  tab_double (t, 2, r, TAB_NONE, cum_freq, NULL, RC_WEIGHT);
+  tab_double (t, 3, r, TAB_NONE, 100.0, &F_5_1, RC_OTHER);
+  tab_double (t, 4, r, TAB_NONE, 100.0, &F_5_1, RC_OTHER);
 
   tab_title (t, "%s", var_to_string (vf->var));
   tab_submit (t);
@@ -1364,7 +1365,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
 
   t = tab_create (3, ((frq->stats & FRQ_ST_MEDIAN) ? frq->n_stats - 1 : frq->n_stats)
 		  + frq->n_show_percentiles + 2);
-
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 
 
@@ -1382,7 +1383,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
       {
 	tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
 		      gettext (st_name[i]));
-	tab_double (t, 2, r, TAB_NONE, stat_value[i], NULL);
+	tab_double (t, 2, r, TAB_NONE, stat_value[i], NULL, RC_OTHER);
 	r++;
       }
     }
@@ -1391,8 +1392,8 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Valid"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("Missing"));
 
-  tab_double (t, 2, 0, TAB_NONE, ft->valid_cases, wfmt);
-  tab_double (t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, wfmt);
+  tab_double (t, 2, 0, TAB_NONE, ft->valid_cases, NULL, RC_WEIGHT);
+  tab_double (t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, NULL, RC_WEIGHT);
 
   for (i = 0; i < frq->n_percentiles; i++)
     {
@@ -1409,9 +1410,9 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
       if (pc->p == 0.5)
         tab_text (t, 1, r, TAB_LEFT, _("50 (Median)"));
       else
-        tab_fixed (t, 1, r, TAB_LEFT, pc->p * 100, 3, 0);
+        tab_double (t, 1, r, TAB_LEFT, pc->p * 100, NULL, RC_INTEGER);
       tab_double (t, 2, r, TAB_NONE, pc->value,
-                  var_get_print_format (vf->var));
+                  var_get_print_format (vf->var), RC_OTHER);
       r++;
     }
 

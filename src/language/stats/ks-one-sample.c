@@ -276,7 +276,7 @@ show_results (const struct ks *ks,
   const int nc = kst->parent.n_vars + column_headers;
   const int nr = 8 + row_headers;
   struct tab_table *table = tab_create (nc, nr);
-
+  tab_set_format (table, RC_WEIGHT, wfmt);
   tab_headers (table, row_headers, 0, column_headers, 0);
 
   tab_title (table, _("One-Sample Kolmogorov-Smirnov Test"));
@@ -344,21 +344,21 @@ show_results (const struct ks *ks,
       switch (kst->dist)
 	{
 	case KS_UNIFORM:
-	  tab_double (table, col, 1, 0, ks[i].obs_cc, wfmt);
-	  tab_double (table, col, 2, 0, ks[i].test_min, NULL);
-	  tab_double (table, col, 3, 0, ks[i].test_max, NULL);
+	  tab_double (table, col, 1, 0, ks[i].obs_cc, NULL, RC_WEIGHT);
+	  tab_double (table, col, 2, 0, ks[i].test_min, NULL, RC_OTHER);
+	  tab_double (table, col, 3, 0, ks[i].test_max, NULL, RC_OTHER);
 	  break;
 
 	case KS_NORMAL:
-	  tab_double (table, col, 1, 0, ks[i].obs_cc, wfmt);
-	  tab_double (table, col, 2, 0, ks[i].mu, NULL);
-	  tab_double (table, col, 3, 0, ks[i].sigma, NULL);
+	  tab_double (table, col, 1, 0, ks[i].obs_cc, NULL, RC_WEIGHT);
+	  tab_double (table, col, 2, 0, ks[i].mu, NULL, RC_OTHER);
+	  tab_double (table, col, 3, 0, ks[i].sigma, NULL, RC_OTHER);
 	  break;
 
 	case KS_POISSON:
 	case KS_EXPONENTIAL:
-	  tab_double (table, col, 1, 0, ks[i].obs_cc, wfmt);
-	  tab_double (table, col, 2, 0, ks[i].mu, NULL);
+	  tab_double (table, col, 1, 0, ks[i].obs_cc, NULL, RC_WEIGHT);
+	  tab_double (table, col, 2, 0, ks[i].mu, NULL, RC_OTHER);
 	  break;
 
 	default:
@@ -370,13 +370,13 @@ show_results (const struct ks *ks,
 
       z = sqrt (ks[i].obs_cc) * abs;
 
-      tab_double (table, col, 5, 0, ks[i].diff_pos, NULL);
-      tab_double (table, col, 6, 0, ks[i].diff_neg, NULL);
+      tab_double (table, col, 5, 0, ks[i].diff_pos, NULL, RC_OTHER);
+      tab_double (table, col, 6, 0, ks[i].diff_neg, NULL, RC_OTHER);
 
-      tab_double (table, col, 4, 0, abs, NULL);
+      tab_double (table, col, 4, 0, abs, NULL, RC_OTHER);
 
-      tab_double (table, col, 7, 0, z, NULL);
-      tab_double (table, col, 8, 0, ks_asymp_sig (z), NULL);
+      tab_double (table, col, 7, 0, z, NULL, RC_OTHER);
+      tab_double (table, col, 8, 0, ks_asymp_sig (z), NULL, RC_PVALUE);
     }
 
 

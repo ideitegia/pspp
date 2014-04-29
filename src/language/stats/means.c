@@ -1114,7 +1114,7 @@ output_case_processing_summary (const struct mtable *table)
 	    table->summary[row].non_missing;
 
 	  tab_double (t, 1, row + heading_rows,
-		      0, table->summary[row].non_missing, &F_8_0);
+		      0, table->summary[row].non_missing, NULL, RC_INTEGER);
 
 	  tab_text_format (t, 2, row + heading_rows,
 			   0, _("%g%%"), 
@@ -1122,7 +1122,7 @@ output_case_processing_summary (const struct mtable *table)
 
 
 	  tab_double (t, 3, row + heading_rows,
-		      0, table->summary[row].missing, &F_8_0);
+		      0, table->summary[row].missing, NULL, RC_INTEGER);
 
 
 	  tab_text_format (t, 4, row + heading_rows,
@@ -1132,7 +1132,7 @@ output_case_processing_summary (const struct mtable *table)
 
 	  tab_double (t, 5, row + heading_rows,
 		      0, table->summary[row].missing + 
-		      table->summary[row].non_missing, &F_8_0);
+		      table->summary[row].non_missing, NULL, RC_INTEGER);
 
 	  tab_text_format (t, 6, row + heading_rows,
 			   0, _("%g%%"), 
@@ -1241,7 +1241,7 @@ output_report (const struct means *cmd,  int iact_idx,
 
 	      tab_double (t, heading_columns + i,
 			  heading_rows + grp + dv * n_cats,
-			  0, result, 0);
+			  0, result, NULL, RC_OTHER);
 	    }
 	}
     }

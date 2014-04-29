@@ -1323,10 +1323,10 @@ show_communalities (const struct cmd_factor * factor,
       tab_text (t, c++, i + heading_rows, TAT_TITLE, var_to_string (factor->vars[i]));
 
       if (factor->print & PRINT_INITIAL)
-	tab_double (t, c++, i + heading_rows, 0, gsl_vector_get (initial, i), NULL);
+	tab_double (t, c++, i + heading_rows, 0, gsl_vector_get (initial, i), NULL, RC_OTHER);
 
       if (factor->print & PRINT_EXTRACTION)
-	tab_double (t, c++, i + heading_rows, 0, gsl_vector_get (extracted, i), NULL);
+	tab_double (t, c++, i + heading_rows, 0, gsl_vector_get (extracted, i), NULL, RC_OTHER);
     }
 
   tab_submit (t);
@@ -1415,7 +1415,7 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
 	  if ( fabs (x) < factor->blank)
 	    continue;
 
-	  tab_double (t, heading_columns + j, heading_rows + i, 0, x, NULL);
+	  tab_double (t, heading_columns + j, heading_rows + i, 0, x, NULL, RC_OTHER);
 	}
     }
 
@@ -1552,9 +1552,9 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
       /* Initial Eigenvalues */
       if (factor->print & PRINT_INITIAL)
       {
-	tab_double (t, c++, i + heading_rows, 0, i_lambda, NULL);
-	tab_double (t, c++, i + heading_rows, 0, i_percent, NULL);
-	tab_double (t, c++, i + heading_rows, 0, i_cum, NULL);
+	tab_double (t, c++, i + heading_rows, 0, i_lambda, NULL, RC_OTHER);
+	tab_double (t, c++, i + heading_rows, 0, i_percent, NULL, RC_OTHER);
+	tab_double (t, c++, i + heading_rows, 0, i_cum, NULL, RC_OTHER);
       }
 
 
@@ -1563,9 +1563,9 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 	  if (i < idata->n_extractions)
 	    {
 	      /* Sums of squared loadings */
-	      tab_double (t, c++, i + heading_rows, 0, e_lambda, NULL);
-	      tab_double (t, c++, i + heading_rows, 0, e_percent, NULL);
-	      tab_double (t, c++, i + heading_rows, 0, e_cum, NULL);
+	      tab_double (t, c++, i + heading_rows, 0, e_lambda, NULL, RC_OTHER);
+	      tab_double (t, c++, i + heading_rows, 0, e_percent, NULL, RC_OTHER);
+	      tab_double (t, c++, i + heading_rows, 0, e_cum, NULL, RC_OTHER);
 	    }
 	}
 
@@ -1579,9 +1579,9 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
               if (i < idata->n_extractions)
                 {
                   r_cum += r_percent;
-                  tab_double (t, c++, i + heading_rows, 0, r_lambda, NULL);
-                  tab_double (t, c++, i + heading_rows, 0, r_percent, NULL);
-                  tab_double (t, c++, i + heading_rows, 0, r_cum, NULL);
+                  tab_double (t, c++, i + heading_rows, 0, r_lambda, NULL, RC_OTHER);
+                  tab_double (t, c++, i + heading_rows, 0, r_percent, NULL, RC_OTHER);
+                  tab_double (t, c++, i + heading_rows, 0, r_cum, NULL, RC_OTHER);
                 }
             }
         }
@@ -1679,7 +1679,7 @@ show_correlation_matrix (const struct cmd_factor *factor, const struct idata *id
 	  for (i = 0; i < factor->n_vars; ++i)
 	    {
 	      for (j = 0; j < factor->n_vars; ++j)
-		tab_double (t, heading_columns + i,  y + j, 0, gsl_matrix_get (idata->corr, i, j), NULL);
+		tab_double (t, heading_columns + i,  y + j, 0, gsl_matrix_get (idata->corr, i, j), NULL, RC_OTHER);
 	    }
 	}
 
@@ -1698,7 +1698,7 @@ show_correlation_matrix (const struct cmd_factor *factor, const struct idata *id
 		  if (i == j)
 		    continue;
 
-		  tab_double (t, heading_columns + i,  y + j, 0, significance_of_correlation (rho, w), NULL);
+		  tab_double (t, heading_columns + i,  y + j, 0, significance_of_correlation (rho, w), NULL, RC_PVALUE);
 		}
 	    }
 	}
@@ -1708,7 +1708,7 @@ show_correlation_matrix (const struct cmd_factor *factor, const struct idata *id
     {
       tab_text (t, 0, nr, TAB_LEFT | TAT_TITLE, _("Determinant"));
 
-      tab_double (t, 1, nr, 0, idata->detR, NULL);
+      tab_double (t, 1, nr, 0, idata->detR, NULL, RC_OTHER);
     }
 
   tab_submit (t);
@@ -1786,6 +1786,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       const int nr = heading_rows + factor->n_vars;
 
       struct tab_table *t = tab_create (nc, nr);
+      tab_set_format (t, RC_WEIGHT, wfmt);
       tab_title (t, _("Descriptive Statistics"));
 
       tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -1816,9 +1817,9 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 	  const struct variable *v = factor->vars[i];
 	  tab_text (t, 0, i + heading_rows, TAB_LEFT | TAT_TITLE, var_to_string (v));
 
-	  tab_double (t, 1, i + heading_rows, 0, gsl_matrix_get (mean_matrix, i, i), NULL);
-	  tab_double (t, 2, i + heading_rows, 0, sqrt (gsl_matrix_get (var_matrix, i, i)), NULL);
-	  tab_double (t, 3, i + heading_rows, 0, gsl_matrix_get (idata->n, i, i), wfmt);
+	  tab_double (t, 1, i + heading_rows, 0, gsl_matrix_get (mean_matrix, i, i), NULL, RC_OTHER);
+	  tab_double (t, 2, i + heading_rows, 0, sqrt (gsl_matrix_get (var_matrix, i, i)), NULL, RC_OTHER);
+	  tab_double (t, 3, i + heading_rows, 0, gsl_matrix_get (idata->n, i, i), NULL, RC_WEIGHT);
 	}
 
       tab_submit (t);
@@ -1876,7 +1877,7 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
       tab_text (t, 0, 0, TAT_TITLE | TAB_LEFT, _("Kaiser-Meyer-Olkin Measure of Sampling Adequacy"));
 
-      tab_double (t, 2, 0, 0, sum_ssq_r /  (sum_ssq_r + sum_ssq_a), NULL);
+      tab_double (t, 2, 0, 0, sum_ssq_r /  (sum_ssq_r + sum_ssq_a), NULL, RC_OTHER);
 
       tab_text (t, 0, 1, TAT_TITLE | TAB_LEFT, _("Bartlett's Test of Sphericity"));
 
@@ -1896,9 +1897,9 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       xsq = w - 1 - (2 * factor->n_vars + 5) / 6.0;
       xsq *= -log (idata->detR);
 
-      tab_double (t, 2, 1, 0, xsq, NULL);
-      tab_double (t, 2, 2, 0, df, &F_8_0);
-      tab_double (t, 2, 3, 0, gsl_cdf_chisq_Q (xsq, df), NULL);
+      tab_double (t, 2, 1, 0, xsq, NULL, RC_OTHER);
+      tab_double (t, 2, 2, 0, df, NULL, RC_INTEGER);
+      tab_double (t, 2, 3, 0, gsl_cdf_chisq_Q (xsq, df), NULL, RC_PVALUE);
       
 
       tab_submit (t);

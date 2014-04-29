@@ -149,7 +149,7 @@ output_descriptives (const struct corr *corr, const gsl_matrix *means,
 	      NOT_REACHED ();
 	    };
 	  
-	  tab_double (t, c, r + heading_rows, 0, x, NULL);
+	  tab_double (t, c, r + heading_rows, 0, x, NULL, RC_OTHER);
 	}
     }
 
@@ -188,6 +188,7 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
   nr += heading_rows;
 
   t = tab_create (nc, nr);
+  tab_set_format (t, RC_WEIGHT, wfmt);
   tab_title (t, _("Correlations"));
 
   tab_headers (t, heading_columns, 0, heading_rows, 0);
@@ -254,15 +255,15 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 	  double sig = opts->tails * significance_of_correlation (pearson, w);
 
 	  if ( opts->missing_type != CORR_LISTWISE )
-	    tab_double (t, c + heading_columns, row + rows_per_variable - 1, 0, w, wfmt);
+	    tab_double (t, c + heading_columns, row + rows_per_variable - 1, 0, w, NULL, RC_WEIGHT);
 
 	  if ( col_index != r)
-	    tab_double (t, c + heading_columns, row + 1, 0,  sig, NULL);
+	    tab_double (t, c + heading_columns, row + 1, 0,  sig, NULL, RC_PVALUE);
 
 	  if ( opts->sig && col_index != r && sig < 0.05)
 	    flags = TAB_EMPH;
 	  
-	  tab_double (t, c + heading_columns, row, flags, pearson, NULL);
+	  tab_double (t, c + heading_columns, row, flags, pearson, NULL, RC_OTHER);
 
 	  if (opts->statistics & STATS_XPROD)
 	    {
@@ -270,8 +271,8 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 	      const double xprod_dev = cov * w;
 	      cov *= w / (w - 1.0);
 
-	      tab_double (t, c + heading_columns, row + 2, 0, xprod_dev, NULL);
-	      tab_double (t, c + heading_columns, row + 3, 0, cov, NULL);
+	      tab_double (t, c + heading_columns, row + 2, 0, xprod_dev, NULL, RC_OTHER);
+	      tab_double (t, c + heading_columns, row + 3, 0, cov, NULL, RC_OTHER);
 	    }
 	}
     }

@@ -1687,9 +1687,8 @@ begin data
 end data
 regression /variables=v0 v1 /statistics defaults /dependent=v0 /method=enter.
 ])
-AT_CHECK([pspp -o pspp.csv regression.sps])
 
-AT_CHECK([cat pspp.csv], [0], [dnl
+AT_CHECK([pspp -O format=csv regression.sps], [0], [dnl
 Table: Reading free-form data from INLINE.
 Variable,Format
 v0,F8.0
@@ -1708,9 +1707,10 @@ Table: ANOVA (v0)
 Table: Coefficients (v0)
 ,,Unstandardized Coefficients,,Standardized Coefficients,,
 ,,B,Std. Error,Beta,t,Sig.
-,(Constant),1.24,.42,.00,2.95,.00
-,v1,1.37,.72,.05,1.89,.06
+,(Constant),1.24,.42,.00,2.95,.003
+,v1,1.37,.72,.05,1.89,.059
 ])
+
 AT_CLEANUP
 
 AT_SETUP([LINEAR REGRESSION no crash on all missing])

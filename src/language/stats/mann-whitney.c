@@ -211,27 +211,27 @@ show_ranks_box (const struct n_sample_test *nst, const struct mw *mwv)
 		var_to_string (nst->vars[i]));
 
       tab_double (table, 1, column_headers + i, 0,
-		  mw->n[0], 0);
+		  mw->n[0], NULL, RC_OTHER);
 
       tab_double (table, 2, column_headers + i, 0,
-		  mw->n[1], 0);
+		  mw->n[1], NULL, RC_OTHER);
 
       tab_double (table, 3, column_headers + i, 0,
-		  mw->n[1] + mw->n[0], 0);
+		  mw->n[1] + mw->n[0], NULL, RC_OTHER);
 
       /* Mean Ranks */
       tab_double (table, 4, column_headers + i, 0,
-		  mw->rank_sum[0] / mw->n[0], 0);
+		  mw->rank_sum[0] / mw->n[0], NULL, RC_OTHER);
 
       tab_double (table, 5, column_headers + i, 0,
-		  mw->rank_sum[1] / mw->n[1], 0);
+		  mw->rank_sum[1] / mw->n[1], NULL, RC_OTHER);
 
       /* Sum of Ranks */
       tab_double (table, 6, column_headers + i, 0,
-		  mw->rank_sum[0], 0);
+		  mw->rank_sum[0], NULL, RC_OTHER);
 
       tab_double (table, 7, column_headers + i, 0,
-		  mw->rank_sum[1], 0);
+		  mw->rank_sum[1], NULL, RC_OTHER);
     }
 
   tab_submit (table);
@@ -280,16 +280,16 @@ show_statistics_box (const struct n_sample_test *nst, const struct mw *mwv, bool
 		var_to_string (nst->vars[i]));
 
       tab_double (table, 1, column_headers + i, 0,
-		  mw->u, 0);
+		  mw->u, NULL, RC_OTHER);
 
       tab_double (table, 2, column_headers + i, 0,
-		  mw->w, 0);
+		  mw->w, NULL, RC_OTHER);
 
       tab_double (table, 3, column_headers + i, 0,
-		  mw->z, 0);
+		  mw->z, NULL, RC_OTHER);
 
       tab_double (table, 4, column_headers + i, 0,
-		  2.0 * gsl_cdf_ugaussian_P (mw->z), 0);
+		  2.0 * gsl_cdf_ugaussian_P (mw->z), NULL, RC_PVALUE);
     }
 
   tab_submit (table);

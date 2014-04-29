@@ -999,7 +999,7 @@ show_auc  (struct roc_state *rs, const struct cmd_roc *roc)
     {
       tab_text (tbl, 0, 2 + i, TAT_TITLE, var_to_string (roc->vars[i]));
 
-      tab_double (tbl, n_cols - n_fields, 2 + i, 0, rs[i].auc, NULL);
+      tab_double (tbl, n_cols - n_fields, 2 + i, 0, rs[i].auc, NULL, RC_OTHER);
 
       if ( roc->print_se )
 	{
@@ -1018,22 +1018,22 @@ show_auc  (struct roc_state *rs, const struct cmd_roc *roc)
 
 	  tab_double (tbl, n_cols - 4, 2 + i, 0,
 		      se,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  ci = 1 - roc->ci / 100.0;
 	  yy = gsl_cdf_gaussian_Qinv (ci, se) ;
 
 	  tab_double (tbl, n_cols - 2, 2 + i, 0,
 		      rs[i].auc - yy,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  tab_double (tbl, n_cols - 1, 2 + i, 0,
 		      rs[i].auc + yy,
-		      NULL);
+		      NULL, RC_OTHER);
 
 	  tab_double (tbl, n_cols - 3, 2 + i, 0,
 		      2.0 * gsl_cdf_ugaussian_Q (fabs ((rs[i].auc - 0.5 ) / sd_0_5)),
-		      NULL);
+		      NULL, RC_PVALUE);
 	}
     }
 
@@ -1080,11 +1080,11 @@ show_summary (const struct cmd_roc *roc)
   tab_text (tbl, 0, 3, TAB_LEFT, _("Negative"));
 
 
-  tab_double (tbl, 1, 2, 0, roc->pos, &F_8_0);
-  tab_double (tbl, 1, 3, 0, roc->neg, &F_8_0);
+  tab_double (tbl, 1, 2, 0, roc->pos, NULL, RC_INTEGER);
+  tab_double (tbl, 1, 3, 0, roc->neg, NULL, RC_INTEGER);
 
-  tab_double (tbl, 2, 2, 0, roc->pos_weighted, 0);
-  tab_double (tbl, 2, 3, 0, roc->neg_weighted, 0);
+  tab_double (tbl, 2, 2, 0, roc->pos_weighted, NULL, RC_OTHER);
+  tab_double (tbl, 2, 3, 0, roc->neg_weighted, NULL, RC_OTHER);
 
   tab_submit (tbl);
 }
@@ -1161,10 +1161,10 @@ show_coords (struct roc_state *rs, const struct cmd_roc *roc)
 	     );
 
 	  tab_double (tbl, n_cols - 3, x, 0, case_data_idx (cc, ROC_CUTPOINT)->f,
-		      var_get_print_format (roc->vars[i]));
+		      var_get_print_format (roc->vars[i]), RC_OTHER);
 
-	  tab_double (tbl, n_cols - 2, x, 0, se, NULL);
-	  tab_double (tbl, n_cols - 1, x, 0, 1 - sp, NULL);
+	  tab_double (tbl, n_cols - 2, x, 0, se, NULL, RC_OTHER);
+	  tab_double (tbl, n_cols - 1, x, 0, 1 - sp, NULL, RC_OTHER);
 	}
 
       casereader_destroy (r);
