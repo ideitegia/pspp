@@ -1700,7 +1700,7 @@ Table: Model Summary (v0)
 
 Table: ANOVA (v0)
 ,,Sum of Squares,df,Mean Square,F,Sig.
-,Regression,235.23,1,235.23,3.58,.06
+,Regression,235.23,1,235.23,3.58,.059
 ,Residual,98438.40,1498,65.71,,
 ,Total,98673.63,1499,,,
 

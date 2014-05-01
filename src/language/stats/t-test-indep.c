@@ -386,7 +386,7 @@ indep_test (const struct tt *tt, const struct pair_stats *ps)
       double df1 = 1;
       double df2 = cc0 + cc1 - 2;
       double q = gsl_cdf_fdist_Q (ps[v].lev, df1, df2);
-      tab_double (t, 3, v * 2 + heading_rows, TAB_CENTER, q, NULL, RC_OTHER);
+      tab_double (t, 3, v * 2 + heading_rows, TAB_CENTER, q, NULL, RC_PVALUE);
     }
   }
 

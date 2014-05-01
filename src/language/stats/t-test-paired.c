@@ -261,7 +261,7 @@ paired_correlations (const struct tt *tt, struct paired_samp *os)
 
       tab_double (t, 3, v + heading_rows, TAB_RIGHT, corr, NULL, RC_OTHER);
       tab_double (t, 4, v + heading_rows, TAB_RIGHT, 
-		  2.0 * significance_of_correlation (corr, cc0), NULL, RC_OTHER);
+		  2.0 * significance_of_correlation (corr, cc0), NULL, RC_PVALUE);
     }
 
   tab_submit (t);

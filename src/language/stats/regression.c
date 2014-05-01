@@ -960,7 +960,7 @@ reg_stats_anova (const linreg * c, const struct variable *var)
 
   tab_double (t, 5, 1, 0, F, NULL, RC_OTHER);
 
-  tab_double (t, 6, 1, 0, pval, NULL, RC_OTHER);
+  tab_double (t, 6, 1, 0, pval, NULL, RC_PVALUE);
 
   tab_title (t, _("ANOVA (%s)"), var_to_string (var));
   tab_submit (t);
