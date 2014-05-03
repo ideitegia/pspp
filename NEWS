@@ -4,7 +4,7 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
-Changes from 0.8.2 to 0.8.3.1:
+Changes from 0.8.3 to 0.8.3.1:
 
  * Fixed a bug where planned comparisons in oneway anova did not correctly
    handle negative T-values.
