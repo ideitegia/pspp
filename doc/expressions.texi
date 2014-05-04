@@ -1215,12 +1215,12 @@ Cauchy distribution with location parameter @var{a} and scale
 parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
 @end deftypefn
 
-@deftypefn {Function} {} PDF.CHISQ (@var{x}, @var{df})
-@deftypefnx {Function} {} CDF.CHISQ (@var{x}, @var{df})
+@c @deftypefn {Function} {} PDF.CHISQ (@var{x}, @var{df})
+@deftypefn {Function} {} CDF.CHISQ (@var{x}, @var{df})
 @deftypefnx {Function} {} SIG.CHISQ (@var{x}, @var{df})
 @deftypefnx {Function} {} IDF.CHISQ (@var{p}, @var{df})
 @deftypefnx {Function} {} RV.CHISQ (@var{df})
-@deftypefnx {Function} {} NPDF.CHISQ (@var{x}, @var{df}, @var{lambda})
+@c @deftypefnx {Function} {} NPDF.CHISQ (@var{x}, @var{df}, @var{lambda})
 @deftypefnx {Function} {} NCDF.CHISQ (@var{x}, @var{df}, @var{lambda})
 Chi-squared distribution with @var{df} degrees of freedom.  The
 noncentral distribution takes an additional parameter @var{lambda}.
@@ -1250,8 +1250,8 @@ and nonnegative power parameter @var{b}.  Constraints: @var{a} > 0,
 @deftypefnx {Function} {} SIG.F (@var{x}, @var{df1}, @var{df2})
 @deftypefnx {Function} {} IDF.F (@var{p}, @var{df1}, @var{df2})
 @deftypefnx {Function} {} RV.F (@var{df1}, @var{df2})
-@deftypefnx {Function} {} NPDF.F (@var{x}, @var{df1}, @var{df2}, @var{lambda})
-@deftypefnx {Function} {} NCDF.F (@var{x}, @var{df1}, @var{df2}, @var{lambda})
+@c @deftypefnx {Function} {} NPDF.F (@var{x}, @var{df1}, @var{df2}, @var{lambda})
+@c @deftypefnx {Function} {} NCDF.F (@var{x}, @var{df1}, @var{df2}, @var{lambda})
 F-distribution of two chi-squared deviates with @var{df1} and
 @var{df2} degrees of freedom.  The noncentral distribution takes an
 additional parameter @var{lambda}.  Constraints: @var{df1} > 0,
@@ -1267,21 +1267,21 @@ Gamma distribution with shape parameter @var{a} and scale parameter
 @var{p} < 1.
 @end deftypefn
 
-@deftypefn {Function} {} PDF.HALFNRM (@var{x}, @var{a}, @var{b})
-@deftypefnx {Function} {} CDF.HALFNRM (@var{x}, @var{a}, @var{b})
-@deftypefnx {Function} {} IDF.HALFNRM (@var{p}, @var{a}, @var{b})
-@deftypefnx {Function} {} RV.HALFNRM (@var{a}, @var{b})
-Half-normal distribution with location parameter @var{a} and shape
-parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
-@end deftypefn
+@c @deftypefn {Function} {} PDF.HALFNRM (@var{x}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} CDF.HALFNRM (@var{x}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} IDF.HALFNRM (@var{p}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} RV.HALFNRM (@var{a}, @var{b})
+@c Half-normal distribution with location parameter @var{a} and shape
+@c parameter @var{b}.  Constraints: @var{b} > 0, 0 < @var{p} < 1.
+@c @end deftypefn
 
-@deftypefn {Function} {} PDF.IGAUSS (@var{x}, @var{a}, @var{b})
-@deftypefnx {Function} {} CDF.IGAUSS (@var{x}, @var{a}, @var{b})
-@deftypefnx {Function} {} IDF.IGAUSS (@var{p}, @var{a}, @var{b})
-@deftypefnx {Function} {} RV.IGAUSS (@var{a}, @var{b})
-Inverse Gaussian distribution with parameters @var{a} and @var{b}.
-Constraints: @var{a} > 0, @var{b} > 0, @var{x} > 0, 0 <= @var{p} < 1.
-@end deftypefn
+@c @deftypefn {Function} {} PDF.IGAUSS (@var{x}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} CDF.IGAUSS (@var{x}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} IDF.IGAUSS (@var{p}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} RV.IGAUSS (@var{a}, @var{b})
+@c Inverse Gaussian distribution with parameters @var{a} and @var{b}.
+@c Constraints: @var{a} > 0, @var{b} > 0, @var{x} > 0, 0 <= @var{p} < 1.
+@c @end deftypefn
 
 @deftypefn {Function} {} PDF.LANDAU (@var{x})
 @deftypefnx {Function} {} RV.LANDAU ()
@@ -1376,26 +1376,26 @@ parameter @var{sigma}.  This distribution is a @pspp{} extension.
 Constraints: @var{a} > 0, @var{sigma} > 0, @var{x} > @var{a}.
 @end deftypefn
 
-@deftypefn {Function} {} CDF.SMOD (@var{x}, @var{a}, @var{b})
-@deftypefnx {Function} {} IDF.SMOD (@var{p}, @var{a}, @var{b})
-Studentized maximum modulus distribution with parameters @var{a} and
-@var{b}.  Constraints: @var{a} > 0, @var{b} > 0, @var{x} > 0, 0 <=
-@var{p} < 1.
-@end deftypefn
+@c @deftypefn {Function} {} CDF.SMOD (@var{x}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} IDF.SMOD (@var{p}, @var{a}, @var{b})
+@c Studentized maximum modulus distribution with parameters @var{a} and
+@c @var{b}.  Constraints: @var{a} > 0, @var{b} > 0, @var{x} > 0, 0 <=
+@c @var{p} < 1.
+@c @end deftypefn
 
-@deftypefn {Function} {} CDF.SRANGE (@var{x}, @var{a}, @var{b})
-@deftypefnx {Function} {} IDF.SRANGE (@var{p}, @var{a}, @var{b})
-Studentized range distribution with parameters @var{a} and @var{b}.
-Constraints:  @var{a} >= 1, @var{b} >= 1, @var{x} > 0, 0 <= @var{p} <
-1.
-@end deftypefn
+@c @deftypefn {Function} {} CDF.SRANGE (@var{x}, @var{a}, @var{b})
+@c @deftypefnx {Function} {} IDF.SRANGE (@var{p}, @var{a}, @var{b})
+@c Studentized range distribution with parameters @var{a} and @var{b}.
+@c Constraints:  @var{a} >= 1, @var{b} >= 1, @var{x} > 0, 0 <= @var{p} <
+@c 1.
+@c @end deftypefn
 
 @deftypefn {Function} {} PDF.T (@var{x}, @var{df})
 @deftypefnx {Function} {} CDF.T (@var{x}, @var{df})
 @deftypefnx {Function} {} IDF.T (@var{p}, @var{df})
 @deftypefnx {Function} {} RV.T (@var{df})
-@deftypefnx {Function} {} NPDF.T (@var{x}, @var{df}, @var{lambda})
-@deftypefnx {Function} {} NCDF.T (@var{x}, @var{df}, @var{lambda})
+@c @deftypefnx {Function} {} NPDF.T (@var{x}, @var{df}, @var{lambda})
+@c @deftypefnx {Function} {} NCDF.T (@var{x}, @var{df}, @var{lambda})
 T-distribution with @var{df} degrees of freedom.  The noncentral
 distribution takes an additional parameter @var{lambda}.  Constraints:
 @var{df} > 0, 0 < @var{p} < 1.
