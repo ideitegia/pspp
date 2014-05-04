@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "libpspp/str.h"
 #include "libpspp/misc.h"
 
+#include "gl/c-ctype.h"
 #include "gl/ftoastr.h"
 
 /* Appends to OUTPUT a pair of hex digits for each byte in IN. */
