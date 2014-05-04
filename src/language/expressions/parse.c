@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1292,7 +1292,8 @@ parse_function (struct lexer *lexer, struct expression *e)
     msg (SW, _("%s is a PSPP extension."), f->prototype);
   if (f->flags & OPF_UNIMPLEMENTED)
     {
-      msg (SE, _("%s is not yet implemented."), f->prototype);
+      msg (SE, _("%s is not available in this version of PSPP."),
+           f->prototype);
       goto fail;
     }
   if ((f->flags & OPF_PERM_ONLY) &&
