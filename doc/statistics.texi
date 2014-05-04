@@ -603,8 +603,6 @@ followings bugs:
 
 @itemize @bullet
 @item
-T values for Spearman's R and Pearson's R are wrong.
-@item
 Significance of symmetric and directional measures is not calculated.
 @item
 Asymmetric ASEs and T values for lambda are wrong.

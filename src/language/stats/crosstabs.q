@@ -16,7 +16,6 @@
 
 /* FIXME:
 
-   - T values for Spearman's R and Pearson's R are wrong.
    - How to calculate significance of symmetric and directional measures?
    - Asymmetric ASEs and T values for lambda are wrong.
    - ASE of Goodman and Kruskal's tau is not calculated.
@@ -2265,12 +2264,12 @@ calc_chisq (struct pivot_table *pt,
     }
 }
 
-/* Calculate the value of Pearson's r.  r is stored into R, ase_1 into
-   ASE_1, and ase_0 into ASE_0.  The row and column values must be
+/* Calculate the value of Pearson's r.  r is stored into R, its T value into
+   T, and standard error into ERROR.  The row and column values must be
    passed in PT and Y. */
 static void
 calc_r (struct pivot_table *pt,
-        double *PT, double *Y, double *r, double *ase_0, double *ase_1)
+        double *PT, double *Y, double *r, double *t, double *error)
 {
   double SX, SY, S, T;
   double Xbar, Ybar;
@@ -2308,7 +2307,7 @@ calc_r (struct pivot_table *pt,
   SY = sum_Y2c - pow2 (sum_Yc) / pt->total;
   T = sqrt (SX * SY);
   *r = S / T;
-  *ase_0 = sqrt ((sum_X2Y2f - pow2 (sum_XYf) / pt->total) / (sum_X2r * sum_Y2c));
+  *t = *r / sqrt (1 - pow2 (*r)) * sqrt (pt->total - 2);
 
   {
     double s, c, y, t;
@@ -2329,7 +2328,7 @@ calc_r (struct pivot_table *pt,
 	  c = (t - s) - y;
 	  s = t;
 	}
-    *ase_1 = sqrt (s) / (T * T);
+    *error = sqrt (s) / (T * T);
   }
 }
 
@@ -2596,13 +2595,11 @@ calc_symmetric (struct crosstabs_proc *proc, struct pivot_table *pt,
       }
 
       calc_r (pt, R, C, &v[6], &t[6], &ase[6]);
-      t[6] = v[6] / t[6];
 
       free (R);
       free (C);
 
       calc_r (pt, (double *) pt->rows, (double *) pt->cols, &v[7], &t[7], &ase[7]);
-      t[7] = v[7] / t[7];
     }
 
   /* Cohen's kappa. */
