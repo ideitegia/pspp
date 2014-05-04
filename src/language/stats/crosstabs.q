@@ -16,7 +16,6 @@
 
 /* FIXME:
 
-   - Pearson's R (but not Spearman!) is off a little.
    - T values for Spearman's R and Pearson's R are wrong.
    - How to calculate significance of symmetric and directional measures?
    - Asymmetric ASEs and T values for lambda are wrong.

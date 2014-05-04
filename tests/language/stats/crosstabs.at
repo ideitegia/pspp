@@ -731,3 +731,226 @@ N of Valid Cases,200,,
 ])
 
 AT_CLEANUP
+
+AT_SETUP([CROSSTABS Pearson's R])
+# Test 1.
+AT_DATA([pearson.sps], [dnl
+* From http://www.statisticslectures.com/topics/pearsonr/.
+DATA LIST FREE/x y.
+BEGIN DATA.
+1 4
+3 6
+5 10
+5 12
+6 13
+END DATA.
+CROSSTABS x BY y/STATISTICS=CORR.
+])
+AT_CHECK([pspp -O format=csv pearson.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,5,100.0%,0,0.0%,5,100.0%
+
+Table: x * y [[count]].
+,y,,,,,
+x,4.00,6.00,10.00,12.00,13.00,Total
+1.00,1.00,.00,.00,.00,.00,1.00
+3.00,.00,1.00,.00,.00,.00,1.00
+5.00,.00,.00,1.00,1.00,.00,2.00
+6.00,.00,.00,.00,.00,1.00,1.00
+Total,1.00,1.00,1.00,1.00,1.00,5.00
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Spearman Correlation,.97,.02,2.84,
+Interval by Interval,Pearson's R,.97,.02,3.36,
+N of Valid Cases,,5,,,
+])
+
+# Test 2.
+AT_DATA([pearson2.sps], [dnl
+* Checked with http://www.socscistatistics.com/tests/pearson/Default2.aspx.
+DATA LIST FREE/x y.
+BEGIN DATA.
+1 1.5
+2 1.5
+3 4
+4 6
+5 5
+6 7
+7 6.5
+8 9
+9 10.5
+10 11
+END DATA.
+CROSSTABS x BY y/STATISTICS=CORR.
+])
+AT_CHECK([pspp -O format=csv pearson2.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,10,100.0%,0,0.0%,10,100.0%
+
+Table: x * y [[count]].
+,y,,,,,,,,,
+x,1.50,4.00,5.00,6.00,6.50,7.00,9.00,10.50,11.00,Total
+1.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00
+2.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00
+3.00,.00,1.00,.00,.00,.00,.00,.00,.00,.00,1.00
+4.00,.00,.00,.00,1.00,.00,.00,.00,.00,.00,1.00
+5.00,.00,.00,1.00,.00,.00,.00,.00,.00,.00,1.00
+6.00,.00,.00,.00,.00,.00,1.00,.00,.00,.00,1.00
+7.00,.00,.00,.00,.00,1.00,.00,.00,.00,.00,1.00
+8.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,1.00
+9.00,.00,.00,.00,.00,.00,.00,.00,1.00,.00,1.00
+10.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00,1.00
+Total,2.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,10.00
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Spearman Correlation,.97,.02,3.66,
+Interval by Interval,Pearson's R,.97,.02,3.69,
+N of Valid Cases,,10,,,
+])
+
+# Test 3.
+AT_DATA([pearson3.sps], [dnl
+* From http://learntech.uwe.ac.uk/da/Default.aspx?pageid=1442.
+DATA LIST FREE/x y.
+BEGIN DATA.
+56 87
+56 91
+65 85
+65 91
+50 75
+25 28
+87 122
+44 66
+35 58
+END DATA.
+CROSSTABS x BY y/STATISTICS=CORR.
+])
+AT_CHECK([pspp -O format=csv pearson3.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,9,100.0%,0,0.0%,9,100.0%
+
+Table: x * y [[count]].
+,y,,,,,,,,
+x,28.00,58.00,66.00,75.00,85.00,87.00,91.00,122.00,Total
+25.00,1.00,.00,.00,.00,.00,.00,.00,.00,1.00
+35.00,.00,1.00,.00,.00,.00,.00,.00,.00,1.00
+44.00,.00,.00,1.00,.00,.00,.00,.00,.00,1.00
+50.00,.00,.00,.00,1.00,.00,.00,.00,.00,1.00
+56.00,.00,.00,.00,.00,.00,1.00,1.00,.00,2.00
+65.00,.00,.00,.00,.00,1.00,.00,1.00,.00,2.00
+87.00,.00,.00,.00,.00,.00,.00,.00,1.00,1.00
+Total,1.00,1.00,1.00,1.00,1.00,1.00,2.00,1.00,9.00
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Spearman Correlation,.91,.07,3.45,
+Interval by Interval,Pearson's R,.97,.02,5.00,
+N of Valid Cases,,9,,,
+])
+
+# Test 4.
+AT_DATA([pearson4.sps], [dnl
+* From http://psychology.ucdavis.edu/faculty_sites/sommerb/sommerdemo/correlation/hand/pearson_hand.htm.
+DATA LIST FREE/x y.
+BEGIN DATA.
+5 5
+10 20
+6 4
+8 15
+4 11
+4 9
+3 12
+10 18
+2 7
+6 2
+7 14
+9 17
+END DATA.
+CROSSTABS x BY y/STATISTICS=CORR.
+])
+AT_CHECK([pspp -O format=csv pearson4.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,12,100.0%,0,0.0%,12,100.0%
+
+Table: x * y [[count]].
+,y,,,,,,,,,,,,
+x,2.00,4.00,5.00,7.00,9.00,11.00,12.00,14.00,15.00,17.00,18.00,20.00,Total
+2.00,.00,.00,.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00
+3.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,.00,.00,.00,1.00
+4.00,.00,.00,.00,.00,1.00,1.00,.00,.00,.00,.00,.00,.00,2.00
+5.00,.00,.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00
+6.00,1.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,2.00
+7.00,.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,.00,.00,1.00
+8.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,.00,1.00
+9.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,1.00
+10.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00,1.00,2.00
+Total,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,12.00
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Spearman Correlation,.66,.14,2.59,
+Interval by Interval,Pearson's R,.67,.13,2.93,
+N of Valid Cases,,12,,,
+])
+
+# Test 5.
+AT_DATA([pearson5.sps], [dnl
+* From http://www.statisticslectures.com/topics/pearsonr/.
+DATA LIST FREE/x y.
+BEGIN DATA.
+18 15000
+25 29000
+57 68000
+45 52000
+26 32000
+64 80000
+37 41000
+40 45000
+24 26000
+33 33000
+END DATA.
+CROSSTABS x BY y/STATISTICS=CORR.
+])
+AT_CHECK([pspp -O format=csv pearson5.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,10,100.0%,0,0.0%,10,100.0%
+
+Table: x * y [[count]].
+,y,,,,,,,,,,
+x,15000.00,26000.00,29000.00,32000.00,33000.00,41000.00,45000.00,52000.00,68000.00,80000.00,Total
+18.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00
+24.00,.00,1.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00
+25.00,.00,.00,1.00,.00,.00,.00,.00,.00,.00,.00,1.00
+26.00,.00,.00,.00,1.00,.00,.00,.00,.00,.00,.00,1.00
+33.00,.00,.00,.00,.00,1.00,.00,.00,.00,.00,.00,1.00
+37.00,.00,.00,.00,.00,.00,1.00,.00,.00,.00,.00,1.00
+40.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,.00,1.00
+45.00,.00,.00,.00,.00,.00,.00,.00,1.00,.00,.00,1.00
+57.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00,.00,1.00
+64.00,.00,.00,.00,.00,.00,.00,.00,.00,.00,1.00,1.00
+Total,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,10.00
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Spearman Correlation,1.00,.00,3.76,
+Interval by Interval,Pearson's R,.99,.00,3.86,
+N of Valid Cases,,10,,,
+])
+AT_CLEANUP
