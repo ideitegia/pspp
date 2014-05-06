@@ -1406,3 +1406,61 @@ Ordinal by Ordinal,Somers' d,Symmetric,.209,,3.338,
 ,,y Dependent,.217,.064,3.338,
 ])
 AT_CLEANUP
+
+AT_SETUP([CROSSTABS many statistics])
+AT_DATA([crosstabs.sps], [dnl
+SET FORMAT=F8.4.
+
+* From http://www4.stat.ncsu.edu/~dzhang2/st744/table3.9.lst.txt.
+DATA LIST LIST NOTABLE/x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 25
+1 2 25
+1 3 12
+2 2 1
+2 3 3
+END DATA.
+CROSSTABS x BY y/STATISTICS=CHISQ PHI CC LAMBDA UC BTAU CTAU GAMMA D CORR/CELLS=NONE.
+])
+AT_CHECK([pspp -O format=csv crosstabs.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,66.0000,100.0%,.0000,0.0%,66.0000,100.0%
+
+Table: Chi-square tests.
+Statistic,Value,df,Asymp. Sig. (2-tailed)
+Pearson Chi-Square,6.9562,2.0000,.031
+Likelihood Ratio,6.6901,2.0000,.035
+Linear-by-Linear Association,5.8450,1.0000,.016
+N of Valid Cases,66.0000,,
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Phi,.3246,,,
+,Cramer's V,.3246,,,
+,Contingency Coefficient,.3088,,,
+Ordinal by Ordinal,Kendall's tau-b,.2752,.0856,1.9920,
+,Kendall's tau-c,.1497,.0751,1.9920,
+,Gamma,.8717,.1250,1.9920,
+,Spearman Correlation,.2908,.0906,2.4311,
+Interval by Interval,Pearson's R,.2999,.0973,2.5147,
+N of Valid Cases,,66.0000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.0455,.1629,.2723,
+,,x Dependent,.0000,,NaN,
+,,y Dependent,.0500,,.2723,
+,Goodman and Kruskal tau,x Dependent,.1054,,,
+,,y Dependent,.0434,,,
+,Uncertainty Coefficient,Symmetric,.0780,.0474,1.5105,
+,,x Dependent,.2217,.1062,1.5373,
+,,y Dependent,.0473,.0306,1.5373,
+Ordinal by Ordinal,Somers' d,Symmetric,.1960,,1.9920,
+,,x Dependent,.1152,.0572,1.9920,
+,,y Dependent,.6573,.1417,1.9920,
+])
+AT_CLEANUP
