@@ -599,13 +599,13 @@ some statistics are calculated only in integer mode.
 @subcmd{STATISTICS} subcommand is not given, no statistics are calculated.
 
 @strong{Please note:} Currently the implementation of @cmd{CROSSTABS} has the
-followings bugs:
+following bugs:
 
 @itemize @bullet
 @item
 Significance of symmetric and directional measures is not calculated.
 @item
-Asymmetric ASEs and T values for lambda are wrong.
+Asymptotic standard error is not calculated for asymmetric lambda.
 @item
 ASE of Goodman and Kruskal's tau is not calculated.
 @item

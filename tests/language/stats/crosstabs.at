@@ -376,9 +376,9 @@ z,Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 
 Table: Directional measures.
 z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-1,Nominal by Nominal,Lambda,Symmetric,.40,.28,1.02,
-,,,x Dependent,.25,NaN,1.12,
-,,,y Dependent,1.00,NaN,1.12,
+1,Nominal by Nominal,Lambda,Symmetric,.40,.28,1.12,
+,,,x Dependent,.25,,1.12,
+,,,y Dependent,1.00,,1.12,
 ,,Goodman and Kruskal tau,x Dependent,.25,,,
 ,,,y Dependent,1.00,,,
 ,,Uncertainty Coefficient,Symmetric,.47,.18,1.51,
@@ -389,9 +389,9 @@ z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 ,,,y Dependent,.00,.20,.00,
 ,Nominal by Interval,Eta,x Dependent,.04,,,
 ,,,y Dependent,1.00,,,
-2,Nominal by Nominal,Lambda,Symmetric,.50,.25,1.51,
-,,,x Dependent,.33,NaN,1.15,
-,,,y Dependent,1.00,NaN,1.15,
+2,Nominal by Nominal,Lambda,Symmetric,.50,.25,2.00,
+,,,x Dependent,.33,,1.15,
+,,,y Dependent,1.00,,1.15,
 ,,Goodman and Kruskal tau,x Dependent,.33,,,
 ,,,y Dependent,1.00,,,
 ,,Uncertainty Coefficient,Symmetric,.58,.17,1.56,
@@ -962,5 +962,106 @@ Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 Ordinal by Ordinal,Spearman Correlation,1.000,.000,+Infinity,
 Interval by Interval,Pearson's R,.992,.004,22.638,
 N of Valid Cases,,10,,,
+])
+AT_CLEANUP
+
+AT_SETUP([CROSSTABS Goodman and Kruskal's lambda])
+AT_DATA([lambda.sps], [dnl
+SET FORMAT F8.3.
+
+* From http://www.csupomona.edu/~jlkorey/POWERMUTT/Topics/contingency_tables.html.
+DATA LIST LIST NOTABLE/x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 424
+1 2 213
+1 3 59
+3 1 55
+3 2 188
+3 3 357
+END DATA.
+
+CROSSTABS x BY y/CELLS=NONE/STATISTICS=LAMBDA.
+
+* From http://vassarstats.net.
+DATA LIST LIST NOTABLE/x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 19
+1 2 26
+1 3 8
+2 1 21
+2 2 13
+2 3 5
+3 1 6
+3 2 12
+3 3 27
+END DATA.
+
+CROSSTABS x BY y/CELLS=NONE/STATISTICS=LAMBDA.
+
+* From Goodman, L.A., Kruskal, W.H. (1954) "Measures of association for
+  cross classifications". Part I. Journal of the American Statistical
+  Association, 49, 732-764.
+DATA LIST LIST NOTABLE/x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 1768
+1 2 807
+1 3 189
+1 4 47
+2 1 946
+2 2 1387
+2 3 746
+2 4 53
+3 1 115
+3 2 438
+3 3 288
+3 4 16
+END DATA.
+CROSSTABS x BY y/CELLS=NONE/STATISTICS=LAMBDA.
+])
+AT_CHECK([pspp -O format=csv lambda.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,1296.000,100.0%,.000,0.0%,1296.000,100.0%
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.423,.021,16.875,
+,,x Dependent,.497,,15.986,
+,,y Dependent,.370,,16.339,
+,Goodman and Kruskal tau,x Dependent,.382,,,
+,,y Dependent,.198,,,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,137.000,100.0%,.000,0.0%,137.000,100.0%
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.259,.081,2.902,
+,,x Dependent,.250,,2.479,
+,,y Dependent,.267,,2.766,
+,Goodman and Kruskal tau,x Dependent,.129,,,
+,,y Dependent,.123,,,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,6800.000,100.0%,.000,0.0%,6800.000,100.0%
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.208,.010,18.793,
+,,x Dependent,.224,,16.076,
+,,y Dependent,.192,,14.438,
+,Goodman and Kruskal tau,x Dependent,.089,,,
+,,y Dependent,.081,,,
 ])
 AT_CLEANUP

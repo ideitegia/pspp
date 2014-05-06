@@ -17,7 +17,7 @@
 /* FIXME:
 
    - How to calculate significance of symmetric and directional measures?
-   - Asymmetric ASEs and T values for lambda are wrong.
+   - How to calculate ASE for asymmetric lambda?
    - ASE of Goodman and Kruskal's tau is not calculated.
    - ASE of symmetric somers' d is wrong.
    - Approx. T of uncertainty coefficient is wrong.
@@ -2800,22 +2800,8 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
       v[1] = (sum_fmj - rm) / (pt->total - rm);
       v[2] = (sum_fim - cm) / (pt->total - cm);
 
-      /* ASE1 for Y given PT. */
-      {
-	double accum;
-
-	for (accum = 0., i = 0; i < pt->n_rows; i++)
-	  for (j = 0; j < pt->n_cols; j++)
-	    {
-	      const int deltaj = j == cm_index;
-	      accum += (pt->mat[j + i * pt->n_cols]
-			* pow2 ((j == fim_index[i])
-			       - deltaj
-			       + v[0] * deltaj));
-	    }
-
-	ase[2] = sqrt (accum - pt->total * v[0]) / (pt->total - cm);
-      }
+      /* XXX We don't have a working formula for ASE1. */
+      ase[2] = SYSMIS;
 
       /* ASE0 for Y given PT. */
       {
@@ -2828,22 +2814,8 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 	t[2] = v[2] / (sqrt (accum - pow2 (sum_fim - cm) / pt->total) / (pt->total - cm));
       }
 
-      /* ASE1 for PT given Y. */
-      {
-	double accum;
-
-	for (accum = 0., i = 0; i < pt->n_rows; i++)
-	  for (j = 0; j < pt->n_cols; j++)
-	    {
-	      const int deltaj = i == rm_index;
-	      accum += (pt->mat[j + i * pt->n_cols]
-			* pow2 ((i == fmj_index[j])
-			       - deltaj
-			       + v[0] * deltaj));
-	    }
-
-	ase[1] = sqrt (accum - pt->total * v[0]) / (pt->total - rm);
-      }
+      /* XXX We don't have a working formula for ASE1. */
+      ase[1] = SYSMIS;
 
       /* ASE0 for PT given Y. */
       {
@@ -2871,7 +2843,7 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 			 * pow2 (temp0 + (v[0] - 1.) * temp1));
 	    }
 	ase[0] = sqrt (accum1 - 4. * pt->total * v[0] * v[0]) / (2. * pt->total - rm - cm);
-	t[0] = v[0] / (sqrt (accum0 - pow2 ((sum_fim + sum_fmj - cm - rm) / pt->total))
+	t[0] = v[0] / (sqrt (accum0 - pow2 (sum_fim + sum_fmj - cm - rm) / pt->total)
 		       / (2. * pt->total - rm - cm));
       }
 
