@@ -17,7 +17,6 @@
 /* FIXME:
 
    - How to calculate significance of symmetric and directional measures?
-   - How to calculate ASE for asymmetric lambda?
    - How to calculate ASE for symmetric Somers ' d?
    - How to calculate ASE for Goodman and Kruskal's tau?
    - How to calculate approx. T of symmetric uncertainty coefficient?
@@ -2800,8 +2799,17 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
       v[1] = (sum_fmj - rm) / (pt->total - rm);
       v[2] = (sum_fim - cm) / (pt->total - cm);
 
-      /* XXX We don't have a working formula for ASE1. */
-      ase[2] = SYSMIS;
+      /* ASE1 for Y given PT. */
+      {
+        double accum;
+
+        accum = 0.;
+	for (i = 0; i < pt->n_rows; i++)
+          if (cm_index == fim_index[i])
+            accum += fim[i];
+        ase[2] = sqrt ((pt->total - sum_fim) * (sum_fim + cm - 2. * accum)
+                       / pow3 (pt->total - cm));
+      }
 
       /* ASE0 for Y given PT. */
       {
@@ -2814,8 +2822,17 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 	t[2] = v[2] / (sqrt (accum - pow2 (sum_fim - cm) / pt->total) / (pt->total - cm));
       }
 
-      /* XXX We don't have a working formula for ASE1. */
-      ase[1] = SYSMIS;
+      /* ASE1 for PT given Y. */
+      {
+        double accum;
+
+        accum = 0.;
+	for (j = 0; j < pt->n_cols; j++)
+          if (rm_index == fmj_index[j])
+            accum += fmj[j];
+        ase[1] = sqrt ((pt->total - sum_fmj) * (sum_fmj + rm - 2. * accum)
+                       / pow3 (pt->total - rm));
+      }
 
       /* ASE0 for PT given Y. */
       {

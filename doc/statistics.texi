@@ -605,8 +605,8 @@ following bugs:
 @item
 Significance of symmetric and directional measures is not calculated.
 @item
-Asymptotic standard error is not calculated for asymmetric lambda, 
-Goodman and Kruskal's tau, or symmetric Somers' d.
+Asymptotic standard error is not calculated for
+Goodman and Kruskal's tau or symmetric Somers' d.
 @item
 Approximate T is not calculated for symmetric uncertainty coefficient.
 @end itemize
