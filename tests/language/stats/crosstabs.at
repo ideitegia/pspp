@@ -384,7 +384,7 @@ z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 ,,Uncertainty Coefficient,Symmetric,.47,.18,1.51,
 ,,,x Dependent,.31,.15,2.02,
 ,,,y Dependent,1.00,.00,2.02,
-,Ordinal by Ordinal,Somers' d,Symmetric,.00,.09,.00,
+,Ordinal by Ordinal,Somers' d,Symmetric,.00,,.00,
 ,,,x Dependent,.00,.50,.00,
 ,,,y Dependent,.00,.20,.00,
 ,Nominal by Interval,Eta,x Dependent,.04,,,
@@ -397,7 +397,7 @@ z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 ,,Uncertainty Coefficient,Symmetric,.58,.17,1.56,
 ,,,x Dependent,.41,.17,2.36,
 ,,,y Dependent,1.00,.00,2.36,
-,Ordinal by Ordinal,Somers' d,Symmetric,-.67,.04,-1.73,
+,Ordinal by Ordinal,Somers' d,Symmetric,-.67,,-1.73,
 ,,,x Dependent,-1.00,.00,-1.73,
 ,,,y Dependent,-.50,.29,-1.73,
 ,Nominal by Interval,Eta,x Dependent,.73,,,
@@ -1063,5 +1063,346 @@ Nominal by Nominal,Lambda,Symmetric,.208,.010,18.793,
 ,,y Dependent,.192,,14.438,
 ,Goodman and Kruskal tau,x Dependent,.089,,,
 ,,y Dependent,.081,,,
+])
+AT_CLEANUP
+
+AT_SETUP([CROSSTABS Somers' D, Tau-B, Tau-C, Gamma])
+AT_DATA([somersd.sps], [dnl
+SET FORMAT F8.3.
+
+* From http://stats.stackexchange.com/questions/72203/problem-with-calculating-asymptotic-standard-error-for-somers-d.
+DATA LIST LIST NOTABLE/x y * w (F10.6).
+WEIGHT BY w.
+BEGIN DATA.
+1 1 0.000025
+1 2 0.0001
+1 3 0.001
+1 4 0.0025
+1 5 0.004
+1 6 0.0075
+1 7 0.0125
+2 1 0.049975
+2 2 0.0999
+2 3 0.199
+2 4 0.2475
+2 5 0.196
+2 6 0.1425
+2 7 0.0375
+END DATA.
+CROSSTABS x BY y/STATISTICS=D/CELLS=NONE.
+
+* From http://uregina.ca/~gingrich/gamma.pdf.
+DATA LIST LIST NOTABLE/x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 34
+1 2 24
+1 3 15
+2 1 42
+2 2 74
+2 3 67
+3 1 28
+3 2 111
+3 3 292
+END DATA.
+CROSSTABS x BY y/STATISTICS=BTAU CTAU GAMMA D/CELLS=NONE.
+])
+AT_CHECK([pspp -O format=csv somersd.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,1.000000,100.0%,.000000,0.0%,1.000000,100.0%
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,-.084,,-.149,
+,,x Dependent,-.045,.300,-.149,
+,,y Dependent,-.684,2.378,-.149,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,687.000,100.0%,.000,0.0%,687.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,.372,.033,10.669,
+,Kendall's tau-c,.310,.029,10.669,
+,Gamma,.591,.043,10.669,
+N of Valid Cases,,687.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,.371,,10.669,
+,,x Dependent,.351,.032,10.669,
+,,y Dependent,.394,.035,10.669,
+])
+
+AT_DATA([ordinal.sps], [dnl
+SET FORMAT F8.3.
+
+* From https://www.iup.edu/WorkArea/DownloadAsset.aspx?id=9829, "Case 1".
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 2 40
+2 3 80
+3 4 30
+END DATA.
+CROSSTABS x BY y/STATISTICS=GAMMA D BTAU/CELLS=NONE.
+
+* Same site, case 2.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 40
+2 3 80
+3 4 30
+END DATA.
+CROSSTABS x BY y/STATISTICS=GAMMA D BTAU/CELLS=NONE.
+
+* Same site, case 3.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 4 40
+2 3 80
+3 2 30
+END DATA.
+CROSSTABS x BY y/STATISTICS=GAMMA D BTAU/CELLS=NONE.
+
+* Same site, case 4.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 20
+1 2 20
+2 3 80
+3 4 30
+END DATA.
+CROSSTABS x BY y/STATISTICS=GAMMA D BTAU/CELLS=NONE.
+
+* Same site, case 5.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 2 40
+2 2 80
+3 2 29
+3 3 1
+END DATA.
+CROSSTABS x BY y/STATISTICS=GAMMA D BTAU/CELLS=NONE.
+
+* Same site, case 6.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 3
+1 2 6
+1 3 28
+1 4 61
+2 1 4
+2 2 5
+2 3 21
+2 4 20
+END DATA.
+CROSSTABS x BY y/STATISTICS=GAMMA D BTAU/CELLS=NONE.
+
+* Same site, case 7.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 38
+1 2 6
+1 3 3
+1 4 51
+2 1 4
+2 2 20
+2 3 21
+2 4 5
+END DATA.
+CROSSTABS x BY y/STATISTICS=LAMBDA D PHI GAMMA/CELLS=NONE.
+
+* Same site, case 8.
+DATA LIST LIST NOTABLE /x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 2
+1 2 3
+1 3 5
+1 4 1
+2 1 2
+2 2 16
+2 3 3
+2 4 6
+3 1 3
+3 2 10
+3 3 35
+3 4 27
+4 1 6
+4 2 15
+4 3 33
+4 4 45
+END DATA.
+CROSSTABS x BY y/STATISTICS=LAMBDA D PHI BTAU/CELLS=NONE.
+])
+AT_CHECK([pspp -O format=csv ordinal.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,150.000,100.0%,.000,0.0%,150.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,1.000,.000,24.841,
+,Gamma,1.000,.000,24.841,
+N of Valid Cases,,150.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,1.000,,24.841,
+,,x Dependent,1.000,.000,24.841,
+,,y Dependent,1.000,.000,24.841,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,150.000,100.0%,.000,0.0%,150.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,1.000,.000,24.841,
+,Gamma,1.000,.000,24.841,
+N of Valid Cases,,150.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,1.000,,24.841,
+,,x Dependent,1.000,.000,24.841,
+,,y Dependent,1.000,.000,24.841,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,150.000,100.0%,.000,0.0%,150.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,-1.000,.000,-24.841,
+,Gamma,-1.000,.000,-24.841,
+N of Valid Cases,,150.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,-1.000,,-24.841,
+,,x Dependent,-1.000,.000,-24.841,
+,,y Dependent,-1.000,.000,-24.841,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,150.000,100.0%,.000,0.0%,150.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,.972,.007,24.841,
+,Gamma,1.000,.000,24.841,
+N of Valid Cases,,150.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,.971,,24.841,
+,,x Dependent,.944,.013,24.841,
+,,y Dependent,1.000,.000,24.841,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,150.000,100.0%,.000,0.0%,150.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,.119,.059,1.009,
+,Gamma,1.000,.000,1.009,
+N of Valid Cases,,150.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,.035,,1.009,
+,,x Dependent,.805,.032,1.009,
+,,y Dependent,.018,.017,1.009,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,148.000,100.0%,.000,0.0%,148.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Kendall's tau-b,-.208,.078,-2.641,
+,Gamma,-.381,.130,-2.641,
+N of Valid Cases,,148.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Ordinal by Ordinal,Somers' d,Symmetric,-.206,,-2.641,
+,,x Dependent,-.182,.069,-2.641,
+,,y Dependent,-.237,.089,-2.641,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,148.000,100.0%,.000,0.0%,148.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Phi,.731,,,
+,Cramer's V,.731,,,
+Ordinal by Ordinal,Gamma,-.110,.107,-1.022,
+N of Valid Cases,,148.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.338,.059,4.743,
+,,x Dependent,.640,,4.875,
+,,y Dependent,.174,,3.248,
+,Goodman and Kruskal tau,x Dependent,.534,,,
+,,y Dependent,.167,,,
+Ordinal by Ordinal,Somers' d,Symmetric,-.074,,-1.022,
+,,x Dependent,-.060,.059,-1.022,
+,,y Dependent,-.096,.094,-1.022,
+
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,212.000,100.0%,.000,0.0%,212.000,100.0%
+
+Table: Symmetric measures.
+Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Phi,.432,,,
+,Cramer's V,.249,,,
+Ordinal by Ordinal,Kendall's tau-b,.209,.062,3.338,
+N of Valid Cases,,212.000,,,
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.102,.067,1.473,
+,,x Dependent,.027,,.302,
+,,y Dependent,.165,,2.349,
+,Goodman and Kruskal tau,x Dependent,.051,,,
+,,y Dependent,.068,,,
+Ordinal by Ordinal,Somers' d,Symmetric,.209,,3.338,
+,,x Dependent,.202,.060,3.338,
+,,y Dependent,.217,.064,3.338,
 ])
 AT_CLEANUP
