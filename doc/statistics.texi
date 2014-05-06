@@ -608,7 +608,7 @@ Significance of symmetric and directional measures is not calculated.
 Asymptotic standard error is not calculated for asymmetric lambda, 
 Goodman and Kruskal's tau, or symmetric Somers' d.
 @item
-Approximate T of uncertainty coefficient is wrong.
+Approximate T is not calculated for symmetric uncertainty coefficient.
 @end itemize
 
 Fixes for any of these deficiencies would be welcomed.

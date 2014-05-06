@@ -18,9 +18,9 @@
 
    - How to calculate significance of symmetric and directional measures?
    - How to calculate ASE for asymmetric lambda?
-   - How to calculate ASE for symmetric Somers' d?
+   - How to calculate ASE for symmetric Somers ' d?
    - How to calculate ASE for Goodman and Kruskal's tau?
-   - Approx. T of uncertainty coefficient is wrong.
+   - How to calculate approx. T of symmetric uncertainty coefficient?
 
 */
 
@@ -2920,8 +2920,7 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 
       v[5] = 2. * ((UX + UY - UXY) / (UX + UY));
       ase[5] = (2. / (pt->total * pow2 (UX + UY))) * sqrt (ase1_sym);
-      t[5] = v[5] / ((2. / (pt->total * (UX + UY)))
-		     * sqrt (P - pow2 (UX + UY - UXY) / pt->total));
+      t[5] = SYSMIS;
 
       v[6] = (UX + UY - UXY) / UX;
       ase[6] = sqrt (ase1_xy) / (pt->total * UX * UX);

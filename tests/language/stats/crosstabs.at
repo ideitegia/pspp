@@ -381,7 +381,7 @@ z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 ,,,y Dependent,1.00,,1.12,
 ,,Goodman and Kruskal tau,x Dependent,.25,,,
 ,,,y Dependent,1.00,,,
-,,Uncertainty Coefficient,Symmetric,.47,.18,1.51,
+,,Uncertainty Coefficient,Symmetric,.47,.18,,
 ,,,x Dependent,.31,.15,2.02,
 ,,,y Dependent,1.00,.00,2.02,
 ,Ordinal by Ordinal,Somers' d,Symmetric,.00,,.00,
@@ -394,7 +394,7 @@ z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 ,,,y Dependent,1.00,,1.15,
 ,,Goodman and Kruskal tau,x Dependent,.33,,,
 ,,,y Dependent,1.00,,,
-,,Uncertainty Coefficient,Symmetric,.58,.17,1.56,
+,,Uncertainty Coefficient,Symmetric,.58,.17,,
 ,,,x Dependent,.41,.17,2.36,
 ,,,y Dependent,1.00,.00,2.36,
 ,Ordinal by Ordinal,Somers' d,Symmetric,-.67,,-1.73,
@@ -1456,11 +1456,48 @@ Nominal by Nominal,Lambda,Symmetric,.0455,.1629,.2723,
 ,,y Dependent,.0500,,.2723,
 ,Goodman and Kruskal tau,x Dependent,.1054,,,
 ,,y Dependent,.0434,,,
-,Uncertainty Coefficient,Symmetric,.0780,.0474,1.5105,
+,Uncertainty Coefficient,Symmetric,.0780,.0474,,
 ,,x Dependent,.2217,.1062,1.5373,
 ,,y Dependent,.0473,.0306,1.5373,
 Ordinal by Ordinal,Somers' d,Symmetric,.1960,,1.9920,
 ,,x Dependent,.1152,.0572,1.9920,
 ,,y Dependent,.6573,.1417,1.9920,
+])
+AT_CLEANUP
+
+AT_SETUP([CROSSTABS uncertainy coefficient])
+AT_DATA([uc.sps], [dnl
+* From http://groups.chass.utoronto.ca/pol242/5bMeasuringAssociation.htm.
+SET FORMAT=F8.3.
+
+DATA LIST LIST NOTABLE/x y w.
+WEIGHT BY w.
+BEGIN DATA.
+1 1 416
+1 2 121
+2 1 335
+2 2 2
+3 1 112
+3 2 1
+END DATA.
+CROSSTABS x BY y/STATISTICS=LAMBDA UC/CELLS=NONE.
+])
+AT_CHECK([pspp -O format=csv uc.sps], [0], [dnl
+Table: Summary.
+,Cases,,,,,
+,Valid,,Missing,,Total,
+,N,Percent,N,Percent,N,Percent
+x * y,987.000,100.0%,.000,0.0%,987.000,100.0%
+
+Table: Directional measures.
+Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
+Nominal by Nominal,Lambda,Symmetric,.000,.000,NaN,
+,,x Dependent,.000,,NaN,
+,,y Dependent,.000,,NaN,
+,Goodman and Kruskal tau,x Dependent,.076,,,
+,,y Dependent,.108,,,
+,Uncertainty Coefficient,Symmetric,.105,.012,,
+,,x Dependent,.073,.009,7.890,
+,,y Dependent,.184,.019,7.890,
 ])
 AT_CLEANUP
