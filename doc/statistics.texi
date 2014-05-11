@@ -603,7 +603,7 @@ following bugs:
 
 @itemize @bullet
 @item
-Significance of symmetric and directional measures is not calculated.
+Significance of some symmetric and directional measures is not calculated.
 @item
 Asymptotic standard error is not calculated for
 Goodman and Kruskal's tau or symmetric Somers' d.

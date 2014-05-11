@@ -376,32 +376,32 @@ z,Category,Statistic,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
 
 Table: Directional measures.
 z,Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-1,Nominal by Nominal,Lambda,Symmetric,.40,.28,1.12,
-,,,x Dependent,.25,.22,1.12,
-,,,y Dependent,1.00,.00,1.12,
-,,Goodman and Kruskal tau,x Dependent,.25,,,
-,,,y Dependent,1.00,,,
-,,Uncertainty Coefficient,Symmetric,.47,.18,,
-,,,x Dependent,.31,.15,2.02,
-,,,y Dependent,1.00,.00,2.02,
-,Ordinal by Ordinal,Somers' d,Symmetric,.00,,.00,
-,,,x Dependent,.00,.50,.00,
-,,,y Dependent,.00,.20,.00,
-,Nominal by Interval,Eta,x Dependent,.04,,,
-,,,y Dependent,1.00,,,
-2,Nominal by Nominal,Lambda,Symmetric,.50,.25,2.00,
-,,,x Dependent,.33,.27,1.15,
-,,,y Dependent,1.00,.00,1.15,
-,,Goodman and Kruskal tau,x Dependent,.33,,,
-,,,y Dependent,1.00,,,
-,,Uncertainty Coefficient,Symmetric,.58,.17,,
-,,,x Dependent,.41,.17,2.36,
-,,,y Dependent,1.00,.00,2.36,
-,Ordinal by Ordinal,Somers' d,Symmetric,-.67,,-1.73,
-,,,x Dependent,-1.00,.00,-1.73,
-,,,y Dependent,-.50,.29,-1.73,
-,Nominal by Interval,Eta,x Dependent,.73,,,
-,,,y Dependent,1.00,,,
+1,Nominal by Nominal,Lambda,Symmetric,.40,.28,1.12,.264
+,,,x Dependent,.25,.22,1.12,.264
+,,,y Dependent,1.00,.00,1.12,.264
+,,Goodman and Kruskal tau,x Dependent,.25,,,.   @&t@
+,,,y Dependent,1.00,,,.   @&t@
+,,Uncertainty Coefficient,Symmetric,.47,.18,,.   @&t@
+,,,x Dependent,.31,.15,2.02,.   @&t@
+,,,y Dependent,1.00,.00,2.02,.   @&t@
+,Ordinal by Ordinal,Somers' d,Symmetric,.00,,.00,1.000
+,,,x Dependent,.00,.50,.00,1.000
+,,,y Dependent,.00,.20,.00,1.000
+,Nominal by Interval,Eta,x Dependent,.04,,,.   @&t@
+,,,y Dependent,1.00,,,.   @&t@
+2,Nominal by Nominal,Lambda,Symmetric,.50,.25,2.00,.046
+,,,x Dependent,.33,.27,1.15,.248
+,,,y Dependent,1.00,.00,1.15,.248
+,,Goodman and Kruskal tau,x Dependent,.33,,,.   @&t@
+,,,y Dependent,1.00,,,.   @&t@
+,,Uncertainty Coefficient,Symmetric,.58,.17,,.   @&t@
+,,,x Dependent,.41,.17,2.36,.   @&t@
+,,,y Dependent,1.00,.00,2.36,.   @&t@
+,Ordinal by Ordinal,Somers' d,Symmetric,-.67,,-1.73,.083
+,,,x Dependent,-1.00,.00,-1.73,.083
+,,,y Dependent,-.50,.29,-1.73,.083
+,Nominal by Interval,Eta,x Dependent,.73,,,.   @&t@
+,,,y Dependent,1.00,,,.   @&t@
 ]])
 AT_CLEANUP
 
@@ -1030,11 +1030,11 @@ x * y,1296.000,100.0%,.000,0.0%,1296.000,100.0%
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.423,.021,16.875,
-,,x Dependent,.497,.024,15.986,
-,,y Dependent,.370,.020,16.339,
-,Goodman and Kruskal tau,x Dependent,.382,,,
-,,y Dependent,.198,,,
+Nominal by Nominal,Lambda,Symmetric,.423,.021,16.875,.000
+,,x Dependent,.497,.024,15.986,.000
+,,y Dependent,.370,.020,16.339,.000
+,Goodman and Kruskal tau,x Dependent,.382,,,.   @&t@
+,,y Dependent,.198,,,.   @&t@
 
 Table: Summary.
 ,Cases,,,,,
@@ -1044,11 +1044,11 @@ x * y,137.000,100.0%,.000,0.0%,137.000,100.0%
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.259,.081,2.902,
-,,x Dependent,.250,.089,2.479,
-,,y Dependent,.267,.085,2.766,
-,Goodman and Kruskal tau,x Dependent,.129,,,
-,,y Dependent,.123,,,
+Nominal by Nominal,Lambda,Symmetric,.259,.081,2.902,.004
+,,x Dependent,.250,.089,2.479,.013
+,,y Dependent,.267,.085,2.766,.006
+,Goodman and Kruskal tau,x Dependent,.129,,,.   @&t@
+,,y Dependent,.123,,,.   @&t@
 
 Table: Summary.
 ,Cases,,,,,
@@ -1058,11 +1058,11 @@ x * y,6800.000,100.0%,.000,0.0%,6800.000,100.0%
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.208,.010,18.793,
-,,x Dependent,.224,.013,16.076,
-,,y Dependent,.192,.012,14.438,
-,Goodman and Kruskal tau,x Dependent,.089,,,
-,,y Dependent,.081,,,
+Nominal by Nominal,Lambda,Symmetric,.208,.010,18.793,.000
+,,x Dependent,.224,.013,16.076,.000
+,,y Dependent,.192,.012,14.438,.000
+,Goodman and Kruskal tau,x Dependent,.089,,,.   @&t@
+,,y Dependent,.081,,,.   @&t@
 ])
 AT_CLEANUP
 
@@ -1116,9 +1116,9 @@ x * y,1.000000,100.0%,.000000,0.0%,1.000000,100.0%
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,-.084,,-.149,
-,,x Dependent,-.045,.300,-.149,
-,,y Dependent,-.684,2.378,-.149,
+Ordinal by Ordinal,Somers' d,Symmetric,-.084,,-.149,.882
+,,x Dependent,-.045,.300,-.149,.882
+,,y Dependent,-.684,2.378,-.149,.882
 
 Table: Summary.
 ,Cases,,,,,
@@ -1135,9 +1135,9 @@ N of Valid Cases,,687.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,.371,,10.669,
-,,x Dependent,.351,.032,10.669,
-,,y Dependent,.394,.035,10.669,
+Ordinal by Ordinal,Somers' d,Symmetric,.371,,10.669,.000
+,,x Dependent,.351,.032,10.669,.000
+,,y Dependent,.394,.035,10.669,.000
 ])
 
 AT_DATA([ordinal.sps], [dnl
@@ -1263,9 +1263,9 @@ N of Valid Cases,,150.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,1.000,,24.841,
-,,x Dependent,1.000,.000,24.841,
-,,y Dependent,1.000,.000,24.841,
+Ordinal by Ordinal,Somers' d,Symmetric,1.000,,24.841,.000
+,,x Dependent,1.000,.000,24.841,.000
+,,y Dependent,1.000,.000,24.841,.000
 
 Table: Summary.
 ,Cases,,,,,
@@ -1281,9 +1281,9 @@ N of Valid Cases,,150.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,1.000,,24.841,
-,,x Dependent,1.000,.000,24.841,
-,,y Dependent,1.000,.000,24.841,
+Ordinal by Ordinal,Somers' d,Symmetric,1.000,,24.841,.000
+,,x Dependent,1.000,.000,24.841,.000
+,,y Dependent,1.000,.000,24.841,.000
 
 Table: Summary.
 ,Cases,,,,,
@@ -1299,9 +1299,9 @@ N of Valid Cases,,150.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,-1.000,,-24.841,
-,,x Dependent,-1.000,.000,-24.841,
-,,y Dependent,-1.000,.000,-24.841,
+Ordinal by Ordinal,Somers' d,Symmetric,-1.000,,-24.841,.000
+,,x Dependent,-1.000,.000,-24.841,.000
+,,y Dependent,-1.000,.000,-24.841,.000
 
 Table: Summary.
 ,Cases,,,,,
@@ -1317,9 +1317,9 @@ N of Valid Cases,,150.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,.971,,24.841,
-,,x Dependent,.944,.013,24.841,
-,,y Dependent,1.000,.000,24.841,
+Ordinal by Ordinal,Somers' d,Symmetric,.971,,24.841,.000
+,,x Dependent,.944,.013,24.841,.000
+,,y Dependent,1.000,.000,24.841,.000
 
 Table: Summary.
 ,Cases,,,,,
@@ -1335,9 +1335,9 @@ N of Valid Cases,,150.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,.035,,1.009,
-,,x Dependent,.805,.032,1.009,
-,,y Dependent,.018,.017,1.009,
+Ordinal by Ordinal,Somers' d,Symmetric,.035,,1.009,.313
+,,x Dependent,.805,.032,1.009,.313
+,,y Dependent,.018,.017,1.009,.313
 
 Table: Summary.
 ,Cases,,,,,
@@ -1353,9 +1353,9 @@ N of Valid Cases,,148.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Ordinal by Ordinal,Somers' d,Symmetric,-.206,,-2.641,
-,,x Dependent,-.182,.069,-2.641,
-,,y Dependent,-.237,.089,-2.641,
+Ordinal by Ordinal,Somers' d,Symmetric,-.206,,-2.641,.008
+,,x Dependent,-.182,.069,-2.641,.008
+,,y Dependent,-.237,.089,-2.641,.008
 
 Table: Summary.
 ,Cases,,,,,
@@ -1372,14 +1372,14 @@ N of Valid Cases,,148.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.338,.059,4.743,
-,,x Dependent,.640,.085,4.875,
-,,y Dependent,.174,.050,3.248,
-,Goodman and Kruskal tau,x Dependent,.534,,,
-,,y Dependent,.167,,,
-Ordinal by Ordinal,Somers' d,Symmetric,-.074,,-1.022,
-,,x Dependent,-.060,.059,-1.022,
-,,y Dependent,-.096,.094,-1.022,
+Nominal by Nominal,Lambda,Symmetric,.338,.059,4.743,.000
+,,x Dependent,.640,.085,4.875,.000
+,,y Dependent,.174,.050,3.248,.001
+,Goodman and Kruskal tau,x Dependent,.534,,,.   @&t@
+,,y Dependent,.167,,,.   @&t@
+Ordinal by Ordinal,Somers' d,Symmetric,-.074,,-1.022,.307
+,,x Dependent,-.060,.059,-1.022,.307
+,,y Dependent,-.096,.094,-1.022,.307
 
 Table: Summary.
 ,Cases,,,,,
@@ -1396,14 +1396,14 @@ N of Valid Cases,,212.000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.102,.067,1.473,
-,,x Dependent,.027,.087,.302,
-,,y Dependent,.165,.065,2.349,
-,Goodman and Kruskal tau,x Dependent,.051,,,
-,,y Dependent,.068,,,
-Ordinal by Ordinal,Somers' d,Symmetric,.209,,3.338,
-,,x Dependent,.202,.060,3.338,
-,,y Dependent,.217,.064,3.338,
+Nominal by Nominal,Lambda,Symmetric,.102,.067,1.473,.141
+,,x Dependent,.027,.087,.302,.763
+,,y Dependent,.165,.065,2.349,.019
+,Goodman and Kruskal tau,x Dependent,.051,,,.   @&t@
+,,y Dependent,.068,,,.   @&t@
+Ordinal by Ordinal,Somers' d,Symmetric,.209,,3.338,.001
+,,x Dependent,.202,.060,3.338,.001
+,,y Dependent,.217,.064,3.338,.001
 ])
 AT_CLEANUP
 
@@ -1451,17 +1451,17 @@ N of Valid Cases,,66.0000,,,
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.0455,.1629,.2723,
-,,x Dependent,.0000,.0000,NaN,
-,,y Dependent,.0500,.1791,.2723,
-,Goodman and Kruskal tau,x Dependent,.1054,,,
-,,y Dependent,.0434,,,
-,Uncertainty Coefficient,Symmetric,.0780,.0474,,
-,,x Dependent,.2217,.1062,1.5373,
-,,y Dependent,.0473,.0306,1.5373,
-Ordinal by Ordinal,Somers' d,Symmetric,.1960,,1.9920,
-,,x Dependent,.1152,.0572,1.9920,
-,,y Dependent,.6573,.1417,1.9920,
+Nominal by Nominal,Lambda,Symmetric,.0455,.1629,.2723,.785
+,,x Dependent,.0000,.0000,NaN,NaN
+,,y Dependent,.0500,.1791,.2723,.785
+,Goodman and Kruskal tau,x Dependent,.1054,,,.   @&t@
+,,y Dependent,.0434,,,.   @&t@
+,Uncertainty Coefficient,Symmetric,.0780,.0474,,.   @&t@
+,,x Dependent,.2217,.1062,1.5373,.   @&t@
+,,y Dependent,.0473,.0306,1.5373,.   @&t@
+Ordinal by Ordinal,Somers' d,Symmetric,.1960,,1.9920,.046
+,,x Dependent,.1152,.0572,1.9920,.046
+,,y Dependent,.6573,.1417,1.9920,.046
 ])
 AT_CLEANUP
 
@@ -1491,13 +1491,13 @@ x * y,987.000,100.0%,.000,0.0%,987.000,100.0%
 
 Table: Directional measures.
 Category,Statistic,Type,Value,Asymp. Std. Error,Approx. T,Approx. Sig.
-Nominal by Nominal,Lambda,Symmetric,.000,.000,NaN,
-,,x Dependent,.000,.000,NaN,
-,,y Dependent,.000,.000,NaN,
-,Goodman and Kruskal tau,x Dependent,.076,,,
-,,y Dependent,.108,,,
-,Uncertainty Coefficient,Symmetric,.105,.012,,
-,,x Dependent,.073,.009,7.890,
-,,y Dependent,.184,.019,7.890,
+Nominal by Nominal,Lambda,Symmetric,.000,.000,NaN,NaN
+,,x Dependent,.000,.000,NaN,NaN
+,,y Dependent,.000,.000,NaN,NaN
+,Goodman and Kruskal tau,x Dependent,.076,,,.   @&t@
+,,y Dependent,.108,,,.   @&t@
+,Uncertainty Coefficient,Symmetric,.105,.012,,.   @&t@
+,,x Dependent,.073,.009,7.890,.   @&t@
+,,y Dependent,.184,.019,7.890,.   @&t@
 ])
 AT_CLEANUP

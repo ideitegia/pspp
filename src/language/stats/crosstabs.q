@@ -16,7 +16,7 @@
 
 /* FIXME:
 
-   - How to calculate significance of symmetric and directional measures?
+   - How to calculate significance of some symmetric and directional measures?
    - How to calculate ASE for symmetric Somers ' d?
    - How to calculate ASE for Goodman and Kruskal's tau?
    - How to calculate approx. T of symmetric uncertainty coefficient?
@@ -1974,7 +1974,7 @@ display_risk (struct pivot_table *pt, struct tab_table *risk)
 
 static int calc_directional (struct crosstabs_proc *, struct pivot_table *,
                              double[N_DIRECTIONAL], double[N_DIRECTIONAL],
-			     double[N_DIRECTIONAL]);
+			     double[N_DIRECTIONAL], double[N_DIRECTIONAL]);
 
 /* Display directional measures. */
 static void
@@ -2041,10 +2041,11 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
   double direct_v[N_DIRECTIONAL];
   double direct_ase[N_DIRECTIONAL];
   double direct_t[N_DIRECTIONAL];
+  double sig[N_DIRECTIONAL];
 
   int i;
 
-  if (!calc_directional (proc, pt, direct_v, direct_ase, direct_t))
+  if (!calc_directional (proc, pt, direct_v, direct_ase, direct_t, sig))
     return;
 
   tab_offset (direct, pt->n_consts + pt->n_vars - 2, -1);
@@ -2086,7 +2087,7 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 	tab_double (direct, 4, 0, TAB_RIGHT, direct_ase[i], NULL, RC_OTHER);
       if (direct_t[i] != SYSMIS)
 	tab_double (direct, 5, 0, TAB_RIGHT, direct_t[i], NULL, RC_OTHER);
-      /*tab_double (direct, 6, 0, TAB_RIGHT, normal_sig (direct_v[i]), NULL, RC_PVALUE);*/
+      tab_double (direct, 6, 0, TAB_RIGHT, sig[i], NULL, RC_PVALUE);
       tab_next_row (direct);
     }
 
@@ -2720,13 +2721,13 @@ calc_risk (struct pivot_table *pt,
 static int
 calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
                   double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
-		  double t[N_DIRECTIONAL])
+		  double t[N_DIRECTIONAL], double sig[N_DIRECTIONAL])
 {
   {
     int i;
 
     for (i = 0; i < N_DIRECTIONAL; i++)
-      v[i] = ase[i] = t[i] = SYSMIS;
+      v[i] = ase[i] = t[i] = sig[i] = SYSMIS;
   }
 
   /* Lambda. */
@@ -2864,11 +2865,15 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 		       / (2. * pt->total - rm - cm));
       }
 
+      for (i = 0; i < 3; i++)
+        sig[i] = 2 * gsl_cdf_ugaussian_Q (t[i]);
+
       free (fim);
       free (fim_index);
       free (fmj);
       free (fmj_index);
 
+      /* Tau. */
       {
 	double sum_fij2_ri, sum_fij2_ci;
 	double sum_ri2, sum_cj2;
@@ -2967,6 +2972,7 @@ calc_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
               v[8 + i] = somers_d_v[i];
               ase[8 + i] = somers_d_ase[i];
               t[8 + i] = somers_d_t[i];
+              sig[8 + i] = 2 * gsl_cdf_ugaussian_Q (fabs (somers_d_t[i]));
             }
         }
     }
