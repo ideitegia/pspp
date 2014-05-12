@@ -1449,9 +1449,9 @@ Bernoulli distribution with probability of success @var{p}.
 Constraints: @var{x} = 0 or 1, 0 <= @var{p} <= 1.
 @end deftypefn
 
-@deftypefn {Function} {} PDF.BINOMIAL (@var{x}, @var{n}, @var{p})
-@deftypefnx {Function} {} CDF.BINOMIAL (@var{x}, @var{n}, @var{p})
-@deftypefnx {Function} {} RV.BINOMIAL (@var{n}, @var{p})
+@deftypefn {Function} {} PDF.BINOM (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} CDF.BINOM (@var{x}, @var{n}, @var{p})
+@deftypefnx {Function} {} RV.BINOM (@var{n}, @var{p})
 Binomial distribution with @var{n} trials and probability of success
 @var{p}.  Constraints: integer @var{n} > 0, 0 <= @var{p} <= 1, integer
 @var{x} <= @var{n}.
