@@ -967,11 +967,13 @@ var_set_display_width_quiet (struct variable *v, int new_width)
 void
 var_set_display_width (struct variable *v, int new_width)
 {
-  struct variable *ov = var_clone (v);
-  var_set_display_width_quiet (v, new_width);
-  dict_var_changed (v, VAR_TRAIT_DISPLAY_WIDTH, ov);
+  if (v->display_width != new_width)
+    {
+      struct variable *ov = var_clone (v);
+      var_set_display_width_quiet (v, new_width);
+      dict_var_changed (v, VAR_TRAIT_DISPLAY_WIDTH, ov);
+    }
 }
-
 
 /* Returns the default display width for a variable of the given
    WIDTH, as set by var_create.  The return value can be used to
