@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -432,9 +432,9 @@ html_output_table (struct html_driver *html, struct table_item *item)
 	      if (top > TAL_GAP)
 		put_border (html->file, n_borders++, top, "top");
 
-	      if (y == table_nr (t) - 1)
+	      if (y + rowspan == table_nr (t))
 		{
-		  bottom = table_get_rule (t, TABLE_VERT, x, y + 1);
+		  bottom = table_get_rule (t, TABLE_VERT, x, y + rowspan);
 		  if (bottom > TAL_GAP)
 		    put_border (html->file, n_borders++, bottom, "bottom");
 		}
@@ -443,9 +443,9 @@ html_output_table (struct html_driver *html, struct table_item *item)
 	      if (left > TAL_GAP)
 		put_border (html->file, n_borders++, left, "left");
 
-	      if (x == table_nc (t) - 1)
+	      if (x + colspan == table_nc (t))
 		{
-		  right = table_get_rule (t, TABLE_HORZ, x + 1, y);
+		  right = table_get_rule (t, TABLE_HORZ, x + colspan, y);
 		  if (right > TAL_GAP)
 		    put_border (html->file, n_borders++, right, "right");
 		}
