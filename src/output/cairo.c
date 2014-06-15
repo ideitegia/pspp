@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -615,7 +615,7 @@ xr_driver_run_fsm (struct xr_driver *xr)
 static void
 xr_layout_cell (struct xr_driver *, const struct table_cell *,
                 int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
-                PangoWrapMode, int *width, int *height);
+                int *width, int *height);
 
 static void
 dump_line (struct xr_driver *xr, int x0, int y0, int x1, int y1)
@@ -791,10 +791,10 @@ xr_measure_cell_width (void *xr_, const struct table_cell *cell,
   bb[V][0] = 0;
   bb[V][1] = INT_MAX;
   clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
-  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, max_width, &h);
+  xr_layout_cell (xr, cell, bb, clip, max_width, &h);
 
   bb[H][1] = 1;
-  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, min_width, &h);
+  xr_layout_cell (xr, cell, bb, clip, min_width, &h);
 }
 
 static int
@@ -810,7 +810,7 @@ xr_measure_cell_height (void *xr_, const struct table_cell *cell, int width)
   bb[V][0] = 0;
   bb[V][1] = INT_MAX;
   clip[H][0] = clip[H][1] = clip[V][0] = clip[V][1] = 0;
-  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, &w, &h);
+  xr_layout_cell (xr, cell, bb, clip, &w, &h);
   return h;
 }
 
@@ -821,13 +821,13 @@ xr_draw_cell (void *xr_, const struct table_cell *cell,
   struct xr_driver *xr = xr_;
   int w, h;
 
-  xr_layout_cell (xr, cell, bb, clip, PANGO_WRAP_WORD, &w, &h);
+  xr_layout_cell (xr, cell, bb, clip, &w, &h);
 }
 
 static void
 xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
                 int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2],
-                PangoWrapMode wrap, int *width, int *height)
+                int *width, int *height)
 {
   struct xr_font *font;
 
@@ -844,7 +844,7 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
      : PANGO_ALIGN_CENTER));
   pango_layout_set_width (font->layout,
                           bb[H][1] == INT_MAX ? -1 : bb[H][1] - bb[H][0]);
-  pango_layout_set_wrap (font->layout, wrap);
+  pango_layout_set_wrap (font->layout, PANGO_WRAP_WORD);
 
   if (clip[H][0] != clip[H][1])
     {
