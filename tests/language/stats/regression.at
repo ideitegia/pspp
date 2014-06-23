@@ -54,6 +54,78 @@ v0,v1,v2,RES1,PRED1
 AT_CLEANUP
 
 
+AT_SETUP([LINEAR REGRESSION - one save])
+AT_DATA([regression.sps], [dnl
+set format = F22.3.
+data list notable list / v0 to v2.
+begin data
+ 0.65377128  7.735648 -23.97588
+-0.13087553  6.142625 -19.63854
+ 0.34880368  7.651430 -25.26557
+ 0.69249021  6.125125 -16.57090
+-0.07368178  8.245789 -25.80001
+-0.34404919  6.031540 -17.56743
+ 0.75981559  9.832291 -28.35977
+-0.46958313  5.343832 -16.79548
+-0.06108490  8.838262 -29.25689
+ 0.56154863  6.200189 -18.58219
+end data
+regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /method=enter /save=resid.
+regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 /method=enter /save=pred.
+list.
+])
+
+AT_CHECK([pspp -O format=csv regression.sps], [0], [dnl
+Table: Model Summary (v2)
+,R,R Square,Adjusted R Square,Std. Error of the Estimate
+,.971,.942,.925,1.337
+
+Table: ANOVA (v2)
+,,Sum of Squares,df,Mean Square,F,Sig.
+,Regression,202.753,2,101.376,56.754,.000
+,Residual,12.504,7,1.786,,
+,Total,215.256,9,,,
+
+Table: Coefficients (v2)
+,,Unstandardized Coefficients,,Standardized Coefficients,,
+,,B,Std. Error,Beta,t,Sig.
+,(Constant),2.191,2.357,.000,.930,.380
+,v0,1.813,1.053,.171,1.722,.129
+,v1,-3.427,.332,-1.026,-10.334,.000
+
+Table: Model Summary (v2)
+,R,R Square,Adjusted R Square,Std. Error of the Estimate
+,.971,.942,.925,1.337
+
+Table: ANOVA (v2)
+,,Sum of Squares,df,Mean Square,F,Sig.
+,Regression,202.753,2,101.376,56.754,.000
+,Residual,12.504,7,1.786,,
+,Total,215.256,9,,,
+
+Table: Coefficients (v2)
+,,Unstandardized Coefficients,,Standardized Coefficients,,
+,,B,Std. Error,Beta,t,Sig.
+,(Constant),2.191,2.357,.000,.930,.380
+,v0,1.813,1.053,.171,1.722,.129
+,v1,-3.427,.332,-1.026,-10.334,.000
+
+Table: Data List
+v0,v1,v2,RES1,PRED1
+.654,7.736,-23.976,-.84,-23.13
+-.131,6.143,-19.639,-.54,-19.10
+.349,7.651,-25.266,-1.87,-23.40
+.692,6.125,-16.571,.97,-17.54
+-.074,8.246,-25.800,.40,-26.20
+-.344,6.032,-17.567,1.53,-19.10
+.760,9.832,-28.360,1.77,-30.13
+-.470,5.344,-16.795,.18,-16.97
+-.061,8.838,-29.257,-1.05,-28.21
+.562,6.200,-18.582,-.54,-18.04
+])
+AT_CLEANUP
+
+
 # Test to ensure that the /SAVE subcommand works properly when SPLIT is active
 AT_SETUP([LINEAR REGRESSION - SAVE vs SPLITS])
 

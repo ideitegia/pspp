@@ -335,6 +335,8 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   workspace.pred_idx = -1;
   workspace.writer = NULL;                      
   workspace.reader = NULL;
+  workspace.residvars = NULL;
+  workspace.predvars = NULL;
   if (save)
     {
       int i;
