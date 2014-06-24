@@ -47,6 +47,7 @@
 #include <cairo/cairo-ps.h>
 #include <cairo/cairo-svg.h>
 #include <cairo/cairo.h>
+#include <math.h>
 #include <pango/pango-font.h>
 #include <pango/pango-layout.h>
 #include <pango/pango.h>
@@ -121,10 +122,10 @@ struct xr_driver
     int width;                  /* Page width minus margins. */
     int length;                 /* Page length minus margins and header. */
 
-    int left_margin;            /* Left margin in XR units. */
-    int right_margin;           /* Right margin in XR units. */
-    int top_margin;             /* Top margin in XR units. */
-    int bottom_margin;          /* Bottom margin in XR units. */
+    int left_margin;            /* Left margin in inch/(72 * XR_POINT). */
+    int right_margin;           /* Right margin in inch/(72 * XR_POINT). */
+    int top_margin;             /* Top margin in inch/(72 * XR_POINT). */
+    int bottom_margin;          /* Bottom margin in inch/(72 * XR_POINT). */
 
     int line_gutter;		/* Space around lines. */
     int line_space;		/* Space between lines. */
@@ -213,7 +214,7 @@ parse_color (struct output_driver *d, struct string_map *options,
 static PangoFontDescription *
 parse_font (struct output_driver *d, struct string_map *options,
             const char *key, const char *default_value,
-            int default_points)
+            int default_size)
 {
   PangoFontDescription *desc;
   char *string;
@@ -233,10 +234,10 @@ parse_font (struct output_driver *d, struct string_map *options,
   free (string);
 
   /* If the font description didn't include an explicit font size, then set it
-     to DEFAULT_POINTS. */
+     to DEFAULT_SIZE, which is in inch/72000 units. */
   if (!(pango_font_description_get_set_fields (desc) & PANGO_FONT_MASK_SIZE))
     pango_font_description_set_size (desc,
-                                     default_points / 1000.0 * PANGO_SCALE);
+                                     (default_size / 1000.0) * PANGO_SCALE);
 
   return desc;
 }
@@ -247,9 +248,16 @@ apply_options (struct xr_driver *xr, struct string_map *o)
 {
   struct output_driver *d = &xr->driver;
 
-  int paper_width, paper_length, i;
+  /* In inch/72000 units used by parse_paper_size() and parse_dimension(). */
+  int left_margin, right_margin;
+  int top_margin, bottom_margin;
+  int paper_width, paper_length;
+  int font_size;
 
-  int font_points = parse_int (opt (d, o, "font-size", "10000"), 1000, 1000000);
+  /* Scale factor from inch/72000 to inch/(72 * XR_POINT). */
+  const double scale = XR_POINT / 1000.;
+
+  int i;
 
   for (i = 0; i < XR_N_FONTS; i++)
     {
@@ -259,14 +267,15 @@ apply_options (struct xr_driver *xr, struct string_map *o)
         pango_font_description_free (font->desc);
     }
 
+  font_size = parse_int (opt (d, o, "font-size", "10000"), 1000, 1000000);
   xr->fonts[XR_FONT_FIXED].desc = parse_font (d, o, "fixed-font", "monospace",
-                                              font_points);
+                                              font_size);
   xr->fonts[XR_FONT_PROPORTIONAL].desc = parse_font (d, o, "prop-font",
-                                                     "serif", font_points);
+                                                     "serif", font_size);
   xr->fonts[XR_FONT_EMPHASIS].desc = parse_font (d, o, "emph-font",
-                                                 "serif italic", font_points);
+                                                 "serif italic", font_size);
 
-  xr->line_gutter = parse_dimension (opt (d, o, "gutter", "3pt"));
+  xr->line_gutter = parse_dimension (opt (d, o, "gutter", "3pt")) * scale;
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
@@ -274,14 +283,20 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &xr->bg);
   parse_color (d, o, "foreground-color", "#000000000000", &xr->fg);
 
+  /* Get dimensions.  */
   parse_paper_size (opt (d, o, "paper-size", ""), &paper_width, &paper_length);
-  xr->left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
-  xr->right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
-  xr->top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
-  xr->bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
+  left_margin = parse_dimension (opt (d, o, "left-margin", ".5in"));
+  right_margin = parse_dimension (opt (d, o, "right-margin", ".5in"));
+  top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
+  bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
 
-  xr->width = paper_width - xr->left_margin - xr->right_margin;
-  xr->length = paper_length - xr->top_margin - xr->bottom_margin;
+  /* Convert to inch/(XR_POINT * 72). */
+  xr->left_margin = left_margin * scale;
+  xr->right_margin = right_margin * scale;
+  xr->top_margin = top_margin * scale;
+  xr->bottom_margin = bottom_margin * scale;
+  xr->width = (paper_width - left_margin - right_margin) * scale;
+  xr->length = (paper_length - top_margin - bottom_margin) * scale;
 }
 
 static struct xr_driver *
@@ -295,6 +310,18 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
   apply_options (xr, o);
 
   return xr;
+}
+
+static int
+pango_to_xr (int pango)
+{
+  return ceil (pango * (1. * XR_POINT / PANGO_SCALE));
+}
+
+static int
+xr_to_pango (int xr)
+{
+  return ceil (xr * (1. / XR_POINT * PANGO_SCALE));
 }
 
 static bool
@@ -318,8 +345,8 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
 
       pango_layout_set_text (font->layout, "0", 1);
       pango_layout_get_size (font->layout, &char_width, &char_height);
-      xr->char_width = MAX (xr->char_width, char_width);
-      xr->char_height = MAX (xr->char_height, char_height);
+      xr->char_width = MAX (xr->char_width, pango_to_xr (char_width));
+      xr->char_height = MAX (xr->char_height, pango_to_xr (char_height));
     }
 
   if (xr->params == NULL)
@@ -364,8 +391,8 @@ xr_create (const char *file_name, enum settings_output_devices device_type,
 
   xr = xr_allocate (file_name, device_type, o);
 
-  width_pt = (xr->width + xr->left_margin + xr->right_margin) / 1000.0;
-  length_pt = (xr->length + xr->top_margin + xr->bottom_margin) / 1000.0;
+  width_pt = xr_to_pt (xr->width + xr->left_margin + xr->right_margin);
+  length_pt = xr_to_pt (xr->length + xr->top_margin + xr->bottom_margin);
   if (file_type == XR_PDF)
     surface = cairo_pdf_surface_create (file_name, width_pt, length_pt);
   else if (file_type == XR_PS)
@@ -830,6 +857,7 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
                 int *width, int *height)
 {
   struct xr_font *font;
+  int w, h;
 
   font = (cell->options & TAB_FIX ? &xr->fonts[XR_FONT_FIXED]
           : cell->options & TAB_EMPH ? &xr->fonts[XR_FONT_EMPHASIS]
@@ -842,8 +870,9 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
     ((cell->options & TAB_ALIGNMENT) == TAB_RIGHT ? PANGO_ALIGN_RIGHT
      : (cell->options & TAB_ALIGNMENT) == TAB_LEFT ? PANGO_ALIGN_LEFT
      : PANGO_ALIGN_CENTER));
-  pango_layout_set_width (font->layout,
-                          bb[H][1] == INT_MAX ? -1 : bb[H][1] - bb[H][0]);
+  pango_layout_set_width (
+    font->layout,
+    bb[H][1] == INT_MAX ? -1 : xr_to_pango (bb[H][1] - bb[H][0]));
   pango_layout_set_wrap (font->layout, PANGO_WRAP_WORD);
 
   if (clip[H][0] != clip[H][1])
@@ -868,7 +897,9 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
       cairo_restore (xr->cairo);
     }
 
-  pango_layout_get_size (font->layout, width, height);
+  pango_layout_get_size (font->layout, &w, &h);
+  *width = pango_to_xr (w);
+  *height = pango_to_xr (h);
 }
 
 static void
