@@ -65,8 +65,8 @@
 #define H TABLE_HORZ
 #define V TABLE_VERT
 
-/* Measurements as we present to the rest of PSPP. */
-#define XR_POINT 1000
+/* The unit used for internal measurements is inch/(72 * XR_POINT). */
+#define XR_POINT PANGO_SCALE
 
 /* Conversions to and from points. */
 static double
@@ -315,13 +315,17 @@ xr_allocate (const char *name, int device_type, struct string_map *o)
 static int
 pango_to_xr (int pango)
 {
-  return ceil (pango * (1. * XR_POINT / PANGO_SCALE));
+  return (XR_POINT != PANGO_SCALE
+          ? ceil (pango * (1. * XR_POINT / PANGO_SCALE))
+          : pango);
 }
 
 static int
 xr_to_pango (int xr)
 {
-  return ceil (xr * (1. / XR_POINT * PANGO_SCALE));
+  return (XR_POINT != PANGO_SCALE
+          ? ceil (xr * (1. / XR_POINT * PANGO_SCALE))
+          : xr);
 }
 
 static bool
