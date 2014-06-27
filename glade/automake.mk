@@ -27,7 +27,8 @@ libglade_psppire_la_SOURCES = \
 	src/ui/gui/psppire-dictview.c \
 	src/ui/gui/psppire-selector.c \
 	src/ui/gui/psppire-select-dest.c \
-	src/ui/gui/psppire-var-view.c
+	src/ui/gui/psppire-var-view.c \
+	src/ui/gui/psppire-window-base.c
 
 dist_catalog_DATA = \
 	glade/psppire.xml
