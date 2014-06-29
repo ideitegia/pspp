@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -164,6 +164,8 @@ struct ascii_driver
     int top_margin;		/* Top margin in lines. */
     int bottom_margin;		/* Bottom margin in lines. */
 
+    int min_break[TABLE_N_AXES]; /* Min cell size to break across pages. */
+
     const ucs4_t *box;          /* Line & box drawing characters. */
 
     /* Internal state. */
@@ -235,6 +237,7 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
               struct string_map *o)
 {
   enum { BOX_ASCII, BOX_UNICODE } box;
+  int min_break[TABLE_N_AXES];
   struct output_driver *d;
   struct ascii_driver *a;
   int paper_length;
@@ -257,11 +260,16 @@ ascii_create (const char *file_name, enum settings_output_devices device_type,
   a->top_margin = parse_int (opt (d, o, "top-margin", "0"), 0, INT_MAX);
   a->bottom_margin = parse_int (opt (d, o, "bottom-margin", "0"), 0, INT_MAX);
 
+  min_break[H] = parse_int (opt (d, o, "min-hbreak", "-1"), -1, INT_MAX);
+  min_break[V] = parse_int (opt (d, o, "min-vbreak", "-1"), -1, INT_MAX);
+
   a->width = parse_page_size (opt (d, o, "width", "79"));
   paper_length = parse_page_size (opt (d, o, "length", "66"));
   a->auto_width = a->width < 0;
   a->auto_length = paper_length < 0;
   a->length = paper_length - vertical_margins (a);
+  a->min_break[H] = min_break[H] >= 0 ? min_break[H] : a->width / 2;
+  a->min_break[V] = min_break[V] >= 0 ? min_break[V] : a->length / 2;
 #ifdef HAVE_CAIRO
   parse_color (d, o, "background-color", "#FFFFFFFFFFFF", &a->bg);
   parse_color (d, o, "foreground-color", "#000000000000", &a->fg);
@@ -444,6 +452,8 @@ ascii_output_table_item (struct ascii_driver *a,
       params.line_widths[H][i] = width;
       params.line_widths[V][i] = width;
     }
+  for (i = 0; i < TABLE_N_AXES; i++)
+    params.min_break[i] = a->min_break[i];
 
   if (a->file == NULL && !ascii_open_page (a))
     return;

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ driver_option_create (const char *driver_name, const char *name,
   o->driver_name = xstrdup (driver_name);
   o->name = xstrdup (name);
   o->value = value != NULL ? xstrdup (value) : NULL;
-  o->default_value = xstrdup (default_value);
+  o->default_value = default_value ? xstrdup (default_value) : NULL;
   return o;
 }
 
@@ -261,9 +261,9 @@ parse_dimension (struct driver_option *o)
 {
   int retval;
 
-  retval = o->value != NULL ? measure_dimension (o->value) : -1;
-  if (retval == -1)
-    retval = measure_dimension (o->default_value);
+  retval = (o->value != NULL ? measure_dimension (o->value)
+            : o->default_value != NULL ? measure_dimension (o->default_value)
+            : -1);
 
   driver_option_destroy (o);
   return retval;

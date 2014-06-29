@@ -131,6 +131,8 @@ struct xr_driver
     int line_space;		/* Space between lines. */
     int line_width;		/* Width of lines. */
 
+    int min_break[TABLE_N_AXES]; /* Min cell size to break across pages. */
+
     struct xr_color bg;    /* Background color */
     struct xr_color fg;    /* Foreground color */
 
@@ -253,6 +255,7 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   int top_margin, bottom_margin;
   int paper_width, paper_length;
   int font_size;
+  int min_break[TABLE_N_AXES];
 
   /* Scale factor from inch/72000 to inch/(72 * XR_POINT). */
   const double scale = XR_POINT / 1000.;
@@ -290,6 +293,9 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   top_margin = parse_dimension (opt (d, o, "top-margin", ".5in"));
   bottom_margin = parse_dimension (opt (d, o, "bottom-margin", ".5in"));
 
+  min_break[H] = parse_dimension (opt (d, o, "min-hbreak", NULL)) * scale;
+  min_break[V] = parse_dimension (opt (d, o, "min-vbreak", NULL)) * scale;
+
   /* Convert to inch/(XR_POINT * 72). */
   xr->left_margin = left_margin * scale;
   xr->right_margin = right_margin * scale;
@@ -297,6 +303,8 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   xr->bottom_margin = bottom_margin * scale;
   xr->width = (paper_width - left_margin - right_margin) * scale;
   xr->length = (paper_length - top_margin - bottom_margin) * scale;
+  xr->min_break[H] = min_break[H] >= 0 ? min_break[H] : xr->width / 2;
+  xr->min_break[V] = min_break[V] >= 0 ? min_break[V] : xr->length / 2;
 }
 
 static struct xr_driver *
@@ -376,6 +384,9 @@ xr_set_cairo (struct xr_driver *xr, cairo_t *cairo)
           xr->params->line_widths[i][RENDER_LINE_SINGLE] = single_width;
           xr->params->line_widths[i][RENDER_LINE_DOUBLE] = double_width;
         }
+
+      for (i = 0; i < TABLE_N_AXES; i++)
+        xr->params->min_break[i] = xr->min_break[i];
     }
 
   cairo_set_source_rgb (xr->cairo, xr->fg.red, xr->fg.green, xr->fg.blue);

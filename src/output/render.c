@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1160,7 +1160,7 @@ cell_is_breakable (const struct render_break *b, int cell)
   const struct render_page *page = b->page;
   enum table_axis axis = b->axis;
 
-  return cell_width (page, axis, cell) > page->params->size[axis] / 2;
+  return cell_width (page, axis, cell) >= page->params->min_break[axis];
 }
 
 /* render_page_select() and helpers. */

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -78,6 +78,11 @@ struct render_params
 
     /* Width of different kinds of lines. */
     int line_widths[TABLE_N_AXES][RENDER_N_LINES];
+
+    /* Minimum cell width or height before allowing the cell to be broken
+       across two pages.  (Joined cells may always be broken at join
+       points.) */
+    int min_break[TABLE_N_AXES];
   };
 
 /* A "page" of content that is ready to be rendered.

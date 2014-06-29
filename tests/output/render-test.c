@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ main (int argc, char **argv)
 }
 
 static void
-configure_drivers (int width, int length)
+configure_drivers (int width, int length, int min_break)
 {
   struct string_map options, tmp;
   struct output_driver *driver;
@@ -111,6 +111,13 @@ configure_drivers (int width, int length)
                             xasprintf ("%d", width));
   string_map_insert_nocopy (&options, xstrdup ("length"),
                             xasprintf ("%d", length));
+  if (min_break >= 0)
+    {
+      string_map_insert_nocopy (&options, xstrdup ("min-hbreak"),
+                                xasprintf ("%d", min_break));
+      string_map_insert_nocopy (&options, xstrdup ("min-vbreak"),
+                                xasprintf ("%d", min_break));
+    }
   if (emphasis != NULL)
     string_map_insert (&options, "emphasis", emphasis);
   if (box != NULL)
@@ -147,6 +154,13 @@ configure_drivers (int width, int length)
       string_map_insert (&options, "right-margin", "0");
       string_map_insert_nocopy (&options, xstrdup ("paper-size"),
                                 xasprintf ("%dx%dpt", width * 5, length * 8));
+      if (min_break >= 0)
+        {
+          string_map_insert_nocopy (&options, xstrdup ("min-hbreak"),
+                                    xasprintf ("%d", min_break * 5));
+          string_map_insert_nocopy (&options, xstrdup ("min-vbreak"),
+                                    xasprintf ("%d", min_break * 8));
+        }
       driver = output_driver_create (&options);
       if (driver == NULL)
         exit (EXIT_FAILURE);
@@ -168,12 +182,14 @@ parse_options (int argc, char **argv)
 {
   int width = 79;
   int length = 66;
+  int min_break = -1;
 
   for (;;)
     {
       enum {
         OPT_WIDTH = UCHAR_MAX + 1,
         OPT_LENGTH,
+        OPT_MIN_BREAK,
         OPT_EMPHASIS,
         OPT_BOX,
         OPT_HELP
@@ -182,6 +198,7 @@ parse_options (int argc, char **argv)
         {
           {"width", required_argument, NULL, OPT_WIDTH},
           {"length", required_argument, NULL, OPT_LENGTH},
+          {"min-break", required_argument, NULL, OPT_MIN_BREAK},
           {"transpose", no_argument, &transpose, 1},
           {"emphasis", required_argument, NULL, OPT_EMPHASIS},
           {"box", required_argument, NULL, OPT_BOX},
@@ -203,6 +220,10 @@ parse_options (int argc, char **argv)
 
         case OPT_LENGTH:
           length = atoi (optarg);
+          break;
+
+        case OPT_MIN_BREAK:
+          min_break = atoi (optarg);
           break;
 
         case OPT_EMPHASIS:
@@ -229,7 +250,7 @@ parse_options (int argc, char **argv)
 
     }
 
-  configure_drivers (width, length);
+  configure_drivers (width, length, min_break);
 
   if (optind + 1 != argc)
     error (1, 0, "exactly one non-option argument required; "
