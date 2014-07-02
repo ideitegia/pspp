@@ -74,8 +74,7 @@ EXTRA_DIST += \
 	$(POFILES) \
 	$(POTFILE) \
 	po/ChangeLog \
-	po/cs.po,aux \
-	po/de.po,aux
+	po/cs.po,aux
 
 CLEANFILES += $(GMOFILES) $(POTFILE)
 

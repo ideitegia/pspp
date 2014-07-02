@@ -1,7 +1,0 @@
-#: src/ui/gui/gen-dot-desktop.sh:12
-msgid "Statistical Software"
-msgstr "Statistiksoftware"
-
-#: src/ui/gui/gen-dot-desktop.sh:21
-msgid "Analyze statistical data with a free alternative to SPSS"
-msgstr "Statistische Daten mit einer freien Alternative zu SPSS analysieren"
