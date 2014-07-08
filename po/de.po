@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.2.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-04-03 23:15-0700\n"
-"PO-Revision-Date: 2014-06-29 09:19+0100\n"
-"Last-Translator: Matthias Keil <matthias.keil@ymail.com>\n"
+"PO-Revision-Date: 2014-07-05 19:38+0100\n"
+"Last-Translator: Bob Earl <Bob.Earl@gmx.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.6.5\n"
 
 #: src/ui/gui/helper.c:204
 msgid "Sorry. The help system hasn't yet been implemented."
@@ -428,7 +428,7 @@ msgstr "Ausgewähltes Blatt oder Bereich der Tabelle `%s'  ist leer."
 #: src/data/identifier2.c:60
 #, c-format
 msgid "Identifier `%s' exceeds %d-byte limit."
-msgstr ""
+msgstr "Bezeichnung `%s' überschreitet die Grenze von %d Bytes."
 
 #: src/data/identifier2.c:84
 msgid "Identifier cannot be empty string."
@@ -727,12 +727,12 @@ msgstr "Doppelter Typ 6 (Dokument) Eintrag."
 #: src/data/sys-file-reader.c:496 src/data/sys-file-reader.c:1335
 #, c-format
 msgid "Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s."
-msgstr ""
+msgstr "Eintrag vom Typ 7, Untertyp %d wurde nicht erkannt. Bitte schicken Sie eine Kopie dieser Datei und der Syntax, die diese erzeugt hat, and %s."
 
 #: src/data/sys-file-reader.c:505
 #, c-format
 msgid "Record type 7, subtype %d found here has the same type as the record found near offset 0x%llx.  Please send a copy of this file, and the syntax which created it to %s."
-msgstr ""
+msgstr "Der hier gefundene Eintrag vom Typ 7, Untertyp %d ist vom selben Type wie der Eintrag der in der Nähe des Offsets 0x%llx.  Bitte senden Sie eine Kopie dieser Datei und der Syntax, die diese erzeugt hat, an %s."
 
 #: src/data/sys-file-reader.c:517
 #, c-format
@@ -820,7 +820,7 @@ msgstr "Dies ist keine SPSS System Datei."
 
 #: src/data/sys-file-reader.c:1021
 msgid "Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
-msgstr ""
+msgstr "Der compression bias hat nicht den üblichen Wert von 100 oder die Systemdatei verwendet ein nicht erkanntes Format für Fließkommazahlen."
 
 #: src/data/sys-file-reader.c:1096
 msgid "Variable label indicator field is not 0 or 1."
@@ -841,7 +841,7 @@ msgstr "Ungültige Anzahl von Beschriftungen %u."
 
 #: src/data/sys-file-reader.c:1179
 msgid "Variable index record (type 4) does not immediately follow value label record (type 3) as it should."
-msgstr ""
+msgstr "Der Eintrag des Variablenindex (Typ 4) folgt nicht direkt auf den Eintrag des Wertelabels (Typ 3) wie erforderlich."
 
 #: src/data/sys-file-reader.c:1191
 #, c-format
@@ -856,12 +856,12 @@ msgstr "Anzahl der Zeilen im Dokument (%d) muss größer als 0 und kleiner als %
 #: src/data/sys-file-reader.c:1309
 #, c-format
 msgid "Record type 7, subtype %d has bad size %u (expected %d)."
-msgstr ""
+msgstr "Eintrag vom Typ 7, Untertyp %d hat die falsche Größe %u (erwarteter Wert %d)."
 
 #: src/data/sys-file-reader.c:1313
 #, c-format
 msgid "Record type 7, subtype %d has bad count %u (expected %d)."
-msgstr ""
+msgstr "Eintrag vom Typ 7, Untertyp %d hat die falsche Anzahl %u (erwarteter Wert %d)."
 
 #: src/data/sys-file-reader.c:1410
 #, c-format
@@ -875,7 +875,7 @@ msgstr "Variable mit doppeltem Namen wird von `%s' zu `%s' umbenannt."
 
 #: src/data/sys-file-reader.c:1503
 msgid "Missing string continuation record."
-msgstr ""
+msgstr "Fehlender Eintrag zur Fortführung der Zeichenfolge."
 
 #: src/data/sys-file-reader.c:1549
 #, c-format
@@ -902,34 +902,34 @@ msgid "Integer format indicated by system file (%d) differs from expected (%d)."
 msgstr "Das in der Systemdatei (%d) angegebene Integerformat weicht vom erwarteten Format (%d) ab."
 
 #: src/data/sys-file-reader.c:1646 src/data/sys-file-reader.c:1652
-#, fuzzy, c-format
+#, c-format
 msgid "File specifies unexpected value %g (%a) as %s, instead of %g (%a)."
-msgstr "Datei bezeichnet unerwarteten Wert %g als %s."
+msgstr "Die Datei legt unerwarteter Weise den Wert %g (%a) als %s fest anstatt %g (%a)."
 
 #: src/data/sys-file-reader.c:1661
-#, fuzzy, c-format
+#, c-format
 msgid "File specifies unexpected value %g (%a) as %s, instead of %g (%a) or %g (%a)."
-msgstr "Datei bezeichnet unerwarteten Wert %g als %s."
+msgstr "Die Datei legt unerwarteter Weise den Wert %g (%a) als %s fest anstatt %g (%a) oder %g (%a)."
 
 #: src/data/sys-file-reader.c:1713 src/data/sys-file-reader.c:1732
 #, c-format
 msgid "Missing space following `%c' at offset %zu in MRSETS record."
-msgstr ""
+msgstr "Fehlendes Leezeichen nach `%c' beim Offset %zu in MRSETS Eintrag."
 
 #: src/data/sys-file-reader.c:1742
 #, c-format
 msgid "Unexpected label source value following `E' at offset %zu in MRSETS record."
-msgstr ""
+msgstr "Unerwarteter Wert für LABELSOURCE nach `E' beim Offset %zu in MRSETS Eintrag."
 
 #: src/data/sys-file-reader.c:1749
 #, c-format
 msgid "Missing `C', `D', or `E' at offset %zu in MRSETS record."
-msgstr ""
+msgstr "Fehlendes `C', `D', or `E' beim Offset %zu in MRSETS Eintrag."
 
 #: src/data/sys-file-reader.c:1776
 #, c-format
 msgid "Missing new-line parsing variable names at offset %zu in MRSETS record."
-msgstr ""
+msgstr "Fehlender Zeilenumbruch beim Einlesen der Variablennamen beim Offset %zu in MRSETS Eintrag."
 
 #: src/data/sys-file-reader.c:1811
 #, c-format
@@ -959,17 +959,17 @@ msgstr "MRSET %s hat nur eine Variable."
 #: src/data/sys-file-reader.c:1918
 #, c-format
 msgid "Extension 11 has bad count %u (for %zu variables)."
-msgstr ""
+msgstr "Erweiterung 11 hat die falsche Anzahl %u (für %zu Variablen)."
 
 #: src/data/sys-file-reader.c:1951
 #, c-format
 msgid "Invalid variable display parameters for variable %zu (%s).  Default parameters substituted."
-msgstr ""
+msgstr "Ungültige Parameter der Variablenanzeige für Variable %zu (%s). Voreingestellte Parameter werden eingesetzt."
 
 #: src/data/sys-file-reader.c:2045
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
-msgstr ""
+msgstr "Zuordnung eines langen Variablennamens von %s zum ungültigen Namen `%s'."
 
 #: src/data/sys-file-reader.c:2056
 #, c-format
@@ -979,32 +979,32 @@ msgstr "Doppelter langer Variablenname `%s'."
 #: src/data/sys-file-reader.c:2089
 #, c-format
 msgid "%s listed as string of invalid length %s in very long string record."
-msgstr ""
+msgstr "%s wird als String mit ungültiger Länge %s in einem sehr langen Stringeintrag verzeichnet."
 
 #: src/data/sys-file-reader.c:2100
 #, c-format
 msgid "%s listed in very long string record with width %s, which requires only one segment."
-msgstr ""
+msgstr "%s ist in einem sehr langen Stringeintrag mit Breite %s verzeichnet, welcher nur ein Segment benötigt."
 
 #: src/data/sys-file-reader.c:2108
 #, c-format
 msgid "Very long string %s overflows dictionary."
-msgstr ""
+msgstr "Sehr lange Zeichenfolge %s übersteigt das Codebuch."
 
 #: src/data/sys-file-reader.c:2126
 #, c-format
 msgid "Very long string with width %ld has segment %d of width %d (expected %d)."
-msgstr ""
+msgstr "Sehr lange Zeichenfolge mit Breite %ld hat das Segment %d der Breite %d (erwartet wurde %d)."
 
 #: src/data/sys-file-reader.c:2169
 #, c-format
 msgid "Variables associated with value label are not all of identical type.  Variable %s is %s, but variable %s is %s."
-msgstr ""
+msgstr "Die mit dem Wertelabel verbundenen Variablen haben nicht alle den gleichen Typ.  Die Variable %s ist %s, aber die Variable %s ist %s."
 
 #: src/data/sys-file-reader.c:2189
 #, c-format
 msgid "Value labels may not be added to long string variables (e.g. %s) using records types 3 and 4."
-msgstr ""
+msgstr "Wertelabels dürfen nicht zu langen Stringvariablen hinzugefügt werden (z.B. %s), wenn Einträge des Typs 3 und 4 verwendet werden."
 
 #: src/data/sys-file-reader.c:2210
 #, c-format
@@ -1024,7 +1024,7 @@ msgstr "Variablenindex %d liegt nicht im gültigen Bereich 1...%zu."
 #: src/data/sys-file-reader.c:2250
 #, c-format
 msgid "Variable index %d refers to long string continuation."
-msgstr ""
+msgstr "Der Variablenindex %d verweist auf die Forsetzung einer langen Zeichenfolge."
 
 #: src/data/sys-file-reader.c:2286
 #, c-format
@@ -1049,47 +1049,47 @@ msgstr "%zu weitere Variablen hatten ungültige Rollen."
 #: src/data/sys-file-reader.c:2412
 #, c-format
 msgid "Extension record subtype %d ends unexpectedly."
-msgstr ""
+msgstr "Erweiterungseintrag des Untertyps %d endet unerwartet."
 
 #: src/data/sys-file-reader.c:2457
 #, c-format
 msgid "Ignoring long string value label record for unknown variable %s."
-msgstr ""
+msgstr "Langer String im Eintrag der Wertebezeichnung für die Variable %s wird ignoriert."
 
 #: src/data/sys-file-reader.c:2462
 #, c-format
 msgid "Ignoring long string value label record for numeric variable %s."
-msgstr ""
+msgstr "Langer String im Eintrag der Wertebezeichnung für die numerische Variable %s wird ignoriert."
 
 #: src/data/sys-file-reader.c:2469
 #, c-format
 msgid "Ignoring long string value label record for variable %s because the record's width (%d) does not match the variable's width (%d)."
-msgstr ""
+msgstr "Langer String im Eintrag der Wertebezeichnung für Variable %s wird ignoriert, weil die Breite des Eintrags (%d) nicht mit der Breite der Variable (%d) übereinstimmt."
 
 #: src/data/sys-file-reader.c:2500
 #, c-format
 msgid "Ignoring long string value label %zu for variable %s, with width %d, that has bad value width %zu."
-msgstr ""
+msgstr "Langer String der Wertebezeichnung %zu für die Variable %s mit Breite %d hat die fehlerhafte Breite %zu und wird ignoriert."
 
 #: src/data/sys-file-reader.c:2575
 #, c-format
 msgid "Long string missing values record says variable %s has %d missing values, but only 1 to 3 missing values are allowed."
-msgstr ""
+msgstr "Langer String im Eintrag der fehlenden Werte besagt, dass die Variable %s %d fehlende Werte hat, es sind aber nur zwischen 1 und 3 fehlende Werte erlaubt."
 
 #: src/data/sys-file-reader.c:2585
 #, c-format
 msgid "Ignoring long string missing value record for unknown variable %s."
-msgstr ""
+msgstr "Langer String im Eintrag der fehlenden Werte für die unbekannte Variable %s wird ignoriert."
 
 #: src/data/sys-file-reader.c:2590
 #, c-format
 msgid "Ignoring long string missing value record for numeric variable %s."
-msgstr ""
+msgstr "Langer String im Eintrag der fehlenden Werte für die numerische Variable %s wird ignoriert."
 
 #: src/data/sys-file-reader.c:2615
 #, c-format
 msgid "Ignoring long string missing value %zu for variable %s, with width %d, that has bad value width %zu."
-msgstr ""
+msgstr "Langer String des fehlenden Wertes %zu für die Variable %s mit Breite %d hat die fehlerhafte Breite %zu und wird ignoriert."
 
 #: src/data/sys-file-reader.c:2672
 msgid "File ends in partial string value."
@@ -1106,42 +1106,42 @@ msgstr "Fehler beim lesen eines Falls aus Datei %s."
 
 #: src/data/sys-file-reader.c:2811
 msgid "Possible compressed data corruption: compressed spaces appear in numeric field."
-msgstr ""
+msgstr "Komprimierte Daten sind möglicherweise nicht lesbar: kompriemierte Leerzeichen erscheinen in einem numerischen Feld."
 
 #: src/data/sys-file-reader.c:2865
 #, c-format
 msgid "Possible compressed data corruption: string contains compressed integer (opcode %d)."
-msgstr ""
+msgstr "Komprimierte Daten sind möglicherweise nicht lesbar: Zeichenfolge enthält eine Integerzahl (opcode %d)."
 
 #: src/data/sys-file-reader.c:2962
 #, c-format
 msgid "Suppressed %d additional related warnings."
-msgstr ""
+msgstr "Weitere %d Warnungen, die damit in Verbindung stehen, werden unterdrückt."
 
 #: src/data/sys-file-reader.c:3008 src/data/sys-file-reader.c:3025
 #, c-format
 msgid "Dictionary record refers to unknown variable %s."
-msgstr ""
+msgstr "Eintrag im Codebuch bezieht sich auf die unbekannte Variable %s."
 
 #: src/data/sys-file-reader.c:3087
 #, c-format
 msgid "Expecting digit at offset %zu in MRSETS record."
-msgstr ""
+msgstr "Beim Offset %zu im MRSETS Eintrag wurde eine Ziffer erwartet."
 
 #: src/data/sys-file-reader.c:3095
 #, c-format
 msgid "Expecting space at offset %zu in MRSETS record."
-msgstr ""
+msgstr "Beim Offset %zu im MRSETS Eintrag wurde ein Leerzeichen erwartet."
 
 #: src/data/sys-file-reader.c:3103
 #, c-format
 msgid "%zu-byte string starting at offset %zu exceeds record length %zu."
-msgstr ""
+msgstr "Die %zu-byte lange Zeichenfolge, die beim Offset %zu  beginnt, überschreitet die Länge %zu."
 
 #: src/data/sys-file-reader.c:3113
 #, c-format
 msgid "Expecting space at offset %zu following %zu-byte string."
-msgstr ""
+msgstr "Beim Offset %zu nach der %zu-byte langen Zeichenfolge wurde ein Leerzeichen erwartet."
 
 #: src/data/sys-file-reader.c:3160
 #, c-format
@@ -1165,131 +1165,131 @@ msgstr "Unerwartetes Dateiende."
 #: src/data/sys-file-reader.c:3407
 #, c-format
 msgid "Wrong ZLIB data header offset %#llx (expected %#llx)."
-msgstr ""
+msgstr "Fehlerhafter Offset %#llx (erwartet wurde %#llx) im Kopf der ZLIB-Daten."
 
 #: src/data/sys-file-reader.c:3415
 #, c-format
 msgid "Impossible ZLIB trailer offset 0x%llx."
-msgstr ""
+msgstr "Offset 0x%llx im Nachspann der ZLIB-Daten ist nicht möglich."
 
 #: src/data/sys-file-reader.c:3422
 #, c-format
 msgid "Invalid ZLIB trailer length %lld."
-msgstr ""
+msgstr "Länge %lld des Nachspanns der ZLIB-Daten ist ungültig."
 
 #: src/data/sys-file-reader.c:3449
 #, c-format
 msgid "%s: seek failed (%s)."
-msgstr ""
+msgstr "%s: Suche ist fehlgeschlagen (%s)."
 
 #: src/data/sys-file-reader.c:3472
 #, c-format
 msgid "%s: stat failed (%s)."
-msgstr ""
+msgstr "%s: Stat ist fehlgeschlagen (%s)."
 
 #: src/data/sys-file-reader.c:3486
 #, c-format
 msgid "End of ZLIB trailer (0x%llx) is not file size (0x%llx)."
-msgstr ""
+msgstr "Das Ende des Nachspanns der ZLIB-Daten (0x%llx) stimmt nicht mit der Dateigröße (0x%llx) überein."
 
 #: src/data/sys-file-reader.c:3496
 #, c-format
 msgid "ZLIB trailer bias (%lld) differs from file header bias (%.2f)."
-msgstr ""
+msgstr "Der Bias im Nachspann der ZLIB-Daten (%lld) unterscheidet sich vom Bias im Kopf der Datei (%.2f)."
 
 #: src/data/sys-file-reader.c:3506
 #, c-format
 msgid "ZLIB trailer \"zero\" field has nonzero value %lld."
-msgstr ""
+msgstr "Das Feld \"zero\" im Nachspann der ZLIB-Daten hat den von Null verschiedenen Wert %lld."
 
 #: src/data/sys-file-reader.c:3512
 #, c-format
 msgid "ZLIB trailer specifies unexpected %u-byte block size."
-msgstr ""
+msgstr "Der Nachspann der ZLIB-Daten legt die unerwartete Blockgröße von %u Bytes fest."
 
 #: src/data/sys-file-reader.c:3520
 #, c-format
 msgid "%lld-byte ZLIB trailer specifies %u data blocks (expected %lld)."
-msgstr ""
+msgstr "Der Nachspann der ZLIB-Daten der Größe %lld Bytes legt %u Datenblocks fest (erwartet wurde %lld)."
 
 #: src/data/sys-file-reader.c:3545
 #, c-format
 msgid "ZLIB block descriptor %u reported uncompressed data offset %#llx, when %#llx was expected."
-msgstr ""
+msgstr "Die Blockbeschreibung %u der ZLIB-Daten berichtet ein Offset der unkomprimierten Daten von %#llx, wobei %#llx erwartet wurde."
 
 #: src/data/sys-file-reader.c:3554
 #, c-format
 msgid "ZLIB block descriptor %u reported compressed data offset %#llx, when %#llx was expected."
-msgstr ""
+msgstr "Die Blockbeschreibung %u der ZLIB-Daten berichtet ein Offset der komprimierten Daten von %#llx, wobei %#llx erwartet wurde."
 
 #: src/data/sys-file-reader.c:3564
 #, c-format
 msgid "ZLIB block descriptor %u reported block size %#x, when %#x was expected."
-msgstr ""
+msgstr "Die Blockbeschreibung %u der ZLIB-Daten berichtet eine Blockgröße von %#x, wobei %#x erwartet wurde."
 
 #: src/data/sys-file-reader.c:3572
 #, c-format
 msgid "ZLIB block descriptor %u reported block size %#x, when at most %#x was expected."
-msgstr ""
+msgstr "Die Blockbeschreibung %u der ZLIB-Daten berichtet eine Blockgröße von %#x, wobei höchstens %#x erwartet wurde."
 
 #: src/data/sys-file-reader.c:3584
 #, c-format
 msgid "ZLIB block descriptor %u reports compressed size %u and uncompressed size %u."
-msgstr ""
+msgstr "Die Blockbeschreibung %u der ZLIB-Daten berichtet eine komprimierte Größe von %u und eine unkomprimierte Größe von %u."
 
 #: src/data/sys-file-reader.c:3596
 #, c-format
 msgid "ZLIB trailer is at offset %#llx but %#llx would be expected from block descriptors."
-msgstr ""
+msgstr "Der Nachspann der ZLIB-Daten liegt beim Offset %#llx, aber auf Grund der Blockbeschreibungen wurde %#llx erwartet."
 
 #: src/data/sys-file-reader.c:3615
 #, c-format
 msgid "ZLIB initialization failed (%s)."
-msgstr ""
+msgstr "Initialisierung von ZLIB ist fehlgeschlagen (%s)."
 
 #: src/data/sys-file-reader.c:3630
 #, c-format
 msgid "Inconsistency at end of ZLIB stream (%s)."
-msgstr ""
+msgstr "Am Ende des ZLIB-Datenstroms ist eine Inkonsistenz aufgetreten (%s)."
 
 #: src/data/sys-file-reader.c:3689
 #, c-format
 msgid "ZLIB stream inconsistency (%s)."
-msgstr ""
+msgstr "Im ZLIB-Datenstrom ist eine Inkonsistenz aufgetreten (%s)."
 
 #: src/data/sys-file-reader.c:3713
 msgid "Unexpected end of ZLIB compressed data."
-msgstr ""
+msgstr "Unerwartetes Ende der komprimierten ZLIB-Daten."
 
 #: src/data/sys-file-writer.c:211
 #, c-format
 msgid "Unknown system file version %d. Treating as version %d."
-msgstr ""
+msgstr "Die Version %d der Szstemdatei ist unbekannt. Es wird die Version %d verwendet."
 
 #: src/data/sys-file-writer.c:1280
 #, c-format
 msgid "An I/O error occurred writing system file `%s'."
-msgstr ""
+msgstr "Beim Schreiben der Systemdatei `%s' ist ein I/O-Fehler aufgetreten."
 
 #: src/data/sys-file-writer.c:1387
 #, c-format
 msgid "Failed to initialize ZLIB for compression (%s)."
-msgstr ""
+msgstr "Initialisierung von ZLIB für die Komprimierung ist fehlgeschlagen (%s)."
 
 #: src/data/sys-file-writer.c:1416
 #, c-format
 msgid "Failed to complete ZLIB stream compression (%s)."
-msgstr ""
+msgstr "Die Komprimierung des ZLIB-Datenstroms konnte nicht abgeschlossen werden (%s)."
 
 #: src/data/sys-file-writer.c:1457
 #, c-format
 msgid "ZLIB stream compression failed (%s)."
-msgstr ""
+msgstr "Die Komprimierung des ZLIB-Datenstroms ist fehlgeschlagen (%s)."
 
 #: src/data/sys-file-writer.c:1499
 #, c-format
 msgid "%s: Seek failed (%s)."
-msgstr ""
+msgstr "%s: Suche fehlgeschlagen (%s)."
 
 #: src/data/variable.c:675
 #, c-format
@@ -1534,12 +1534,12 @@ msgstr "Syntax Fehler"
 #: src/language/lexer/lexer.c:1438
 #, c-format
 msgid "String of hex digits has %d characters, which is not a multiple of 2"
-msgstr ""
+msgstr "String der Hexadezimalziffern hat %d Zeichen, was nicht ein Vielfaches von 2 ist"
 
 #: src/language/lexer/lexer.c:1445
 #, c-format
 msgid "`%c' is not a valid hex digit"
-msgstr ""
+msgstr "`%c' ist keine gültige Hexadezimalziffer"
 
 #: src/language/lexer/lexer.c:1450
 #, c-format
@@ -1549,7 +1549,7 @@ msgstr "Unicode String enthält %d Bytes, was nicht im gültigen Bereich von 1 b
 #: src/language/lexer/lexer.c:1456
 #, c-format
 msgid "U+%04X is not a valid Unicode code point"
-msgstr ""
+msgstr "U+%04X ist kein gültiger Unicode Codepoint"
 
 #: src/language/lexer/lexer.c:1461
 msgid "Unterminated string constant"
@@ -1763,21 +1763,21 @@ msgstr "Eine Variable mit dem Namen %s existiert nicht. (Alle Stringvariablen di
 #: src/language/xforms/recode.c:510
 #, c-format
 msgid "INTO is required with %s input values and %s output values."
-msgstr ""
+msgstr "Für INTO werden %s Eingabewerte und %s Ausgabewerte benötigt."
 
 #: src/language/xforms/recode.c:523
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
-msgstr ""
+msgstr "Typen stimmen nicht überein.  %s Daten können nicht in %s Variable %s gespeichert werden."
 
 #: src/language/xforms/recode.c:566
 #, c-format
 msgid "Cannot recode because the variable %s would require a width of %d bytes or greater, but it has a width of only %d bytes."
-msgstr ""
+msgstr "Umkodierung kann nicht erfolgen, weil die Variable %s eine Breite von %d Bytes erfordern würde, aber sie eine Breite von nur %d Bytes hat."
 
 #: src/language/xforms/select-if.c:100
 msgid "Syntax error expecting OFF or BY.  Turning off case filtering."
-msgstr ""
+msgstr "Syntaxfehler, es wurde OFF oder BY erwartet.  Fallauswahl wird abgeschalten."
 
 #: src/language/xforms/select-if.c:115
 msgid "The filter variable must be numeric."
@@ -1785,7 +1785,7 @@ msgstr "Die Filtervariable muss numerisch sein."
 
 #: src/language/xforms/select-if.c:121
 msgid "The filter variable may not be scratch."
-msgstr ""
+msgstr "Die Filtervariable darf keine Scratchvariable sein."
 
 #: src/language/control/control-stack.c:31
 #, c-format
@@ -1795,54 +1795,54 @@ msgstr "%s ohne %s."
 #: src/language/control/control-stack.c:59
 #, c-format
 msgid "This command must appear inside %s...%s, without intermediate %s...%s."
-msgstr ""
+msgstr "Dieser Befehl muss innerhalb von %s...%s verwendet werden ohne Unterbrechung durch %s...%s."
 
 #: src/language/control/control-stack.c:76
 #, c-format
 msgid "This command cannot appear outside %s...%s."
-msgstr ""
+msgstr "Dieser Befehl kann nicht außerhalb von %s...%s verwendet werden."
 
 #: src/language/control/do-if.c:177
 #, c-format
 msgid "This command may not follow %s in %s ... %s."
-msgstr ""
+msgstr "Dieser Befehl kann nicht nach %s innerhalb von %s ... %s verwendet werden."
 
 #: src/language/control/loop.c:214
 msgid "Only one index clause may be specified."
-msgstr ""
+msgstr "Es darf nur eine Index Anweisung verwendet werden."
 
 #: src/language/control/repeat.c:118
 #, c-format
 msgid "Dummy variable name `%s' hides dictionary variable `%s'."
-msgstr ""
+msgstr "Name der Dummyvariable `%s' verdeckt die Variable `%s' im Codebuch."
 
 #: src/language/control/repeat.c:122
 #, c-format
 msgid "Dummy variable name `%s' is given twice."
-msgstr ""
+msgstr "Der Name der Dummyvariable `%s'  wurde doppelt vergeben."
 
 #: src/language/control/repeat.c:165
 #, c-format
 msgid "Dummy variable `%s' had %zu substitutions, so `%s' must also, but %zu were specified."
-msgstr ""
+msgstr "Die Dummyvariable `%s' hatte %zu Ersetzungen, daher sollte dies auch für `%s' der Fall sein, aber es wurden %zu Ersetzungen angegeben."
 
 #: src/language/control/repeat.c:378
 msgid "Ranges may only have integer bounds."
-msgstr ""
+msgstr "Bereiche dürfen nur ganze Zahlen als Grenzen haben."
 
 #: src/language/control/repeat.c:392
 #, c-format
 msgid "%ld TO %ld is an invalid range."
-msgstr ""
+msgstr "%ld TO %ld ist ein ungültiger Bereich."
 
 #: src/language/control/repeat.c:442
-#, fuzzy, c-format
+#, c-format
 msgid "No matching %s."
-msgstr "Kein übereinstimmendes WIEDERHOLUNG."
+msgstr "Keine Übereinstimmungen mit %s."
 
 #: src/language/control/temporary.c:45
 msgid "This command may only appear once between procedures and procedure-like commands."
-msgstr ""
+msgstr "Dieser Befehl darf zwischen Prozeduren und prozedur-ähnlichen Befehlen nur ein Mal verwendet werden."
 
 #: src/language/dictionary/attributes.c:104
 msgid "Attribute array index must be between 1 and 65535."
@@ -1851,63 +1851,63 @@ msgstr "Attribut Array Index muss zwischen 1 und 65535 liegen."
 #: src/language/dictionary/apply-dictionary.c:74
 #, c-format
 msgid "Variable %s is %s in target file, but %s in source file."
-msgstr ""
+msgstr "Die Variable %s ist in der Zieldatei %s, aber in der Quelldatei %s."
 
 #: src/language/dictionary/apply-dictionary.c:110
 msgid "No matching variables found between the source and target files."
-msgstr ""
+msgstr "Keine übereinstimmenden Variablen in der Quelldatei und der Zieldatei gefunden."
 
 #: src/language/dictionary/delete-variables.c:40
 #: src/language/dictionary/modify-variables.c:92
 #: src/language/dictionary/rename-variables.c:48
 #, c-format
 msgid "%s may not be used after %s.  Temporary transformations will be made permanent."
-msgstr ""
+msgstr "%s darf nicht nach %s verwendet werden.  Temporäre Transformationen werden dauerhaft gemacht."
 
 #: src/language/dictionary/delete-variables.c:48
 #, c-format
 msgid "%s may not be used to delete all variables from the active dataset dictionary.  Use %s instead."
-msgstr ""
+msgstr "%s darf nicht dafür verwendet werden, alle Variablen aus dem Codebuch des aktiven Datenblatts zu löschen. Verwenden Sie stattdessen %s."
 
 #: src/language/dictionary/missing-values.c:70
 #, c-format
 msgid "Cannot mix numeric variables (e.g. %s) and string variables (e.g. %s) within a single list."
-msgstr ""
+msgstr "Numerische Variablen (z.B. %s) und Stringvariablen (z.B. %s) können nicht in einer Liste kombiniert werden."
 
 #: src/language/dictionary/missing-values.c:123
 #, c-format
 msgid "Truncating missing value to maximum acceptable length (%d bytes)."
-msgstr ""
+msgstr "Der fehlende Wert wird auf die maximal erlaubte Länge (%d Bytes) gekürzt."
 
 #: src/language/dictionary/missing-values.c:146
 #, c-format
 msgid "Missing values provided are too long to assign to variable of width %d."
-msgstr ""
+msgstr "Die angegebenen Werte sind zu lang für eine Variable der Breite %d."
 
 #: src/language/dictionary/modify-variables.c:137
 msgid "Cannot specify ALL after specifying a set of variables."
-msgstr ""
+msgstr "Nach der Angabe von Variablen kann der Befehl ALL nicht mehr verwendet werden."
 
 #: src/language/dictionary/modify-variables.c:207
 #: src/language/dictionary/rename-variables.c:71
 #, c-format
 msgid "Differing number of variables in old name list (%zu) and in new name list (%zu)."
-msgstr ""
+msgstr "Die Anzahl an Variablen in der Liste der alten Namen (%zu) stimmt nicht mit der Anzahl in der Liste der neuen Namen (%zu) überein."
 
 #: src/language/dictionary/modify-variables.c:232
 #: src/language/dictionary/modify-variables.c:276
 #, c-format
 msgid "%s subcommand may be given at most once.  It may not be given in conjunction with the %s subcommand."
-msgstr ""
+msgstr "Der Unterbefehl %s darf höchstens ein Mal verwendet werden.  Gemeinsam mit dem Unterbefehl %s darf er gar nicht verwendet werden."
 
 #: src/language/dictionary/modify-variables.c:304
 #, c-format
 msgid "Unrecognized subcommand name `%s'."
-msgstr ""
+msgstr "Der Unterbefehl `%s' wurde nicht erkannt."
 
 #: src/language/dictionary/modify-variables.c:306
 msgid "Subcommand name expected."
-msgstr ""
+msgstr "Es wurde der Name eines Unterbefehls erwartet."
 
 #: src/language/dictionary/mrsets.c:116
 #, c-format
@@ -1916,60 +1916,60 @@ msgstr ""
 
 #: src/language/dictionary/mrsets.c:149
 msgid "Numeric VALUE must be an integer."
-msgstr ""
+msgstr "Numerischer Wert für VALUE muss ganzzahlig sein."
 
 #: src/language/dictionary/mrsets.c:229 src/language/dictionary/mrsets.c:267
 #, c-format
 msgid "MDGROUP subcommand for group %s specifies a string VALUE, but the variables specified for this group are numeric."
-msgstr ""
+msgstr "Der Unterbefehl MDGROUP für Gruppe %s legt einen String VALUE fest, aber die Variablen dieser Gruppe sind numerisch."
 
 #: src/language/dictionary/mrsets.c:253
 #, c-format
 msgid "VALUE string on MDGROUP subcommand for group %s is %d bytes long, but it must be no longer than the narrowest variable in the group, which is %s with a width of %d bytes."
-msgstr ""
+msgstr "Der String VALUE im Unterbefehl MDGROUP für Gruppe %s ist %d Bytes lang, aber er darf nicht länger als die kürzeste Variable dieser Gruppe sein, also so lang wie die Variable %s mit %d Bytes."
 
 #: src/language/dictionary/mrsets.c:279
 #, c-format
 msgid "MDGROUP subcommand for group %s specifies LABELSOURCE=VARLABEL but not CATEGORYLABELS=COUNTEDVALUES.  Ignoring LABELSOURCE."
-msgstr ""
+msgstr "Im Unterbefehl MDGROUP für die Gruppe %s ist LABELSOURCE=VARLABEL angegeben, aber CATEGORYLABELS=COUNTEDVALUES wird nicht genannt.  LABELSOURCE wird übersprungen."
 
 #: src/language/dictionary/mrsets.c:285
 #, c-format
 msgid "MDGROUP subcommand for group %s specifies both LABEL and LABELSOURCE, but only one of these subcommands may be used at a time.  Ignoring LABELSOURCE."
-msgstr ""
+msgstr "Im Unterbefehl MDGROUP für die Gruppe %s wurde sowohl LABEL als auch LABELSOURCE angegeben, aber nur einer der beiden Unterbefehle darf gleichzeitig verwendet werden.  LABELSOURCE wird übersprungen."
 
 #: src/language/dictionary/mrsets.c:325
 #, c-format
 msgid "Variables %s and %s specified as part of multiple dichotomy group %s have the same variable label.  Categories represented by these variables will not be distinguishable in output."
-msgstr ""
+msgstr "Die Variablen %s und %s sind Teil der Mehrfach-Dichotomie-Gruppe %s und haben das gleiche Variablenlabel.  Kategorien dieser Variablen werden sich in der Ausgabe nicht unterscheiden lassen."
 
 #: src/language/dictionary/mrsets.c:355
 #, c-format
 msgid "Variable %s specified as part of multiple dichotomy group %s (which has CATEGORYLABELS=COUNTEDVALUES) has no value label for its counted value.  This category will not be distinguishable in output."
-msgstr ""
+msgstr "Die Variable %s ist Teil der Multi-Dichotomie-Gruppe %s (mit CATEGORYLABELS=COUNTEDVALUES) und hat kein Wertelabel für den zu gezählten Wert (COUNTEDVALUE) festgelegt.  Diese Kategorie wird in der Ausgabe nicht unterscheidbar sein."
 
 #: src/language/dictionary/mrsets.c:368
 #, c-format
 msgid "Variables %s and %s specified as part of multiple dichotomy group %s (which has CATEGORYLABELS=COUNTEDVALUES) have the same value label for the group's counted value.  These categories will not be distinguishable in output."
-msgstr ""
+msgstr "Die Variablen %s und %s sind Teil der Mehrfach-Dichotomie-Gruppe %s (mit ) und haben das gleiche Variablenlabel für den zu gezählten Wert (COUNTEDVALUE) der Gruppe.  Kategorien dieser Variablen werden sich in der Ausgabe nicht unterscheiden lassen."
 
 #: src/language/dictionary/mrsets.c:425
 #, c-format
 msgid "Variables specified on MCGROUP should have the same categories, but %s and %s (and possibly others) in multiple category group %s have different value labels for value %s."
-msgstr ""
+msgstr "Variablen, die im Befehl MCGROUP angegeben werden, müssen die gleichen Kategorien besitzen, aber %s und %s (und möglicherweise weitere) in der Mehrfach-Kategorien-Gruppe %s haben unterschiedliche Labels für den Wert %s."
 
 #: src/language/dictionary/mrsets.c:483
 #, c-format
 msgid "No multiple response set named %s."
-msgstr ""
+msgstr "Es gibt kein Mehrfachantworten-Set namens %s."
 
 #: src/language/dictionary/mrsets.c:537
 msgid "The active dataset dictionary does not contain any multiple response sets."
-msgstr ""
+msgstr "Das Codebuch des aktiven Datenblatts enthält keine Mehrfachantworten."
 
 #: src/language/dictionary/mrsets.c:547
 msgid "Multiple Response Sets"
-msgstr ""
+msgstr "Mehrfachantworten-Sets"
 
 #: src/language/dictionary/mrsets.c:548 src/ui/gui/psppire-var-sheet.c:1361
 msgid "Name"
@@ -1985,11 +1985,11 @@ msgstr "Details"
 
 #: src/language/dictionary/mrsets.c:564
 msgid "Multiple dichotomy set"
-msgstr ""
+msgstr "Mehrfachantworten-Set für Dichotomien"
 
 #: src/language/dictionary/mrsets.c:565
 msgid "Multiple category set"
-msgstr ""
+msgstr "Mehrfachantworten-Set für kategoriale Daten"
 
 #: src/language/dictionary/mrsets.c:567
 #: src/language/dictionary/split-file.c:84
@@ -1997,15 +1997,15 @@ msgstr ""
 #: src/language/dictionary/sys-file-info.c:663
 #: src/ui/gui/psppire-var-sheet.c:1374 src/ui/gui/compute.ui:479
 msgid "Label"
-msgstr "Variablenlabel"
+msgstr "Beschriftung"
 
 #: src/language/dictionary/mrsets.c:571
 msgid "Label source"
-msgstr ""
+msgstr "Quelle des Beschriftungen"
 
 #: src/language/dictionary/mrsets.c:573
 msgid "First variable label among variables"
-msgstr ""
+msgstr "Erstes Variablenbeschriftung in den Variablen"
 
 #: src/language/dictionary/mrsets.c:574
 msgid "Provided by user"
@@ -2017,20 +2017,20 @@ msgstr "Gezählter Wert"
 
 #: src/language/dictionary/mrsets.c:587
 msgid "Category label source"
-msgstr ""
+msgstr "Quelle der Kategorienbeschreibung"
 
 #: src/language/dictionary/mrsets.c:589
 msgid "Variable labels"
-msgstr ""
+msgstr "Variablenbeschriftung"
 
 #: src/language/dictionary/mrsets.c:590
 msgid "Value labels of counted value"
-msgstr ""
+msgstr "Wertebeschriftungen des gezählten Werts"
 
 #: src/language/dictionary/numeric.c:67
 #, c-format
 msgid "Format type %s may not be used with a numeric variable."
-msgstr ""
+msgstr "Formattyp %s darf nicht bei einer numerischen Variable verwendet werden."
 
 #: src/language/dictionary/numeric.c:86 src/language/dictionary/numeric.c:153
 #, c-format
@@ -2040,12 +2040,12 @@ msgstr "Es existiert bereits eine Variable namens  %s."
 #: src/language/dictionary/numeric.c:138
 #, c-format
 msgid "Format type %s may not be used with a string variable."
-msgstr ""
+msgstr "Formattyp %s darf nicht bei einer Stringvariable verwendet werden."
 
 #: src/language/dictionary/rename-variables.c:89
 #, c-format
 msgid "Renaming would duplicate variable name %s."
-msgstr ""
+msgstr "Die Umbenennung würde den doppelten Variablennamen %s erzeugen."
 
 #: src/language/dictionary/split-file.c:83
 #: src/language/dictionary/sys-file-info.c:499
@@ -3071,7 +3071,7 @@ msgstr "Der Datensatz enthält keine vollständigen Beobachtungen. Die Analyse w
 
 #: src/language/stats/factor.c:1812
 msgid "Analysis N"
-msgstr ""
+msgstr "Analyse N"
 
 #: src/language/stats/factor.c:1849
 msgid "KMO and Bartlett's Test"
@@ -3198,9 +3198,8 @@ msgid "Multivariate analysis is not yet implemented"
 msgstr "Multivariate Analysen sind noch nicht implementiert"
 
 #: src/language/stats/glm.c:272
-#, fuzzy
 msgid "Only types 1, 2 & 3 sums of squares are currently implemented"
-msgstr "Bisher sind nur Quadratsummen vom Typ I, II &amp: III implementiert"
+msgstr "Bisher sind nur Quadratsummen vom Typ I, II & III sind implementiert"
 
 #: src/language/stats/glm.c:735
 msgid "Tests of Between-Subjects Effects"
@@ -3324,7 +3323,7 @@ msgstr "Schätzung wurde bei Wiederholung Nummer %d abgebrochen, weil das Maximu
 
 #: src/language/stats/logistic.c:995
 msgid "Cut point value must be in the range [0,1]"
-msgstr ""
+msgstr "Der Trennwert muss im Bereich [0; 1] liegen"
 
 #: src/language/stats/logistic.c:1148
 msgid "Dependent Variable Encoding"
@@ -3393,9 +3392,8 @@ msgid "-2 Log likelihood"
 msgstr "-2 Log Likelihood"
 
 #: src/language/stats/logistic.c:1369
-#, fuzzy
 msgid "Cox & Snell R Square"
-msgstr "Cox &amp; Snell R-Quadrat"
+msgstr "Cox & Snell R-Quadrat"
 
 #: src/language/stats/logistic.c:1373
 msgid "Nagelkerke R Square"
@@ -3571,9 +3569,8 @@ msgid "Exact Sig. (1-tailed)"
 msgstr "Exakte Sig. (1-seitig)"
 
 #: src/language/stats/median.c:358
-#, fuzzy
 msgid "> Median"
-msgstr "Median"
+msgstr "> Median"
 
 #: src/language/stats/median.c:361
 msgid "≤ Median"
@@ -3784,7 +3781,7 @@ msgstr "Anzahl der Iterationen muß positiv sein"
 #: src/language/stats/rank.c:206
 #, c-format
 msgid "Cannot generate variable name for ranking %s with %s.  All candidates in use."
-msgstr ""
+msgstr "Ein Variablenname für die Rangbildung von %s mit %s konnte nicht erzeugt werden.  Alle Kandidaten werden bereits verwedet."
 
 #: src/language/stats/rank.c:321
 #, c-format
@@ -3991,11 +3988,11 @@ msgstr "REGRESSION mit SAVE ignoriert TEMPORARY.  Temporäre Umformungen werden 
 
 #: src/language/stats/regression.c:505
 msgid "The dependent variable is equal to the independent variable. The least squares line is therefore Y=X. Standard errors and related statistics may be meaningless."
-msgstr ""
+msgstr "Die abhängige Variable ist mit der unabhängigen Variable identisch. Die Regressionsgerade ist daher Y=X. Standardfehler und damit verbundene Statistiken sind eventuell nicht sinnvoll."
 
 #: src/language/stats/regression.c:689
 msgid "No valid data found. This command was skipped."
-msgstr ""
+msgstr "Keine gültigen Daten gefunden. Dieser Befehl wird übersprungen."
 
 #: src/language/stats/regression.c:774
 #: src/ui/gui/psppire-dialog-action-regression.c:42
@@ -4066,7 +4063,7 @@ msgstr "Korrelationen der Koeffizienten (%s)"
 #: src/language/stats/runs.c:168
 #, c-format
 msgid "Multiple modes exist for variable `%s'.  Using %.*g as the threshold value."
-msgstr ""
+msgstr "Für die Variable `%s' gibt es mehrere Modalwerte.  %.*g wird als Grenzwert verwendet."
 
 #: src/language/stats/runs.c:324 src/ui/gui/runs.ui:7
 msgid "Runs Test"
@@ -4089,9 +4086,8 @@ msgid "Test Value (median)"
 msgstr "Testwert (Median)"
 
 #: src/language/stats/runs.c:386
-#, fuzzy
 msgid "Cases < Test Value"
-msgstr "Fälle ≥ Testwert"
+msgstr "Fälle < Testwert"
 
 #: src/language/stats/runs.c:389
 msgid "Cases ≥ Test Value"
@@ -4194,9 +4190,9 @@ msgid "Correlation"
 msgstr "Korrelation"
 
 #: src/language/stats/t-test-paired.c:246
-#, fuzzy, c-format
+#, c-format
 msgid "%s & %s"
-msgstr "%s &amp; %s"
+msgstr "%s & %s"
 
 #: src/language/stats/t-test-paired.c:290
 msgid "Paired Samples Test"
@@ -4218,7 +4214,7 @@ msgstr "%s - %s"
 #: src/language/stats/t-test-parser.c:123
 #, c-format
 msgid "When applying %s to a string variable, two values must be specified."
-msgstr ""
+msgstr "Bei der Anwendung von %s auf eine Zeichenfolge müssen zwei Werte übergeben werden."
 
 #: src/language/stats/t-test-parser.c:135
 #: src/language/stats/t-test-parser.c:231
@@ -4248,123 +4244,123 @@ msgstr "Das aktive Datenblatt kann nicht angegeben werden, da noch keines defini
 
 #: src/language/data-io/combine-files.c:220
 msgid "This command may not be used after TEMPORARY when the active dataset is an input source.  Temporary transformations will be made permanent."
-msgstr ""
+msgstr "Dieser Befehl darf nicht nach TEMPORARY verwendet werden, wenn das aktive Datenblatt eine Quelle ist.  Vorläufige Transformationen werden dauerhaft gemacht.\""
 
 #: src/language/data-io/combine-files.c:254
 msgid "Multiple IN subcommands for a single FILE or TABLE."
-msgstr ""
+msgstr "Mehrere IN Unterbefehle für eine einzelne Datei (FILE) oder Tabelle (TABLE)."
 
 #: src/language/data-io/combine-files.c:307
 #, c-format
 msgid "File %s lacks BY variable %s."
-msgstr ""
+msgstr "In der Datei %s fehlt BY Variable %s."
 
 #: src/language/data-io/combine-files.c:310
 #, c-format
 msgid "Active dataset lacks BY variable %s."
-msgstr ""
+msgstr "Im aktiven Datenblatt fehlt BY Variable %s."
 
 #: src/language/data-io/combine-files.c:387
 #: src/language/data-io/combine-files.c:392
 #, c-format
 msgid "BY is required when %s is specified."
-msgstr ""
+msgstr "BY muss angegeben werden, wenn %s angegeben wurde."
 
 #: src/language/data-io/combine-files.c:520
 msgid "Combining files with incompatible encodings. String data may not be represented correctly."
-msgstr ""
+msgstr "Zusammenführung von Dateien mit nicht kompatiblen Kodierungen. Zeichenfolgen werden möglicherweise nicht korrekt wiedergegeben."
 
 #: src/language/data-io/combine-files.c:563
 #, c-format
 msgid "Variable %s in file %s has different type or width from the same variable in earlier file."
-msgstr ""
+msgstr "Die Variable %s in der Datei %s hat einen anderen Typ oder eine andere Breite als die gleiche Variable in einer vorherigen Datei."
 
 #: src/language/data-io/combine-files.c:569
 #, c-format
 msgid "In file %s, %s is numeric."
-msgstr ""
+msgstr "In der Datei %s ist %s numerisch."
 
 #: src/language/data-io/combine-files.c:572
 #, c-format
 msgid "In file %s, %s is a string variable with width %d."
-msgstr ""
+msgstr "In der Datei %s ist %s eine Stringvariable mit der Breite %d."
 
 #: src/language/data-io/combine-files.c:577
 #, c-format
 msgid "In an earlier file, %s was numeric."
-msgstr ""
+msgstr "In einer vorherigen Datei war %s numerisch."
 
 #: src/language/data-io/combine-files.c:580
 #, c-format
 msgid "In an earlier file, %s was a string variable with width %d."
-msgstr ""
+msgstr "In einer vorherigen Datei war %s eine Stringvariable mit der Breite %d."
 
 #: src/language/data-io/combine-files.c:620
 #, c-format
 msgid "Variable name %s specified on %s subcommand duplicates an existing variable name."
-msgstr ""
+msgstr "Der Variablenname %s, der im Unterbefehl %s angegeben wurde, ist ein Duplikat eines existierenden Variablennamens."
 
 #: src/language/data-io/combine-files.c:792
 #, c-format
 msgid "Encountered %zu sets of duplicate cases in the master file."
-msgstr ""
+msgstr "Es wurden %zu Paare von doppelten Fällen in der Masterdatei gefunden."
 
 #: src/language/data-io/data-list.c:141
 #, c-format
 msgid "The %s subcommand may only be used within %s."
-msgstr ""
+msgstr "Der Unterbefehl %s darf nur innerhalb von %s verwendet werden."
 
 #: src/language/data-io/data-list.c:146
 #, c-format
 msgid "The %s subcommand may only be specified once."
-msgstr ""
+msgstr "Der Unterbefehl %s darf nur ein Mal angegeben werden."
 
 #: src/language/data-io/data-list.c:184
 msgid "Only one of FIXED, FREE, or LIST may be specified."
-msgstr ""
+msgstr "Es darf nur entweder FIXED, FREE oder LIST angegeben werden, aber nicht mehrere Optionen."
 
 #: src/language/data-io/data-list.c:245
 msgid "Encoding should not be specified for inline data. It will be ignored."
-msgstr ""
+msgstr "Kodierung sollte bei Inline-Daten nicht angegeben werden. Diese wird übersprungen."
 
 #: src/language/data-io/data-list.c:254
 #, c-format
 msgid "The %s subcommand may be used only with %s."
-msgstr ""
+msgstr "Der Unterbefehl %s darf nur mit %s verwendet werden."
 
 #: src/language/data-io/data-list.c:269
 msgid "At least one variable must be specified."
-msgstr ""
+msgstr "Es muss mindestens eine Variable angegeben werden."
 
 #: src/language/data-io/data-list.c:368 src/language/data-io/data-list.c:476
 #: src/language/data-io/get-data.c:666
 #, c-format
 msgid "%s is a duplicate variable name."
-msgstr ""
+msgstr "Der Variablenname %s kommt doppelt vor."
 
 #: src/language/data-io/data-list.c:375
 #, c-format
 msgid "There is already a variable %s of a different type."
-msgstr ""
+msgstr "Es gibt bereits eine Variable %s mit einem anderen Typ."
 
 #: src/language/data-io/data-list.c:382
 #, c-format
 msgid "There is already a string variable %s of a different width."
-msgstr ""
+msgstr "Es gibt bereits eine Stringvariable %s mit einer anderen Breite."
 
 #: src/language/data-io/data-list.c:390
 #, c-format
 msgid "Cannot place variable %s on record %d when RECORDS=%d is specified."
-msgstr ""
+msgstr "Die Variable %s kann nicht im EIntrag %d platziert werden, wenn RECORDS=%d angegeben wurde."
 
 #: src/language/data-io/data-parser.c:461
 #: src/language/data-io/data-parser.c:470
 msgid "Quoted string extends beyond end of line."
-msgstr ""
+msgstr "Eine Zeichenfolge in Anführungszeichen erstreckt sich über das Zeilenende hinaus."
 
 #: src/language/data-io/data-parser.c:496
 msgid "Missing delimiter following quoted string."
-msgstr ""
+msgstr "Fehlendes Trennzeichen nach einer Zeichenfolge in Anführungszeichen."
 
 #: src/language/data-io/data-parser.c:515
 #, c-format
@@ -4384,11 +4380,11 @@ msgstr ""
 #: src/language/data-io/data-parser.c:643
 #, c-format
 msgid "Missing value(s) for all variables from %s onward.  These will be filled with the system-missing value or blanks, as appropriate."
-msgstr ""
+msgstr "Fehlender Wert oder Werte für alle Variablen ab %s.  Diese werden mit system-fehlenden Werten oder Leerzeichen aufgefüllt, je nachdem was jeweils angebracht erscheint."
 
 #: src/language/data-io/data-parser.c:663
 msgid "Record ends in data not part of any field."
-msgstr ""
+msgstr "Eintrag endet mit Daten nicht nicht Teil eines Feldes sind."
 
 #: src/language/data-io/data-parser.c:683 src/language/data-io/print.c:447
 msgid "Record"
@@ -4408,13 +4404,13 @@ msgstr "Format"
 #, c-format
 msgid "Reading %d record from %s."
 msgid_plural "Reading %d records from %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d Eintrag wird von %s gelesen."
+msgstr[1] "%d Einträge werden von %s gelesen."
 
 #: src/language/data-io/data-parser.c:737
 #, c-format
 msgid "Reading free-form data from %s."
-msgstr ""
+msgstr "Unformatierte Daten werden aus %s gelesen."
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
@@ -4426,23 +4422,23 @@ msgstr "Arbeitsdatei"
 #: src/language/data-io/data-reader.c:163
 #, c-format
 msgid "Could not open `%s' for reading as a data file: %s."
-msgstr ""
+msgstr "`%s' konnte nicht als Datendatei zum Lesen geöffnet werden: %s."
 
 #: src/language/data-io/data-reader.c:180
 #, c-format
 msgid "Could not read `%s' as a text file with encoding `%s': %s."
-msgstr ""
+msgstr "`%s' konnte nicht als Textdatei mit der Kodierung `%s' gelesen werden: %s."
 
 #: src/language/data-io/data-reader.c:239
 #, c-format
 msgid "Missing %s while reading inline data.  This probably indicates a missing or incorrectly formatted %s command.  %s must appear by itself on a single line with exactly one space between words."
-msgstr ""
+msgstr "Beim Einlesen von Inline-Daten fehlt %s.   Dies deutet auf den fehlenden oder falsch formatierten Befehl %s hin.  %s muss in einer eigenen Zeile mit genau einem Leerzeichen zwischen den Wörtern stehen."
 
 #: src/language/data-io/data-reader.c:259
 #: src/language/data-io/data-reader.c:393
 #, c-format
 msgid "Error reading file %s: %s."
-msgstr ""
+msgstr "Fehler beim Lesen der Datei %s: %s."
 
 #: src/language/data-io/data-reader.c:267
 #, c-format
@@ -4452,31 +4448,31 @@ msgstr ""
 #: src/language/data-io/data-reader.c:327
 #, c-format
 msgid "Corrupt block descriptor word at offset 0x%lx in %s."
-msgstr ""
+msgstr "Fehlerhaftes Blockbeschreibungswort beim Offset 0x%lx in %s."
 
 #: src/language/data-io/data-reader.c:328
 #, c-format
 msgid "Corrupt record descriptor word at offset 0x%lx in %s."
-msgstr ""
+msgstr "Fehlerhaftes Eintragsbeschreibungswort beim Offset 0x%lx in %s."
 
 #: src/language/data-io/data-reader.c:341
 #, c-format
 msgid "Corrupt record size at offset 0x%lx in %s."
-msgstr ""
+msgstr "Fehlerhafte Eintragslänge beim Offset 0x%lx in %s."
 
 #: src/language/data-io/data-reader.c:499
 msgid "Record exceeds remaining block length."
-msgstr ""
+msgstr "Der Eintrag übersteigt die verbleibende Blocklänge."
 
 #: src/language/data-io/data-reader.c:573
 #, c-format
 msgid "Attempt to read beyond end-of-file on file %s."
-msgstr ""
+msgstr "Es wurde versucht in der Datei %s über das Ende hinaus zu lesen."
 
 #: src/language/data-io/data-reader.c:576
 #, c-format
 msgid "Attempt to read beyond %s."
-msgstr ""
+msgstr "Es wurde versucht über %s hinaus zu lesen."
 
 #: src/language/data-io/data-reader.c:764
 msgid "This command is not valid here since the current input program does not access the inline file."
@@ -4512,37 +4508,37 @@ msgstr "(aktiver Datensatz)"
 #: src/language/data-io/get-data.c:141
 #, c-format
 msgid "Unsupported TYPE %s."
-msgstr ""
+msgstr "TYPE %s wird nicht unterstützt."
 
 #: src/language/data-io/get-data.c:276
 msgid "The sheet index must be greater than or equal to 1"
-msgstr ""
+msgstr "Die Nummer des Datenblatts muss größer oder gleich 1 sein"
 
 #: src/language/data-io/get-data.c:283 src/language/data-io/get-data.c:306
 #: src/language/data-io/get-data.c:325
 #, c-format
 msgid "%s must be followed by either \"%s\" or \"%s\"."
-msgstr ""
+msgstr "Nach %s muss entweder von \"%s\" oder \"%s\" folgen."
 
 #: src/language/data-io/get-data.c:355
 #, c-format
 msgid "%s is allowed only with %s arrangement, but %s arrangement was stated or implied earlier in this command."
-msgstr ""
+msgstr "%s ist nur in Verbindung mit /ARRAGEMENT=%s erlaubt, aber es wurde entweder explizit oder implizit in diesem Befehl an früherer Stelle festegelegt, dass /ARRAGEMENT=%s ist."
 
 #: src/language/data-io/get-data.c:436 src/language/data-io/get-data.c:474
 #: src/language/data-io/get-data.c:494
 #, c-format
 msgid "Value of %s must be 1 or greater."
-msgstr ""
+msgstr "Der Wert von %s muss 1 oder mehr betragen."
 
 #: src/language/data-io/get-data.c:506
-#, fuzzy, c-format
+#, c-format
 msgid "Value of %s must be between 1 and 100."
-msgstr "Tag (%ld) muss zwischen 1 und 31 liegen."
+msgstr "Der Wert von %s muss zwischen 1 und 100 liegen."
 
 #: src/language/data-io/get-data.c:557
 msgid "In compatible syntax mode, the QUALIFIER string must contain exactly one character."
-msgstr ""
+msgstr "Im Modus Kompatible Syntax muss der String QUALIFIER genau ein Zeichen enthalten."
 
 #: src/language/data-io/get-data.c:592
 #: src/language/data-io/placement-parser.c:406
@@ -4556,127 +4552,127 @@ msgid "The record number specified, %ld, exceeds the number of records per case 
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:133
-#, fuzzy, c-format
+#, c-format
 msgid "Unexpected end-of-file within %s."
-msgstr "Unerwartetes Dateiende."
+msgstr "Unerwartetes Dateiende innerhalb von %s."
 
 #: src/language/data-io/inpt-pgm.c:146
 #, c-format
 msgid "Input program must contain %s or %s."
-msgstr ""
+msgstr "INPUT PROGRAM muss %s oder %s enthalten."
 
 #: src/language/data-io/inpt-pgm.c:152
 msgid "Input program did not create any variables."
-msgstr ""
+msgstr "INPUT PROGRAM hat keine Variablen erzeugt."
 
 #: src/language/data-io/inpt-pgm.c:365
 msgid "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
-msgstr ""
+msgstr "REREAD: Die Spaltennummer muss eine positive endliche Zahl sein.  Spalte wird auf 1 gesetzt."
 
 #: src/language/data-io/list.c:227
 #, c-format
 msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
-msgstr ""
+msgstr "Der erste angegebene Fall (%ld) liegt vor dem letzten angegebenen Fall (%ld).  Die Werte werden vertauscht."
 
 #: src/language/data-io/list.c:236
 #, c-format
 msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "Der erste auzulistende Fall (%ld) ist kleiner als 1.  Der Wert wird auf 1 gesetzt."
 
 #: src/language/data-io/list.c:243
 #, c-format
 msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "Der letzte auzulistende Fall (%ld) ist kleiner als 1.  Der Wert wird auf 1 gesetzt."
 
 #: src/language/data-io/list.c:250
 #, c-format
 msgid "The step value %ld is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "Die Schrittgröße %ld ist kleiner als 1.  Der Wert wird auf 1 gesetzt."
 
 #: src/language/data-io/placement-parser.c:96
 #, c-format
 msgid "Number of variables specified (%zu) differs from number of variable formats (%zu)."
-msgstr ""
+msgstr "Die Anzahl der angegebenen Variablen (%zu) stimmt nicht mit der Anzahl der Variablenformate (%zu) überein."
 
 #: src/language/data-io/placement-parser.c:106
 msgid "SPSS-like or Fortran-like format specification expected after variable names."
-msgstr ""
+msgstr "Nach dem Variablennamen wurde ein Format im SPSS- oder FORTRAN-Stil erwartet."
 
 #: src/language/data-io/placement-parser.c:129
 #, c-format
 msgid "The %d columns %d-%d can't be evenly divided into %zu fields."
-msgstr ""
+msgstr "Die %d Spalten %d-%d können nicht gleichmäßig auf %zu Felder verteilt werden."
 
 #: src/language/data-io/placement-parser.c:310
 msgid "Column positions for fields must be positive."
-msgstr ""
+msgstr "Die Spaltenpositionen für die Felder müssen positiv sein."
 
 #: src/language/data-io/placement-parser.c:312
 msgid "Column positions for fields must not be negative."
-msgstr ""
+msgstr "Die Spaltenpositionen für die Felder dürfen nicht negativ sein."
 
 #: src/language/data-io/placement-parser.c:372
 msgid "The ending column for a field must be greater than the starting column."
-msgstr ""
+msgstr "Die Endspalte eines Feldes muss größer als die Anfangsspalte sein."
 
 #: src/language/data-io/print-space.c:127
 #, c-format
 msgid "The expression on %s evaluated to the system-missing value."
-msgstr ""
+msgstr "Der Ausdruck in %s wurde als system-fehlender Wert ausgewertet."
 
 #: src/language/data-io/print-space.c:130
 #, c-format
 msgid "The expression on %s evaluated to %g."
-msgstr ""
+msgstr "Der Ausdruck in %s wurde als %g ausgewertet."
 
 #: src/language/data-io/print.c:193 src/language/data-io/trim.c:54
 msgid "expecting a valid subcommand"
-msgstr ""
+msgstr "es wurde ein gültiger Unterbefehl erwartet"
 
 #: src/language/data-io/print.c:223
 #, c-format
 msgid "%s is required when binary formats are specified."
-msgstr ""
+msgstr "Bei der Angabe von Binärformaten ist %s erforderlich."
 
 #: src/language/data-io/print.c:306
 #, c-format
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
-msgstr ""
+msgstr "Die Ausgabe erfordert %d Einträge, es wurden aber mit den Unterbefehl RECORDS %zu Einträge angegeben."
 
 #: src/language/data-io/print.c:479
 #, c-format
 msgid "Writing %zu record to %s."
 msgid_plural "Writing %zu records to %s."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%zu Eintrag wird in %s geschrieben."
+msgstr[1] "%zu Einträge werden in %s geschrieben."
 
 #: src/language/data-io/print.c:483
 #, c-format
 msgid "Writing %zu record."
 msgid_plural "Writing %zu records."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%zu Eintrag wird geschrieben."
+msgstr[1] "%zu Einträge werden geschrieben."
 
 #: src/language/data-io/save-translate.c:167
 #: src/language/data-io/save-translate.c:182
 #, c-format
 msgid "The %s string must contain exactly one character."
-msgstr ""
+msgstr "Der %s String muss genau ein Zeichen enthalten."
 
 #: src/language/data-io/save-translate.c:252
 #, c-format
 msgid "Output file `%s' exists but %s was not specified."
-msgstr ""
+msgstr "Die Ausgabedatei `%s' existiert, aber %s wurde nicht angegeben."
 
 #: src/language/data-io/trim.c:89
 #, c-format
 msgid "Cannot rename %s as %s because there already exists a variable named %s.  To rename variables with overlapping names, use a single RENAME subcommand such as `/RENAME (A=B)(B=C)(C=A)', or equivalently, `/RENAME (A B C=B C A)'."
-msgstr ""
+msgstr "%s kann nicht zu %s umbenannt werden, weil eine Variable mit dem Namen %s bereits existiert. Um mehrere Variablen mit sich gegenseitig überlappenden Namen umzubenennen, verwenden Sie den Unterbefehl RENAME, wie z.B. in `/RENAME (A=B)(B=C)(C=A)' oder auch gleichbedeutend in `/RENAME (A B C=B C A)'."
 
 #: src/language/data-io/trim.c:123
 #, c-format
 msgid "Number of variables on left side of `=' (%zu) does not match number of variables on right side (%zu), in parenthesized group %d of RENAME subcommand."
-msgstr ""
+msgstr "Die Anzahl der Variablen auf der linken Seite von `=' (%zu) stimmt nicht mit der Anzahl der Variablen auf der rechten Seite (%zu) in der eingeklammerten Gruppe %d des Befehls RENAME überein."
 
 #: src/language/data-io/trim.c:136
 #, c-format
@@ -4685,45 +4681,45 @@ msgstr ""
 
 #: src/language/data-io/trim.c:167
 msgid "Cannot DROP all variables from dictionary."
-msgstr ""
+msgstr "Mit DROP können nicht alle Variablen aus dem Codebuch gelöscht werden."
 
 #: src/language/expressions/evaluate.c:151
 msgid "expecting number or string"
-msgstr ""
+msgstr "es wurde eine Zahl oder eine Zeichenfolge erwartet"
 
 #: src/language/expressions/helpers.c:41
 msgid "One of the arguments to a DATE function is not an integer.  The result will be system-missing."
-msgstr ""
+msgstr "Eines der Argumente der Funktion DATE ist nicht vom Typ Integer.  Das Ergebnis ist system-fehlender Wert."
 
 #: src/language/expressions/helpers.c:69
 msgid "The week argument to DATE.WKYR is not an integer.  The result will be system-missing."
-msgstr ""
+msgstr "Das Argument week der Funktion DATE.WKYR ist nicht vom Typ Integer.  Das Ergebnis ist system-fehlender Wert."
 
 #: src/language/expressions/helpers.c:75
 msgid "The week argument to DATE.WKYR is outside the acceptable range of 1 to 53.  The result will be system-missing."
-msgstr ""
+msgstr "Das Argument week der Funktion DATE.WKYR ist nicht innerhalb des akzeptierten Bereichs von 1 bis 53.  Das Ergebnis ist system-fehlender Wert."
 
 #: src/language/expressions/helpers.c:97
 msgid "The day argument to DATE.YRDAY is not an integer.  The result will be system-missing."
-msgstr ""
+msgstr "Das Argument day der Funktion DATE.YRDAY ist nicht vom Typ Integer.  Das Ergebnis ist system-fehlender Wert."
 
 #: src/language/expressions/helpers.c:103
 msgid "The day argument to DATE.YRDAY is outside the acceptable range of 1 to 366.  The result will be system-missing."
-msgstr ""
+msgstr "Das Argument Tag der Funktion DATE.YRDAY ist nicht innerhalb des akzeptierten Bereichs von 1 bis 366.  Das Ergebnis ist system-fehlender Wert."
 
 #: src/language/expressions/helpers.c:125
 msgid "The year argument to YRMODA is greater than 47516.  The result will be system-missing."
-msgstr ""
+msgstr "Das Argument year in YRMODA ist größer als 47516.  Das Ergebnis ist system-fehlender Wert."
 
 #: src/language/expressions/helpers.c:178
 #, c-format
 msgid "Unrecognized date unit `%.*s'.  Valid date units are `%s', `%s', `%s', `%s', `%s', `%s', `%s', and `%s'."
-msgstr ""
+msgstr "Nicht erkannte Datumsangabe `%.*s'.  Gültige Datumsangaben sind `%s', `%s', `%s', `%s', `%s', `%s', `%s' und `%s'."
 
 #: src/language/expressions/helpers.c:331
 #, c-format
 msgid "Invalid DATESUM method.  Valid choices are `%s' and `%s'."
-msgstr ""
+msgstr "Ungültige Methode DATESUM.  Zur Auswahl stehen `%s' und `%s'."
 
 #: src/language/expressions/parse.c:261
 #, c-format
@@ -6778,11 +6774,9 @@ msgstr "Optionen für sehr große Datenblätter"
 msgid "Automatic Recode"
 msgstr "Automatisches Umkodieren"
 
-# not shown in application
 #: src/ui/gui/autorecode.ui:92
-#, fuzzy
 msgid "Variable -> New Name"
-msgstr "Variable -&gt; Neuer Name"
+msgstr "Variable -> Neuer Name"
 
 #: src/ui/gui/autorecode.ui:115
 msgid "_Lowest value"
@@ -6841,9 +6835,8 @@ msgid "Target _Variable:"
 msgstr "Ziel_variable:"
 
 #: src/ui/gui/compute.ui:72
-#, fuzzy
 msgid "_Type & Label..."
-msgstr "Typ &amp; _Label"
+msgstr "Typ & _Label"
 
 #: src/ui/gui/compute.ui:120
 msgid "="
@@ -7389,11 +7382,9 @@ msgstr "Ausschließen von Werten _unter"
 msgid "Exclude values _above "
 msgstr "Ausschließen von Werten _über"
 
-# not shown in application
 #: src/ui/gui/frequencies.ui:616
-#, fuzzy
 msgid "<b>Chart Formatting</b>"
-msgstr "&lt;b&gt;Diagrammformat&lt;/b&gt;"
+msgstr "<b>Diagrammformat<b>"
 
 #: src/ui/gui/frequencies.ui:640
 msgid "Draw _histograms"
@@ -7417,7 +7408,7 @@ msgstr "_Prozentwerte"
 
 #: src/ui/gui/frequencies.ui:716
 msgid "<b>Histograms</b>"
-msgstr ""
+msgstr "<b>Histogramme</b>"
 
 #: src/ui/gui/frequencies.ui:740
 msgid "Draw _pie charts"
@@ -7429,7 +7420,7 @@ msgstr "_Segmente für fehlende Werte einfügen"
 
 #: src/ui/gui/frequencies.ui:771
 msgid "<b>Pie Charts</b>"
-msgstr ""
+msgstr "<b>Kreisdiagramme</b>"
 
 #: src/ui/gui/indep-samples.ui:8
 msgid "Independent-Samples T Test"
@@ -7876,11 +7867,9 @@ msgstr "W_ert:"
 msgid "New Value"
 msgstr "Neuer Wert"
 
-# not shown in application
 #: src/ui/gui/recode.ui:232
-#, fuzzy
 msgid "Conver_t numeric strings to numbers (`5' -> 5)"
-msgstr "Nu_m. Strings in Zahlen umwandeln (`5' -&gt; 5)"
+msgstr "Nu_m. Strings in Zahlen umwandeln (`5' -> 5)"
 
 #: src/ui/gui/recode.ui:252
 msgid "Output variables are _strings"
@@ -8097,9 +8086,8 @@ msgid "All cases"
 msgstr "Alle Fälle"
 
 #: src/ui/gui/text-data-import.ui:116
-#, fuzzy
 msgid "<b>Amount to Import</b>"
-msgstr "&lt;b&gt;Einzulesende Menge&lt;/b&gt;"
+msgstr "<b>Einzulesende Menge</b>"
 
 #: src/ui/gui/text-data-import.ui:135
 msgid "Select Data to Import"
@@ -8159,7 +8147,7 @@ msgstr "_Leerzeichen"
 
 #: src/ui/gui/text-data-import.ui:398
 msgid "<b>Separators</b>"
-msgstr ""
+msgstr "<b>Trennzeichen</b>"
 
 #: src/ui/gui/text-data-import.ui:428
 msgid "Doubled quote mark treated as escape"
@@ -8171,12 +8159,11 @@ msgstr "Texterkennungzeichen"
 
 #: src/ui/gui/text-data-import.ui:477
 msgid "<b>Quoting</b>"
-msgstr ""
+msgstr "<b>Texterkennungszeichen</b>"
 
 #: src/ui/gui/text-data-import.ui:525
-#, fuzzy
 msgid "<b>Fields Preview</b>"
-msgstr "&lt;b&gt;Vorschau der Datenfelder&lt;/b&gt;"
+msgstr "<b>Vorschau der Datenfelder</b>"
 
 #: src/ui/gui/text-data-import.ui:540
 msgid "Adjust Variable Formats"
@@ -8187,14 +8174,12 @@ msgid "Check the data formats displayed below and fix any that are incorrect.  Y
 msgstr "Überprüfen sie die unten angezeigten Datenformate und korrigieren sie die inkorrekten. Sie können die anderen Eigenschaften der Variablen jetzt oder später festlegen."
 
 #: src/ui/gui/text-data-import.ui:595
-#, fuzzy
 msgid "<b>Variables</b>"
-msgstr "Variablen"
+msgstr "<b>Variablen</b>"
 
 #: src/ui/gui/text-data-import.ui:638
-#, fuzzy
 msgid "<b>Data Preview</b>"
-msgstr "&lt;b&gt;Datenvorschau&lt;/b&gt;"
+msgstr "<b>Datenvorschau</b>"
 
 #: src/ui/gui/text-data-import.ui:659
 msgid "Importing Spreadsheet Data"
@@ -8217,9 +8202,8 @@ msgid "Use first row as _variable names"
 msgstr "Die _erste Zeile als Variablennamen verwenden"
 
 #: src/ui/gui/text-data-import.ui:776
-#, fuzzy
 msgid "<b>Cells to Import</b>"
-msgstr "&lt;b&gt;Einzulesende Zellen&lt;/b&gt;"
+msgstr "<b>Einzulesende Zellen</b>"
 
 #: src/ui/gui/univariate.ui:7
 msgid "Univariate"
