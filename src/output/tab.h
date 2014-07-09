@@ -40,6 +40,7 @@
 
 #include "libpspp/compiler.h"
 #include "output/table.h"
+#include "data/format.h"
 
 enum result_class
   {
@@ -78,7 +79,7 @@ struct tab_table
     /* X and Y offsets. */
     int col_ofs, row_ofs;
 
-    const struct fmt_spec *fmtmap [n_RC];
+    struct fmt_spec fmtmap [n_RC];
   };
 
 struct tab_table *tab_cast (const struct table *);

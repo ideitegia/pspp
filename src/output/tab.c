@@ -56,6 +56,15 @@ struct tab_joined_cell
 
 static const struct table_class tab_table_class;
 
+struct fmt_spec ugly [n_RC] = 
+  {
+    {FMT_F, 8, 0}, /* INTEGER */
+    {FMT_F, 8, 3}, /* WEIGHT (ignored) */
+    {FMT_F, 8, 3}, /* PVALUE */
+    {FMT_F, 8, 3}  /* OTHER (ignored) */
+  };
+
+
 /* Creates and returns a new table with NC columns and NR rows and initially no
    header rows or columns.  The table's cells are initially empty. */
 struct tab_table *
@@ -82,9 +91,9 @@ tab_create (int nc, int nr)
 
   memset (t->rv, TAL_GAP, nr * (nc + 1));
 
-  t->fmtmap[RC_PVALUE] = &F_4_3;
-  t->fmtmap[RC_INTEGER] = &F_8_0;
-  t->fmtmap[RC_OTHER] = settings_get_format ();
+  t->fmtmap[RC_PVALUE] = ugly[RC_PVALUE];
+  t->fmtmap[RC_INTEGER] = ugly[RC_INTEGER];
+  t->fmtmap[RC_OTHER] = *settings_get_format ();
 
   t->col_ofs = t->row_ofs = 0;
 
@@ -95,7 +104,7 @@ tab_create (int nc, int nr)
 void 
 tab_set_format (struct tab_table *t, enum result_class rc, const struct fmt_spec *fmt)
 {
-  t->fmtmap[rc] = fmt;
+  t->fmtmap[rc] = *fmt;
 }
 
 
@@ -417,7 +426,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
   assert (r < tab_nr (table));
 
   if (fmt == NULL)
-    fmt = table->fmtmap[rc];
+    fmt = &table->fmtmap[rc];
   
   fmt_check_output (fmt);
 

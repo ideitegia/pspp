@@ -1,0 +1,63 @@
+AT_BANNER([output -- tables])
+
+AT_SETUP([precision])
+
+AT_DATA([prec.sps], [[
+data list notable list /A * B *.
+begin data.
+2.0 3.0
+1.0 2.0
+2.0 4.5
+2.0 4.5
+3.0 6.0
+end data.
+
+OUTPUT MODIFY 
+       /SELECT TABLES 
+       /TABLECELLS  SELECT = [ SIGNIFICANCE ] 
+       	    FORMAT = F.3.
+
+t-test /PAIRS a with b (PAIRED).
+
+OUTPUT MODIFY 
+       /SELECT TABLES 
+       /TABLECELLS  SELECT = [ SIGNIFICANCE ] 
+       	    FORMAT = F12.5.
+
+t-test /PAIRS a with b (PAIRED).
+
+]])
+
+AT_CHECK([pspp -O format=csv prec.sps], [0], [dnl
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 1,A,2.00,5,.71,.32
+,B,4.00,5,1.54,.69
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 1,A & B,5,.92,.028
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 1,A - B,-2.00,.94,.42,-3.16,-.84,-4.78,4,.009
+
+Table: Paired Sample Statistics
+,,Mean,N,Std. Deviation,S.E. Mean
+Pair 1,A,2.00,5,.71,.32
+,B,4.00,5,1.54,.69
+
+Table: Paired Samples Correlations
+,,N,Correlation,Sig.
+Pair 1,A & B,5,.92,.02801
+
+Table: Paired Samples Test
+,,Paired Differences,,,,,,,
+,,,,,95% Confidence Interval of the Difference,,,,
+,,Mean,Std. Deviation,Std. Error Mean,Lower,Upper,t,df,Sig. (2-tailed)
+Pair 1,A - B,-2.00,.94,.42,-3.16,-.84,-4.78,4,.00877
+])
+
+AT_CLEANUP

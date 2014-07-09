@@ -371,6 +371,7 @@ TESTSUITE_AT = \
 	tests/output/output.at \
 	tests/output/paper-size.at \
 	tests/output/render.at \
+	tests/output/tables.at \
 	tests/ui/terminal/main.at \
 	tests/ui/syntax-gen.at \
 	tests/perl-module.at

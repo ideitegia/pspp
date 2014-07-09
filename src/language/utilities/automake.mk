@@ -12,6 +12,7 @@ language_utilities_sources = \
 	src/language/utilities/host.c \
 	src/language/utilities/title.c \
 	src/language/utilities/include.c \
+	src/language/utilities/output.c \
 	src/language/utilities/permissions.c 
 
 all_q_sources += $(src_language_utilities_built_sources:.c=.q)

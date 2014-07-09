@@ -25,6 +25,7 @@ encountered in the input.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
 * INSERT::                      Insert a file within the current one.
+* OUTPUT::                      Modify the appearance of the output.
 * PERMISSIONS::                 Change permissions on a file.
 * PRESERVE and RESTORE::        Saving settings and restoring them later.
 * SET::                         Adjust @pspp{} runtime parameters.
@@ -333,6 +334,42 @@ the system locale or the setting on @subcmd{SET LOCALE}.
 When ENCODING is not specified, the default is taken from the
 @option{--syntax-encoding} command option, if it was specified, and
 otherwise it is @code{Auto}.
+
+@node OUTPUT
+@section OUTPUT
+@vindex OUTPUT
+@cindex precision, of output
+@cindex decimal places
+
+@display
+OUTPUT MODIFY
+       /SELECT TABLES
+       /TABLECELLS SELECT = [ @{SIGNIFICANCE, COUNT@} ]
+                   FORMAT = @var{fmt_spec}.
+@end display
+@note{In the above synopsis the characters @samp{[} and @samp{]} are literals.
+They must appear in the syntax to be interpreted.}
+
+@cmd{OUTPUT} changes the appearance of the tables in which results are printed.
+In particular, it can be used to set the format and precision to which results are displayed.
+
+After running this command, the default table appearance parameters will have been modified and  each 
+new output table generated will use the new parameters.
+
+Following @code{/TABLECELLS SELECT =} a list of cell classes must appear, enclosed in square
+brackets.  This list determines the classes of values should be selected for modification.
+Each class can be:
+
+@table @asis
+@item SIGNIFICANCE
+Significance of tests (p-values).
+
+@item COUNT
+Counts or sums of weights.
+@end table
+
+The value of @var{fmt_spec} must be a valid output format (@pxref{Input and Output Formats}).
+Note that not all possible formats are meaningful for all classes.
 
 @node PERMISSIONS
 @section PERMISSIONS
