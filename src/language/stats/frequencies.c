@@ -890,7 +890,7 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 			  hi_pcnt = lex_integer (lexer);
 			  if (hi_pcnt <= 0)
 			    {
-			      lex_error (lexer, _("Histogram percentaage must be greater than zero."));
+			      lex_error (lexer, _("Histogram percentage must be greater than zero."));
 			    }
 			  lex_get (lexer);
 			  lex_force_match (lexer, T_RPAREN);
