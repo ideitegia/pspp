@@ -38,7 +38,7 @@
 
    May represent the layout of an entire table presented to
    render_page_create(), or a rectangular subregion of a table broken out using
-   render_page_next() to allow a table to be broken across multiple pages. */
+   render_break_next() to allow a table to be broken across multiple pages. */
 struct render_page
   {
     const struct render_params *params; /* Parameters of the target device. */
