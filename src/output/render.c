@@ -1288,50 +1288,52 @@ render_page_select (const struct render_page *page, enum table_axis axis,
   s.p1 = p1;
   s.subpage = subpage;
 
-  for (z = 0; z < page->n[b]; z++)
-    {
-      struct table_cell cell;
-      int d[TABLE_N_AXES];
+  if (!page->h[a][0] || z0 > page->h[a][0] || p0)
+    for (z = 0; z < page->n[b]; z++)
+      {
+        struct table_cell cell;
+        int d[TABLE_N_AXES];
 
-      d[a] = z0;
-      d[b] = z;
-      table_get_cell (page->table, d[H], d[V], &cell);
-      if ((z == cell.d[b][0] && (p0 || cell.d[a][0] < z0))
-          || (z == cell.d[b][1] - 1 && p1))
-        {
-          ro = insert_overflow (&s, &cell);
-          ro->overflow[a][0] += p0 + axis_width (page, a,
-                                                 cell_ofs (cell.d[a][0]),
-                                                 cell_ofs (z0));
-          if (z1 == z0 + 1)
-            ro->overflow[a][1] += p1;
-          if (page->h[a][0] && page->h[a][1])
-            ro->overflow[a][0] -= page->join_crossing[a][cell.d[a][0] + 1];
-          if (cell.d[a][1] > z1)
+        d[a] = z0;
+        d[b] = z;
+        table_get_cell (page->table, d[H], d[V], &cell);
+        if ((z == cell.d[b][0] && (p0 || cell.d[a][0] < z0))
+            || (z == cell.d[b][1] - 1 && p1))
+          {
+            ro = insert_overflow (&s, &cell);
+            ro->overflow[a][0] += p0 + axis_width (page, a,
+                                                   cell_ofs (cell.d[a][0]),
+                                                   cell_ofs (z0));
+            if (z1 == z0 + 1)
+              ro->overflow[a][1] += p1;
+            if (page->h[a][0] && page->h[a][1])
+              ro->overflow[a][0] -= page->join_crossing[a][cell.d[a][0] + 1];
+            if (cell.d[a][1] > z1)
+              ro->overflow[a][1] += axis_width (page, a, cell_ofs (z1),
+                                                cell_ofs (cell.d[a][1]));
+          }
+        table_cell_free (&cell);
+      }
+
+  if (!page->h[a][1] || z1 < page->n[a] - page->h[a][1] || p1)
+    for (z = 0; z < page->n[b]; z++)
+      {
+        struct table_cell cell;
+        int d[TABLE_N_AXES];
+
+        /* XXX need to handle p1 below */
+        d[a] = z1 - 1;
+        d[b] = z;
+        table_get_cell (page->table, d[H], d[V], &cell);
+        if (z == cell.d[b][0] && cell.d[a][1] > z1
+            && find_overflow_for_cell (&s, &cell) == NULL)
+          {
+            ro = insert_overflow (&s, &cell);
             ro->overflow[a][1] += axis_width (page, a, cell_ofs (z1),
                                               cell_ofs (cell.d[a][1]));
-        }
-      table_cell_free (&cell);
-    }
-
-  for (z = 0; z < page->n[b]; z++)
-    {
-      struct table_cell cell;
-      int d[TABLE_N_AXES];
-
-      /* XXX need to handle p1 below */
-      d[a] = z1 - 1;
-      d[b] = z;
-      table_get_cell (page->table, d[H], d[V], &cell);
-      if (z == cell.d[b][0] && cell.d[a][1] > z1
-          && find_overflow_for_cell (&s, &cell) == NULL)
-        {
-          ro = insert_overflow (&s, &cell);
-          ro->overflow[a][1] += axis_width (page, a, cell_ofs (z1),
-                                            cell_ofs (cell.d[a][1]));
-        }
-      table_cell_free (&cell);
-    }
+          }
+        table_cell_free (&cell);
+      }
 
   /* Copy overflows from PAGE into subpage. */
   HMAP_FOR_EACH (ro, struct render_overflow, node, &page->overflows)
