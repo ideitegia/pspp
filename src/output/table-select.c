@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -94,23 +94,29 @@ table_select_slice (struct table *subtable, enum table_axis axis,
 {
   struct table *table;
   int rect[TABLE_N_AXES][2];
+  bool h0, h1;
 
-  if (add_headers)
+  h0 = add_headers && subtable->h[axis][0] > 0;
+  if (h0 && z0 == subtable->h[axis][0])
     {
-      if (z0 == subtable->h[axis][0]
-          && z1 == subtable->n[axis] - subtable->h[axis][1])
-        return subtable;
+      z0 = 0;
+      h0 = false;
+    }
 
-      if (subtable->h[axis][0])
-        table_ref (subtable);
-      if (subtable->h[axis][1])
-        table_ref (subtable);
-    }
-  else
+  h1 = add_headers && subtable->h[axis][1] > 0;
+  if (h1 && z1 == subtable->n[axis] - subtable->h[axis][1])
     {
-      if (z0 == 0 && z1 == subtable->n[axis])
-        return subtable;
+      z1 = subtable->n[axis];
+      h1 = false;
     }
+
+  if (z0 == 0 && z1 == subtable->n[axis])
+    return subtable;
+
+  if (h0)
+    table_ref (subtable);
+  if (h1)
+    table_ref (subtable);
 
   rect[TABLE_HORZ][0] = 0;
   rect[TABLE_VERT][0] = 0;
@@ -120,22 +126,18 @@ table_select_slice (struct table *subtable, enum table_axis axis,
   rect[axis][1] = z1;
   table = table_select (subtable, rect);
 
-  if (add_headers)
-    {
-      if (subtable->h[axis][0])
-        table = table_paste (
-          table_select_slice (subtable, axis, 0, subtable->h[axis][0],
-                              false),
-          table, axis);
+  if (h0)
+    table = table_paste (
+      table_select_slice (subtable, axis, 0, subtable->h[axis][0], false),
+      table, axis);
 
-      if (subtable->h[axis][1])
-        table = table_paste (
-          table,
-          table_select_slice (subtable, axis,
-                              subtable->n[axis] - subtable->h[axis][1],
-                              subtable->n[axis], false),
-          axis);
-    }
+  if (h1)
+    table = table_paste (
+      table,
+      table_select_slice (subtable, axis,
+                          subtable->n[axis] - subtable->h[axis][1],
+                          subtable->n[axis], false),
+      axis);
 
   return table;
 }

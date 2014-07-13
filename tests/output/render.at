@@ -743,7 +743,7 @@ AT_CHECK([render-test --width=10 input], [0], [dnl
 +-+u+-+-+
 |A|v|B|E|
 +-+-+C+-+
-|K K|D|L|
+|IJK|D|L|
 +-+-+-+M|
 |Q|RST|N|
 +-+---+-+
@@ -789,7 +789,7 @@ op|h|q|
 +-+-+r|
 |xyz|s|
 +-+-+-+
-|E|F H|
+|E|  F|
 +-+-+-+
 |L|O|P|
 |M+-+-+
