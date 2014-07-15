@@ -53,6 +53,9 @@ static int render_pdf;
 /* ASCII driver, for ASCII driver test mode. */
 static struct output_driver *ascii_driver;
 
+/* -o, --output: Base name for output files. */
+static const char *output_base = "render";
+
 static const char *parse_options (int argc, char **argv);
 static void usage (void) NO_RETURN;
 static struct table *read_table (FILE *);
@@ -137,17 +140,20 @@ configure_drivers (int width, int length, int min_break)
     return;
    }
 
-  /* Render to render.txt. */
-  string_map_replace (&options, "output-file", "render.txt");
+  /* Render to <base>.txt. */
+  string_map_replace_nocopy (&options, xstrdup ("output-file"),
+                             xasprintf ("%s.txt", output_base));
   driver = output_driver_create (&options);
   if (driver == NULL)
     exit (EXIT_FAILURE);
   output_driver_register (driver);
 
 #ifdef HAVE_CAIRO
+  /* Render to <base>.txt. */
   if (render_pdf)
     {
-      string_map_insert (&options, "output-file", "render.pdf");
+      string_map_replace_nocopy (&options, xstrdup ("output-file"),
+                                 xasprintf ("%s.pdf", output_base));
       string_map_insert (&options, "top-margin", "0");
       string_map_insert (&options, "bottom-margin", "0");
       string_map_insert (&options, "left-margin", "0");
@@ -168,7 +174,9 @@ configure_drivers (int width, int length, int min_break)
     }
 #endif
 
-  string_map_insert (&options, "output-file", "render.odt");
+  /* Render to <base>.odt. */
+  string_map_replace_nocopy (&options, xstrdup ("output-file"),
+                             xasprintf ("%s.odt", output_base));
   driver = output_driver_create (&options);
   if (driver == NULL)
     exit (EXIT_FAILURE);
@@ -204,11 +212,12 @@ parse_options (int argc, char **argv)
           {"box", required_argument, NULL, OPT_BOX},
           {"draw-mode", no_argument, &draw_mode, 1},
           {"pdf", no_argument, &render_pdf, 1},
+          {"output", required_argument, NULL, 'o'},
           {"help", no_argument, NULL, OPT_HELP},
           {NULL, 0, NULL, 0},
         };
 
-      int c = getopt_long (argc, argv, "", options, NULL);
+      int c = getopt_long (argc, argv, "o:", options, NULL);
       if (c == -1)
         break;
 
@@ -232,6 +241,10 @@ parse_options (int argc, char **argv)
 
         case OPT_BOX:
           box = optarg;
+          break;
+
+        case 'o':
+          output_base = optarg;
           break;
 
         case OPT_HELP:
