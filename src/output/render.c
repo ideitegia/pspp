@@ -178,6 +178,21 @@ cell_width (const struct render_page *page, int axis, int x)
   return axis_width (page, axis, cell_ofs (x), cell_ofs (x) + 1);
 }
 
+/* Returns the width of rule X along AXIS in PAGE. */
+static int
+rule_width (const struct render_page *page, int axis, int x)
+{
+  return axis_width (page, axis, rule_ofs (x), rule_ofs (x) + 1);
+}
+
+/* Returns the width of rule X along AXIS in PAGE. */
+static int
+rule_width_r (const struct render_page *page, int axis, int x)
+{
+  int ofs = rule_ofs_r (page, axis, x);
+  return axis_width (page, axis, ofs, ofs + 1);
+}
+
 /* Returns the width of cells X0 through X1, exclusive, along AXIS in PAGE. */
 static int
 joined_width (const struct render_page *page, int axis, int x0, int x1)
@@ -899,13 +914,13 @@ render_cell (const struct render_page *page, const struct table_cell *cell)
           if (of->overflow[axis][0])
             {
               bb[axis][0] -= of->overflow[axis][0];
-              if (cell->d[axis][0] == 0)
+              if (cell->d[axis][0] == 0 && !page->is_edge_cutoff[axis][0])
                 clip[axis][0] = page->cp[axis][cell->d[axis][0] * 2];
             }
           if (of->overflow[axis][1])
             {
               bb[axis][1] += of->overflow[axis][1];
-              if (cell->d[axis][1] == page->n[axis])
+              if (cell->d[axis][1] == page->n[axis] && !page->is_edge_cutoff[axis][1])
                 clip[axis][1] = page->cp[axis][cell->d[axis][1] * 2 + 1];
             }
         }
@@ -1111,19 +1126,57 @@ render_break_next (struct render_break *b, int size)
 
   pixel = 0;
   for (cell = b->cell; cell < page->n[axis] - page->h[axis][1]; cell++)
-    if (needed_size (b, cell + 1) > size)
-      {
-        if (!cell_is_breakable (b, cell))
-          {
-            if (cell == b->cell)
-              return NULL;
-          }
-        else
-          pixel = (cell == b->cell
-                   ? b->pixel + size - b->hw
-                   : size - needed_size (b, cell));
-        break;
-      }
+    {
+      int needed = needed_size (b, cell + 1);
+      if (needed > size)
+        {
+          if (cell_is_breakable (b, cell))
+            {
+              /* If there is no right header and we render a partial cell on
+                 the right side of the body, then we omit the rightmost rule of
+                 the body.  Otherwise the rendering is deceptive because it
+                 looks like the whole cell is present instead of a partial
+                 cell.
+
+                 This is similar to code for the left side in needed_size(). */
+              int rule_allowance = (page->h[axis][1]
+                                    ? 0
+                                    : rule_width (page, axis, cell));
+
+              /* The amount that, if we added 'cell', the rendering would
+                 overfill the allocated 'size'. */
+              int overhang = needed - size - rule_allowance;
+
+              /* The width of 'cell'. */
+              int cell_size = cell_width (page, axis, cell);
+
+              /* The amount trimmed the left side of 'cell',
+                 and the amount left to render. */
+              int cell_ofs = cell == b->cell ? b->pixel : 0;
+              int cell_left = cell_size - cell_ofs;
+
+              /* A small but visible width.  */
+              int em = page->params->font_size[axis];
+
+              /* If some of the cell remains to render,
+                 and there would still be some of the cell left afterward,
+                 then partially render that much of the cell. */
+              pixel = (cell_left && cell_left > overhang
+                       ? cell_left - overhang + cell_ofs
+                       : 0);
+
+              /* If there would be only a tiny amount of the cell left after
+                 rendering it partially, reduce the amount rendered slightly
+                 to make the output look a little better. */
+              if (pixel + em > cell_size)
+                pixel = MAX (pixel - em, 0);
+            }
+          break;
+        }
+    }
+
+  if (cell == b->cell && !pixel)
+    return NULL;
 
   subpage = render_page_select (page, axis, b->cell, b->pixel,
                                 pixel ? cell + 1 : cell,
@@ -1143,7 +1196,33 @@ needed_size (const struct render_break *b, int cell)
   enum table_axis axis = b->axis;
   int size;
 
-  size = joined_width (page, axis, b->cell, cell) + b->hw - b->pixel;
+  /* Width of left header not including its rightmost rule.  */
+  size = axis_width (page, axis, 0, rule_ofs (page->h[axis][0]));
+
+  /* If we have a pixel offset and there is no left header, then we omit the
+     leftmost rule of the body.  Otherwise the rendering is deceptive because
+     it looks like the whole cell is present instead of a partial cell.
+
+     Otherwise (if there are headers) we will be merging two rules: the
+     rightmost rule in the header and the leftmost rule in the body.  We assume
+     that the width of a merged rule is the larger of the widths of either rule
+     invidiually. */
+  if (b->pixel == 0 || page->h[axis][0])
+    size += MAX (rule_width (page, axis, page->h[axis][0]),
+                 rule_width (page, axis, b->cell));
+
+  /* Width of body, minus any pixel offset in the leftmost cell. */
+  size += joined_width (page, axis, b->cell, cell) - b->pixel;
+
+  /* Width of rightmost rule in body merged with leftmost rule in headers. */
+  size += MAX (rule_width_r (page, axis, page->h[axis][1]),
+               rule_width (page, axis, cell));
+
+  /* Width of right header not including its leftmost rule. */
+  size += axis_width (page, axis, rule_ofs_r (page, axis, page->h[axis][1]),
+                      rule_ofs_r (page, axis, 0));
+
+  /* Join crossing. */
   if (page->h[axis][0] && page->h[axis][1])
     size += page->join_crossing[axis][b->cell];
 
@@ -1257,7 +1336,12 @@ render_page_select (const struct render_page *page, enum table_axis axis,
   dcp = subpage->cp[a];
   *dcp = 0;
   for (z = 0; z <= rule_ofs (subpage->h[a][0]); z++, dcp++)
-    dcp[1] = dcp[0] + (scp[z + 1] - scp[z]);
+    {
+      if (z == 0 && subpage->is_edge_cutoff[a][0])
+        dcp[1] = dcp[0];
+      else
+        dcp[1] = dcp[0] + (scp[z + 1] - scp[z]);
+    }
   for (z = cell_ofs (z0); z <= cell_ofs (z1 - 1); z++, dcp++)
     {
       dcp[1] = dcp[0] + (scp[z + 1] - scp[z]);
@@ -1272,7 +1356,12 @@ render_page_select (const struct render_page *page, enum table_axis axis,
     }
   for (z = rule_ofs_r (page, a, subpage->h[a][1]);
        z <= rule_ofs_r (page, a, 0); z++, dcp++)
-    dcp[1] = dcp[0] + (scp[z + 1] - scp[z]);
+    {
+      if (z == rule_ofs_r (page, a, 0) && subpage->is_edge_cutoff[a][1])
+        dcp[1] = dcp[0];
+      else
+        dcp[1] = dcp[0] + (scp[z + 1] - scp[z]);
+    }
   assert (dcp == &subpage->cp[a][2 * subpage->n[a] + 1]);
 
   for (z = 0; z < page->n[b] * 2 + 2; z++)
@@ -1289,49 +1378,61 @@ render_page_select (const struct render_page *page, enum table_axis axis,
   s.subpage = subpage;
 
   if (!page->h[a][0] || z0 > page->h[a][0] || p0)
-    for (z = 0; z < page->n[b]; z++)
+    for (z = 0; z < page->n[b]; )
       {
         struct table_cell cell;
         int d[TABLE_N_AXES];
+        bool overflow0;
+        bool overflow1;
 
         d[a] = z0;
         d[b] = z;
+
         table_get_cell (page->table, d[H], d[V], &cell);
-        if ((z == cell.d[b][0] && (p0 || cell.d[a][0] < z0))
-            || (z == cell.d[b][1] - 1 && p1))
+        overflow0 = p0 || cell.d[a][0] < z0;
+        overflow1 = cell.d[a][1] > z1 || (cell.d[a][1] == z1 && p1);
+        if (overflow0 || overflow1)
           {
             ro = insert_overflow (&s, &cell);
-            ro->overflow[a][0] += p0 + axis_width (page, a,
-                                                   cell_ofs (cell.d[a][0]),
-                                                   cell_ofs (z0));
-            if (z1 == z0 + 1)
-              ro->overflow[a][1] += p1;
-            if (page->h[a][0] && page->h[a][1])
-              ro->overflow[a][0] -= page->join_crossing[a][cell.d[a][0] + 1];
-            if (cell.d[a][1] > z1)
-              ro->overflow[a][1] += axis_width (page, a, cell_ofs (z1),
-                                                cell_ofs (cell.d[a][1]));
+
+            if (overflow0)
+              {
+                ro->overflow[a][0] += p0 + axis_width (
+                  page, a, cell_ofs (cell.d[a][0]), cell_ofs (z0));
+                if (page->h[a][0] && page->h[a][1])
+                  ro->overflow[a][0] -= page->join_crossing[a][cell.d[a][0]
+                                                               + 1];
+              }
+
+            if (overflow1)
+              {
+                ro->overflow[a][1] += p1 + axis_width (
+                  page, a, cell_ofs (z1), cell_ofs (cell.d[a][1]));
+                if (page->h[a][0] && page->h[a][1])
+                  ro->overflow[a][1] -= page->join_crossing[a][cell.d[a][1]];
+              }
           }
+        z = cell.d[b][1];
         table_cell_free (&cell);
       }
 
   if (!page->h[a][1] || z1 < page->n[a] - page->h[a][1] || p1)
-    for (z = 0; z < page->n[b]; z++)
+    for (z = 0; z < page->n[b]; )
       {
         struct table_cell cell;
         int d[TABLE_N_AXES];
 
-        /* XXX need to handle p1 below */
         d[a] = z1 - 1;
         d[b] = z;
         table_get_cell (page->table, d[H], d[V], &cell);
-        if (z == cell.d[b][0] && cell.d[a][1] > z1
+        if ((cell.d[a][1] > z1 || (cell.d[a][1] == z1 && p1))
             && find_overflow_for_cell (&s, &cell) == NULL)
           {
             ro = insert_overflow (&s, &cell);
-            ro->overflow[a][1] += axis_width (page, a, cell_ofs (z1),
-                                              cell_ofs (cell.d[a][1]));
+            ro->overflow[a][1] += p1 + axis_width (page, a, cell_ofs (z1),
+                                                   cell_ofs (cell.d[a][1]));
           }
+        z = cell.d[b][1];
         table_cell_free (&cell);
       }
 
