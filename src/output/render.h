@@ -106,8 +106,8 @@ struct render_break
   {
     struct render_page *page;   /* Page being broken up. */
     enum table_axis axis;       /* Axis along which 'page' is being broken. */
-    int cell;                   /* Next cell. */
-    int pixel;                  /* Pixel offset within 'cell' (usually 0). */
+    int z;                      /* Next cell along 'axis'. */
+    int pixel;                  /* Pixel offset within cell 'z' (usually 0). */
     int hw;                     /* Width of headers of 'page' along 'axis'. */
   };
 

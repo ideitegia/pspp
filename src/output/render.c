@@ -1056,7 +1056,7 @@ render_break_init (struct render_break *b, struct render_page *page,
 {
   b->page = page;
   b->axis = axis;
-  b->cell = page->h[axis][0];
+  b->z = page->h[axis][0];
   b->pixel = 0;
   b->hw = headers_width (page, axis);
 }
@@ -1068,7 +1068,7 @@ render_break_init_empty (struct render_break *b)
 {
   b->page = NULL;
   b->axis = TABLE_HORZ;
-  b->cell = 0;
+  b->z = 0;
   b->pixel = 0;
   b->hw = 0;
 }
@@ -1092,7 +1092,7 @@ render_break_has_next (const struct render_break *b)
   const struct render_page *page = b->page;
   enum table_axis axis = b->axis;
 
-  return page != NULL && b->cell < page->n[axis] - page->h[axis][1];
+  return page != NULL && b->z < page->n[axis] - page->h[axis][1];
 }
 
 /* Returns the minimum SIZE argument that, if passed to render_break_next(),
@@ -1104,7 +1104,7 @@ render_break_next_size (const struct render_break *b)
   enum table_axis axis = b->axis;
 
   return (!render_break_has_next (b) ? 0
-          : !cell_is_breakable (b, b->cell) ? needed_size (b, b->cell + 1)
+          : !cell_is_breakable (b, b->z) ? needed_size (b, b->z + 1)
           : b->hw + page->params->font_size[axis]);
 }
 
@@ -1119,18 +1119,18 @@ render_break_next (struct render_break *b, int size)
   const struct render_page *page = b->page;
   enum table_axis axis = b->axis;
   struct render_page *subpage;
-  int cell, pixel;
+  int z, pixel;
 
   if (!render_break_has_next (b))
     return NULL;
 
   pixel = 0;
-  for (cell = b->cell; cell < page->n[axis] - page->h[axis][1]; cell++)
+  for (z = b->z; z < page->n[axis] - page->h[axis][1]; z++)
     {
-      int needed = needed_size (b, cell + 1);
+      int needed = needed_size (b, z + 1);
       if (needed > size)
         {
-          if (cell_is_breakable (b, cell))
+          if (cell_is_breakable (b, z))
             {
               /* If there is no right header and we render a partial cell on
                  the right side of the body, then we omit the rightmost rule of
@@ -1141,18 +1141,18 @@ render_break_next (struct render_break *b, int size)
                  This is similar to code for the left side in needed_size(). */
               int rule_allowance = (page->h[axis][1]
                                     ? 0
-                                    : rule_width (page, axis, cell));
+                                    : rule_width (page, axis, z));
 
-              /* The amount that, if we added 'cell', the rendering would
+              /* The amount that, if we added cell 'z', the rendering would
                  overfill the allocated 'size'. */
               int overhang = needed - size - rule_allowance;
 
-              /* The width of 'cell'. */
-              int cell_size = cell_width (page, axis, cell);
+              /* The width of cell 'z'. */
+              int cell_size = cell_width (page, axis, z);
 
-              /* The amount trimmed the left side of 'cell',
+              /* The amount trimmed off the left side of 'z',
                  and the amount left to render. */
-              int cell_ofs = cell == b->cell ? b->pixel : 0;
+              int cell_ofs = z == b->z ? b->pixel : 0;
               int cell_left = cell_size - cell_ofs;
 
               /* A small but visible width.  */
@@ -1175,14 +1175,14 @@ render_break_next (struct render_break *b, int size)
         }
     }
 
-  if (cell == b->cell && !pixel)
+  if (z == b->z && !pixel)
     return NULL;
 
-  subpage = render_page_select (page, axis, b->cell, b->pixel,
-                                pixel ? cell + 1 : cell,
-                                pixel ? cell_width (page, axis, cell) - pixel
+  subpage = render_page_select (page, axis, b->z, b->pixel,
+                                pixel ? z + 1 : z,
+                                pixel ? cell_width (page, axis, z) - pixel
                                 : 0);
-  b->cell = cell;
+  b->z = z;
   b->pixel = pixel;
   return subpage;
 }
@@ -1209,10 +1209,10 @@ needed_size (const struct render_break *b, int cell)
      invidiually. */
   if (b->pixel == 0 || page->h[axis][0])
     size += MAX (rule_width (page, axis, page->h[axis][0]),
-                 rule_width (page, axis, b->cell));
+                 rule_width (page, axis, b->z));
 
   /* Width of body, minus any pixel offset in the leftmost cell. */
-  size += joined_width (page, axis, b->cell, cell) - b->pixel;
+  size += joined_width (page, axis, b->z, cell) - b->pixel;
 
   /* Width of rightmost rule in body merged with leftmost rule in headers. */
   size += MAX (rule_width_r (page, axis, page->h[axis][1]),
@@ -1224,7 +1224,7 @@ needed_size (const struct render_break *b, int cell)
 
   /* Join crossing. */
   if (page->h[axis][0] && page->h[axis][1])
-    size += page->join_crossing[axis][b->cell];
+    size += page->join_crossing[axis][b->z];
 
   return size;
 }
