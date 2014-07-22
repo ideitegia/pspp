@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -182,11 +182,11 @@ table_hpaste (struct table *left, struct table *right)
   return table_paste (left, right, TABLE_HORZ);
 }
 
-/* Shorthand for table_paste (left, right, TABLE_VERT). */
+/* Shorthand for table_paste (top, bottom, TABLE_VERT). */
 struct table *
-table_vpaste (struct table *left, struct table *right)
+table_vpaste (struct table *top, struct table *bottom)
 {
-  return table_paste (left, right, TABLE_VERT);
+  return table_paste (top, bottom, TABLE_VERT);
 }
 
 static void
