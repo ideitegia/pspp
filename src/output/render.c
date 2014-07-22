@@ -61,7 +61,7 @@ struct render_page
        Similarly, cp[V] represents y positions within the table.
        cp[V][0] = 0.
        cp[V][1] = the height of the topmost horizontal rule.
-       cp[V][2] = cp[V][1] + the height of the topmost column.
+       cp[V][2] = cp[V][1] + the height of the topmost row.
        cp[V][3] = cp[V][2] + the height of the second-from-top horizontal rule.
        and so on:
        cp[V][2 * nr] = y position of the bottommost horizontal rule.
