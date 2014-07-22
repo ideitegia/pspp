@@ -148,6 +148,8 @@ table_paste (struct table *a, struct table *b, enum table_axis orientation)
   if (b == NULL)
     return a;
 
+  assert (a->n[!orientation] == b->n[!orientation]);
+
   /* Handle tables that know how to paste themselves. */
   if (!table_is_shared (a) && !table_is_shared (b) && a != b)
     {
