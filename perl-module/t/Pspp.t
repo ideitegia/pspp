@@ -374,7 +374,7 @@ RESULT
     my $vl = $var->get_value_labels ();
 
     print MYFILE "Value Labels:\n";
-    print MYFILE "$_ => $vl->{$_}\n" for keys %$vl;
+    print MYFILE "$_ => $vl->{$_}\n" for (sort keys %$vl);
  }
 
  while (my @c = $sf->get_next_case () )
@@ -391,16 +391,16 @@ RESULT
 ok (compare ("$tempdir/out.txt", <<EOF), "Basic reader operation");
 Variable 0 is "string", label is "A Short String Variable"
 Value Labels:
-3333     => threes
 1111     => ones
 2222     => twos
+3333     => threes
 Variable 1 is "longstring", label is "A Long String Variable"
 Value Labels:
 Variable 2 is "numeric", label is "A Numeric Variable"
 Value Labels:
 1 => Unity
-3 => Thripality
 2 => Duality
+3 => Thripality
 Variable 3 is "date", label is "A Date Variable"
 Value Labels:
 Variable 4 is "dollar", label is "A Dollar Variable"
