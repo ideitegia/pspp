@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pspp 0.8.2.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2014-04-03 23:15-0700\n"
-"PO-Revision-Date: 2014-07-05 19:38+0100\n"
+"PO-Revision-Date: 2014-07-27 17:49+0100\n"
 "Last-Translator: Bob Earl <Bob.Earl@gmx.net>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
 "Language: de_DE\n"
@@ -22,7 +22,7 @@ msgstr ""
 
 #: src/ui/gui/helper.c:204
 msgid "Sorry. The help system hasn't yet been implemented."
-msgstr "Entschuldigung. Das Hilfesystem wurde noch nicht implementiert.  "
+msgstr "Entschuldigung. Das Hilfesystem wurde noch nicht implementiert."
 
 #: src/ui/gui/psppire-buttonbox.c:342
 msgid "Continue"
@@ -271,12 +271,12 @@ msgstr "aktiver Datensatz"
 #: src/data/file-handle-def.c:482
 #, c-format
 msgid "Can't read from %s as a %s because it is already being read as a %s."
-msgstr ""
+msgstr "Aus der Datei %s kann nicht als %s gelesen werden, weil diese bereits als %s gelesen wird."
 
 #: src/data/file-handle-def.c:486
 #, c-format
 msgid "Can't write to %s as a %s because it is already being written as a %s."
-msgstr ""
+msgstr "In die Datei %s kann nicht als %s geschrieben werden, weil in diese bereits als %s geschrieben wird."
 
 #: src/data/file-handle-def.c:493
 #, c-format
@@ -286,7 +286,7 @@ msgstr "Kann %s nicht als %s neu öffnen."
 #: src/data/file-name.c:173
 #, c-format
 msgid "Not opening pipe file `%s' because %s option set."
-msgstr ""
+msgstr "Die Ausgabedatei (pipe) `%s' wurde nicht geöffnet, weil die Option %s gesetzt ist."
 
 #: src/data/format.c:329
 msgid "Input format"
@@ -522,7 +522,7 @@ msgstr "unerwartetes Dateiende"
 #. messages in fh_lock() that identify types of files.
 #: src/data/por-file-reader.c:275 src/data/por-file-writer.c:148
 msgid "portable file"
-msgstr "Portable Datei"
+msgstr "Portable-Datei"
 
 #: src/data/por-file-reader.c:283
 #, c-format
@@ -664,7 +664,7 @@ msgstr "Speicherfehler beim öffnen der PSQL-Quelle"
 #: src/data/psql-reader.c:248
 #, c-format
 msgid "Error opening psql source: %s."
-msgstr "Fehler beim öffnen der psql Quelle: %s."
+msgstr "Fehler beim Öffnen der psql Quelle: %s."
 
 #: src/data/psql-reader.c:263
 #, c-format
@@ -673,7 +673,7 @@ msgstr "Postgres Server hat die Version %s. Das Lesen von Versionen kleiner als 
 
 #: src/data/psql-reader.c:283
 msgid "Connection is unencrypted, but unencrypted connections have not been permitted."
-msgstr "Die Verbindung  ist unverschlüselt, aber es liegt keine Berechtigung für unverschlüsselte Verbindungen vor."
+msgstr "Die Verbindung  ist unverschlüselt, aber es liegt keine Berechtigung für eine unverschlüsselte Verbindungen vor."
 
 #: src/data/psql-reader.c:319 src/data/psql-reader.c:344
 #: src/data/psql-reader.c:354
@@ -797,7 +797,7 @@ msgstr "MRSET %zu Anzahl"
 #: src/data/sys-file-reader.c:742
 #, c-format
 msgid "This system file does not indicate its own character encoding.  Using default encoding %s.  For best results, specify an encoding explicitly.  Use SYSFILE INFO with ENCODING=\"DETECT\" to analyze the possible encodings."
-msgstr "Diese Systemdatei enthaelt keine Angaben zur Kodierung des Zeichensatzes.  Es wird der voreingestellte Zeichensatz %s verwendet.  Um Ihre Ergebnisse noch weiter zu verbessern, sollten Sie einen Zeichensatz explizit festlegen.  Verwenden Sie den Befehl SYSFILE INFO mit dem Argument ENCODING=\"DETECT\", um die zur Verfügung stehenden Zeichensätze in Erfahren zu bringen."
+msgstr "Diese Systemdatei enthält keine Angaben zur Kodierung des Zeichensatzes.  Es wird der voreingestellte Zeichensatz %s verwendet.  Um Ihre Ergebnisse noch weiter zu verbessern, sollten Sie einen Zeichensatz explizit festlegen.  Verwenden Sie den Befehl SYSFILE INFO mit dem Argument ENCODING=\"DETECT\", um die zur Verfügung stehenden Zeichensätze in Erfahren zu bringen."
 
 #: src/data/sys-file-reader.c:796
 #, c-format
@@ -1735,7 +1735,7 @@ msgstr "Es ist nicht möglich eine Stichprobe von %d Beobachtungen aus eine Popu
 
 #: src/language/xforms/recode.c:261
 msgid "Inconsistent target variable types.  Target variables must be all numeric or all string."
-msgstr "Inkonsistenz im Typ der Zielvariablen.  Zielvariablen müssen alle numerisch oder alle vom Type String sein."
+msgstr "Inkonsistenz im Typ der Zielvariablen.  Zielvariablen müssen alle numerisch oder alle vom Typ String sein."
 
 #: src/language/xforms/recode.c:282
 msgid "CONVERT requires string input values and numeric output values."
@@ -1758,7 +1758,7 @@ msgstr "%zu Variable(n) können nicht zu %zu Variable(n) umkodiert werden.  Lege
 #: src/language/xforms/recode.c:494
 #, c-format
 msgid "There is no variable named %s.  (All string variables specified on INTO must already exist.  Use the STRING command to create a string variable.)"
-msgstr "Eine Variable mit dem Namen %s existiert nicht. (Alle Stringvariablen die mit INTO angegeben werden müssen bereits existieren.  Verwenden Sie den STRING-Befehl um eine Stringvariable zu erstellen.)"
+msgstr "Eine Variable mit dem Namen %s existiert nicht. (Alle Stringvariablen die mit INTO angegeben werden, müssen bereits existieren.  Verwenden Sie den STRING-Befehl um eine Stringvariable zu erstellen.)"
 
 #: src/language/xforms/recode.c:510
 #, c-format
@@ -1795,7 +1795,7 @@ msgstr "%s ohne %s."
 #: src/language/control/control-stack.c:59
 #, c-format
 msgid "This command must appear inside %s...%s, without intermediate %s...%s."
-msgstr "Dieser Befehl muss innerhalb von %s...%s verwendet werden ohne Unterbrechung durch %s...%s."
+msgstr "Dieser Befehl muss innerhalb von %s...%s verwendet werden, ohne Unterbrechung durch %s...%s."
 
 #: src/language/control/control-stack.c:76
 #, c-format
@@ -1851,7 +1851,7 @@ msgstr "Attribut Array Index muss zwischen 1 und 65535 liegen."
 #: src/language/dictionary/apply-dictionary.c:74
 #, c-format
 msgid "Variable %s is %s in target file, but %s in source file."
-msgstr "Die Variable %s ist in der Zieldatei %s, aber in der Quelldatei %s."
+msgstr "Die Variable %s hat in der Zieldatei den Typ %s, aber in der Quelldatei den Typ %s."
 
 #: src/language/dictionary/apply-dictionary.c:110
 msgid "No matching variables found between the source and target files."
@@ -1912,7 +1912,7 @@ msgstr "Es wurde der Name eines Unterbefehls erwartet."
 #: src/language/dictionary/mrsets.c:116
 #, c-format
 msgid "VARIABLES specified only variable %s on %s, but at least two variables are required."
-msgstr ""
+msgstr "In VARIABLES wurde nur die Variable %s beim Unterbefehl %s angegeben, es sind aber mindestens zwei Variablen erforderlich."
 
 #: src/language/dictionary/mrsets.c:149
 msgid "Numeric VALUE must be an integer."
@@ -1951,7 +1951,7 @@ msgstr "Die Variable %s ist Teil der Multi-Dichotomie-Gruppe %s (mit CATEGORYLAB
 #: src/language/dictionary/mrsets.c:368
 #, c-format
 msgid "Variables %s and %s specified as part of multiple dichotomy group %s (which has CATEGORYLABELS=COUNTEDVALUES) have the same value label for the group's counted value.  These categories will not be distinguishable in output."
-msgstr "Die Variablen %s und %s sind Teil der Mehrfach-Dichotomie-Gruppe %s (mit ) und haben das gleiche Variablenlabel für den zu gezählten Wert (COUNTEDVALUE) der Gruppe.  Kategorien dieser Variablen werden sich in der Ausgabe nicht unterscheiden lassen."
+msgstr "Die Variablen %s und %s sind Teil der Mehrfach-Dichotomie-Gruppe %s (mit ) und haben das gleiche Variablenlabel für den gezählten Wert (COUNTEDVALUE) der Gruppe.  Kategorien dieser Variablen werden sich in der Ausgabe nicht unterscheiden lassen."
 
 #: src/language/dictionary/mrsets.c:425
 #, c-format
@@ -2001,7 +2001,7 @@ msgstr "Beschriftung"
 
 #: src/language/dictionary/mrsets.c:571
 msgid "Label source"
-msgstr "Quelle des Beschriftungen"
+msgstr "Quelle der Beschriftungen"
 
 #: src/language/dictionary/mrsets.c:573
 msgid "First variable label among variables"
@@ -2257,7 +2257,7 @@ msgstr "Keine gültige Kodierung gefunden."
 #: src/language/dictionary/sys-file-info.c:1009
 #, c-format
 msgid "The following table lists the encodings that can successfully read %s, by specifying the encoding name on the GET command's ENCODING subcommand.  Encodings that yield identical text are listed together."
-msgstr "Die folgende Tabelle zeigt alle Kodierungen mit denen %s eingelesen werden kann, indem beim Befehl GET im Unterbefehl ENCODING die passsende Kodierung angegeben wird.  Kodierungen, die zum selben Text führen, sind zusammen aufgelistet."
+msgstr "Die folgende Tabelle zeigt alle Kodierungen mit denen %s eingelesen werden kann, indem beim Befehl GET im Unterbefehl ENCODING die passsende Kodierung angegeben wird.  Kodierungen, die zum selben Text führen, sind gemeinsam aufgelistet."
 
 #: src/language/dictionary/sys-file-info.c:1016
 #, c-format
@@ -2375,7 +2375,7 @@ msgstr "`%s' konnte im Dateisuchpfad nicht gefunden werden."
 #: src/language/utilities/permissions.c:114
 #, c-format
 msgid "Cannot stat %s: %s"
-msgstr ""
+msgstr "Der Status der Datei %s kann nicht ermittelt werden: %s"
 
 #: src/language/utilities/permissions.c:128
 #, c-format
@@ -2500,7 +2500,7 @@ msgstr "Die Wertargumente, die an die %s Funktion übergeben wurden, sind nicht 
 #: src/language/stats/aggregate.c:632
 #, c-format
 msgid "Variable name %s is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
-msgstr "Der Variablenname %s erscheint im aggregierten Codebuch der Datei, das die zusammengefassten Variablen und die Break-Variablen enthaelt, mehr als einmal."
+msgstr "Der Variablenname %s erscheint im aggregierten Codebuch der Datei, das die zusammengefassten Variablen und die Break-Variablen enthält, mehr als einmal."
 
 #: src/language/stats/autorecode.c:164
 #, c-format
@@ -3943,7 +3943,7 @@ msgstr "Getestete Variable"
 
 #: src/language/stats/roc.c:1051
 msgid "Case Summary"
-msgstr "Fall Zusammenfassung"
+msgstr "Fallzusammenfassung"
 
 #: src/language/stats/roc.c:1071
 msgid "Unweighted"
@@ -3988,7 +3988,7 @@ msgstr "REGRESSION mit SAVE ignoriert TEMPORARY.  Temporäre Umformungen werden 
 
 #: src/language/stats/regression.c:505
 msgid "The dependent variable is equal to the independent variable. The least squares line is therefore Y=X. Standard errors and related statistics may be meaningless."
-msgstr "Die abhängige Variable ist mit der unabhängigen Variable identisch. Die Regressionsgerade ist daher Y=X. Standardfehler und damit verbundene Statistiken sind eventuell nicht sinnvoll."
+msgstr "Die abhängige Variable ist mit der unabhängigen Variable identisch. Die Regressionsgerade ist daher Y=X. Standardfehler und damit verbundene Statistiken sind eventuell aussagelos."
 
 #: src/language/stats/regression.c:689
 msgid "No valid data found. This command was skipped."
@@ -4244,7 +4244,7 @@ msgstr "Das aktive Datenblatt kann nicht angegeben werden, da noch keines defini
 
 #: src/language/data-io/combine-files.c:220
 msgid "This command may not be used after TEMPORARY when the active dataset is an input source.  Temporary transformations will be made permanent."
-msgstr "Dieser Befehl darf nicht nach TEMPORARY verwendet werden, wenn das aktive Datenblatt eine Quelle ist.  Vorläufige Transformationen werden dauerhaft gemacht.\""
+msgstr "Dieser Befehl darf nicht nach TEMPORARY verwendet werden, wenn das aktive Datenblatt eine Quelle ist.  Vorläufige Transformationen werden dauerhaft gemacht."
 
 #: src/language/data-io/combine-files.c:254
 msgid "Multiple IN subcommands for a single FILE or TABLE."
@@ -4365,17 +4365,17 @@ msgstr "Fehlendes Trennzeichen nach einer Zeichenfolge in Anführungszeichen."
 #: src/language/data-io/data-parser.c:515
 #, c-format
 msgid "Data for variable %s is not valid as format %s: %s"
-msgstr ""
+msgstr "Die Daten für die Variable %s sind im Format %s ungültig: %s"
 
 #: src/language/data-io/data-parser.c:544
 #, c-format
 msgid "Partial case of %d of %d records discarded."
-msgstr ""
+msgstr "Ein Teil des Falles %d mit %d Einträgen wurde verworfen."
 
 #: src/language/data-io/data-parser.c:601
 #, c-format
 msgid "Partial case discarded.  The first variable missing was %s."
-msgstr ""
+msgstr "Ein Teil des Falles wurde verworfen.  Die erste fehlende Variable ist %s."
 
 #: src/language/data-io/data-parser.c:643
 #, c-format
@@ -4443,7 +4443,7 @@ msgstr "Fehler beim Lesen der Datei %s: %s."
 #: src/language/data-io/data-reader.c:267
 #, c-format
 msgid "Unexpected end of file in partial record reading %s."
-msgstr ""
+msgstr "Unerwartetes Dateiende in einem unvollständigen Eintrag beim Lesen von %s."
 
 #: src/language/data-io/data-reader.c:327
 #, c-format
@@ -4476,17 +4476,17 @@ msgstr "Es wurde versucht über %s hinaus zu lesen."
 
 #: src/language/data-io/data-reader.c:764
 msgid "This command is not valid here since the current input program does not access the inline file."
-msgstr ""
+msgstr "Dieser Befehl ist hier nicht gültig, da das aktuelle Eingabeprogramm keinen Zugriff auf die Inline-Datei hat."
 
 #: src/language/data-io/data-writer.c:107
 #, c-format
 msgid "An error occurred while opening `%s' for writing as a data file: %s."
-msgstr ""
+msgstr "Beim Öffnen von `%s' um eine Datendatei zu schreiben, ist ein Fehler aufgetreten: %s."
 
 #: src/language/data-io/data-writer.c:225
 #, c-format
 msgid "I/O error occurred writing data file `%s'."
-msgstr ""
+msgstr "Ein I/O Fehler ist beim Schreiben der Datendatei `%s' aufgetreten."
 
 #: src/language/data-io/dataset.c:63
 #, c-format
@@ -4523,7 +4523,7 @@ msgstr "Nach %s muss entweder von \"%s\" oder \"%s\" folgen."
 #: src/language/data-io/get-data.c:355
 #, c-format
 msgid "%s is allowed only with %s arrangement, but %s arrangement was stated or implied earlier in this command."
-msgstr "%s ist nur in Verbindung mit /ARRAGEMENT=%s erlaubt, aber es wurde entweder explizit oder implizit in diesem Befehl an früherer Stelle festegelegt, dass /ARRAGEMENT=%s ist."
+msgstr "%s ist nur in Verbindung mit /ARRAGEMENT=%s erlaubt, aber es wurde entweder explizit oder implizit in diesem Befehl an früherer Stelle festegelegt, dass /ARRAGEMENT=%s sein soll."
 
 #: src/language/data-io/get-data.c:436 src/language/data-io/get-data.c:474
 #: src/language/data-io/get-data.c:494
@@ -4544,12 +4544,12 @@ msgstr "Im Modus Kompatible Syntax muss der String QUALIFIER genau ein Zeichen e
 #: src/language/data-io/placement-parser.c:406
 #, c-format
 msgid "The record number specified, %ld, is at or before the previous record, %d.  Data fields must be listed in order of increasing record number."
-msgstr ""
+msgstr "Die angegebene Nummer des Eintrags, %ld, liegt beim oder vor dem vorhergehenden Eintrag, %d. Datenfelder müssen in aufsteigender Reihenfolge aufgelistet werden."
 
 #: src/language/data-io/get-data.c:601
 #, c-format
 msgid "The record number specified, %ld, exceeds the number of records per case specified on FIXCASE, %d."
-msgstr ""
+msgstr "Die angegebene Nummer des Eintrags, %ld, übersteigt die Anzahl der Einträge pro Fall, %d, die mit FIXCASE festgelegt wurde."
 
 #: src/language/data-io/inpt-pgm.c:133
 #, c-format
@@ -4567,7 +4567,7 @@ msgstr "INPUT PROGRAM hat keine Variablen erzeugt."
 
 #: src/language/data-io/inpt-pgm.c:365
 msgid "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
-msgstr "REREAD: Die Spaltennummer muss eine positive endliche Zahl sein.  Spalte wird auf 1 gesetzt."
+msgstr "REREAD: Die Spaltennummer muss eine positive endliche Zahl sein.  Spaltennummer wird auf 1 gesetzt."
 
 #: src/language/data-io/list.c:227
 #, c-format
@@ -4677,7 +4677,7 @@ msgstr "Die Anzahl der Variablen auf der linken Seite von `=' (%zu) stimmt nicht
 #: src/language/data-io/trim.c:136
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
-msgstr ""
+msgstr "Es wurde angefragt, ob der doppelte Variablenname %s umbenannt werden soll."
 
 #: src/language/data-io/trim.c:167
 msgid "Cannot DROP all variables from dictionary."
@@ -4724,123 +4724,123 @@ msgstr "Ungültige Methode DATESUM.  Zur Auswahl stehen `%s' und `%s'."
 #: src/language/expressions/parse.c:261
 #, c-format
 msgid "Type mismatch: expression has %s type, but a numeric value is required here."
-msgstr ""
+msgstr "Diskrepanz der Typen: der Ausdruck ist vom Typ %s, aber an dieser Stelle ist ein numerischer Wert erforderlich."
 
 #: src/language/expressions/parse.c:274
 #, c-format
 msgid "Type mismatch: expression has %s type, but a string value is required here."
-msgstr ""
+msgstr "Diskrepanz der Typen: der Ausdruck ist vom Typ %s, aber an dieser Stelle ist ein String erforderlich."
 
 #: src/language/expressions/parse.c:436
 #, c-format
 msgid "Type mismatch while applying %s operator: cannot convert %s to %s."
-msgstr ""
+msgstr "Diskrepanz der Typen bei der Anwendung des Operators %s: %s kann nicht zu %s umgewandelt werden."
 
 #: src/language/expressions/parse.c:650
 msgid "Chaining relational operators (e.g. `a < b < c') will not produce the mathematically expected result.  Use the AND logical operator to fix the problem (e.g. `a < b AND b < c').  If chaining is really intended, parentheses will disable this warning (e.g. `(a < b) < c'.)"
-msgstr ""
+msgstr "Die Verkettung relationaler Operatoren (z.B. `a < b < c') führt nicht zum erwarteten mathematischen Ergebnis.  Verwenden Sie den Logikoperator AND, um dieses Problem zi beheben (z.B. `a < b AND b < c').  Falls Sie tatsächlich eine Verkettung vornehmen wollen, verwenden Sie Klammern, um diese Warnung zu unterdrücken (z.B. `(a < b) < c')."
 
 #: src/language/expressions/parse.c:752
 msgid "The exponentiation operator (`**') is left-associative, even though right-associative semantics are more useful.  That is, `a**b**c' equals `(a**b)**c', not as `a**(b**c)'.  To disable this warning, insert parentheses."
-msgstr ""
+msgstr "Der Operator für Exponenten (`**') ist immer mit dem linken Argument verknüpft, obwohl eine rechts-seitige Verknüpfung praktischer wäre. D.h. der Ausdruck `a**b**c' ist gleichbedeutend mit `(a**b)**c', aber nicht mit dem Ausdruck `a**(b**c)'.  Um diese Warnung zu unterdrücken, fügen Sie die passenden Klammern ein."
 
 #: src/language/expressions/parse.c:832
 #, c-format
 msgid "Unknown system variable %s."
-msgstr ""
+msgstr "Unbekannt Systemvariable %s."
 
 #: src/language/expressions/parse.c:880
 #, c-format
 msgid "Unknown identifier %s."
-msgstr ""
+msgstr "Unbekannter Bezeichner %s."
 
 #: src/language/expressions/parse.c:1102
 #, c-format
 msgid "%s must have at least %d arguments in list."
-msgstr ""
+msgstr "%s muss mindestens %d Argumente in der Liste haben."
 
 #: src/language/expressions/parse.c:1111
 #, c-format
 msgid "%s must have an even number of arguments in list."
-msgstr ""
+msgstr "%s muss eine gerade Anzahl von Argumenten in der Liste haben."
 
 #: src/language/expressions/parse.c:1114
 #, c-format
 msgid "%s must have multiple of %d arguments in list."
-msgstr ""
+msgstr "%s muss ein Vielfachenes von %d Argumenten in der Liste haben."
 
 #: src/language/expressions/parse.c:1124
 #, c-format
 msgid "%s function does not accept a minimum valid argument count."
-msgstr ""
+msgstr "Für die Funktion %s kann die minimale Anzahl von gültigen Argumenten nicht festgelegt werden."
 
 #: src/language/expressions/parse.c:1133
 #, c-format
 msgid "%s requires at least %d valid arguments in list."
-msgstr ""
+msgstr "%s erfordert mindestens %d gültige Argumente in der Liste."
 
 #: src/language/expressions/parse.c:1139
 #, c-format
 msgid "With %s, using minimum valid argument count of %d does not make sense when passing only %d arguments in list."
-msgstr ""
+msgstr "Beim der Verwendung von %s ergibt es keinen Sinn die minimale Anzahl von %d Argumenten anzugeben, wenn in der Liste nur %d Argumente übergeben werden. "
 
 #: src/language/expressions/parse.c:1193
 #, c-format
 msgid "Type mismatch invoking %s as "
-msgstr ""
+msgstr "Diskrepanz der Typen beim Aufruf von %s als "
 
 #: src/language/expressions/parse.c:1198
 msgid "Function invocation "
-msgstr ""
+msgstr "Funktionaufruf "
 
 #: src/language/expressions/parse.c:1200
 msgid " does not match any known function.  Candidates are:"
-msgstr ""
+msgstr " passt nicht zu einer bekannten Funktion.  Mögliche Kandidaten wären:"
 
 #: src/language/expressions/parse.c:1230
 #, c-format
 msgid "No function or vector named %s."
-msgstr ""
+msgstr "Eine Funktion oder einen Vektor mit dem Namen %s gibt es nicht."
 
 #: src/language/expressions/parse.c:1292
 #, c-format
 msgid "%s is a PSPP extension."
-msgstr ""
+msgstr "%s ist eine PSPP-Erweiterung."
 
 #: src/language/expressions/parse.c:1301
 #, c-format
 msgid "%s may not appear after %s."
-msgstr ""
+msgstr "%s darf nicht nach %s erscheinen."
 
 #: src/libpspp/ext-array.c:66
 msgid "failed to create temporary file"
-msgstr ""
+msgstr "die temporäre Datei konnte nicht erzeugt werden"
 
 #: src/libpspp/ext-array.c:106
 msgid "seeking in temporary file"
-msgstr ""
+msgstr "in der temporären Datei wird gesucht"
 
 #: src/libpspp/ext-array.c:125
 msgid "reading temporary file"
-msgstr ""
+msgstr "die temporäre Datei wird gelesen"
 
 #: src/libpspp/ext-array.c:127
 msgid "unexpected end of file reading temporary file"
-msgstr ""
+msgstr "unerwartetes Ende der Datei beim Lesen der temporären Datei"
 
 #: src/libpspp/ext-array.c:147
 msgid "writing to temporary file"
-msgstr ""
+msgstr "es wird in die temporäre Datei geschrieben"
 
 #: src/libpspp/inflate.c:87
 #, c-format
 msgid "Cannot initialize inflator: %s"
-msgstr ""
+msgstr "Das Programm zur Dekomprimierung konnte nicht gestartet werden: %s"
 
 #: src/libpspp/inflate.c:142
 #, c-format
 msgid "Error inflating: %s"
-msgstr ""
+msgstr "Fehler bei der Dekomprimierung: %s"
 
 #: src/libpspp/i18n.c:1003
 msgid "Arabic"
@@ -4974,69 +4974,69 @@ msgstr "Hinweis"
 #: src/libpspp/message.c:338
 #, c-format
 msgid "Notes (%d) exceed limit (%d).  Suppressing further notes."
-msgstr ""
+msgstr "Anzahl der Meldungen (%d) hat die Grenze (%d) überschritten.  Weitere Meldungen werden unterdrückt."
 
 #: src/libpspp/message.c:346
 #, c-format
 msgid "Warnings (%d) exceed limit (%d).  Syntax processing will be halted."
-msgstr ""
+msgstr "Anzahl der Warnmeldungen (%d) hat die Grenze (%d) überschritten.  Verarbeitung der Syntax wird angehalten."
 
 #: src/libpspp/message.c:349
 #, c-format
 msgid "Errors (%d) exceed limit (%d).  Syntax processing will be halted."
-msgstr ""
+msgstr "Anzahl der Fehler (%d) hat die Grenze (%d) überschritten.  Verarbeitung der Syntax wird angehalten."
 
 #: src/libpspp/zip-reader.c:84
 #, c-format
 msgid "Unsupported compression type (%d)"
-msgstr ""
+msgstr "Komprimierungstyp (%d) wird nicht unterstützt"
 
 #: src/libpspp/zip-reader.c:197
 #, c-format
 msgid "Corrupt file at 0x%llx: Expected %<PRIx32>; got %<PRIx32>"
-msgstr ""
+msgstr "Fehlerhafte Datei an der Stelle 0x%llx: erwartet %<PRIx32>; gefunden %<PRIx32>"
 
 #: src/libpspp/zip-reader.c:321
 msgid "Cannot find central directory"
-msgstr ""
+msgstr "Das Hauptverzeichnis konnte nicht gefunden werden."
 
 #: src/libpspp/zip-reader.c:330
 #, c-format
 msgid "Failed to seek to end of central directory record: %s"
-msgstr ""
+msgstr "Fehler bei der Suche nach dem Ende des Hauptverzeichnis-Eintrags: %s"
 
 #: src/libpspp/zip-reader.c:356
 #, c-format
 msgid "Failed to seek to central directory: %s"
-msgstr ""
+msgstr "Fehler bei der Suche nach dem Hauptverzeichnis: %s"
 
 #: src/libpspp/zip-reader.c:411
 #, c-format
 msgid "Failed to seek to start of member `%s': %s"
-msgstr ""
+msgstr "Fehler bei der Suche des Anfangs des Elements `%s': %s"
 
 #: src/libpspp/zip-reader.c:442
 #, c-format
 msgid "Name mismatch in zip archive. Central directory says `%s'; local file header says `%s'"
-msgstr ""
+msgstr "Diskrepanz zwischen den Namen im Zip-Archiv. Das Hauptverzeichnis besagt `%s'; der lokale Dateikopf besagt `%s'"
 
 #: src/libpspp/zip-writer.c:94
 #, c-format
 msgid "%s: error opening output file"
-msgstr ""
+msgstr "%s: Fehler beim Öffnen der Ausgabedatei"
 
 #: src/libpspp/zip-writer.c:227
 #, c-format
 msgid "%s: write failed"
-msgstr ""
+msgstr "%s: Schreiben ist fehlgeschlagen"
 
 #: src/math/histogram.c:224
 msgid "Not creating histogram because the data contains less than 2 distinct values"
-msgstr ""
+msgstr "Ein Histogramm wird nicht erzeugt, weil die Daten weniger als 2 verschiedene Wertausprägungen enthalten."
 
 #: src/math/percentiles.c:36
 msgid "HAverage"
-msgstr ""
+msgstr "HAverage"
 
 #: src/math/percentiles.c:37
 msgid "Weighted Average"
@@ -5052,32 +5052,32 @@ msgstr "Empirisch"
 
 #: src/math/percentiles.c:40
 msgid "Empirical with averaging"
-msgstr ""
+msgstr "Empirisch mit Durchschnittsbildung"
 
 #: src/output/ascii.c:315
 #, c-format
 msgid "%s: %s must be positive integer or `auto'"
-msgstr ""
+msgstr "%s: %s muss eine positive ganze Zahl sein oder `auto'"
 
 #: src/output/ascii.c:348
 #, c-format
 msgid "ascii: page excluding margins and headers must be at least %d characters wide by %d lines long, but as configured is only %d characters by %d lines"
-msgstr ""
+msgstr "ASCII: eine Seite ohne Ränder und Kopf muss mindestens %d Zeichen breit und %d Zeilen lang sein, aber laut Konfiguration hat sie nur %d Zeichen und %d Zeilen"
 
 #: src/output/ascii.c:396
 #, c-format
 msgid "ascii: closing output file `%s'"
-msgstr ""
+msgstr "ASCII: die Ausgabedatei `%s' wird geschlossen"
 
 #: src/output/ascii.c:540
 #, c-format
 msgid "See %s for a chart."
-msgstr ""
+msgstr "Siehe Diagramm in der Datei %s."
 
 #: src/output/ascii.c:1014
 #, c-format
 msgid "ascii: opening output file `%s'"
-msgstr ""
+msgstr "ASCII: die Ausgabedatei  `%s' wird geöffnet"
 
 #: src/output/ascii.c:1071
 #, c-format
@@ -5211,7 +5211,7 @@ msgstr "Fehler beim Öffnen der Ausgabedatei `%s': %s"
 #: src/output/cairo.c:398
 #, c-format
 msgid "The defined page is not wide enough to hold at least %d characters in the default font.  In fact, there's only room for %d characters."
-msgstr "Das angegebene Seitenformat ist nicht groß genug um in der Standardschriftart mindestens %d Zeichen darzustellen.  Tatsächlich passen nur %d Zeichen auf eine Seite."
+msgstr "Das angegebene Seitenformat ist nicht groß genug, um in der Standardschriftart mindestens %d Zeichen darzustellen.  Tatsächlich passen nur %d Zeichen auf eine Seite."
 
 #: src/output/cairo.c:408
 #, c-format
@@ -5221,7 +5221,7 @@ msgstr "Das angegebene Seitenformat ist nicht groß genug um in der Standardschr
 #: src/output/cairo.c:459
 #, c-format
 msgid "error drawing output for %s driver: %s"
-msgstr ""
+msgstr "Fehler beim Zeichnen der Ausgabe für den Treiber %s: %s"
 
 #: src/output/cairo.c:1116
 #, c-format
@@ -5301,7 +5301,7 @@ msgstr "Fehler beim Lesen der temporären Datei"
 #: src/ui/source-init-opts.c:75
 #, c-format
 msgid "Algorithm must be either `%s' or `%s'."
-msgstr "Algorithmus mussentweder `%s' oder `%s' sein."
+msgstr "Algorithmus muss entweder `%s' oder `%s' sein."
 
 #: src/ui/source-init-opts.c:100
 #, c-format
@@ -5314,17 +5314,17 @@ msgstr "Ein Fehler wurde gefunden während ERROR = STOP aktiviert war."
 
 #: src/ui/terminal/main.c:152
 msgid "Stopping syntax file processing here to avoid a cascade of dependent command failures."
-msgstr ""
+msgstr "Die Ausführung der Syntaxdatei wird hier abgebrochen, um zu verhindern, dass eine Kaskade von fehlgeschlagenen Befehlen entsteht."
 
 #: src/ui/terminal/terminal-opts.c:125
 #, c-format
 msgid "%s: output option missing `='"
-msgstr ""
+msgstr "%s: die Ausgabeoption `=' fehlt"
 
 #: src/ui/terminal/terminal-opts.c:132
 #, c-format
 msgid "%s: output option specified more than once"
-msgstr ""
+msgstr "%s: die Ausgabeoption wurde mehr als einmal angegeben"
 
 #: src/ui/terminal/terminal-opts.c:174
 #, c-format
@@ -5402,7 +5402,7 @@ msgstr ""
 #: src/ui/terminal/terminal.c:62
 #, c-format
 msgid "could not access definition for terminal `%s'"
-msgstr ""
+msgstr "Auf die Eigenschaften des Terminals `%s' konnte nicht zugegriffen werden."
 
 #: src/ui/gui/psppire-button-editable.c:135
 msgid "TreeView path"
@@ -5687,7 +5687,7 @@ msgstr "Kontingenzkoeffizient C"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:75
 msgid "UC"
-msgstr "Unsicherheitskoeffizient "
+msgstr "Unsicherheitskoeffizient"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:76
 msgid "BTau"
@@ -5790,7 +5790,7 @@ msgstr "T-Test bei gepaarten Stichproben"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:40
 msgid "Coeff"
-msgstr "Modellkoeffizienten "
+msgstr "Modellkoeffizienten"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:40
 msgid "Show the regression coefficients"
@@ -6083,7 +6083,7 @@ msgstr "Änderungen an `%s'  vor dem Schließen speichern?"
 #: src/ui/gui/psppire-window.c:510
 #, c-format
 msgid "If you don't save, changes from the last %ld seconds will be permanently lost."
-msgstr "Fall Sie nicht speichern, gehen die Änderungen der letzten %ld Sekunden dauerhaft verloren."
+msgstr "Falls Sie nicht speichern, gehen die Änderungen der letzten %ld Sekunden dauerhaft verloren."
 
 #: src/ui/gui/psppire-window.c:514
 msgid "Close _without saving"
@@ -6150,7 +6150,9 @@ msgstr "Nur die ersten %3d %% der Datei (schätzungsweise)"
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
-msgstr "Dieser Assistent führt Sie durch den Einlesevorgang von Daten in PSPP die aus einer Textdatei stammen, in der jede Zeile einen Fall darstellt und in der Datenfelder durch Tabulatoren, Kommas oder andere Trennzeichen separiert sind.\n"
+msgstr ""
+"Dieser Assistent führt Sie durch den Einlesevorgang von Daten in PSPP, die aus einer Textdatei stammen, in der jede Zeile einen Fall darstellt und in der Datenfelder durch Tabulatoren, Kommas oder andere Trennzeichen separiert sind.\n"
+"\n"
 
 #: src/ui/gui/page-intro.c:133
 #, c-format
@@ -6190,7 +6192,7 @@ msgstr "Fehler beim Lesen von `%s': %s"
 #: src/ui/gui/page-file.c:117
 #, c-format
 msgid "Failed to read `%s', because it contains a line over %d bytes long and therefore appears not to be a text file."
-msgstr "Fehler beim Einlesen von `%s', weil sie eine Zeile enthält, die über %d Bytes lang ist. Dies deutet darauf hin, dass es sich nicht um eine Textdatei handelt. "
+msgstr "Fehler beim Einlesen der Datei `%s', weil sie eine Zeile enthält, die über %d Bytes lang ist. Dies deutet darauf hin, dass es sich nicht um eine Textdatei handelt. "
 
 #: src/ui/gui/page-file.c:135
 #, c-format
@@ -6282,7 +6284,7 @@ msgstr "%s: das Ausgabeformat wurde nicht erkannt (verwenden Sie die Option -O)"
 
 #: utilities/pspp-convert.c:151
 msgid "can only convert encrypted data file to sav or sys format"
-msgstr "verschlüsselte Datendateien können nur ins .sav oder .sys Format konvertiert werden."
+msgstr "verschlüsselte Datendateien können nur ins .sav oder .sys Format konvertiert werden"
 
 #: utilities/pspp-convert.c:188
 #, c-format
@@ -6316,7 +6318,7 @@ msgstr "%s darf nicht negativ sein."
 #: src/language/utilities/set.q:197
 #, c-format
 msgid "%s must be at least 1MB"
-msgstr "%s muss mindestens 1MB sein."
+msgstr "%s muss mindestens 1MB sein"
 
 #: src/language/utilities/set.q:199
 #, c-format
@@ -6406,7 +6408,7 @@ msgstr "%s ist %s."
 #: src/language/utilities/set.q:1086
 #, c-format
 msgid "Too many %s commands without a %s: at most %d levels of saved settings are allowed."
-msgstr ""
+msgstr "Der Befehl %s wurde zu häufig ohne %s verwendet: Es sind höchstens %d Ebenen von Einstellungsspeicherungen erlaubt."
 
 #: src/language/utilities/set.q:1106
 #, c-format
@@ -6416,7 +6418,7 @@ msgstr "%s ohne zugehöriges %s."
 #: src/language/stats/crosstabs.q:298
 #, c-format
 msgid "Missing mode %s not allowed in general mode.  Assuming %s."
-msgstr ""
+msgstr "Die Behandlungsoption %s für fehlende Werte ist im normalen Modus (general mode) nicht erlaubt. Es wird %s verwendet."
 
 #: src/language/stats/crosstabs.q:414
 msgid "Too many cross-tabulation variables or dimensions."
@@ -6441,7 +6443,7 @@ msgstr "Zusammenfassung."
 #: src/language/stats/crosstabs.q:979
 #, c-format
 msgid "Crosstabulation %s contained no non-missing cases."
-msgstr "Kreuztabelle %s enthält keine nicht-fehlenden Were."
+msgstr "Kreuztabelle %s enthält keine nicht-fehlenden Werte."
 
 #: src/language/stats/crosstabs.q:1178
 msgid "count"
@@ -6635,12 +6637,12 @@ msgstr "%s für das Kreisdiagramm muss größer oder gleich %s sein, aber %s wur
 #: src/language/stats/frequencies.q:734
 #, c-format
 msgid "Variables %s specified multiple times on %s subcommand."
-msgstr ""
+msgstr "Die Variablen %s wurden im Unterbefehl %s mehrfach angegeben."
 
 #: src/language/stats/frequencies.q:744
 #, c-format
 msgid "Variables %s specified on %s but not on %s."
-msgstr ""
+msgstr "Die Variablen %s wurden unter %s angegeben, aber nicht unter %s."
 
 #: src/language/stats/frequencies.q:832
 msgid "Value Label"
@@ -6676,17 +6678,17 @@ msgstr "Kreisdiagramm für %s wird ausgelassen, weil es mehr als 50 unterschiedl
 #: src/language/data-io/file-handle.q:74
 #, c-format
 msgid "File handle %s is already defined.  Use %s before redefining a file handle."
-msgstr ""
+msgstr "Der Dateiidentifikator %s wurde bereits definiert. Bevor Sie einen Dateiidentifikator umdefinieren verwenden Sie bitte %s."
 
 #: src/language/data-io/file-handle.q:135
 #, c-format
 msgid "%s must be specified with %s."
-msgstr ""
+msgstr "%s erfordert die Angabe von %s."
 
 #: src/language/data-io/file-handle.q:146
 #, c-format
 msgid "The specified file mode requires LRECL.  Assuming %zu-character records."
-msgstr ""
+msgstr "Der angegebene Dateimodus erfordert LRECL.  Es werden Einträge mit %zu Zeichen angewendet."
 
 #: src/language/data-io/file-handle.q:150
 #, c-format
@@ -6699,16 +6701,16 @@ msgstr "Datei"
 
 #: src/language/data-io/file-handle.q:196
 msgid "inline file"
-msgstr ""
+msgstr "Inline-Datei"
 
 #: src/language/data-io/file-handle.q:244
 msgid "expecting a file name or handle name"
-msgstr ""
+msgstr "es wurde ein Dateinname oder ein Identifikator erwartet"
 
 #: src/language/data-io/file-handle.q:259
 #, c-format
 msgid "Handle for %s not allowed here."
-msgstr ""
+msgstr "Identifikator für %s ist hier nicht erlaubt."
 
 #: src/ui/gui/aggregate.ui:7
 msgid "Aggregate Data"
@@ -7042,7 +7044,7 @@ msgstr "Variable einfügen"
 
 #: src/ui/gui/data-sheet.ui:58 src/ui/gui/var-sheet.ui:42
 msgid "Create a new variable at the current position"
-msgstr "An der aktuelle Stelle eine neue Variable einfügen"
+msgstr "An der aktuellen Stelle eine neue Variable einfügen"
 
 #: src/ui/gui/data-sheet.ui:65
 msgid "Insert Case"
@@ -7050,7 +7052,7 @@ msgstr "_Fall einfügen"
 
 #: src/ui/gui/data-sheet.ui:66
 msgid "Create a new case at the current position"
-msgstr "An der aktuelle Stelle einen neuen Fall einfügen"
+msgstr "An der aktuellen Stelle einen neuen Fall einfügen"
 
 #: src/ui/gui/data-sheet.ui:73 src/ui/gui/var-sheet.ui:49
 msgid "Go To Variable..."
@@ -7108,7 +7110,7 @@ msgstr "_Statistiken:"
 
 #: src/ui/gui/descriptives.ui:198
 msgid "_Exclude entire case if any selected variable is missing"
-msgstr "_Ausschluss des gesamten Falls, wenn ein der gewählten Variablen fehlt "
+msgstr "_Ausschluss des gesamten Falls, wenn eine der gewählten Variablen fehlt "
 
 #: src/ui/gui/descriptives.ui:214
 msgid "_Include user-missing data in analysis"
@@ -7376,11 +7378,11 @@ msgstr "Häufigkeiten: Diagramme"
 
 #: src/ui/gui/frequencies.ui:541
 msgid "Exclude values _below "
-msgstr "Ausschließen von Werten _unter"
+msgstr "Ausschließen von Werten _unter "
 
 #: src/ui/gui/frequencies.ui:577
 msgid "Exclude values _above "
-msgstr "Ausschließen von Werten _über"
+msgstr "Ausschließen von Werten _über "
 
 #: src/ui/gui/frequencies.ui:616
 msgid "<b>Chart Formatting</b>"
@@ -7685,7 +7687,7 @@ msgstr "Rang 1 zuweisen:"
 
 #: src/ui/gui/rank.ui:265
 msgid "_Display summary tables"
-msgstr "Z_usammenfassung anzeigen"
+msgstr "Z_usammenfassungen anzeigen"
 
 #: src/ui/gui/rank.ui:283
 msgid "Rank T_ypes"
@@ -7841,7 +7843,7 @@ msgstr "Date_i ist sortiert."
 
 #: src/ui/gui/split-file.ui:283
 msgid "Current Status : "
-msgstr "Aktueller Status:"
+msgstr "Aktueller Status : "
 
 #: src/ui/gui/split-file.ui:294
 msgid "Analysis by groups is off"
@@ -8079,7 +8081,7 @@ msgid ""
 msgstr ""
 "Dieser Assistent führt Sie durch den Einlesevorgang von Daten in PSPP, die aus einer Textdatei stammen, in der jede Zeile einen Fall darstellt und in der Datenfelder durch Tabulatoren, Kommas oder andere Trennzeichen separiert sind.\n"
 " \n"
-"Die gewählte Datei enthält N Textzeilen.  Nur die ersten M Zeilen werden die den folgenden Vorschaufenstern gezeigt.  Sie können unten wählen, wie viele Zeilen der Datei tatsächlich eingelesen werden."
+"Die gewählte Datei enthält N Textzeilen.  Nur die ersten M Zeilen werden in den folgenden Vorschaufenstern gezeigt.  Sie können unten wählen, wie viele Zeilen der Datei tatsächlich eingelesen werden."
 
 #: src/ui/gui/text-data-import.ui:95
 msgid "All cases"
