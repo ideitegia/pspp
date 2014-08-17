@@ -11,8 +11,8 @@
 # +-+-+-+M+-+-+
 # |Q|RST|N|U|V|
 # +-+---+-+-+-+
-m4_define([RENDER_WEAVE_6X6],
-  [AT_DATA([input], [6 6 $1
+m4_define([WEAVE_6X6],
+  [6 6 $1
 @a
 1*2 @bcd
 @e
@@ -37,7 +37,7 @@ m4_define([RENDER_WEAVE_6X6],
 1*2 @RST
 @U
 @V
-])])
+])
 
 # +-+-+-+-+-+-+-+-+
 # |a|b|c|d|e|f|g|h|
@@ -56,8 +56,8 @@ m4_define([RENDER_WEAVE_6X6],
 # +-+-+-+-+-+-+-+-+
 # |i|j|k|l|m|n|o|p|
 # +-+-+-+-+-+-+-+-+
-m4_define([RENDER_8X8],
-  [AT_DATA([input], [8 8 $1
+m4_define([WEAVE_8X8],
+  [8 8 $1
 @a
 @b
 @c
@@ -108,7 +108,7 @@ m4_define([RENDER_8X8],
 @n
 @o
 @p
-])])
+])
 
 # This input is something of a counterexample, in that it could render
 # compactly as this if the algorithm for choosing cell widths and
@@ -131,8 +131,8 @@ m4_define([RENDER_8X8],
 # +---+-+RSTUV|456|
 # |abcde|WXYZ0|789|
 # +-----+-----+---+
-m4_define([RENDER_8X8_2],
-  [AT_DATA([input], [8 8 $1
+m4_define([WEAVE_8X8_2],
+  [8 8 $1
 2*2 @abc\ndef\nghi
 1*2 @jkl
 2*2 @mno\npqr\nstu
@@ -154,7 +154,7 @@ m4_define([RENDER_8X8_2],
 2*3 @MNOPQ\nRSTUV\nWXYZ0
 2*2 @123\n456\n789
 1*3 @abcde
-])])
+])
 
 AT_BANNER([output rendering -- no page breaking])
 
@@ -217,7 +217,7 @@ AT_CLEANUP
 
 AT_SETUP([6x6, joined rows and columns])
 AT_KEYWORDS([render rendering])
-RENDER_WEAVE_6X6
+AT_DATA([input], [WEAVE_6X6])
 AT_CHECK([render-test input], [0], [dnl
 +-+---+-+-+-+
 |a|bcd|e|f|i|
@@ -437,7 +437,7 @@ AT_CLEANUP
 
 AT_SETUP([8x8 with many 2x2 joins])
 AT_KEYWORDS([render rendering])
-RENDER_8X8_2
+AT_DATA([input], [WEAVE_8X8_2])
 AT_CHECK([render-test input], [0],[dnl
 +---+---+----+----+
 |abc|jkl| mno| vwx|
@@ -827,7 +827,7 @@ AT_CLEANUP
 
 AT_SETUP([horz break 6x6, joined rows and columns])
 AT_KEYWORDS([render rendering])
-RENDER_WEAVE_6X6
+AT_DATA([input], [WEAVE_6X6])
 AT_DATA([expout], [dnl
 +-+--
 |a|bc
@@ -877,7 +877,7 @@ AT_CLEANUP
 
 AT_SETUP([horz break 6x6, joined rows and columns, left header])
 AT_KEYWORDS([render rendering])
-RENDER_WEAVE_6X6([1 0 0 0])
+AT_DATA([input], [WEAVE_6X6([1 0 0 0])])
 AT_DATA([expout], [dnl
 +-+---+-+
 |a|bcd|e|
@@ -913,7 +913,7 @@ AT_CLEANUP
 
 AT_SETUP([horz break 6x6, joined rows and columns, right header])
 AT_KEYWORDS([render rendering])
-RENDER_WEAVE_6X6([0 1 0 0])
+AT_DATA([input], [WEAVE_6X6([0 1 0 0])])
 AT_DATA([expout], [dnl
 +-+---+-+
 |a|bcd|i|
@@ -1170,7 +1170,7 @@ AT_CLEANUP
 
 AT_SETUP([horz break 8x8 with many 2x2 joins])
 AT_KEYWORDS([render rendering])
-RENDER_8X8_2
+AT_DATA([input], [WEAVE_8X8_2])
 AT_CHECK([render-test --width=8 input], [0],[dnl
 +---+--
 |abc|jk
@@ -1921,7 +1921,7 @@ AT_CLEANUP
 
 AT_SETUP([vert break 6x6, joined rows and columns])
 AT_KEYWORDS([render rendering])
-RENDER_WEAVE_6X6
+AT_DATA([input], [WEAVE_6X6])
 AT_CHECK([render-test --length=6 input], [0], [dnl
 +-+---+-+-+-+
 |a|bcd|e|f|i|
@@ -2096,7 +2096,7 @@ AT_BANNER([output rendering -- double page breaks])
 
 AT_SETUP([double break 6x6, joined rows and columns])
 AT_KEYWORDS([render rendering])
-RENDER_WEAVE_6X6
+AT_DATA([input], [WEAVE_6X6])
 AT_CHECK([render-test --width=6 --length=6 input], [0], [dnl
 +-+--
 |a|bc
@@ -2211,7 +2211,7 @@ AT_CLEANUP
 
 AT_SETUP([double break 8x8, with joins, left and right headers])
 AT_KEYWORDS([render rendering])
-RENDER_8X8([1 1 0 0])
+AT_DATA([input], [WEAVE_8X8([1 1 0 0])])
 AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 +-+-+-+-+-+-+
 |a|b|c|d|e|h|
@@ -2298,7 +2298,7 @@ AT_CLEANUP
 
 AT_SETUP([double break 8x8, with joins, top and bottom headers])
 AT_KEYWORDS([render rendering])
-RENDER_8X8([0 0 1 1])
+AT_DATA([input], [WEAVE_8X8([0 0 1 1])])
 AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 +-+-+-+-+-+-+
 |a|b|c|d|e|f|
@@ -2405,7 +2405,7 @@ AT_CLEANUP
 
 AT_SETUP([double break 8x8, with joins, all headers])
 AT_KEYWORDS([render rendering])
-RENDER_8X8([1 1 1 1])
+AT_DATA([input], [WEAVE_8X8([1 1 1 1])])
 AT_CHECK([render-test input --width=14 --length=14], [0], [dnl
 +-+-+-+-+-+-+
 |a|b|c|d|e|h|
