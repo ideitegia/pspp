@@ -47,6 +47,12 @@ static char *box;
 /* --draw-mode: special ASCII driver test mode. */
 static int draw_mode;
 
+/* --no-txt: Whether to render to <base>.txt. */
+static int render_txt = true;
+
+/* --no-stdout: Whether to render to stdout. */
+static int render_stdout = true;
+
 /* --pdf: Also render PDF output. */
 static int render_pdf;
 
@@ -127,32 +133,40 @@ configure_drivers (int width, int length, int min_break)
     string_map_insert (&options, "box", box);
 
   /* Render to stdout. */
-  string_map_clone (&tmp, &options);
-  ascii_driver = driver = output_driver_create (&tmp);
-  if (driver == NULL)
-    exit (EXIT_FAILURE);
-  output_driver_register (driver);
-  string_map_destroy (&tmp);
+  if (render_stdout)
+    {
+      string_map_clone (&tmp, &options);
+      ascii_driver = driver = output_driver_create (&tmp);
+      if (driver == NULL)
+        exit (EXIT_FAILURE);
+      output_driver_register (driver);
+      string_map_destroy (&tmp);
+    }
 
   if (draw_mode)
    {
-    string_map_destroy (&options);
-    return;
+     string_map_destroy (&options);
+     return;
    }
 
   /* Render to <base>.txt. */
-  string_map_replace_nocopy (&options, xstrdup ("output-file"),
-                             xasprintf ("%s.txt", output_base));
-  driver = output_driver_create (&options);
-  if (driver == NULL)
-    exit (EXIT_FAILURE);
-  output_driver_register (driver);
+  if (render_txt)
+    {
+      string_map_clear (&options);
+      string_map_insert_nocopy (&options, xstrdup ("output-file"),
+                                xasprintf ("%s.txt", output_base));
+      driver = output_driver_create (&options);
+      if (driver == NULL)
+        exit (EXIT_FAILURE);
+      output_driver_register (driver);
+    }
 
 #ifdef HAVE_CAIRO
-  /* Render to <base>.txt. */
+  /* Render to <base>.pdf. */
   if (render_pdf)
     {
-      string_map_replace_nocopy (&options, xstrdup ("output-file"),
+      string_map_clear (&options);
+      string_map_insert_nocopy (&options, xstrdup ("output-file"),
                                  xasprintf ("%s.pdf", output_base));
       string_map_insert (&options, "top-margin", "0");
       string_map_insert (&options, "bottom-margin", "0");
@@ -211,6 +225,8 @@ parse_options (int argc, char **argv)
           {"emphasis", required_argument, NULL, OPT_EMPHASIS},
           {"box", required_argument, NULL, OPT_BOX},
           {"draw-mode", no_argument, &draw_mode, 1},
+          {"no-txt", no_argument, &render_txt, 0},
+          {"no-stdout", no_argument, &render_stdout, 0},
           {"pdf", no_argument, &render_pdf, 1},
           {"output", required_argument, NULL, 'o'},
           {"help", no_argument, NULL, OPT_HELP},
