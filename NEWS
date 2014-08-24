@@ -4,6 +4,10 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
+Changes since 0.8.3.1:
+
+ * Formatting of SYSFILE INFO output was made easier to read.
+
 Changes from 0.8.3 to 0.8.3.1:
 
  * Fixed a bug where planned comparisons in oneway anova did not correctly

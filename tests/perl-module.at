@@ -66,15 +66,9 @@ Documents in the active dataset:
 
 These Documents
 
-Variable,Description,,Position
-legal,Format: F9.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-money,Format: DOLLAR6.2,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+legal,Format: F9.2,1
+money,Format: DOLLAR6.2,2
 
 dump-dict.sps:5: note: SHOW: WEIGHT is money.
 ])
@@ -143,15 +137,9 @@ DISPLAY DOCUMENTS.
 LIST.
 ])
 AT_CHECK([pspp -O format=csv dump-dicts.sps], [0],
-  [Variable,Description,,Position
-id,Format: F2.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-name,Format: A20,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 20,,
+  [Variable,Description,Position
+id,Format: F2.0,1
+name,Format: A20,2
 
 File label: This is the file label
 
@@ -163,15 +151,9 @@ Table: Data List
 id,name
 34,frederick           @&t@
 
-Variable,Description,,Position
-id,Format: F2.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-name,Format: A20,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 20,,
+Variable,Description,Position
+id,Format: F2.0,1
+name,Format: A20,2
 
 File label: This is the file label
 
@@ -236,30 +218,27 @@ AT_DATA([dump-dict.sps],
 DISPLAY DICTIONARY.
 ])
 AT_CHECK([pspp -O format=csv dump-dict.sps], [0],
-  [Variable,Description,,Position
-integer,Label: My Integer,,1
-,Format: F8.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,Missing Values: 9; 99,,
-,0,Zero,
-,1,Unity,
-,2,Duality,
-string,Label: My String,,2
-,Format: A8,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-,"Missing Values: ""this    ""; ""that    """,,
-,xx      ,foo,
-,yy      ,bar,
-longstring,Label: My Long String,,3
-,Format: A9,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-,xxx      ,xfoo,
+  [Variable,Description,Position
+integer,"Label: My Integer
+Format: F8.0
+Missing Values: 9; 99
+
+Value,Label
+0,Zero
+1,Unity
+2,Duality",1
+string,"Label: My String
+Format: A8
+Missing Values: ""this    ""; ""that    ""
+
+Value,Label
+xx      ,foo
+yy      ,bar",2
+longstring,"Label: My Long String
+Format: A9
+
+Value,Label
+xxx      ,xfoo",3
 ])
 AT_CLEANUP
 
@@ -456,51 +435,38 @@ DISPLAY DICTIONARY.
 LIST.
 ])
 AT_CHECK([pspp -O format=csv dump-dicts.sps], [0],
-  [[Variable,Description,,Position
-string,Label: A Short String Variable,,1
-,Format: A8,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-,"Missing Values: ""3333    """,,
-,1111    ,ones,
-,2222    ,twos,
-,3333    ,threes,
-longstring,Label: A Long String Variable,,2
-,Format: A12,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 12,,
-numeric,Label: A Numeric Variable,,3
-,Format: F10.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,Missing Values: 9; 5; 999,,
-,1,Unity,
-,2,Duality,
-,3,Thripality,
-,Custom attributes:,,
-,colour[1],blue,
-,colour[2],pink,
-,colour[3],violet,
-,nationality,foreign,
-,size,large,
-date,Label: A Date Variable,,4
-,Format: DATE11,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-dollar,Label: A Dollar Variable,,5
-,Format: DOLLAR11.2,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-datetime,Label: A Datetime Variable,,6
-,Format: DATETIME17.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+  [[Variable,Description,Position
+string,"Label: A Short String Variable
+Format: A8
+Missing Values: ""3333    ""
+
+Value,Label
+1111    ,ones
+2222    ,twos
+3333    ,threes",1
+longstring,"Label: A Long String Variable
+Format: A12",2
+numeric,"Label: A Numeric Variable
+Format: F10.0
+Missing Values: 9; 5; 999
+
+Value,Label
+1,Unity
+2,Duality
+3,Thripality
+
+Attribute,Value
+colour[1],blue
+colour[2],pink
+colour[3],violet
+nationality,foreign
+size,large",3
+date,"Label: A Date Variable
+Format: DATE11",4
+dollar,"Label: A Dollar Variable
+Format: DOLLAR11.2",5
+datetime,"Label: A Datetime Variable
+Format: DATETIME17.0",6
 
 Table: Data List
 string,longstring,numeric,date,dollar,datetime
@@ -510,51 +476,38 @@ string,longstring,numeric,date,dollar,datetime
 .       ,.           ,.,.,.  ,.
 5555    ,Five        ,5,05-MAY-2005,$5.00,05-MAY-2005 05:05
 
-Variable,Description,,Position
-string,Label: A Short String Variable,,1
-,Format: A8,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-,"Missing Values: ""3333    """,,
-,1111    ,ones,
-,2222    ,twos,
-,3333    ,threes,
-longstring,Label: A Long String Variable,,2
-,Format: A12,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 12,,
-numeric,Label: A Numeric Variable,,3
-,Format: F10.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,Missing Values: 9; 5; 999,,
-,1,Unity,
-,2,Duality,
-,3,Thripality,
-,Custom attributes:,,
-,colour[1],blue,
-,colour[2],pink,
-,colour[3],violet,
-,nationality,foreign,
-,size,large,
-date,Label: A Date Variable,,4
-,Format: DATE11,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-dollar,Label: A Dollar Variable,,5
-,Format: DOLLAR11.2,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-datetime,Label: A Datetime Variable,,6
-,Format: DATETIME17.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+string,"Label: A Short String Variable
+Format: A8
+Missing Values: ""3333    ""
+
+Value,Label
+1111    ,ones
+2222    ,twos
+3333    ,threes",1
+longstring,"Label: A Long String Variable
+Format: A12",2
+numeric,"Label: A Numeric Variable
+Format: F10.0
+Missing Values: 9; 5; 999
+
+Value,Label
+1,Unity
+2,Duality
+3,Thripality
+
+Attribute,Value
+colour[1],blue
+colour[2],pink
+colour[3],violet
+nationality,foreign
+size,large",3
+date,"Label: A Date Variable
+Format: DATE11",4
+dollar,"Label: A Dollar Variable
+Format: DOLLAR11.2",5
+datetime,"Label: A Datetime Variable
+Format: DATETIME17.0",6
 
 Table: Data List
 string,longstring,numeric,date,dollar,datetime

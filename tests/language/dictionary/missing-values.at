@@ -62,103 +62,67 @@ MISSING VALUES ALL ().
 DISPLAY DICTIONARY
 ])
 AT_CHECK([pspp -o pspp.csv missing-values.sps])
-AT_CHECK([sed -n '/Format/s/,.*/:/p
-s/"//g
-s/^,Missing Values: \([[^,]]*\),.*/\1/p
-/^$/p' pspp.csv
+AT_CHECK([sed -n '/^$/p; /^@<:@^"@:>@*"@<:@^"@:>@*$/N; s/^\(@<:@a-z0-9@:>@*\),".*Missing Values: \(.*\)",@<:@0-9@:>@*$/\1: \2/p; s/^\(@<:@a-z0-9@:>@*\),Format: @<:@A-Z0-9.@:>@*,@<:@0-9@:>@*$/\1: none/p' pspp.csv
 ], [0], [dnl
-date1:
-1
-num1:
-1
+date1: 1
+num1: 1
 
-date1:
-1; 2
-num1:
-1; 2
+date1: 1; 2
+num1: 1; 2
 
-date1:
-1; 2; 3
-num1:
-1; 2; 3
+date1: 1; 2; 3
+num1: 1; 2; 3
 
-date1:
-9999998; 9999984; 3
-num1:
-9999998; 9999984; 3
+date1: 9999998; 9999984; 3
+num1: 9999998; 9999984; 3
 
-date1:
-1
-num1:
-1
+date1: 1
+num1: 1
 
-date1:
-1; 2
-num1:
-1; 2
+date1: 1; 2
+num1: 1; 2
 
-date1:
-1; 2; 3
-num1:
-1; 2; 3
+date1: 1; 2; 3
+num1: 1; 2; 3
 
-date1:
-13342665600
-num1:
-13342665600
+date1: 13342665600
+num1: 13342665600
 
-date1:
-13342665600; 12495427200
-num1:
-13342665600; 12495427200
+date1: 13342665600; 12495427200
+num1: 13342665600; 12495427200
 
-date1:
-13342665600; 12495427200; 12570336000
-num1:
-13342665600; 12495427200; 12570336000
+date1: 13342665600; 12495427200; 12570336000
+num1: 13342665600; 12495427200; 12570336000
 
-num1:
-1 THRU 2
+num1: 1 THRU 2
 
-num1:
-LOWEST THRU 2
+num1: LOWEST THRU 2
 
-num1:
-LOWEST THRU 2
+num1: LOWEST THRU 2
 
-num1:
-1 THRU HIGHEST
+num1: 1 THRU HIGHEST
 
-num1:
-1 THRU HIGHEST
+num1: 1 THRU HIGHEST
 
-num1:
-1 THRU 2; 3
+num1: 1 THRU 2; 3
 
-num1:
-LOWEST THRU 2; 3
+num1: LOWEST THRU 2; 3
 
-num1:
-LOWEST THRU 2; 3
+num1: LOWEST THRU 2; 3
 
-num1:
-1 THRU HIGHEST; -1
+num1: 1 THRU HIGHEST; -1
 
-num1:
-1 THRU HIGHEST; -1
+num1: 1 THRU HIGHEST; -1
 
-str1:
-abc  ; def  @&t@
-str2:
-abc; def
-longstr:
-abc     ; def     @&t@
+str1: ""abc  ""; ""def  ""
+str2: ""abc""; ""def""
+longstr: ""abc     ""; ""def     ""
 
-str1:
-str2:
-date1:
-num1:
-longstr:
+str1: none
+str2: none
+date1: none
+num1: none
+longstr: none
 ])
 AT_CLEANUP
 

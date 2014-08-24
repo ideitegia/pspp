@@ -87,23 +87,16 @@ oojars          ,5.00,1.00
 thingummies     ,6.00,3.00
 oojimiflips     ,7.00,2.00
 
-Variable,Description,,Position
-s,Format: A16,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 16,,
-x,Format: F8.2,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-new,Format: F8.2,,3
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,1.00,oojars,
-,2.00,oojimiflips,
-,3.00,thingummies,
-,4.00,widgets,
+Variable,Description,Position
+s,Format: A16,1
+x,Format: F8.2,2
+new,"Format: F8.2
+
+Value,Label
+1.00,oojars
+2.00,oojimiflips
+3.00,thingummies
+4.00,widgets",3
 ])
 
 AT_CLEANUP

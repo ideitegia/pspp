@@ -73,28 +73,23 @@ DISPLAY DICTIONARY.
 EOF
     AT_CHECK([pspp -o pspp.csv sysfile.sps])
     AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-s1,Format: A9,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-,"Missing Values: ""0       """,,
-,abc      ,First value label,
-,abcdefgh ,Second value label,
-,abcdefghi,Third value label,
-s2,Format: A9,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-,"Missing Values: ""12      ""; ""123     """,,
-,0        ,Fourth value label,
-,01234567 ,Fifth value label,
-,012345678,Sixth value label,
-s3,Format: A9,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-,"Missing Values: ""1234    ""; ""12345   ""; ""12345678""",,
+Variable,Description,Position
+s1,"Format: A9
+Missing Values: ""0       ""
+
+Value,Label
+abc      ,First value label
+abcdefgh ,Second value label
+abcdefghi,Third value label",1
+s2,"Format: A9
+Missing Values: ""12      ""; ""123     ""
+
+Value,Label
+0        ,Fourth value label
+01234567 ,Fifth value label
+012345678,Sixth value label",2
+s3,"Format: A9
+Missing Values: ""1234    ""; ""12345   ""; ""12345678""",3
 ])
     AT_CHECK_UNQUOTED([dd if=foo.sav bs=1 count=4; echo], [0], [$magic
 ], [ignore])
@@ -259,11 +254,11 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv get.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Label,,Position
-cont,continents of the world,,1
-size,sq km,,2
-pop,population,,3
-count,number of countries,,4
+Variable,Label,Position
+cont,continents of the world,1
+size,sq km,2
+pop,population,3
+count,number of countries,4
 
 Table: Data List
 cont,size,pop,count
@@ -327,23 +322,15 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv sys-file.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-N,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 10,,
-A255,Format: A255,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
-A258,Format: A258,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
-A2000,Format: A2000,,4
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
+Variable,Description,Position
+N,"Format: F8.2
+Display Width: 10",1
+A255,"Format: A255
+Display Width: 32",2
+A258,"Format: A258
+Display Width: 32",3
+A2000,"Format: A2000
+Display Width: 32",4
 
 Table: Data List
 N,A255,A258,A2000
@@ -361,23 +348,15 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv sys-file.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-vl255,Format: A255,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 26,,
-vl256,Format: A256,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 26,,
-vl1335,Format: A1335,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 26,,
-vl2000,Format: A2000,,4
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 26,,
+Variable,Description,Position
+vl255,"Format: A255
+Display Width: 26",1
+vl256,"Format: A256
+Display Width: 26",2
+vl1335,"Format: A1335
+Display Width: 26",3
+vl2000,"Format: A2000
+Display Width: 26",4
 
 Table: Data List
 vl255,vl256,vl1335,vl2000
@@ -421,23 +400,11 @@ EXECUTE.
 ])
    AT_CHECK([pspp -o pspp.csv get.sps])
    AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-a,Format: A10,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 10,,
-b,Format: A256,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
-c,Format: A200,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
-d,Format: A32767,,4
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
+Variable,Description,Position
+a,Format: A10,1
+b,Format: A256,2
+c,Format: A200,3
+d,Format: A32767,4
 ])
    AT_CLEANUP])
 
@@ -494,24 +461,20 @@ jalapeño vicuña.
 
 (Entered <date>)
 
-Variable,Description,,Position
-àéîöçxyzabc,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,1.00,éclair élan,
-,Custom attributes:,,
-,Atatürk,Düsseldorf Gewürztraminer,
-roué,Label: Provençal soupçon,,2
-,Format: A9,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-,abcdefghi,sauté précis,
-croûton,Format: A1000,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
+Variable,Description,Position
+àéîöçxyzabc,"Format: F8.2
+
+Value,Label
+1.00,éclair élan
+
+Attribute,Value
+Atatürk,Düsseldorf Gewürztraminer",1
+roué,"Label: Provençal soupçon
+Format: A9
+
+Value,Label
+abcdefghi,sauté précis",2
+croûton,Format: A1000,3
 
 Table: Custom data file attributes.
 Attribute,Value

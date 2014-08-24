@@ -35,15 +35,15 @@ VARIABLE ATTRIBUTE
 DISPLAY ATTRIBUTES.
 ]])
 AT_CHECK([pspp -O format=csv save-attrs.pspp], [0], 
-  [[Variable,Description,
-a,Custom attributes:,
-,ValidationRule[1],a * b > 3
-,ValidationRule[2],a + b > 2
-b,Custom attributes:,
-,ValidationRule[1],a * b > 3
-,ValidationRule[2],a + b > 2
-c,Custom attributes:,
-,QuestionWording,X or Y?
+  [[Variable,Description
+a,"Attribute,Value
+ValidationRule[1],a * b > 3
+ValidationRule[2],a + b > 2"
+b,"Attribute,Value
+ValidationRule[1],a * b > 3
+ValidationRule[2],a + b > 2"
+c,"Attribute,Value
+QuestionWording,X or Y?"
 
 Table: Custom data file attributes.
 Attribute,Value
@@ -52,11 +52,12 @@ array[2],array element 2
 key,value
 ]])
 AT_CHECK([pspp -O format=csv get-attrs.pspp], [0], [dnl
-Variable,Description,
-b,Custom attributes:,
-,ValidationRule,a * b > 3
-c,Custom attributes:,
-,QuestionWording,X or Y?
+Variable,Description
+a,
+b,"Attribute,Value
+ValidationRule,a * b > 3"
+c,"Attribute,Value
+QuestionWording,X or Y?"
 
 Table: Custom data file attributes.
 Attribute,Value

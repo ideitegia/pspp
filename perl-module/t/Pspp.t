@@ -175,15 +175,9 @@ sub run_pspp_syntax_cmp
 	DISPLAY DOCUMENTS.
 	LIST.
 SYNTAX
-Variable,Description,,Position
-id,Format: F2.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-name,Format: A20,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 20,,
+Variable,Description,Position
+id,Format: F2.0,1
+name,Format: A20,2
 
 File label: This is the file label
 
@@ -249,30 +243,27 @@ RESULT
 GET FILE='$tempfile'.
 DISPLAY DICTIONARY.
 SYNTAX
-Variable,Description,,Position
-integer,Label: My Integer,,1
-,Format: F8.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,Missing Values: 9; 99,,
-,0,Zero,
-,1,Unity,
-,2,Duality,
-string,Label: My String,,2
-,Format: A8,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-,"Missing Values: ""this    ""; ""that    """,,
-,xx      ,foo,
-,yy      ,bar,
-longstring,Label: My Long String,,3
-,Format: A9,,
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-,xxx      ,xfoo,
+Variable,Description,Position
+integer,"Label: My Integer
+Format: F8.0
+Missing Values: 9; 99
+
+Value,Label
+0,Zero
+1,Unity
+2,Duality",1
+string,"Label: My String
+Format: A8
+Missing Values: ""this    ""; ""that    ""
+
+Value,Label
+xx      ,foo
+yy      ,bar",2
+longstring,"Label: My Long String
+Format: A9
+
+Value,Label
+xxx      ,xfoo",3
 RESULT
 
   }

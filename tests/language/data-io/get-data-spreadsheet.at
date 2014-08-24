@@ -23,19 +23,10 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv get-data.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-VAR001,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-VAR002,Format: A8,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-VAR003,Format: F8.2,,3
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+VAR001,Format: F8.2,1
+VAR002,Format: A8,2
+VAR003,Format: F8.2,3
 
 Table: Data List
 VAR001,VAR002,VAR003
@@ -56,19 +47,10 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv get-data.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-V1,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-V2,Format: A8,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-VAR001,Format: F8.2,,3
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+V1,Format: F8.2,1
+V2,Format: A8,2
+VAR001,Format: F8.2,3
 
 Table: Data List
 V1,V2,VAR001
@@ -88,19 +70,10 @@ DISPLAY VARIABLES.
 LIST.
 ])
 AT_CHECK([pspp -O format=csv get-data.sps], [0], [dnl
-Variable,Description,,Position
-name,Format: A8,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-id,Format: F8.2,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-height,Format: F8.2,,3
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+name,Format: A8,1
+id,Format: F8.2,2
+height,Format: F8.2,3
 
 warning: Cannot convert the value in the spreadsheet cell C4 to format (F8.2): Field contents are not numeric.
 
@@ -123,23 +96,11 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv get-data.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-vone,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-vtwo,Format: F8.2,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-vthree,Format: A8,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-v4,Format: F8.2,,4
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+vone,Format: F8.2,1
+vtwo,Format: F8.2,2
+vthree,Format: A8,3
+v4,Format: F8.2,4
 
 Table: Data List
 vone,vtwo,vthree,v4

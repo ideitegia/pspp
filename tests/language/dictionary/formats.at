@@ -20,29 +20,29 @@ x,A1
 y,A2
 z,A3
 
-Variable,Description,,Position
-a,Format: F8.2,,1
-b,Format: F8.2,,2
-c,Format: F8.2,,3
-x,Format: A1,,4
-y,Format: A2,,5
-z,Format: A3,,6
+Variable,Description,Position
+a,Format: F8.2,1
+b,Format: F8.2,2
+c,Format: F8.2,3
+x,Format: A1,4
+y,Format: A2,5
+z,Format: A3,6
 
-Variable,Description,,Position
-a,Format: COMMA10.0,,1
-b,Format: N4.0,,2
-c,Format: F8.2,,3
-x,Format: A1,,4
-y,Format: A2,,5
-z,Format: A3,,6
+Variable,Description,Position
+a,Format: COMMA10.0,1
+b,Format: N4.0,2
+c,Format: F8.2,3
+x,Format: A1,4
+y,Format: A2,5
+z,Format: A3,6
 
-Variable,Description,,Position
-a,Format: COMMA10.0,,1
-b,Format: N4.0,,2
-c,Format: E8.1,,3
-x,Format: A1,,4
-y,Format: AHEX4,,5
-z,Format: A3,,6
+Variable,Description,Position
+a,Format: COMMA10.0,1
+b,Format: N4.0,2
+c,Format: E8.1,3
+x,Format: A1,4
+y,Format: AHEX4,5
+z,Format: A3,6
 ])
 AT_CLEANUP
 

@@ -117,45 +117,21 @@ a into count(N of a)
 
 b into Nb(N of b)
 
-Variable,Description,,Position
-a,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-b,Format: F8.2,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-Ra,Label: RANK of a,,3
-,Format: F9.3,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-RFR001,Label: RFRACTION of a,,4
-,Format: F6.4,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-count,Label: N of a,,5
-,Format: F6.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-Rb,Label: RANK of b,,6
-,Format: F9.3,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-RFR002,Label: RFRACTION of b,,7
-,Format: F6.4,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-Nb,Label: N of b,,8
-,Format: F6.0,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+a,Format: F8.2,1
+b,Format: F8.2,2
+Ra,"Label: RANK of a
+Format: F9.3",3
+RFR001,"Label: RFRACTION of a
+Format: F6.4",4
+count,"Label: N of a
+Format: F6.0",5
+Rb,"Label: RANK of b
+Format: F9.3",6
+RFR002,"Label: RFRACTION of b
+Format: F6.4",7
+Nb,"Label: N of b
+Format: F6.0",8
 
 Table: Data List
 a,b,Ra,RFR001,count,Rb,RFR002,Nb
@@ -530,24 +506,12 @@ Variables Created By RANK
 
 foo into RAN001(RANK of foo)
 
-Variable,Description,,Position
-foo,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-rfoo,Format: F8.2,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-ran003,Format: F8.2,,3
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-RAN001,Label: RANK of foo,,4
-,Format: F9.3,,
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+foo,Format: F8.2,1
+rfoo,Format: F8.2,2
+ran003,Format: F8.2,3
+RAN001,"Label: RANK of foo
+Format: F9.3",4
 ])
 AT_CLEANUP
 

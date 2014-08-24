@@ -11,22 +11,22 @@ DISPLAY DICTIONARY.
 ])
 AT_CHECK([pspp -o pspp.csv var-display.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-x,Format: F8.2,,1
-,Measure: Scale,,
-,Role: Output,,
-,Display Alignment: Left,,
-,Display Width: 10,,
-y,Format: F8.2,,2
-,Measure: Ordinal,,
-,Role: Both,,
-,Display Alignment: Right,,
-,Display Width: 12,,
-z,Format: F8.2,,3
-,Measure: Nominal,,
-,Role: None,,
-,Display Alignment: Center,,
-,Display Width: 14,,
+Variable,Description,Position
+x,"Format: F8.2
+Measure: Scale
+Role: Output
+Display Alignment: Left
+Display Width: 10",1
+y,"Format: F8.2
+Measure: Ordinal
+Role: Both
+Display Alignment: Right
+Display Width: 12",2
+z,"Format: F8.2
+Measure: Nominal
+Role: None
+Display Alignment: Center
+Display Width: 14",3
 ])
 AT_CLEANUP
 

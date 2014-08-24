@@ -130,52 +130,52 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+  AT_CHECK([cat pspp.csv], [0], [dnl
 File label: PSPP synthetic test file: ôõöø
 
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Label: Numeric variable 2's label (ùúû),,2
-,Format: F8.0,,
-num3,Format: F8.0,,3
-,Missing Values: 1,,
-num4,Label: Another numeric variable label,,4
-,Format: F8.0,,
-,Missing Values: 1,,
-num5,Format: F8.0,,5
-,Missing Values: 1; 2,,
-num6,Format: F8.0,,6
-,Missing Values: 1; 2; 3,,
-num7,Format: F8.0,,7
-,Missing Values: 1 THRU 3,,
-num8,Format: F8.0,,8
-,Missing Values: 1 THRU 3; 5,,
-num9,Format: F8.0,,9
-,Missing Values: 1 THRU HIGHEST; -5,,
-numàèìñò,Format: F8.0,,10
-,Missing Values: LOWEST THRU 1; 5,,
-str1,Format: A4,,11
-str2,Label: String variable 2's label,,12
-,Format: A4,,
-str3,Format: A4,,13
-,"Missing Values: ""MISS""",,
-str4,Label: Another string variable label,,14
-,Format: A4,,
-,"Missing Values: ""OTHR""",,
-str5,Format: A4,,15
-,"Missing Values: ""MISS""; ""OTHR""",,
-str6,Format: A4,,16
-,"Missing Values: ""MISS""; ""OTHR""; ""MORE""",,
-str7,Format: A11,,17
-,"Missing Values: ""first8by""",,
-str8,Format: A9,,18
-,"Missing Values: ""abcdefgh""",,
-str9,Format: A10,,19
-,"Missing Values: ""abcdefgh""; ""01234567""",,
-str10,Format: A11,,20
-,"Missing Values: ""abcdefgh""; ""01234567""; ""0       """,,
-str11,Label: 25-byte string,,21
-,Format: A25,,
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,"Label: Numeric variable 2's label (ùúû)
+Format: F8.0",2
+num3,"Format: F8.0
+Missing Values: 1",3
+num4,"Label: Another numeric variable label
+Format: F8.0
+Missing Values: 1",4
+num5,"Format: F8.0
+Missing Values: 1; 2",5
+num6,"Format: F8.0
+Missing Values: 1; 2; 3",6
+num7,"Format: F8.0
+Missing Values: 1 THRU 3",7
+num8,"Format: F8.0
+Missing Values: 1 THRU 3; 5",8
+num9,"Format: F8.0
+Missing Values: 1 THRU HIGHEST; -5",9
+numàèìñò,"Format: F8.0
+Missing Values: LOWEST THRU 1; 5",10
+str1,Format: A4,11
+str2,"Label: String variable 2's label
+Format: A4",12
+str3,"Format: A4
+Missing Values: ""MISS""",13
+str4,"Label: Another string variable label
+Format: A4
+Missing Values: ""OTHR""",14
+str5,"Format: A4
+Missing Values: ""MISS""; ""OTHR""",15
+str6,"Format: A4
+Missing Values: ""MISS""; ""OTHR""; ""MORE""",16
+str7,"Format: A11
+Missing Values: ""first8by""",17
+str8,"Format: A9
+Missing Values: ""abcdefgh""",18
+str9,"Format: A10
+Missing Values: ""abcdefgh""; ""01234567""",19
+str10,"Format: A11
+Missing Values: ""abcdefgh""; ""01234567""; ""0       """,20
+str11,"Label: 25-byte string
+Format: A25",21
 
 Table: Data List
 num1,num2,num3,num4,num5,num6,num7,num8,num9,numàèìñò,str1,str2,str3,str4,str5,str6,str7,str8,str9,str10,str11
@@ -222,11 +222,11 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Label: Numeric variable 2's label,,2
-,Format: F8.0,,
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,"Label: Numeric variable 2's label
+Format: F8.0",2
 
 Table: Data List
 num1,num2
@@ -276,11 +276,11 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Label: Numeric variable 2's label,,2
-,Format: F8.0,,
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,"Label: Numeric variable 2's label
+Format: F8.0",2
 
 Table: Data List
 num1,num2
@@ -409,61 +409,95 @@ GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-num1,Format: F8.0,,1
-,1,один (in Russian),
-num2,Format: F8.0,,2
-,1,one,
-,2,two,
-num3,Format: F8.0,,3
-,3,three,
-,4,four,
-num4,Format: F8.0,,4
-,5,five,
-,7,seven,
-,8,eight,
-,9,nine,
-num5,Format: F8.0,,5
-,6,six,
-,7,seven,
-,8,eight,
-,10,ten,
-str1,Format: A1,,6
-,a,value label for `a',
-str2,Format: A2,,7
-,bc,value label for `bc',
-,de,value label for `de',
-str3,Format: A3,,8
-,fgh,value label for `fgh',
-,ijk,value label for `ijk',
-str4,Format: A4,,9
-,BCDE,value label for `BCDE',
-,lmno,value label for `lmno',
-,tuvw,value label for `tuvw',
-,xyzA,value label for `xyzA',
-str5,Format: A4,,10
-,FGHI,value label for `FGHI',
-,pqrs,value label for `pqrs',
-,tuvw,value label for `tuvw',
-,xyzA,value label for `xyzA',
-str6,Format: A6,,11
-,JKLMNO,value label for `JKLMNO',
-str7,Format: A7,,12
-,JKLMNOP,value label for `JKLMNOP',
-str8,Format: A8,,13
-,JKLMNOPQ,value label for `JKLMNOPQ',
-str9ж,Format: A9,,14
-,RSTUVWXYZ,value label for `RSTUVWXYZ',
-str12,Format: A12,,15
-,0123456789ab,value label for `0123456789ab',
-,cdefghijklmn,value label for `cdefghijklmn',
-str16,Format: A16,,16
-,EFGHIJKLMNOPQRST,value label for `EFGHIJKLMNOPQRST',
-,UVWXYZ0123456789,value label for `UVWXYZ0123456789' with Cyrillic letters: `фхц',
-,opqrstuvwxyzABCD,value label for `opqrstuvwxyzABCD',
-str17,Format: A17,,17
-,abcdefghijklmnopq,value label for `abcdefghijklmnopq',
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+num1,"Format: F8.0
+
+Value,Label
+1,один (in Russian)",1
+num2,"Format: F8.0
+
+Value,Label
+1,one
+2,two",2
+num3,"Format: F8.0
+
+Value,Label
+3,three
+4,four",3
+num4,"Format: F8.0
+
+Value,Label
+5,five
+7,seven
+8,eight
+9,nine",4
+num5,"Format: F8.0
+
+Value,Label
+6,six
+7,seven
+8,eight
+10,ten",5
+str1,"Format: A1
+
+Value,Label
+a,value label for `a'",6
+str2,"Format: A2
+
+Value,Label
+bc,value label for `bc'
+de,value label for `de'",7
+str3,"Format: A3
+
+Value,Label
+fgh,value label for `fgh'
+ijk,value label for `ijk'",8
+str4,"Format: A4
+
+Value,Label
+BCDE,value label for `BCDE'
+lmno,value label for `lmno'
+tuvw,value label for `tuvw'
+xyzA,value label for `xyzA'",9
+str5,"Format: A4
+
+Value,Label
+FGHI,value label for `FGHI'
+pqrs,value label for `pqrs'
+tuvw,value label for `tuvw'
+xyzA,value label for `xyzA'",10
+str6,"Format: A6
+
+Value,Label
+JKLMNO,value label for `JKLMNO'",11
+str7,"Format: A7
+
+Value,Label
+JKLMNOP,value label for `JKLMNOP'",12
+str8,"Format: A8
+
+Value,Label
+JKLMNOPQ,value label for `JKLMNOPQ'",13
+str9ж,"Format: A9
+
+Value,Label
+RSTUVWXYZ,value label for `RSTUVWXYZ'",14
+str12,"Format: A12
+
+Value,Label
+0123456789ab,value label for `0123456789ab'
+cdefghijklmn,value label for `cdefghijklmn'",15
+str16,"Format: A16
+
+Value,Label
+EFGHIJKLMNOPQRST,value label for `EFGHIJKLMNOPQRST'
+UVWXYZ0123456789,value label for `UVWXYZ0123456789' with Cyrillic letters: `фхц'
+opqrstuvwxyzABCD,value label for `opqrstuvwxyzABCD'",16
+str17,"Format: A17
+
+Value,Label
+abcdefghijklmnopq,value label for `abcdefghijklmnopq'",17
 ])
 done
 AT_CLEANUP
@@ -763,55 +797,43 @@ DISPLAY DICTIONARY.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-a,Format: F8.0,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-b,Format: F8.0,,2
-,Measure: Ordinal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-c,Format: F8.0,,3
-,Measure: Scale,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-d,Format: F8.0,,4
-,Measure: Nominal,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-h,Format: A3,,5
-,Measure: Ordinal,,
-,Display Alignment: Right,,
-,Display Width: 3,,
-i,Format: A3,,6
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 3,,
-j,Format: A3,,7
-,Measure: Nominal,,
-,Display Alignment: Center,,
-,Display Width: 3,,
-k,Format: A3,,8
-,Measure: Ordinal,,
-,Display Alignment: Center,,
-,Display Width: 3,,
-l,Format: A9,,9
-,Measure: Scale,,
-,Display Alignment: Center,,
-,Display Width: 9,,
-m,Format: A10,,10
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 10,,
-n,Format: A17,,11
-,Measure: Nominal,,
-,Display Alignment: Right,,
-,Display Width: 17,,
-o,Format: A25,,12
-,Measure: Nominal,,
-,Display Alignment: Center,,
-,Display Width: 25,,
+Variable,Description,Position
+a,"Format: F8.0
+Measure: Nominal
+Display Alignment: Left",1
+b,"Format: F8.0
+Measure: Ordinal
+Display Alignment: Left",2
+c,"Format: F8.0
+Measure: Scale
+Display Alignment: Left",3
+d,"Format: F8.0
+Measure: Nominal
+Display Alignment: Right",4
+h,"Format: A3
+Measure: Ordinal
+Display Alignment: Right",5
+i,"Format: A3
+Measure: Scale
+Display Alignment: Right",6
+j,"Format: A3
+Measure: Nominal
+Display Alignment: Center",7
+k,"Format: A3
+Measure: Ordinal
+Display Alignment: Center",8
+l,"Format: A9
+Measure: Scale
+Display Alignment: Center",9
+m,"Format: A10
+Measure: Nominal
+Display Alignment: Left",10
+n,"Format: A17
+Measure: Nominal
+Display Alignment: Right",11
+o,"Format: A25
+Measure: Nominal
+Display Alignment: Center",12
 ])
 done
 AT_CLEANUP
@@ -881,55 +903,55 @@ DISPLAY DICTIONARY.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-a,Format: F8.0,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 1,,
-b,Format: F8.0,,2
-,Measure: Ordinal,,
-,Display Alignment: Left,,
-,Display Width: 2,,
-c,Format: F8.0,,3
-,Measure: Scale,,
-,Display Alignment: Left,,
-,Display Width: 3,,
-d,Format: F8.0,,4
-,Measure: Nominal,,
-,Display Alignment: Right,,
-,Display Width: 4,,
-h,Format: A3,,5
-,Measure: Ordinal,,
-,Display Alignment: Right,,
-,Display Width: 5,,
-i,Format: A3,,6
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 6,,
-j,Format: A3,,7
-,Measure: Nominal,,
-,Display Alignment: Center,,
-,Display Width: 7,,
-k,Format: A3,,8
-,Measure: Ordinal,,
-,Display Alignment: Center,,
-,Display Width: 8,,
-l,Format: A9,,9
-,Measure: Scale,,
-,Display Alignment: Center,,
-,Display Width: 9,,
-m,Format: A10,,10
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 10,,
-n,Format: A17,,11
-,Measure: Nominal,,
-,Display Alignment: Right,,
-,Display Width: 11,,
-o,Format: A25,,12
-,Measure: Nominal,,
-,Display Alignment: Center,,
-,Display Width: 12,,
+Variable,Description,Position
+a,"Format: F8.0
+Measure: Nominal
+Display Alignment: Left
+Display Width: 1",1
+b,"Format: F8.0
+Measure: Ordinal
+Display Alignment: Left
+Display Width: 2",2
+c,"Format: F8.0
+Measure: Scale
+Display Alignment: Left
+Display Width: 3",3
+d,"Format: F8.0
+Measure: Nominal
+Display Alignment: Right
+Display Width: 4",4
+h,"Format: A3
+Measure: Ordinal
+Display Alignment: Right
+Display Width: 5",5
+i,"Format: A3
+Measure: Scale
+Display Alignment: Right
+Display Width: 6",6
+j,"Format: A3
+Measure: Nominal
+Display Alignment: Center
+Display Width: 7",7
+k,"Format: A3
+Measure: Ordinal
+Display Alignment: Center
+Display Width: 8",8
+l,"Format: A9
+Measure: Scale
+Display Alignment: Center
+Display Width: 9",9
+m,"Format: A10
+Measure: Nominal
+Display Alignment: Left
+Display Width: 10",10
+n,"Format: A17
+Measure: Nominal
+Display Alignment: Right
+Display Width: 11",11
+o,"Format: A25
+Measure: Nominal
+Display Alignment: Center
+Display Width: 12",12
 ])
 done
 AT_CLEANUP
@@ -987,15 +1009,15 @@ GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-LongVariableName1,Format: F8.0,,1
-LongVariableName2,Format: F8.0,,2
-LongVariableName3,Format: F8.0,,3
-LongVariableName4,Format: F8.0,,4
-Coördinate_X,Format: F8.0,,5
-Coördinate_Y,Format: F8.0,,6
-Coördinate_Z,Format: F8.0,,7
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+LongVariableName1,Format: F8.0,1
+LongVariableName2,Format: F8.0,2
+LongVariableName3,Format: F8.0,3
+LongVariableName4,Format: F8.0,4
+Coördinate_X,Format: F8.0,5
+Coördinate_Y,Format: F8.0,6
+Coördinate_Z,Format: F8.0,7
 ])
 done
 AT_CLEANUP
@@ -1056,10 +1078,10 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-séq256,Format: A256,,1
-str600,Format: A600,,2
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+séq256,Format: A256,1
+str600,Format: A600,2
 
 Table: Data List
 séq256,str600
@@ -1126,14 +1148,14 @@ DISPLAY @ATTRIBUTES.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
   AT_CHECK([cat pspp.csv], [0],
-[[Variable,Description,
-FirstVariable,Custom attributes:,
-,$@Role,1
-,adèle[1],23
-,adèle[2],34
-,bert,123
-SécondVariable,Custom attributes:,
-,xyzzy,quux
+[[Variable,Description
+FirstVariable,"Attribute,Value
+$@Role,1
+adèle[1],23
+adèle[2],34
+bert,123"
+SécondVariable,"Attribute,Value
+xyzzy,quux"
 
 Table: Custom data file attributes.
 Attribute,Value
@@ -1147,17 +1169,20 @@ GET FILE='sys-file.sav'.
 DISPLAY DICTIONARY.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0],
-[[Variable,Description,,Position
-FirstVariable,Format: F8.0,,1
-,Role: Output,,
-,Custom attributes:,,
-,adèle[1],23,
-,adèle[2],34,
-,bert,123,
-SécondVariable,Format: F8.0,,2
-,Custom attributes:,,
-,xyzzy,quux,
+  AT_CHECK([cat pspp.csv], [0],
+[[Variable,Description,Position
+FirstVariable,"Format: F8.0
+Role: Output
+
+Attribute,Value
+adèle[1],23
+adèle[2],34
+bert,123",1
+SécondVariable,"Format: F8.0
+Role: Input
+
+Attribute,Value
+xyzzy,quux",2
 
 Table: Custom data file attributes.
 Attribute,Value
@@ -1221,22 +1246,24 @@ DISPLAY DICTIONARY.
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], [dnl
 warning: `sys-file.sav': Invalid role for variable x.
 ])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+  AT_CHECK([cat pspp.csv], [0], [dnl
 warning: `sys-file.sav': Invalid role for variable x.
 
-Variable,Description,,Position
-i,Format: F8.0,,1
-o,Format: F8.0,,2
-,Role: Output,,
-b,Format: F8.0,,3
-,Role: Both,,
-n,Format: F8.0,,4
-,Role: None,,
-p,Format: F8.0,,5
-,Role: Partition,,
-s,Format: F8.0,,6
-,Role: Split,,
-x,Format: F8.0,,7
+Variable,Description,Position
+i,"Format: F8.0
+Role: Input",1
+o,"Format: F8.0
+Role: Output",2
+b,"Format: F8.0
+Role: Both",3
+n,"Format: F8.0
+Role: None",4
+p,"Format: F8.0
+Role: Partition",5
+s,"Format: F8.0
+Role: Split",6
+x,"Format: F8.0
+Role: Input",7
 ])
 done
 AT_CLEANUP
@@ -1286,13 +1313,13 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Format: F8.0,,2
-str4,Format: A4,,3
-str8,Format: A8,,4
-str15,Format: A15,,5
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,Format: F8.0,2
+str4,Format: A4,3
+str8,Format: A8,4
+str15,Format: A15,5
 
 Table: Data List
 num1,num2,str4,str8,str15
@@ -1348,13 +1375,13 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Format: F8.0,,2
-str4,Format: A4,,3
-str8,Format: A8,,4
-str15,Format: A15,,5
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,Format: F8.0,2
+str4,Format: A4,3
+str8,Format: A8,4
+str15,Format: A15,5
 
 Table: Data List
 num1,num2,str4,str8,str15
@@ -1412,15 +1439,15 @@ LIST.
   AT_CHECK([pspp -o pspp.csv sys-file.sps], [0], 
     [warning: `sys-file.sav' near offset 0x54: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format.
 ])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
+  AT_CHECK([cat pspp.csv], [0], [dnl
 "warning: `sys-file.sav' near offset 0x54: Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
 
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Format: F8.0,,2
-str4,Format: A4,,3
-str8,Format: A8,,4
-str15,Format: A15,,5
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,Format: F8.0,2
+str4,Format: A4,3
+str8,Format: A8,4
+str15,Format: A15,5
 
 Table: Data List
 num1,num2,str4,str8,str15
@@ -1511,13 +1538,13 @@ DISPLAY DICTIONARY.
 LIST.
 ])
   AT_CHECK([pspp -o pspp.csv sys-file.sps])
-  AT_CHECK([grep -v Measure pspp.csv | grep -v Display], [0], [dnl
-Variable,Description,,Position
-num1,Format: F8.0,,1
-num2,Format: F8.0,,2
-str4,Format: A4,,3
-str8,Format: A8,,4
-str15,Format: A15,,5
+  AT_CHECK([cat pspp.csv], [0], [dnl
+Variable,Description,Position
+num1,Format: F8.0,1
+num2,Format: F8.0,2
+str4,Format: A4,3
+str8,Format: A8,4
+str15,Format: A15,5
 
 Table: Data List
 num1,num2,str4,str8,str15
@@ -1743,15 +1770,9 @@ DISPLAY DICTIONARY.
   AT_CHECK([pspp -O format=csv sys-file.sps], [0],
    [warning: `sys-file.sav' near offset 0xd4: Renaming variable with duplicate name `VAR1' to `VAR001'.
 
-Variable,Description,,Position
-var1,Format: F8.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-var001,Format: F8.0,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+var1,Format: F8.0,1
+var001,Format: F8.0,2
 ])
 done
 AT_CLEANUP
@@ -1989,24 +2010,12 @@ warning: `sys-file.sav' near offset 0x257: Ignoring long string missing value re
 
 "warning: `sys-file.sav' near offset 0x270: Ignoring long string missing value 0 for variable str3, with width 11, that has bad value width 12."
 
-Variable,Description,,Position
-num1,Format: F8.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-str1,Format: A9,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 9,,
-str2,Format: A10,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 10,,
-,"Missing Values: ""abcdefgh""; ""ijklmnop""; ""qrstuvwx""",,
-str3,Format: A11,,4
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 11,,
+Variable,Description,Position
+num1,Format: F8.0,1
+str1,Format: A9,2
+str2,"Format: A10
+Missing Values: ""abcdefgh""; ""ijklmnop""; ""qrstuvwx""",3
+str3,Format: A11,4
 ])
 done
 AT_CLEANUP
@@ -2038,15 +2047,9 @@ DISPLAY DICTIONARY.
   AT_CHECK([pspp -O format=csv sys-file.sps], [0],
    [warning: `sys-file.sav': Ignoring string variable `STR1' set as weighting variable.
 
-Variable,Description,,Position
-num1,Format: F8.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-str1,Format: A4,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 4,,
+Variable,Description,Position
+num1,Format: F8.0,1
+str1,Format: A4,2
 ])
 done
 AT_CLEANUP
@@ -2317,11 +2320,8 @@ DISPLAY DICTIONARY.
   AT_CHECK_UNQUOTED([pspp -O format=csv sys-file.sps], [0], [dnl
 warning: \`sys-file.sav' near offset 0xd8: Integer format indicated by system file (3) differs from expected ($[2]).
 
-Variable,Description,,Position
-num1,Format: F8.0,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+num1,Format: F8.0,1
 ])
 done
 AT_CLEANUP

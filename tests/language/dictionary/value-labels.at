@@ -10,19 +10,17 @@ VALUE LABELS ad 'july 10, 1982' 'label 1'
 DISPLAY DICTIONARY.
 ])
 AT_CHECK([pspp -O format=csv value-labels.sps], [0], [dnl
-Variable,Description,,Position
-ad,Format: ADATE10,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,07/10/1982,label 1,
-,01/02/1993,label 2,
-,05/04/2003,label 3,
-dt,Format: DATETIME20.0,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,12-APR-2011 06:09:56,label 4,
+Variable,Description,Position
+ad,"Format: ADATE10
+
+Value,Label
+07/10/1982,label 1
+01/02/1993,label 2
+05/04/2003,label 3",1
+dt,"Format: DATETIME20.0
+
+Value,Label
+12-APR-2011 06:09:56,label 4",2
 ])
 AT_CLEANUP
 
@@ -39,14 +37,13 @@ DISPLAY DICTIONARY.
 FREQUENCIES x/STAT=NONE.
 ])
 AT_CHECK([pspp -O format=csv value-labels.sps], [0], [dnl
-Variable,Description,,Position
-x,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,1.00,one,
-,2.00,first line\nsecond line,
-,3.00,three,
+Variable,Description,Position
+x,"Format: F8.2
+
+Value,Label
+1.00,one
+2.00,first line\nsecond line
+3.00,three",1
 
 Table: x
 Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
@@ -76,14 +73,13 @@ DISPLAY DICTIONARY.
 FREQUENCIES x/STAT=NONE.
 ])
 AT_CHECK([pspp -O format=csv get.sps], [0], [dnl
-Variable,Description,,Position
-x,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-,1.00,one,
-,2.00,first line\nsecond line,
-,3.00,three,
+Variable,Description,Position
+x,"Format: F8.2
+
+Value,Label
+1.00,one
+2.00,first line\nsecond line
+3.00,three",1
 
 Table: x
 Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent

@@ -138,95 +138,29 @@ EOF
 ])
 AT_CHECK([pspp -o pspp.csv ordinary-query.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-bool,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-bytea,Format: AHEX2,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 1,,
-char,Format: A8,,3
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-int8,Format: F8.2,,4
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-int2,Format: F8.2,,5
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-int4,Format: F8.2,,6
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-numeric,Format: E40.6,,7
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-text,Format: A16,,8
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 16,,
-oid,Format: F8.2,,9
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-float4,Format: F8.2,,10
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-float8,Format: F8.2,,11
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-money,Format: DOLLAR8.2,,12
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-pbchar,Format: A8,,13
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-varchar,Format: A8,,14
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 8,,
-date,Format: DATE11,,15
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-time,Format: TIME11.0,,16
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-timestamp,Format: DATETIME22.0,,17
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-timestamptz,Format: DATETIME22.0,,18
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-interval,Format: DTIME13.0,,19
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-interval_months,Format: F3.0,,20
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-timetz,Format: TIME11.0,,21
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-timetz_zone,Format: F8.2,,22
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+bool,Format: F8.2,1
+bytea,Format: AHEX2,2
+char,Format: A8,3
+int8,Format: F8.2,4
+int2,Format: F8.2,5
+int4,Format: F8.2,6
+numeric,Format: E40.6,7
+text,Format: A16,8
+oid,Format: F8.2,9
+float4,Format: F8.2,10
+float8,Format: F8.2,11
+money,Format: DOLLAR8.2,12
+pbchar,Format: A8,13
+varchar,Format: A8,14
+date,Format: DATE11,15
+time,Format: TIME11.0,16
+timestamp,Format: DATETIME22.0,17
+timestamptz,Format: DATETIME22.0,18
+interval,Format: DTIME13.0,19
+interval_months,Format: F3.0,20
+timetz,Format: TIME11.0,21
+timetz_zone,Format: F8.2,22
 
 Table: Data List
 bool,bytea,char,int8,int2,int4,numeric,text,oid,float4,float8,money,pbchar,varchar,date,time,timestamp,timestamptz,interval,interval_months,timetz,timetz_zone
@@ -249,19 +183,10 @@ EOF
 ])
 AT_CHECK([pspp -o pspp.csv empty-result.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-a,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-b,Format: DATE11,,2
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-c,Format: E40.2,,3
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
+Variable,Description,Position
+a,Format: F8.2,1
+b,Format: DATE11,2
+c,Format: E40.2,3
 ])
 
 dnl Test query with large result set.

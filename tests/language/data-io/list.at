@@ -215,11 +215,8 @@ LIST.
 ])
 AT_CHECK([pspp -o pspp.csv list.sps])
 AT_CHECK([cat pspp.csv], [0], [dnl
-Variable,Description,,Position
-foo,Format: A2000,,1
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 32,,
+Variable,Description,Position
+foo,Format: A2000,1
 
 Table: Data List
 foo

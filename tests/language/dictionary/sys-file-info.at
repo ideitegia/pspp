@@ -33,14 +33,16 @@ Type:,System File
 Weight:,Not weighted.
 Compression:,SAV
 
-Variable,Description,,Position
-x,Format: F8.2,,1
-,Measure: Scale,,
-,Display Alignment: Right,,
-,Display Width: 8,,
-name,Format: A10,,2
-,Measure: Nominal,,
-,Display Alignment: Left,,
-,Display Width: 10,,
+Variable,Description,Position
+x,"Format: F8.2
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",1
+name,"Format: A10
+Measure: Nominal
+Role: Input
+Display Alignment: Left
+Display Width: 10",2
 ])
 AT_CLEANUP
