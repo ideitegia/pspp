@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -106,21 +106,21 @@ psppire_output_window_finalize (GObject *object)
 static void
 psppire_output_window_dispose (GObject *obj)
 {
-  PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (obj);
+  PsppireOutputWindow *window = PSPPIRE_OUTPUT_WINDOW (obj);
   size_t i;
 
-  if (viewer->dispose_has_run) 
+  if (window->dispose_has_run) 
     return;
 
-  viewer->dispose_has_run = TRUE;
-  for (i = 0; i < viewer->n_items; i++)
-    output_item_unref (viewer->items[i]);
-  free (viewer->items);
-  viewer->items = NULL;
-  viewer->n_items = viewer->allocated_items = 0;
+  window->dispose_has_run = TRUE;
+  for (i = 0; i < window->n_items; i++)
+    output_item_unref (window->items[i]);
+  free (window->items);
+  window->items = NULL;
+  window->n_items = window->allocated_items = 0;
 
-  if (viewer->print_settings != NULL)
-    g_object_unref (viewer->print_settings);
+  if (window->print_settings != NULL)
+    g_object_unref (window->print_settings);
 
   /* Chain up to the parent class */
   G_OBJECT_CLASS (parent_class)->dispose (obj);
@@ -145,7 +145,7 @@ psppire_output_window_class_init (PsppireOutputWindowClass *class)
 struct psppire_output_driver
   {
     struct output_driver driver;
-    PsppireOutputWindow *viewer;
+    PsppireOutputWindow *window;
     struct xr_driver *xr;
     int font_height;
   };
@@ -164,11 +164,11 @@ static void on_dwgarea_realize (GtkWidget *widget, gpointer data);
 static gboolean
 expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
-  PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (data);
+  PsppireOutputWindow *window = PSPPIRE_OUTPUT_WINDOW (data);
   struct xr_rendering *r = g_object_get_data (G_OBJECT (widget), "rendering");
   cairo_t *cr = gdk_cairo_create (widget->window);
 
-  const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
+  const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (window));
 
   PangoFontDescription *font_desc;
   char *font_name;
@@ -176,24 +176,24 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   gchar *fgc =
     gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (widget))]);
 
-  string_map_replace (&viewer->render_opts, "foreground-color", fgc);
+  string_map_replace (&window->render_opts, "foreground-color", fgc);
 
   free (fgc);
 
   /* Use GTK+ default font as proportional font. */
   font_name = pango_font_description_to_string (style->font_desc);
-  string_map_replace (&viewer->render_opts, "prop-font", font_name);
+  string_map_replace (&window->render_opts, "prop-font", font_name);
   g_free (font_name);
 
   /* Derived emphasized font from proportional font. */
   font_desc = pango_font_description_copy (style->font_desc);
   pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
   font_name = pango_font_description_to_string (font_desc);
-  string_map_replace (&viewer->render_opts, "emph-font", font_name);
+  string_map_replace (&window->render_opts, "emph-font", font_name);
   g_free (font_name);
   pango_font_description_free (font_desc);
 
-  xr_rendering_apply_options (r, &viewer->render_opts);
+  xr_rendering_apply_options (r, &window->render_opts);
 
   xr_rendering_draw (r, cr, event->area.x, event->area.y,
                      event->area.width, event->area.height);
@@ -207,7 +207,7 @@ psppire_output_submit (struct output_driver *this,
                        const struct output_item *item)
 {
   struct psppire_output_driver *pod = psppire_output_cast (this);
-  PsppireOutputWindow *viewer;
+  PsppireOutputWindow *window;
   GtkWidget *drawing_area;
   struct xr_rendering *r;
   struct string title;
@@ -217,18 +217,18 @@ psppire_output_submit (struct output_driver *this,
   cairo_t *cr;
   int tw, th;
 
-  if (pod->viewer == NULL)
+  if (pod->window == NULL)
     {
-      pod->viewer = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
-      gtk_widget_show_all (GTK_WIDGET (pod->viewer));
-      pod->viewer->driver = pod;
+      pod->window = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
+      gtk_widget_show_all (GTK_WIDGET (pod->window));
+      pod->window->driver = pod;
     }
-  viewer = pod->viewer;
+  window = pod->window;
 
-  if (viewer->n_items >= viewer->allocated_items)
-    viewer->items = x2nrealloc (viewer->items, &viewer->allocated_items,
-                                sizeof *viewer->items);
-  viewer->items[viewer->n_items++] = output_item_ref (item);
+  if (window->n_items >= window->allocated_items)
+    window->items = x2nrealloc (window->items, &window->allocated_items,
+                                sizeof *window->items);
+  window->items[window->n_items++] = output_item_ref (item);
 
   if (is_text_item (item))
     {
@@ -238,38 +238,38 @@ psppire_output_submit (struct output_driver *this,
 
       if (type == TEXT_ITEM_COMMAND_CLOSE)
         {
-          viewer->in_command = false;
+          window->in_command = false;
           return;
         }
       else if (text[0] == '\0')
         return;
     }
 
-  cr = gdk_cairo_create (GTK_WIDGET (pod->viewer)->window);
+  cr = gdk_cairo_create (GTK_WIDGET (pod->window)->window);
   if (pod->xr == NULL)
     {
-      const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (viewer));
+      const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (window));
       struct text_item *text_item;
       PangoFontDescription *font_desc;
       char *font_name;
       int font_width;
       
       /* Set the widget's text color as the foreground color for the output driver */
-      gchar *fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (viewer))]);
+      gchar *fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (window))]);
 
-      string_map_insert (&pod->viewer->render_opts, "foreground-color", fgc);
+      string_map_insert (&pod->window->render_opts, "foreground-color", fgc);
       g_free (fgc);
 
       /* Use GTK+ default font as proportional font. */
       font_name = pango_font_description_to_string (style->font_desc);
-      string_map_insert (&pod->viewer->render_opts, "prop-font", font_name);
+      string_map_insert (&pod->window->render_opts, "prop-font", font_name);
       g_free (font_name);
 
       /* Derived emphasized font from proportional font. */
       font_desc = pango_font_description_copy (style->font_desc);
       pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
       font_name = pango_font_description_to_string (font_desc);
-      string_map_insert (&pod->viewer->render_opts, "emph-font", font_name);
+      string_map_insert (&pod->window->render_opts, "emph-font", font_name);
       g_free (font_name);
       pango_font_description_free (font_desc);
 
@@ -278,13 +278,13 @@ psppire_output_submit (struct output_driver *this,
          scrolling only.  (The length should not be increased very much because
          it is already close enough to INT_MAX when expressed as thousands of a
          point.) */
-      string_map_insert (&pod->viewer->render_opts, "paper-size", "300x200000mm");
-      string_map_insert (&pod->viewer->render_opts, "left-margin", "0");
-      string_map_insert (&pod->viewer->render_opts, "right-margin", "0");
-      string_map_insert (&pod->viewer->render_opts, "top-margin", "0");
-      string_map_insert (&pod->viewer->render_opts, "bottom-margin", "0");
+      string_map_insert (&pod->window->render_opts, "paper-size", "300x200000mm");
+      string_map_insert (&pod->window->render_opts, "left-margin", "0");
+      string_map_insert (&pod->window->render_opts, "right-margin", "0");
+      string_map_insert (&pod->window->render_opts, "top-margin", "0");
+      string_map_insert (&pod->window->render_opts, "bottom-margin", "0");
 
-      pod->xr = xr_driver_create (cr, &pod->viewer->render_opts);
+      pod->xr = xr_driver_create (cr, &pod->window->render_opts);
 
 
       text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
@@ -294,7 +294,7 @@ psppire_output_submit (struct output_driver *this,
       text_item_unref (text_item);
     }
   else
-    pod->viewer->y += pod->font_height / 2;
+    pod->window->y += pod->font_height / 2;
 
   r = xr_rendering_create (pod->xr, item, cr);
   if (r == NULL)
@@ -306,33 +306,33 @@ psppire_output_submit (struct output_driver *this,
 
   g_object_set_data (G_OBJECT (drawing_area), "rendering", r);
   g_signal_connect (drawing_area, "realize",
-                     G_CALLBACK (on_dwgarea_realize), pod->viewer);
+                     G_CALLBACK (on_dwgarea_realize), pod->window);
 
   g_signal_connect (drawing_area, "expose_event",
-                     G_CALLBACK (expose_event_callback), pod->viewer);
+                     G_CALLBACK (expose_event_callback), pod->window);
 
   gtk_widget_set_size_request (drawing_area, tw, th);
-  gtk_layout_put (pod->viewer->output, drawing_area, 0, pod->viewer->y);
+  gtk_layout_put (pod->window->output, drawing_area, 0, pod->window->y);
 
   gtk_widget_show (drawing_area);
 
   if (!is_text_item (item)
       || text_item_get_type (to_text_item (item)) != TEXT_ITEM_SYNTAX
-      || !viewer->in_command)
+      || !window->in_command)
     {
-      store = GTK_TREE_STORE (gtk_tree_view_get_model (viewer->overview));
+      store = GTK_TREE_STORE (gtk_tree_view_get_model (window->overview));
 
       ds_init_empty (&title);
       if (is_text_item (item)
           && text_item_get_type (to_text_item (item)) == TEXT_ITEM_COMMAND_OPEN)
         {
           gtk_tree_store_append (store, &iter, NULL);
-          viewer->cur_command = iter; /* XXX shouldn't save a GtkTreeIter */
-          viewer->in_command = true;
+          window->cur_command = iter; /* XXX shouldn't save a GtkTreeIter */
+          window->in_command = true;
         }
       else
         {
-          GtkTreeIter *p = viewer->in_command ? &viewer->cur_command : NULL;
+          GtkTreeIter *p = window->in_command ? &window->cur_command : NULL;
           gtk_tree_store_append (store, &iter, p);
         }
 
@@ -365,23 +365,23 @@ psppire_output_submit (struct output_driver *this,
       gtk_tree_store_set (store, &iter,
                           COL_TITLE, ds_cstr (&title),
 			  COL_ADDR, item, 
-                          COL_Y, viewer->y,
+                          COL_Y, window->y,
                           -1);
       ds_destroy (&title);
 
       path = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &iter);
-      gtk_tree_view_expand_row (viewer->overview, path, TRUE);
+      gtk_tree_view_expand_row (window->overview, path, TRUE);
       gtk_tree_path_free (path);
     }
 
-  if (pod->viewer->max_width < tw)
-    pod->viewer->max_width = tw;
-  pod->viewer->y += th;
+  if (pod->window->max_width < tw)
+    pod->window->max_width = tw;
+  pod->window->y += th;
 
-  gtk_layout_set_size (pod->viewer->output,
-                       pod->viewer->max_width, pod->viewer->y);
+  gtk_layout_set_size (pod->window->output,
+                       pod->window->max_width, pod->window->y);
 
-  gtk_window_set_urgency_hint (GTK_WINDOW (pod->viewer), TRUE);
+  gtk_window_set_urgency_hint (GTK_WINDOW (pod->window), TRUE);
 
 done:
   cairo_destroy (cr);
@@ -419,7 +419,7 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 
   gtk_widget_destroy (GTK_WIDGET (ow));
 
-  ow->driver->viewer = NULL;
+  ow->driver->window = NULL;
 
   return FALSE;
 }
@@ -922,9 +922,9 @@ copy_base_to_bg (GtkWidget *dest, GtkWidget *src)
 static void 
 on_dwgarea_realize (GtkWidget *dwg_area, gpointer data)
 {
-  GtkWidget *viewer = GTK_WIDGET (data);
+  GtkWidget *window = GTK_WIDGET (data);
 
-  copy_base_to_bg (dwg_area, viewer);
+  copy_base_to_bg (dwg_area, window);
 }
 
 
@@ -960,7 +960,7 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   string_map_init (&window->render_opts);
 
-  xml = builder_new ("output-viewer.ui");
+  xml = builder_new ("output-window.ui");
 
   copy_action = get_action_assert (xml, "edit_copy");
   select_all_action = get_action_assert (xml, "edit_select-all");

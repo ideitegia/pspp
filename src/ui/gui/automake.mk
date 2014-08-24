@@ -42,7 +42,7 @@ UI_FILES = \
 	src/ui/gui/val-labs-dialog.ui \
 	src/ui/gui/variable-info.ui \
 	src/ui/gui/data-editor.ui \
-	src/ui/gui/output-viewer.ui \
+	src/ui/gui/output-window.ui \
 	src/ui/gui/syntax-editor.ui \
 	src/ui/gui/var-sheet.ui \
 	src/ui/gui/var-type-dialog.ui
