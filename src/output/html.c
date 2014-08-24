@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,7 +64,8 @@ struct html_driver
 
 static const struct output_driver_class html_driver_class;
 
-static void html_output_table (struct html_driver *, struct table_item *);
+static void html_output_table (struct html_driver *, const struct table *,
+                               const char *caption);
 static void escape_string (FILE *file,
                            const char *text, size_t length,
                            const char *space);
@@ -235,7 +236,8 @@ html_submit (struct output_driver *driver,
   if (is_table_item (output_item))
     {
       struct table_item *table_item = to_table_item (output_item);
-      html_output_table (html, table_item);
+      html_output_table (html, table_item_get_table (table_item),
+                         table_item_get_caption (table_item));
     }
 #ifdef HAVE_CAIRO
   else if (is_chart_item (output_item) && html->chart_file_name != NULL)
@@ -370,15 +372,13 @@ put_border (FILE *file, int n_borders, int style, const char *border_name)
 }
 
 static void
-html_output_table (struct html_driver *html, struct table_item *item)
+html_output_table (struct html_driver *html,
+                   const struct table *t, const char *caption)
 {
-  const struct table *t = table_item_get_table (item);
-  const char *caption;
   int x, y;
 
   fputs ("<TABLE>\n", html->file);
 
-  caption = table_item_get_caption (item);
   if (caption != NULL)
     {
       fputs ("  <CAPTION>", html->file);
@@ -391,12 +391,12 @@ html_output_table (struct html_driver *html, struct table_item *item)
       fputs ("  <TR>\n", html->file);
       for (x = 0; x < table_nc (t); x++)
         {
+          const struct cell_contents *c;
           struct table_cell cell;
           const char *tag;
           bool is_header;
           int alignment, colspan, rowspan;
           int top, left, right, bottom, n_borders;
-          const char *s;
 
           table_get_cell (t, x, y, &cell);
           if (x != cell.d[TABLE_HORZ][0] || y != cell.d[TABLE_VERT][0])
@@ -410,7 +410,9 @@ html_output_table (struct html_driver *html, struct table_item *item)
           tag = is_header ? "TH" : "TD";
           fprintf (html->file, "    <%s", tag);
 
-          alignment = cell.options & TAB_ALIGNMENT;
+          alignment = (cell.n_contents > 0
+                       ? cell.contents[0].options & TAB_ALIGNMENT
+                       : TAB_LEFT);
           if (alignment != TAB_LEFT)
             fprintf (html->file, " ALIGN=\"%s\"",
                      alignment == TAB_RIGHT ? "RIGHT" : "CENTER");
@@ -457,22 +459,31 @@ html_output_table (struct html_driver *html, struct table_item *item)
           putc ('>', html->file);
 
           /* Output cell contents. */
-          s = cell.contents;
-          if (cell.options & TAB_EMPH)
-            fputs ("<EM>", html->file);
-          if (cell.options & TAB_FIX)
+          for (c = cell.contents; c < &cell.contents[cell.n_contents]; c++)
             {
-              fputs ("<TT>", html->file);
-              escape_string (html->file, s, strlen (s), "&nbsp;");
-              fputs ("</TT>", html->file);
+              if (c->text)
+                {
+                  const char *s = c->text;
+
+                  if (c->options & TAB_EMPH)
+                    fputs ("<EM>", html->file);
+                  if (c->options & TAB_FIX)
+                    {
+                      fputs ("<TT>", html->file);
+                      escape_string (html->file, s, strlen (s), "&nbsp;");
+                      fputs ("</TT>", html->file);
+                    }
+                  else
+                    {
+                      s += strspn (s, CC_SPACES);
+                      escape_string (html->file, s, strlen (s), " ");
+                    }
+                  if (c->options & TAB_EMPH)
+                    fputs ("</EM>", html->file);
+                }
+              else
+                html_output_table (html, c->table, NULL);
             }
-          else
-            {
-              s += strspn (s, CC_SPACES);
-              escape_string (html->file, s, strlen (s), " ");
-            }
-          if (cell.options & TAB_EMPH)
-            fputs ("</EM>", html->file);
 
           /* Output </TH> or </TD>. */
           fprintf (html->file, "</%s>\n", tag);

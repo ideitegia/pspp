@@ -167,6 +167,17 @@ AT_CHECK([render-test input], [0], [abc
 ])
 AT_CLEANUP
 
+AT_SETUP([nested single cell])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [1 1
+abc
+1 1
+{0}
+])
+AT_CHECK([render-test input], [0], [abc
+])
+AT_CLEANUP
+
 AT_SETUP([single cell with border])
 AT_KEYWORDS([render rendering])
 AT_DATA([input], [1 1
@@ -176,6 +187,22 @@ AT_CHECK([render-test input], [0], [dnl
 +---+
 |abc|
 +---+
+])
+AT_CLEANUP
+
+AT_SETUP([nested single cell with border])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [1 1
+@abc
+1 1
+@{0}
+])
+AT_CHECK([render-test input], [0], [dnl
++-----+
+|+---+|
+||abc||
+|+---+|
++-----+
 ])
 AT_CLEANUP
 
@@ -322,6 +349,26 @@ AT_CHECK([render-test input], [0], [dnl
 ])
 AT_CLEANUP
 
+AT_SETUP([nested joined rows])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [2 2
+2*1 @ab\ncd\nef
+@hij
+@klm
+1 1
+@{0}
+])
+AT_CHECK([render-test input], [0], [dnl
++--------+
+|+--+---+|
+||ab|hij||
+||cd+---+|
+||ef|klm||
+|+--+---+|
++--------+
+])
+AT_CLEANUP
+
 dnl This checks for bug #31346, a segmentation fault that surfaced
 dnl when two or more rows  had no unspanned cells and no rules.
 AT_SETUP([joined rows only, no rules])
@@ -461,6 +508,203 @@ AT_CHECK([render-test input], [0],[dnl
 |abcde| WXYZ0| 789|
 |     |      |    |
 +-----+------+----+
+])
+AT_CLEANUP
+
+AT_SETUP([nested 8x8])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [WEAVE_8X8[]dnl
+1 1
+@{0}
+])
+AT_CHECK([render-test input], [0], [dnl
++-----------------+
+|+-+-+-+-+-+-+-+-+|
+||a|b|c|d|e|f|g|h||
+|+-+-+-+-+-+-+-+-+|
+||i|jkl|m|nop|q|t||
+|+-+-+-+-+-+-+r+-+|
+||u|v|wxy|z|A|s|D||
+|+-+-+-+-+-+B+-+-+|
+||E|F|I|JKL|C|M|P||
+|+-+G+-+---+-+N+-+|
+||Q|H|R|UVW|X|O|Y||
+|+-+-+S+-+-+-+-+-+|
+||Z|0|T|3|456|7|8||
+|+-+1+-+-+-+-+-+-+|
+||9|2|abc|d|efg|h||
+|+-+-+-+-+-+-+-+-+|
+||i|j|k|l|m|n|o|p||
+|+-+-+-+-+-+-+-+-+|
++-----------------+
+])
+AT_CLEANUP
+
+AT_SETUP([nested 8x8s and 6x6s])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [WEAVE_8X8[]WEAVE_6X6[]dnl
+4 2
+@{0}
+@{1}
+@{1}
+@|{1}
+@|{1}
+@({1}
+@({1}
+@{0}
+])
+AT_CHECK([render-test input], [0], [dnl
++-----------------+-----------------+
+|+-+-+-+-+-+-+-+-+|    +-+---+-+-+-+|
+||a|b|c|d|e|f|g|h||    |a|bcd|e|f|i||
+|+-+-+-+-+-+-+-+-+|    +-+-+-+-+g+-+|
+||i|jkl|m|nop|q|t||    |j|m|nop|h|q||
+|+-+-+-+-+-+-+r+-+|    |k+-+-+-+-+r||
+||u|v|wxy|z|A|s|D||    |l|t|w|xyz|s||
+|+-+-+-+-+-+B+-+-+|    +-+u+-+-+-+-+|
+||E|F|I|JKL|C|M|P||    |A|v|B|E|FGH||
+|+-+G+-+---+-+N+-+|    +-+-+C+-+-+-+|
+||Q|H|R|UVW|X|O|Y||    |IJK|D|L|O|P||
+|+-+-+S+-+-+-+-+-+|    +-+-+-+M+-+-+|
+||Z|0|T|3|456|7|8||    |Q|RST|N|U|V||
+|+-+1+-+-+-+-+-+-+|    +-+---+-+-+-+|
+||9|2|abc|d|efg|h||                 |
+|+-+-+-+-+-+-+-+-+|                 |
+||i|j|k|l|m|n|o|p||                 |
+|+-+-+-+-+-+-+-+-+|                 |
++-----------------+-----------------+
+|    +-+---+-+-+-+|  +-+---+-+-+-+  |
+|    |a|bcd|e|f|i||  |a|bcd|e|f|i|  |
+|    +-+-+-+-+g+-+|  +-+-+-+-+g+-+  |
+|    |j|m|nop|h|q||  |j|m|nop|h|q|  |
+|    |k+-+-+-+-+r||  |k+-+-+-+-+r|  |
+|    |l|t|w|xyz|s||  |l|t|w|xyz|s|  |
+|    +-+u+-+-+-+-+|  +-+u+-+-+-+-+  |
+|    |A|v|B|E|FGH||  |A|v|B|E|FGH|  |
+|    +-+-+C+-+-+-+|  +-+-+C+-+-+-+  |
+|    |IJK|D|L|O|P||  |IJK|D|L|O|P|  |
+|    +-+-+-+M+-+-+|  +-+-+-+M+-+-+  |
+|    |Q|RST|N|U|V||  |Q|RST|N|U|V|  |
+|    +-+---+-+-+-+|  +-+---+-+-+-+  |
++-----------------+-----------------+
+|  +-+---+-+-+-+  |+-+---+-+-+-+    |
+|  |a|bcd|e|f|i|  ||a|bcd|e|f|i|    |
+|  +-+-+-+-+g+-+  |+-+-+-+-+g+-+    |
+|  |j|m|nop|h|q|  ||j|m|nop|h|q|    |
+|  |k+-+-+-+-+r|  ||k+-+-+-+-+r|    |
+|  |l|t|w|xyz|s|  ||l|t|w|xyz|s|    |
+|  +-+u+-+-+-+-+  |+-+u+-+-+-+-+    |
+|  |A|v|B|E|FGH|  ||A|v|B|E|FGH|    |
+|  +-+-+C+-+-+-+  |+-+-+C+-+-+-+    |
+|  |IJK|D|L|O|P|  ||IJK|D|L|O|P|    |
+|  +-+-+-+M+-+-+  |+-+-+-+M+-+-+    |
+|  |Q|RST|N|U|V|  ||Q|RST|N|U|V|    |
+|  +-+---+-+-+-+  |+-+---+-+-+-+    |
++-----------------+-----------------+
+|+-+---+-+-+-+    |+-+-+-+-+-+-+-+-+|
+||a|bcd|e|f|i|    ||a|b|c|d|e|f|g|h||
+|+-+-+-+-+g+-+    |+-+-+-+-+-+-+-+-+|
+||j|m|nop|h|q|    ||i|jkl|m|nop|q|t||
+||k+-+-+-+-+r|    |+-+-+-+-+-+-+r+-+|
+||l|t|w|xyz|s|    ||u|v|wxy|z|A|s|D||
+|+-+u+-+-+-+-+    |+-+-+-+-+-+B+-+-+|
+||A|v|B|E|FGH|    ||E|F|I|JKL|C|M|P||
+|+-+-+C+-+-+-+    |+-+G+-+---+-+N+-+|
+||IJK|D|L|O|P|    ||Q|H|R|UVW|X|O|Y||
+|+-+-+-+M+-+-+    |+-+-+S+-+-+-+-+-+|
+||Q|RST|N|U|V|    ||Z|0|T|3|456|7|8||
+|+-+---+-+-+-+    |+-+1+-+-+-+-+-+-+|
+|                 ||9|2|abc|d|efg|h||
+|                 |+-+-+-+-+-+-+-+-+|
+|                 ||i|j|k|l|m|n|o|p||
+|                 |+-+-+-+-+-+-+-+-+|
++-----------------+-----------------+
+])
+AT_CLEANUP
+
+AT_SETUP([doubly nested cells])
+AT_KEYWORDS([render rendering])
+AT_DATA([input], [WEAVE_8X8[]WEAVE_6X6[]dnl
+4 2
+@{0}
+@{1}
+@{1}
+@|{1}
+@|{1}
+@({1}
+@({1}
+@{0}
+1 1
+@{2}
+])
+AT_CHECK([render-test input --length=70], [0], [dnl
++-------------------------------------+
+|+-----------------+-----------------+|
+||+-+-+-+-+-+-+-+-+|    +-+---+-+-+-+||
+|||a|b|c|d|e|f|g|h||    |a|bcd|e|f|i|||
+||+-+-+-+-+-+-+-+-+|    +-+-+-+-+g+-+||
+|||i|jkl|m|nop|q|t||    |j|m|nop|h|q|||
+||+-+-+-+-+-+-+r+-+|    |k+-+-+-+-+r|||
+|||u|v|wxy|z|A|s|D||    |l|t|w|xyz|s|||
+||+-+-+-+-+-+B+-+-+|    +-+u+-+-+-+-+||
+|||E|F|I|JKL|C|M|P||    |A|v|B|E|FGH|||
+||+-+G+-+---+-+N+-+|    +-+-+C+-+-+-+||
+|||Q|H|R|UVW|X|O|Y||    |IJK|D|L|O|P|||
+||+-+-+S+-+-+-+-+-+|    +-+-+-+M+-+-+||
+|||Z|0|T|3|456|7|8||    |Q|RST|N|U|V|||
+||+-+1+-+-+-+-+-+-+|    +-+---+-+-+-+||
+|||9|2|abc|d|efg|h||                 ||
+||+-+-+-+-+-+-+-+-+|                 ||
+|||i|j|k|l|m|n|o|p||                 ||
+||+-+-+-+-+-+-+-+-+|                 ||
+|+-----------------+-----------------+|
+||    +-+---+-+-+-+|  +-+---+-+-+-+  ||
+||    |a|bcd|e|f|i||  |a|bcd|e|f|i|  ||
+||    +-+-+-+-+g+-+|  +-+-+-+-+g+-+  ||
+||    |j|m|nop|h|q||  |j|m|nop|h|q|  ||
+||    |k+-+-+-+-+r||  |k+-+-+-+-+r|  ||
+||    |l|t|w|xyz|s||  |l|t|w|xyz|s|  ||
+||    +-+u+-+-+-+-+|  +-+u+-+-+-+-+  ||
+||    |A|v|B|E|FGH||  |A|v|B|E|FGH|  ||
+||    +-+-+C+-+-+-+|  +-+-+C+-+-+-+  ||
+||    |IJK|D|L|O|P||  |IJK|D|L|O|P|  ||
+||    +-+-+-+M+-+-+|  +-+-+-+M+-+-+  ||
+||    |Q|RST|N|U|V||  |Q|RST|N|U|V|  ||
+||    +-+---+-+-+-+|  +-+---+-+-+-+  ||
+|+-----------------+-----------------+|
+||  +-+---+-+-+-+  |+-+---+-+-+-+    ||
+||  |a|bcd|e|f|i|  ||a|bcd|e|f|i|    ||
+||  +-+-+-+-+g+-+  |+-+-+-+-+g+-+    ||
+||  |j|m|nop|h|q|  ||j|m|nop|h|q|    ||
+||  |k+-+-+-+-+r|  ||k+-+-+-+-+r|    ||
+||  |l|t|w|xyz|s|  ||l|t|w|xyz|s|    ||
+||  +-+u+-+-+-+-+  |+-+u+-+-+-+-+    ||
+||  |A|v|B|E|FGH|  ||A|v|B|E|FGH|    ||
+||  +-+-+C+-+-+-+  |+-+-+C+-+-+-+    ||
+||  |IJK|D|L|O|P|  ||IJK|D|L|O|P|    ||
+||  +-+-+-+M+-+-+  |+-+-+-+M+-+-+    ||
+||  |Q|RST|N|U|V|  ||Q|RST|N|U|V|    ||
+||  +-+---+-+-+-+  |+-+---+-+-+-+    ||
+|+-----------------+-----------------+|
+||+-+---+-+-+-+    |+-+-+-+-+-+-+-+-+||
+|||a|bcd|e|f|i|    ||a|b|c|d|e|f|g|h|||
+||+-+-+-+-+g+-+    |+-+-+-+-+-+-+-+-+||
+|||j|m|nop|h|q|    ||i|jkl|m|nop|q|t|||
+|||k+-+-+-+-+r|    |+-+-+-+-+-+-+r+-+||
+|||l|t|w|xyz|s|    ||u|v|wxy|z|A|s|D|||
+||+-+u+-+-+-+-+    |+-+-+-+-+-+B+-+-+||
+|||A|v|B|E|FGH|    ||E|F|I|JKL|C|M|P|||
+||+-+-+C+-+-+-+    |+-+G+-+---+-+N+-+||
+|||IJK|D|L|O|P|    ||Q|H|R|UVW|X|O|Y|||
+||+-+-+-+M+-+-+    |+-+-+S+-+-+-+-+-+||
+|||Q|RST|N|U|V|    ||Z|0|T|3|456|7|8|||
+||+-+---+-+-+-+    |+-+1+-+-+-+-+-+-+||
+||                 ||9|2|abc|d|efg|h|||
+||                 |+-+-+-+-+-+-+-+-+||
+||                 ||i|j|k|l|m|n|o|p|||
+||                 |+-+-+-+-+-+-+-+-+||
+|+-----------------+-----------------+|
++-------------------------------------+
 ])
 AT_CLEANUP
 
@@ -2090,6 +2334,38 @@ AT_DATA([expout], [dnl
 AT_CHECK([render-test --width=7 --length=6 input], [0], [expout])
 AT_CHECK([render-test -o mb0 --min-break=0 --width=7 --length=6 input],
   [0], [expout])
+AT_CLEANUP
+
+AT_SETUP([breaking nested cell too tall for page])
+AT_KEYWORDS([render rendering])
+AT_CAPTURE_FILE([input])
+AT_DATA([input], [WEAVE_8X8[]WEAVE_6X6[]dnl
+1 2
+@{0}
+@{1}
+])
+AT_CHECK([render-test input --length=10], [0], [dnl
++-----------------+-------------+
+|+-+-+-+-+-+-+-+-+|+-+---+-+-+-+|
+||a|b|c|d|e|f|g|h|||a|bcd|e|f|i||
+|+-+-+-+-+-+-+-+-+|+-+-+-+-+g+-+|
+||i|jkl|m|nop|q|t|||j|m|nop|h|q||
+|+-+-+-+-+-+-+r+-+||k+-+-+-+-+r||
+||u|v|wxy|z|A|s|D|||l|t|w|xyz|s||
+|+-+-+-+-+-+B+-+-+|+-+u+-+-+-+-+|
+||E|F|I|JKL|C|M|P|||A|v|B|E|FGH||
+|+-+G+-+---+-+N+-+|+-+-+C+-+-+-+|
+
+||Q|H|R|UVW|X|O|Y|||IJK|D|L|O|P||
+|+-+-+S+-+-+-+-+-+|+-+-+-+M+-+-+|
+||Z|0|T|3|456|7|8|||Q|RST|N|U|V||
+|+-+1+-+-+-+-+-+-+|+-+---+-+-+-+|
+||9|2|abc|d|efg|h||             |
+|+-+-+-+-+-+-+-+-+|             |
+||i|j|k|l|m|n|o|p||             |
+|+-+-+-+-+-+-+-+-+|             |
++-----------------+-------------+
+])
 AT_CLEANUP
 
 AT_BANNER([output rendering -- double page breaks])

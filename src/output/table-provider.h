@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997, 1998, 1999, 2000, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2009, 2011, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +18,16 @@
 #define OUTPUT_TABLE_PROVIDER 1
 
 #include "output/table.h"
+
+/* An item of contents within a table cell. */
+struct cell_contents
+  {
+    unsigned int options;       /* TAB_*. */
+
+    /* Exactly one of these must be nonnull. */
+    char *text;                 /* A paragraph of text. */
+    struct table *table;        /* A table nested within the cell. */
+  };
 
 /* A cell in a table. */
 struct table_cell
@@ -39,8 +49,18 @@ struct table_cell
        or both. */
     int d[TABLE_N_AXES][2];
 
-    const char *contents;       /* Text string contents. */
-    unsigned int options;       /* TAB_* values. */
+    /* The cell's contents.
+
+       Most table cells contain only one item (a paragraph of text), but cells
+       are allowed to be empty (n_contents == 0) or contain a nested table, or
+       multiple items.
+
+       'inline_contents' provides a place to store a single item to handle the
+       common case.
+    */
+    const struct cell_contents *contents;
+    size_t n_contents;
+    struct cell_contents inline_contents;
 
     /* Called to free the cell's data, if nonnull. */
     void (*destructor) (void *destructor_aux);
@@ -152,7 +172,7 @@ struct table_class
        RECT[TABLE_VERT][1], exclusive, and the TABLE's columns
        RECT[TABLE_HORZ][0] through RECT[TABLE_HORZ][1].
 
-       Called only if TABLE is not shared (as returned by table_is_shared()).p
+       Called only if TABLE is not shared (as returned by table_is_shared()).
 
        This function may return a null pointer if it cannot implement the
        select operation, in which case the caller will use a fallback

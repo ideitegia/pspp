@@ -44,6 +44,19 @@ struct render_params
     int (*measure_cell_height) (void *aux, const struct table_cell *cell,
                                 int width);
 
+    /* Given that there is space measuring WIDTH by HEIGHT to render CELL,
+       where HEIGHT is insufficient to render the entire height of the cell,
+       returns the largest height less than HEIGHT at which it is appropriate
+       to break the cell.  For example, if breaking at the specified HEIGHT
+       would break in the middle of a line of text, the return value would be
+       just sufficiently less that the breakpoint would be between lines of
+       text.
+
+       Optional.  If NULL, the rendering engine assumes that all breakpoints
+       are acceptable. */
+    int (*adjust_break) (void *aux, const struct table_cell *cell,
+                         int width, int height);
+
     /* Draws a generalized intersection of lines in the rectangle whose
        top-left corner is (BB[TABLE_HORZ][0], BB[TABLE_VERT][0]) and whose
        bottom-right corner is (BB[TABLE_HORZ][1], BB[TABLE_VERT][1]).
@@ -100,6 +113,8 @@ int render_page_get_size (const struct render_page *, enum table_axis);
 void render_page_draw (const struct render_page *);
 void render_page_draw_region (const struct render_page *,
                               int x, int y, int w, int h);
+
+int render_page_get_best_breakpoint (const struct render_page *, int height);
 
 /* An iterator for breaking render_pages into smaller chunks. */
 struct render_break

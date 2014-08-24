@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997, 1998, 1999, 2000, 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2009, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -142,6 +142,11 @@ void tab_joint_text (struct tab_table *, int x1, int y1, int x2, int y2,
 void tab_joint_text_format (struct tab_table *, int x1, int y1, int x2, int y2,
                             unsigned opt, const char *, ...)
      PRINTF_FORMAT (7, 8);
+
+void tab_subtable (struct tab_table *, int x1, int y1, int x2, int y2,
+                   unsigned opt, struct table *subtable);
+void tab_subtable_bare (struct tab_table *, int x1, int y1, int x2, int y2,
+                        unsigned opt, struct table *subtable);
 
 bool tab_cell_is_empty (const struct tab_table *, int c, int r);
 

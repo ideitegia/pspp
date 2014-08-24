@@ -44,14 +44,21 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Set in the options field of cells that  */
-#define TAB_JOIN (1u << TAB_FIRST_AVAILABLE)
+/* Cell options. */
+#define TAB_JOIN     (1u << TAB_FIRST_AVAILABLE)
+#define TAB_SUBTABLE (1u << (TAB_FIRST_AVAILABLE + 1))
+#define TAB_BARE     (1u << (TAB_FIRST_AVAILABLE + 2))
 
 /* Joined cell. */
 struct tab_joined_cell
   {
     int d[TABLE_N_AXES][2];     /* Table region, same as struct table_cell. */
-    char *contents;
+    union
+      {
+        char *text;
+        struct table *subtable;
+      }
+    u;
   };
 
 static const struct table_class tab_table_class;
@@ -500,9 +507,9 @@ tab_text_format (struct tab_table *table, int c, int r, unsigned opt,
   va_end (args);
 }
 
-static void
-do_tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
-                   unsigned opt, char *text)
+static struct tab_joined_cell *
+add_joined_cell (struct tab_table *table, int x1, int y1, int x2, int y2,
+                 unsigned opt)
 {
   struct tab_joined_cell *j;
 
@@ -537,9 +544,6 @@ do_tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
   j->d[TABLE_VERT][0] = y1 + table->row_ofs;
   j->d[TABLE_HORZ][1] = ++x2 + table->col_ofs;
   j->d[TABLE_VERT][1] = ++y2 + table->row_ofs;
-  j->contents = text;
-
-  opt |= TAB_JOIN;
 
   {
     void **cc = &table->cc[x1 + y1 * table->cf];
@@ -555,13 +559,15 @@ do_tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 	for (x = x1; x < x2; x++)
 	  {
 	    *cc++ = j;
-	    *ct++ = opt;
+	    *ct++ = opt | TAB_JOIN;
 	  }
 
 	cc += ofs;
 	ct += ofs;
       }
   }
+
+  return j;
 }
 
 /* Joins cells (X1,X2)-(Y1,Y2) inclusive in TABLE, and sets them with
@@ -570,8 +576,8 @@ void
 tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
                 unsigned opt, const char *text)
 {
-  do_tab_joint_text (table, x1, y1, x2, y2, opt,
-                     pool_strdup (table->container, text));
+  char *s = pool_strdup (table->container, text);
+  add_joined_cell (table, x1, y1, x2, y2, opt)->u.text = s;
 }
 
 /* Joins cells (X1,X2)-(Y1,Y2) inclusive in TABLE, and sets them
@@ -582,11 +588,45 @@ tab_joint_text_format (struct tab_table *table, int x1, int y1, int x2, int y2,
                        unsigned opt, const char *format, ...)
 {
   va_list args;
+  char *s;
 
   va_start (args, format);
-  do_tab_joint_text (table, x1, y1, x2, y2, opt,
-                     pool_vasprintf (table->container, format, args));
+  s = pool_vasprintf (table->container, format, args);
   va_end (args);
+
+  add_joined_cell (table, x1, y1, x2, y2, opt)->u.text = s;
+}
+
+static void
+subtable_unref (void *subtable)
+{
+  table_unref (subtable);
+}
+
+/* Places SUBTABLE as the content for cells (X1,X2)-(Y1,Y2) inclusive in TABLE
+   with options OPT. */
+void
+tab_subtable (struct tab_table *table, int x1, int y1, int x2, int y2,
+              unsigned opt, struct table *subtable)
+{
+  add_joined_cell (table, x1, y1, x2, y2, opt | TAB_SUBTABLE)->u.subtable
+    = subtable;
+  pool_register (table->container, subtable_unref, subtable);
+}
+
+/* Places the contents of SUBTABLE as the content for cells (X1,X2)-(Y1,Y2)
+   inclusive in TABLE with options OPT.
+
+   SUBTABLE must have exactly one row and column.  The contents of its single
+   cell are used as the contents of TABLE's cell; that is, SUBTABLE is not used
+   as a nested table but its contents become part of TABLE. */
+void
+tab_subtable_bare (struct tab_table *table, int x1, int y1, int x2, int y2,
+                   unsigned opt, struct table *subtable)
+{
+  assert (table_nc (subtable) == 1);
+  assert (table_nr (subtable) == 1);
+  tab_subtable (table, x1, y1, x2, y2, opt | TAB_BARE, subtable);
 }
 
 bool
@@ -707,17 +747,39 @@ tab_get_cell (const struct table *table, int x, int y, struct table_cell *cell)
   const struct tab_table *t = tab_cast (table);
   int index = x + y * t->cf;
   unsigned char opt = t->ct[index];
-  const void *content = t->cc[index];
+  const void *cc = t->cc[index];
 
-  cell->options = opt;
+  cell->inline_contents.options = opt;
+  cell->inline_contents.table = NULL;
+  cell->destructor = NULL;
+
   if (opt & TAB_JOIN)
     {
-      const struct tab_joined_cell *jc = content;
+      const struct tab_joined_cell *jc = cc;
+      if (opt & TAB_BARE)
+        {
+          assert (opt & TAB_SUBTABLE);
+
+          /* This overwrites all of the members of CELL. */
+          table_get_cell (jc->u.subtable, 0, 0, cell);
+        }
+      else
+        {
+          cell->contents = &cell->inline_contents;
+          cell->n_contents = 1;
+          if (opt & TAB_SUBTABLE)
+            {
+              cell->inline_contents.table = jc->u.subtable;
+              cell->inline_contents.text = NULL;
+            }
+          else
+            cell->inline_contents.text = jc->u.text;
+        }
+
       cell->d[TABLE_HORZ][0] = jc->d[TABLE_HORZ][0];
       cell->d[TABLE_HORZ][1] = jc->d[TABLE_HORZ][1];
       cell->d[TABLE_VERT][0] = jc->d[TABLE_VERT][0];
       cell->d[TABLE_VERT][1] = jc->d[TABLE_VERT][1];
-      cell->contents = jc->contents;
     }
   else
     {
@@ -725,9 +787,18 @@ tab_get_cell (const struct table *table, int x, int y, struct table_cell *cell)
       cell->d[TABLE_HORZ][1] = x + 1;
       cell->d[TABLE_VERT][0] = y;
       cell->d[TABLE_VERT][1] = y + 1;
-      cell->contents = content != NULL ? content : "";
+      if (cc != NULL)
+        {
+          cell->contents = &cell->inline_contents;
+          cell->n_contents = 1;
+          cell->inline_contents.text = CONST_CAST (char *, cc);
+        }
+      else
+        {
+          cell->contents = NULL;
+          cell->n_contents = 0;
+        }
     }
-  cell->destructor = NULL;
 }
 
 static int

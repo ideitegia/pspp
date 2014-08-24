@@ -64,7 +64,7 @@ static const char *output_base = "render";
 
 static const char *parse_options (int argc, char **argv);
 static void usage (void) NO_RETURN;
-static struct table *read_table (FILE *);
+static struct table *read_table (FILE *, struct table **tables, size_t n_tables);
 static void draw (FILE *);
 
 int
@@ -87,13 +87,30 @@ main (int argc, char **argv)
 
   if (!draw_mode)
     {
+      struct table **tables = NULL;
+      size_t allocated_tables = 0;
+      size_t n_tables = 0;
       struct table *table;
 
-      table = read_table (input);
+      for (;;)
+        {
+          int ch;
 
+          if (n_tables >= allocated_tables)
+            tables = x2nrealloc (tables, &allocated_tables, sizeof *tables);
+
+          tables[n_tables] = read_table (input, tables, n_tables);
+          n_tables++;
+
+          ch = getc (input);
+          if (ch == EOF)
+            break;
+          ungetc (ch, input);
+        }
+
+      table = tables[n_tables - 1];
       if (transpose)
         table = table_transpose (table);
-
       table_item_submit (table_item_create (table, NULL));
     }
   else
@@ -316,7 +333,7 @@ replace_newlines (char *p)
 }
 
 static struct table *
-read_table (FILE *stream)
+read_table (FILE *stream, struct table **tables, size_t n_tables)
 {
   struct tab_table *tab;
   char buffer[1024];
@@ -344,7 +361,9 @@ read_table (FILE *stream)
     for (c = 0; c < nc; c++)
       if (tab_cell_is_empty (tab, c, r))
         {
+          unsigned int opt;
           char *new_line;
+          unsigned int i;
           char *text;
           int rs, cs;
 
@@ -369,7 +388,8 @@ read_table (FILE *stream)
               cs = 1;
             }
 
-          while (*text && strchr ("<>^,@", *text))
+          opt = 0;
+          while (*text && strchr ("<>^,@()|", *text))
             switch (*text++)
               {
               case '<':
@@ -393,17 +413,55 @@ read_table (FILE *stream)
                          c + cs - 1, r + rs - 1);
                 break;
 
+              case '(':
+                opt &= ~TAB_ALIGNMENT;
+                opt |= TAB_LEFT;
+                break;
+
+              case ')':
+                opt &= ~TAB_ALIGNMENT;
+                opt |= TAB_RIGHT;
+                break;
+
+              case '|':
+                opt &= ~TAB_ALIGNMENT;
+                opt |= TAB_CENTER;
+                break;
+
               default:
                 NOT_REACHED ();
               }
 
           replace_newlines (text);
 
-          tab_joint_text (tab, c, r, c + cs - 1, r + rs - 1, 0, text);
-        }
+          if (sscanf (text, "{%u}", &i) == 1)
+            {
+              struct table *table;
 
-  if (getc (stream) != EOF)
-    error (1, 0, "unread data at end of input");
+              if (i >= n_tables)
+                error (1, 0, "bad table number %u", i);
+              table = table_ref (tables[i]);
+
+              text = strchr (text, '}') + 1;
+              while (*text)
+                switch (*text++)
+                  {
+                  case 's':
+                    table = table_stomp (table);
+                    break;
+
+                  case 't':
+                    table = table_transpose (table);
+                    break;
+
+                  default:
+                    error (1, 0, "unexpected subtable modifier \"%c\"", *text);
+                  }
+              tab_subtable (tab, c, r, c + cs - 1, r + rs - 1, opt, table);
+            }
+          else
+            tab_joint_text (tab, c, r, c + cs - 1, r + rs - 1, opt, text);
+        }
 
   return &tab->table;
 }

@@ -827,6 +827,23 @@ render_page_get_size (const struct render_page *page, enum table_axis axis)
 {
   return page->cp[axis][page->n[axis] * 2 + 1];
 }
+
+int
+render_page_get_best_breakpoint (const struct render_page *page, int height)
+{
+  int y;
+
+  /* If there's no room for at least the top row and the rules above and below
+     it, don't include any of the table. */
+  if (page->cp[V][3] > height)
+    return 0;
+
+  /* Otherwise include as many rows and rules as we can. */
+  for (y = 5; y <= 2 * page->n[V] + 1; y += 2)
+    if (page->cp[V][y] > height)
+      return page->cp[V][y - 2];
+  return height;
+}
 
 /* Drawing render_pages. */
 
@@ -951,7 +968,7 @@ render_page_draw_cells (const struct render_page *page,
           struct table_cell cell;
 
           table_get_cell (page->table, x / 2, y / 2, &cell);
-          if (y == bb[V][0] || y / 2 == cell.d[V][0])
+          if (y / 2 == bb[V][0] / 2 || y / 2 == cell.d[V][0])
             render_cell (page, &cell);
           x = rule_ofs (cell.d[H][1]);
           table_cell_free (&cell);
@@ -998,7 +1015,7 @@ get_clip_min_extent (int x0, const int cp[], int n)
   return best;
 }
 
-/* Returns the least value i, 0 <= i < n, such that cp[i + 1] >= x1. */
+/* Returns the least value i, 0 <= i < n, such that cp[i] >= x1. */
 static int
 get_clip_max_extent (int x1, const int cp[], int n)
 {
@@ -1016,6 +1033,9 @@ get_clip_max_extent (int x1, const int cp[], int n)
       else
         low = middle + 1;
     }
+
+  while (best > 0 && cp[best - 1] == cp[best])
+    best--;
 
   return best;
 }
@@ -1170,6 +1190,43 @@ render_break_next (struct render_break *b, int size)
                  to make the output look a little better. */
               if (pixel + em > cell_size)
                 pixel = MAX (pixel - em, 0);
+
+              /* If we're breaking vertically, then consider whether the cells
+                 being broken have a better internal breakpoint than the exact
+                 number of pixels available, which might look bad e.g. because
+                 it breaks in the middle of a line of text. */
+              if (axis == TABLE_VERT && page->params->adjust_break)
+                {
+                  int x;
+
+                  for (x = 0; x < page->n[H]; )
+                    {
+                      struct table_cell cell;
+                      int better_pixel;
+                      int w;
+
+                      table_get_cell (page->table, x, z, &cell);
+                      w = joined_width (page, H, cell.d[H][0], cell.d[H][1]);
+                      better_pixel = page->params->adjust_break (
+                        page->params->aux, &cell, w, pixel);
+                      x = cell.d[H][1];
+                      table_cell_free (&cell);
+
+                      if (better_pixel < pixel)
+                        {
+                          if (better_pixel > (z == b->z ? b->pixel : 0))
+                            {
+                              pixel = better_pixel;
+                              break;
+                            }
+                          else if (better_pixel == 0 && z != b->z)
+                            {
+                              pixel = 0;
+                              break;
+                            }
+                        }
+                    }
+                }
             }
           break;
         }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2012, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
 #include "libpspp/message.h"
+#include "libpspp/str.h"
 #include "libpspp/string-map.h"
 #include "output/text-item.h"
 #include "output/driver-provider.h"
@@ -147,6 +148,78 @@ csv_output_field (struct csv_driver *csv, const char *field)
 }
 
 static void
+csv_put_field (struct csv_driver *csv, struct string *s, const char *field)
+{
+  while (*field == ' ')
+    field++;
+
+  if (csv->quote && field[strcspn (field, csv->quote_set)])
+    {
+      const char *p;
+
+      ds_put_byte (s, csv->quote);
+      for (p = field; *p != '\0'; p++)
+        {
+          if (*p == csv->quote)
+            ds_put_byte (s, csv->quote);
+          ds_put_byte (s, *p);
+        }
+      ds_put_byte (s, csv->quote);
+    }
+  else
+    ds_put_cstr (s, field);
+}
+
+static void
+csv_output_subtable (struct csv_driver *csv, struct string *s,
+                     const struct table *t)
+{
+  int y, x;
+
+  for (y = 0; y < table_nr (t); y++)
+    {
+      if (y > 0)
+        ds_put_byte (s, '\n');
+
+      for (x = 0; x < table_nc (t); x++)
+        {
+          struct table_cell cell;
+
+          table_get_cell (t, x, y, &cell);
+
+          if (x > 0)
+            ds_put_cstr (s, csv->separator);
+
+          if (x != cell.d[TABLE_HORZ][0] || y != cell.d[TABLE_VERT][0])
+            csv_put_field (csv, s, "");
+          else if (cell.n_contents == 1 && cell.contents[0].text != NULL)
+            csv_put_field (csv, s, cell.contents[0].text);
+          else
+            {
+              struct string s2;
+              size_t i;
+
+              ds_init_empty (&s2);
+              for (i = 0; i < cell.n_contents; i++)
+                {
+                  if (i > 0)
+                    ds_put_cstr (&s2, "\n\n");
+
+                  if (cell.contents[i].text != NULL)
+                    ds_put_cstr (&s2, cell.contents[i].text);
+                  else
+                    csv_output_subtable (csv, &s2, cell.contents[i].table);
+                }
+              csv_put_field (csv, s, ds_cstr (&s2));
+              ds_destroy (&s2);
+            }
+
+          table_cell_free (&cell);
+        }
+    }
+}
+
+static void
 csv_output_field_format (struct csv_driver *csv, const char *format, ...)
   PRINTF_FORMAT (2, 3);
 
@@ -207,8 +280,27 @@ csv_submit (struct output_driver *driver,
 
               if (x != cell.d[TABLE_HORZ][0] || y != cell.d[TABLE_VERT][0])
                 csv_output_field (csv, "");
+              else if (cell.n_contents == 1 && cell.contents[0].text != NULL)
+                csv_output_field (csv, cell.contents[0].text);
               else
-                csv_output_field (csv, cell.contents);
+                {
+                  struct string s;
+                  size_t i;
+
+                  ds_init_empty (&s);
+                  for (i = 0; i < cell.n_contents; i++)
+                    {
+                      if (i > 0)
+                        ds_put_cstr (&s, "\n\n");
+
+                      if (cell.contents[i].text != NULL)
+                        ds_put_cstr (&s, cell.contents[i].text);
+                      else
+                        csv_output_subtable (csv, &s, cell.contents[i].table);
+                    }
+                  csv_output_field (csv, ds_cstr (&s));
+                  ds_destroy (&s);
+                }
 
               table_cell_free (&cell);
             }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011, 2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -110,13 +110,16 @@ table_casereader_get_cell (const struct table *t, int x, int y,
   cell->d[TABLE_HORZ][1] = x + 1;
   cell->d[TABLE_VERT][0] = y;
   cell->d[TABLE_VERT][1] = y + 1;
-  cell->options = TAB_RIGHT;
+  cell->contents = &cell->inline_contents;
+  cell->n_contents = 1;
+  cell->inline_contents.options = TAB_RIGHT;
+  cell->inline_contents.table = NULL;
   if (tc->heading != NULL)
     {
       if (y == 0)
         {
           s = xstrdup (tc->heading);
-          cell->contents = s;
+          cell->inline_contents.text = s;
           cell->destructor = free_string;
           cell->destructor_aux = s;
           return;
@@ -132,7 +135,7 @@ table_casereader_get_cell (const struct table *t, int x, int y,
       s = data_out (case_data_idx (c, 0), UTF8, &tc->format);
       case_unref (c);
     }
-  cell->contents = s;
+  cell->inline_contents.text = s;
   cell->destructor = free_string;
   cell->destructor_aux = s;
 }

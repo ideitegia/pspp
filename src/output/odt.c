@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+   Copyright (C) 2009-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,6 +74,8 @@ struct odt_driver
 };
 
 static const struct output_driver_class odt_driver_class;
+
+static void write_table (struct odt_driver *, const struct table *);
 
 static struct odt_driver *
 odt_driver_cast (struct output_driver *driver)
@@ -413,9 +415,7 @@ write_xml_with_line_breaks (xmlTextWriterPtr writer, char *line)
 static void
 odt_submit_table (struct odt_driver *odt, struct table_item *item)
 {
-  const struct table *tab = table_item_get_table (item);
   const char *caption = table_item_get_caption (item);
-  int r, c;
 
   /* Write a heading for the table */
   if (caption != NULL)
@@ -427,6 +427,14 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
                                 _xml (table_item_get_caption (item)) );
       xmlTextWriterEndElement (odt->content_wtr);
     }
+
+  write_table (odt, table_item_get_table (item));
+}
+
+static void
+write_table (struct odt_driver *odt, const struct table *tab)
+{
+  int r, c;
 
   /* Start table */
   xmlTextWriterStartElement (odt->content_wtr, _xml("table:table"));
@@ -455,6 +463,7 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
       for (c = 0 ; c < table_nc (tab) ; ++c)
 	{
           struct table_cell cell;
+          size_t i;
 
           table_get_cell (tab, c, r, &cell);
 
@@ -476,24 +485,37 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
                   odt->content_wtr, _xml("table:number-rows-spanned"),
                   "%d", rowspan);
 
-	      xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
+              for (i = 0; i < cell.n_contents; i++)
+                {
+                  const struct cell_contents *contents = &cell.contents[i];
 
-	      if ( r < table_ht (tab) || c < table_hl (tab) )
-		xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Heading"));
-	      else
-		xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
+                  if (contents->text)
+                    {
+                      xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
 
-	      if (strchr (cell.contents, '\n'))
-		{
-		  char *line = xstrdup (cell.contents);
-		  write_xml_with_line_breaks (odt->content_wtr, line);
-		  free (line);
-		}
-	      else
-		xmlTextWriterWriteString (odt->content_wtr, _xml(cell.contents));
+                      if ( r < table_ht (tab) || c < table_hl (tab) )
+                        xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Heading"));
+                      else
+                        xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
 
-	      xmlTextWriterEndElement (odt->content_wtr); /* text:p */
-	      xmlTextWriterEndElement (odt->content_wtr); /* table:table-cell */
+                      if (strchr (contents->text, '\n'))
+                        {
+                          char *line = xstrdup (contents->text);
+                          write_xml_with_line_breaks (odt->content_wtr, line);
+                          free (line);
+                        }
+                      else
+                        xmlTextWriterWriteString (odt->content_wtr, _xml(contents->text));
+
+                      xmlTextWriterEndElement (odt->content_wtr); /* text:p */
+                    }
+                  else if (contents->table)
+                    {
+                      write_table (odt, contents->table);
+                      continue;
+                    }
+                }
+              xmlTextWriterEndElement (odt->content_wtr); /* table:table-cell */
 	    }
 	  else
 	    {
