@@ -500,7 +500,7 @@ The @subcmd{FORMAT} subcommand controls the characteristics of the
 crosstabulation tables to be displayed.  It has a number of possible
 settings:
 
-@itemize @asis
+@itemize @w{}
 @item
 @subcmd{TABLES}, the default, causes crosstabulation tables to be output.
 @subcmd{NOTABLES} suppresses them.
