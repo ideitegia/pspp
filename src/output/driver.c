@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,22 +44,52 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+struct output_engine
+  {
+    struct llx_list drivers;       /* Contains "struct output_driver"s. */
+    struct string deferred_syntax; /* TEXT_ITEM_SYNTAX being accumulated. */
+  };
+
 static const struct output_driver_factory *factories[];
 
-/* Drivers currently registered with output_driver_register(). */
-static struct llx_list drivers = LLX_INITIALIZER (drivers);
+/* A stack of output engines.. */
+static struct output_engine *engine_stack;
+static size_t n_stack, allocated_stack;
 
-/* TEXT_ITEM_SYNTAX being accumulated until another kind of output arrives. */
-static struct string deferred_syntax = DS_EMPTY_INITIALIZER;
+static struct output_engine *
+engine_stack_top (void)
+{
+  assert (n_stack > 0);
+  return &engine_stack[n_stack - 1];
+}
 
 void
-output_close (void)
+output_engine_push (void)
 {
-  while (!llx_is_empty (&drivers))
+  struct output_engine *e;
+
+  if (n_stack >= allocated_stack)
+    engine_stack = x2nrealloc (engine_stack, &allocated_stack,
+                               sizeof *engine_stack);
+
+  e = &engine_stack[n_stack++];
+  llx_init (&e->drivers);
+  ds_init_empty (&e->deferred_syntax);
+}
+
+void
+output_engine_pop (void)
+{
+  struct output_engine *e;
+
+  assert (n_stack > 0);
+  e = &engine_stack[--n_stack];
+  while (!llx_is_empty (&e->drivers))
     {
-      struct output_driver *d = llx_pop_head (&drivers, &llx_malloc_mgr);
+      struct output_driver *d = llx_pop_head (&e->drivers, &llx_malloc_mgr);
       output_driver_destroy (d);
     }
+  ds_destroy (&e->deferred_syntax);
 }
 
 void
@@ -72,11 +102,11 @@ output_get_supported_formats (struct string_set *formats)
 }
 
 static void
-output_submit__ (struct output_item *item)
+output_submit__ (struct output_engine *e, struct output_item *item)
 {
   struct llx *llx, *next;
 
-  for (llx = llx_head (&drivers); llx != llx_null (&drivers); llx = next)
+  for (llx = llx_head (&e->drivers); llx != llx_null (&e->drivers); llx = next)
     {
       struct output_driver *d = llx_data (llx);
       enum settings_output_type type;
@@ -105,12 +135,12 @@ output_submit__ (struct output_item *item)
 }
 
 static void
-flush_deferred_syntax (void)
+flush_deferred_syntax (struct output_engine *e)
 {
-  if (!ds_is_empty (&deferred_syntax))
+  if (!ds_is_empty (&e->deferred_syntax))
     {
-      char *syntax = ds_steal_cstr (&deferred_syntax);
-      output_submit__ (text_item_super (
+      char *syntax = ds_steal_cstr (&e->deferred_syntax);
+      output_submit__ (e, text_item_super (
                          text_item_create_nocopy (TEXT_ITEM_SYNTAX, syntax)));
     }
 }
@@ -127,15 +157,17 @@ is_syntax_item (const struct output_item *item)
 void
 output_submit (struct output_item *item)
 {
+  struct output_engine *e = engine_stack_top ();
+
   if (is_syntax_item (item))
     {
-      ds_put_cstr (&deferred_syntax, text_item_get_text (to_text_item (item)));
+      ds_put_cstr (&e->deferred_syntax, text_item_get_text (to_text_item (item)));
       output_item_unref (item);
       return;
     }
 
-  flush_deferred_syntax ();
-  output_submit__ (item);
+  flush_deferred_syntax (e);
+  output_submit__ (e, item);
 }
 
 /* Flushes output to screen devices, so that the user can see
@@ -143,10 +175,11 @@ output_submit (struct output_item *item)
 void
 output_flush (void)
 {
+  struct output_engine *e = engine_stack_top ();
   struct llx *llx;
 
-  flush_deferred_syntax ();
-  for (llx = llx_head (&drivers); llx != llx_null (&drivers);
+  flush_deferred_syntax (e);
+  for (llx = llx_head (&e->drivers); llx != llx_null (&e->drivers);
        llx = llx_next (llx))
     {
       struct output_driver *d = llx_data (llx);
@@ -185,24 +218,41 @@ output_driver_get_name (const struct output_driver *driver)
   return driver->name;
 }
 
+static struct output_engine *
+output_driver_get_engine (const struct output_driver *driver)
+{
+  struct output_engine *e;
+
+  for (e = engine_stack; e < &engine_stack[n_stack]; e++)
+    if (llx_find (llx_head (&e->drivers), llx_null (&e->drivers), driver))
+      return e;
+
+  return NULL;
+}
+
 void
 output_driver_register (struct output_driver *driver)
 {
+  struct output_engine *e = engine_stack_top ();
+
   assert (!output_driver_is_registered (driver));
-  llx_push_tail (&drivers, driver, &llx_malloc_mgr);
+  llx_push_tail (&e->drivers, driver, &llx_malloc_mgr);
 }
 
 void
 output_driver_unregister (struct output_driver *driver)
 {
-  llx_remove (llx_find (llx_head (&drivers), llx_null (&drivers), driver),
+  struct output_engine *e = output_driver_get_engine (driver);
+
+  assert (e != NULL);
+  llx_remove (llx_find (llx_head (&e->drivers), llx_null (&e->drivers), driver),
               &llx_malloc_mgr);
 }
 
 bool
 output_driver_is_registered (const struct output_driver *driver)
 {
-  return llx_find (llx_head (&drivers), llx_null (&drivers), driver) != NULL;
+  return output_driver_get_engine (driver) != NULL;
 }
 
 /* Useful functions for output driver implementation. */

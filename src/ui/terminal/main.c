@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2007, 2009-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -90,6 +90,7 @@ main (int argc, char **argv)
   fpu_init ();
   gsl_set_error_handler_off ();
 
+  output_engine_push ();
   fh_init ();
   settings_init ();
   terminal_check_size ();
@@ -166,7 +167,7 @@ main (int argc, char **argv)
   settings_done ();
   fh_done ();
   lex_destroy (lexer);
-  output_close ();
+  output_engine_pop ();
   i18n_done ();
 
   return msg_ui_any_errors ();

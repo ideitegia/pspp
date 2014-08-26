@@ -74,6 +74,7 @@ main (int argc, char **argv)
   FILE *input;
 
   set_program_name (argv[0]);
+  output_engine_push ();
   input_file_name = parse_options (argc, argv);
 
   if (!strcmp (input_file_name, "-"))
@@ -119,7 +120,7 @@ main (int argc, char **argv)
   if (input != stdin)
     fclose (input);
 
-  output_close ();
+  output_engine_pop ();
 
   return 0;
 }

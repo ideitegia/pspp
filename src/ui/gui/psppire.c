@@ -82,6 +82,7 @@ initialize (const char *data_file)
   preregister_widgets ();
 
   gsl_set_error_handler_off ();
+  output_engine_push ();
   settings_init ();
   fh_init ();
 
@@ -129,7 +130,7 @@ void
 de_initialize (void)
 {
   settings_done ();
-  output_close ();
+  output_engine_pop ();
   i18n_done ();
 }
 
