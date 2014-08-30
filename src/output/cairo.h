@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ void xr_driver_destroy (struct xr_driver *);
 struct xr_rendering *xr_rendering_create (struct xr_driver *,
                                           const struct output_item *,
                                           cairo_t *);
+void xr_rendering_destroy (struct xr_rendering *);
 
 void xr_rendering_apply_options (struct xr_rendering *, struct string_map *o);
 void xr_rendering_measure (struct xr_rendering *, int *w, int *h);

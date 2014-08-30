@@ -1298,6 +1298,17 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
 }
 
 void
+xr_rendering_destroy (struct xr_rendering *r)
+{
+  if (r)
+    {
+      output_item_unref (r->item);
+      render_page_unref (r->page);
+      free (r);
+    }
+}
+
+void
 xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 {
   if (is_table_item (r->item))

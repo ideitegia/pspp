@@ -117,6 +117,13 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
   return TRUE;
 }
 
+static void
+free_rendering (gpointer rendering_)
+{
+  struct xr_rendering *rendering = rendering_;
+  xr_rendering_destroy (rendering);
+}
+
 void
 psppire_output_view_put (struct psppire_output_view *view,
                          const struct output_item *item)
@@ -209,7 +216,7 @@ psppire_output_view_put (struct psppire_output_view *view,
 
   drawing_area = gtk_drawing_area_new ();
 
-  g_object_set_data (G_OBJECT (drawing_area), "rendering", r);
+  g_object_set_data_full (G_OBJECT (drawing_area), "rendering", r, free_rendering);
   g_signal_connect (drawing_area, "realize",
                     G_CALLBACK (on_dwgarea_realize), view);
   g_signal_connect (drawing_area, "expose_event",
@@ -605,6 +612,8 @@ psppire_output_view_destroy (struct psppire_output_view *view)
 
   if (view->print_settings != NULL)
     g_object_unref (view->print_settings);
+
+  xr_driver_destroy (view->xr);
 
   free (view);
 }
