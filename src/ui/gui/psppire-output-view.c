@@ -33,11 +33,18 @@
 #include "output/text-item.h"
 
 #include "gl/c-xvasprintf.h"
+#include "gl/minmax.h"
 #include "gl/tmpdir.h"
 #include "gl/xalloc.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
+
+struct output_view_item
+  {
+    struct output_item *item;
+    GtkWidget *drawing_area;
+  };
 
 struct psppire_output_view
   {
@@ -45,6 +52,7 @@ struct psppire_output_view
     int font_height;
 
     GtkLayout *output;
+    int render_width;
     int max_width;
     int y;
 
@@ -55,7 +63,7 @@ struct psppire_output_view
 
     GtkWidget *toplevel;
 
-    struct output_item **items;
+    struct output_view_item *items;
     size_t n_items, allocated_items;
 
     /* Variables pertaining to printing */
@@ -124,6 +132,109 @@ free_rendering (gpointer rendering_)
   xr_rendering_destroy (rendering);
 }
 
+static void
+create_xr (struct psppire_output_view *view)
+{
+  const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (view->output));
+  struct text_item *text_item;
+  PangoFontDescription *font_desc;
+  struct xr_rendering *r;
+  char *font_name;
+  int font_width;
+  cairo_t *cr;
+  gchar *fgc;
+
+  cr = gdk_cairo_create (GTK_WIDGET (view->output)->window);
+
+  /* Set the widget's text color as the foreground color for the output driver */
+  fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (view->output))]);
+
+  string_map_insert (&view->render_opts, "foreground-color", fgc);
+  g_free (fgc);
+
+  /* Use GTK+ default font as proportional font. */
+  font_name = pango_font_description_to_string (style->font_desc);
+  string_map_insert (&view->render_opts, "prop-font", font_name);
+  g_free (font_name);
+
+  /* Derived emphasized font from proportional font. */
+  font_desc = pango_font_description_copy (style->font_desc);
+  pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
+  font_name = pango_font_description_to_string (font_desc);
+  string_map_insert (&view->render_opts, "emph-font", font_name);
+  g_free (font_name);
+  pango_font_description_free (font_desc);
+
+  /* Pretend that the "page" has a reasonable width and a very big length,
+     so that most tables can be conveniently viewed on-screen with vertical
+     scrolling only.  (The length should not be increased very much because
+     it is already close enough to INT_MAX when expressed as thousands of a
+     point.) */
+  string_map_insert_nocopy (&view->render_opts, xstrdup ("paper-size"),
+                            xasprintf ("%dx1000000pt", view->render_width));
+  string_map_insert (&view->render_opts, "left-margin", "0");
+  string_map_insert (&view->render_opts, "right-margin", "0");
+  string_map_insert (&view->render_opts, "top-margin", "0");
+  string_map_insert (&view->render_opts, "bottom-margin", "0");
+
+  view->xr = xr_driver_create (cr, &view->render_opts);
+
+  text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
+  r = xr_rendering_create (view->xr, text_item_super (text_item), cr);
+  xr_rendering_measure (r, &font_width, &view->font_height);
+  /* xr_rendering_destroy (r); */
+  text_item_unref (text_item);
+
+  cairo_destroy (cr);
+}
+
+static void
+rerender (struct psppire_output_view *view)
+{
+  struct output_view_item *item;
+  cairo_t *cr;
+
+  if (!view->n_items)
+    return;
+
+  string_map_clear (&view->render_opts);
+  xr_driver_destroy (view->xr);
+  create_xr (view);
+
+  cr = gdk_cairo_create (GTK_WIDGET (view->output)->window);
+
+  view->y = 0;
+  view->max_width = 0;
+  for (item = view->items; item < &view->items[view->n_items]; item++)
+    {
+      struct xr_rendering *r;
+      int tw, th;
+
+      if (view->y > 0)
+        view->y += view->font_height / 2;
+
+      r = xr_rendering_create (view->xr, item->item, cr);
+      if (r == NULL)
+        {
+          g_warn_if_reached ();
+          continue;
+        }
+
+      xr_rendering_measure (r, &tw, &th);
+      g_object_set_data_full (G_OBJECT (item->drawing_area),
+                              "rendering", r, free_rendering);
+      gtk_widget_set_size_request (item->drawing_area, tw, th);
+      gtk_layout_move (view->output, item->drawing_area, 0, view->y);
+
+      if (view->max_width < tw)
+        view->max_width = tw;
+      view->y += th;
+    }
+
+  gtk_layout_set_size (view->output, view->max_width, view->y);
+  cairo_destroy (cr);
+}
+
 void
 psppire_output_view_put (struct psppire_output_view *view,
                          const struct output_item *item)
@@ -136,11 +247,6 @@ psppire_output_view_put (struct psppire_output_view *view,
   GtkTreeIter iter;
   cairo_t *cr;
   int tw, th;
-
-  if (view->n_items >= view->allocated_items)
-    view->items = x2nrealloc (view->items, &view->allocated_items,
-                                sizeof *view->items);
-  view->items[view->n_items++] = output_item_ref (item);
 
   if (is_text_item (item))
     {
@@ -157,53 +263,16 @@ psppire_output_view_put (struct psppire_output_view *view,
         return;
     }
 
+  if (view->n_items >= view->allocated_items)
+    view->items = x2nrealloc (view->items, &view->allocated_items,
+                                sizeof *view->items);
+  view->items[view->n_items].item = output_item_ref (item);
+  view->items[view->n_items].drawing_area = drawing_area = gtk_drawing_area_new ();
+  view->n_items++;
+
   cr = gdk_cairo_create (GTK_WIDGET (view->output)->window);
   if (view->xr == NULL)
-    {
-      const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (view->output));
-      struct text_item *text_item;
-      PangoFontDescription *font_desc;
-      char *font_name;
-      int font_width;
-
-      /* Set the widget's text color as the foreground color for the output driver */
-      gchar *fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (view->output))]);
-
-      string_map_insert (&view->render_opts, "foreground-color", fgc);
-      g_free (fgc);
-
-      /* Use GTK+ default font as proportional font. */
-      font_name = pango_font_description_to_string (style->font_desc);
-      string_map_insert (&view->render_opts, "prop-font", font_name);
-      g_free (font_name);
-
-      /* Derived emphasized font from proportional font. */
-      font_desc = pango_font_description_copy (style->font_desc);
-      pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
-      font_name = pango_font_description_to_string (font_desc);
-      string_map_insert (&view->render_opts, "emph-font", font_name);
-      g_free (font_name);
-      pango_font_description_free (font_desc);
-
-      /* Pretend that the "page" has a reasonable width and a very big length,
-         so that most tables can be conveniently viewed on-screen with vertical
-         scrolling only.  (The length should not be increased very much because
-         it is already close enough to INT_MAX when expressed as thousands of a
-         point.) */
-      string_map_insert (&view->render_opts, "paper-size", "300x200000mm");
-      string_map_insert (&view->render_opts, "left-margin", "0");
-      string_map_insert (&view->render_opts, "right-margin", "0");
-      string_map_insert (&view->render_opts, "top-margin", "0");
-      string_map_insert (&view->render_opts, "bottom-margin", "0");
-
-      view->xr = xr_driver_create (cr, &view->render_opts);
-
-      text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
-      r = xr_rendering_create (view->xr, text_item_super (text_item), cr);
-      xr_rendering_measure (r, &font_width, &view->font_height);
-      /* xr_rendering_destroy (r); */
-      text_item_unref (text_item);
-    }
+    create_xr (view);
 
   if (view->y > 0)
     view->y += view->font_height / 2;
@@ -213,8 +282,6 @@ psppire_output_view_put (struct psppire_output_view *view,
     goto done;
 
   xr_rendering_measure (r, &tw, &th);
-
-  drawing_area = gtk_drawing_area_new ();
 
   g_object_set_data_full (G_OBJECT (drawing_area), "rendering", r, free_rendering);
   g_signal_connect (drawing_area, "realize",
@@ -525,6 +592,19 @@ on_select_all (struct psppire_output_view *view)
   gtk_tree_selection_select_all (sel);
 }
 
+static void
+on_size_allocate (GtkWidget    *widget,
+                  GdkRectangle *allocation,
+                  struct psppire_output_view *view)
+{
+  int new_render_width = MAX (300, allocation->width);
+  if (view->render_width != new_render_width)
+    {
+      view->render_width = new_render_width;
+      rerender (view);
+    }
+}
+
 struct psppire_output_view *
 psppire_output_view_new (GtkLayout *output, GtkTreeView *overview,
                          GtkAction *copy_action, GtkAction *select_all_action)
@@ -539,6 +619,7 @@ psppire_output_view_new (GtkLayout *output, GtkTreeView *overview,
   view->xr = NULL;
   view->font_height = 0;
   view->output = output;
+  view->render_width = 0;
   view->max_width = 0;
   view->y = 0;
   string_map_init (&view->render_opts);
@@ -556,6 +637,7 @@ psppire_output_view_new (GtkLayout *output, GtkTreeView *overview,
 
   g_signal_connect (view->toplevel, "style-set", G_CALLBACK (on_style_set), view);
 
+  g_signal_connect (output, "size-allocate", G_CALLBACK (on_size_allocate), view);
 
   if (overview)
     {
@@ -605,7 +687,7 @@ psppire_output_view_destroy (struct psppire_output_view *view)
   string_map_destroy (&view->render_opts);
 
   for (i = 0; i < view->n_items; i++)
-    output_item_unref (view->items[i]);
+    output_item_unref (view->items[i].item);
   free (view->items);
   view->items = NULL;
   view->n_items = view->allocated_items = 0;
@@ -632,7 +714,7 @@ psppire_output_view_export (struct psppire_output_view *view,
       size_t i;
 
       for (i = 0; i < view->n_items; i++)
-        driver->class->submit (driver, view->items[i]);
+        driver->class->submit (driver, view->items[i].item);
       output_driver_destroy (driver);
     }
 }
@@ -707,7 +789,8 @@ paginate (GtkPrintOperation *operation,
     }
   else if ( view->print_item < view->n_items )
     {
-      xr_driver_output_item (view->print_xrd, view->items[view->print_item++]);
+      xr_driver_output_item (view->print_xrd,
+                             view->items[view->print_item++].item);
       while (xr_driver_need_new_page (view->print_xrd))
 	{
 	  xr_driver_next_page (view->print_xrd, NULL);
@@ -759,7 +842,7 @@ draw_page (GtkPrintOperation *operation,
   xr_driver_next_page (view->print_xrd, get_cairo_context_from_print_context (context));
   while (!xr_driver_need_new_page (view->print_xrd)
          && view->print_item < view->n_items)
-    xr_driver_output_item (view->print_xrd, view->items [view->print_item++]);
+    xr_driver_output_item (view->print_xrd, view->items [view->print_item++].item);
 }
 
 
