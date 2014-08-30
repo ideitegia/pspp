@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include "ui/gui/psppire-output-window.h"
+
 #include <errno.h>
 #include <gtk/gtk.h>
 #include <stdlib.h>
@@ -36,11 +38,9 @@
 #include "output/text-item.h"
 #include "ui/gui/help-menu.h"
 #include "ui/gui/builder-wrapper.h"
-#include "ui/gui/psppire-output-window.h"
+#include "ui/gui/psppire-output-view.h"
 
-#include "gl/tmpdir.h"
 #include "gl/xalloc.h"
-#include "gl/c-xvasprintf.h"
 
 #include "helper.h"
 
@@ -48,19 +48,8 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-enum
-  {
-    COL_TITLE,                  /* Table title. */
-    COL_ADDR,                   /* Pointer to the table */
-    COL_Y,                      /* Y position of top of title. */
-    N_COLS
-  };
-
 static void psppire_output_window_class_init    (PsppireOutputWindowClass *class);
 static void psppire_output_window_init          (PsppireOutputWindow      *window);
-
-static void psppire_output_window_style_set (GtkWidget *window, GtkStyle *prev);
-
 
 GType
 psppire_output_window_get_type (void)
@@ -95,9 +84,6 @@ static GObjectClass *parent_class;
 static void
 psppire_output_window_finalize (GObject *object)
 {
-  string_map_destroy (&PSPPIRE_OUTPUT_WINDOW(object)->render_opts);
-
-
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
 }
@@ -107,20 +93,13 @@ static void
 psppire_output_window_dispose (GObject *obj)
 {
   PsppireOutputWindow *window = PSPPIRE_OUTPUT_WINDOW (obj);
-  size_t i;
 
   if (window->dispose_has_run) 
     return;
 
   window->dispose_has_run = TRUE;
-  for (i = 0; i < window->n_items; i++)
-    output_item_unref (window->items[i]);
-  free (window->items);
-  window->items = NULL;
-  window->n_items = window->allocated_items = 0;
-
-  if (window->print_settings != NULL)
-    g_object_unref (window->print_settings);
+  psppire_output_view_destroy (window->view);
+  window->view = NULL;
 
   /* Chain up to the parent class */
   G_OBJECT_CLASS (parent_class)->dispose (obj);
@@ -134,11 +113,8 @@ psppire_output_window_class_init (PsppireOutputWindowClass *class)
   parent_class = g_type_class_peek_parent (class);
   object_class->dispose = psppire_output_window_dispose;
   
-  GTK_WIDGET_CLASS (object_class)->style_set = psppire_output_window_style_set;
   object_class->finalize = psppire_output_window_finalize;
 }
-
-
 
 /* Output driver class. */
 
@@ -146,8 +122,6 @@ struct psppire_output_driver
   {
     struct output_driver driver;
     PsppireOutputWindow *window;
-    struct xr_driver *xr;
-    int font_height;
   };
 
 static struct output_driver_class psppire_output_class;
@@ -159,63 +133,12 @@ psppire_output_cast (struct output_driver *driver)
   return UP_CAST (driver, struct psppire_output_driver, driver);
 }
 
-static void on_dwgarea_realize (GtkWidget *widget, gpointer data);
-
-static gboolean
-expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
-{
-  PsppireOutputWindow *window = PSPPIRE_OUTPUT_WINDOW (data);
-  struct xr_rendering *r = g_object_get_data (G_OBJECT (widget), "rendering");
-  cairo_t *cr = gdk_cairo_create (widget->window);
-
-  const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (window));
-
-  PangoFontDescription *font_desc;
-  char *font_name;
-  
-  gchar *fgc =
-    gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (widget))]);
-
-  string_map_replace (&window->render_opts, "foreground-color", fgc);
-
-  free (fgc);
-
-  /* Use GTK+ default font as proportional font. */
-  font_name = pango_font_description_to_string (style->font_desc);
-  string_map_replace (&window->render_opts, "prop-font", font_name);
-  g_free (font_name);
-
-  /* Derived emphasized font from proportional font. */
-  font_desc = pango_font_description_copy (style->font_desc);
-  pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
-  font_name = pango_font_description_to_string (font_desc);
-  string_map_replace (&window->render_opts, "emph-font", font_name);
-  g_free (font_name);
-  pango_font_description_free (font_desc);
-
-  xr_rendering_apply_options (r, &window->render_opts);
-
-  xr_rendering_draw (r, cr, event->area.x, event->area.y,
-                     event->area.width, event->area.height);
-  cairo_destroy (cr);
-
-  return TRUE;
-}
-
 static void
 psppire_output_submit (struct output_driver *this,
                        const struct output_item *item)
 {
   struct psppire_output_driver *pod = psppire_output_cast (this);
   PsppireOutputWindow *window;
-  GtkWidget *drawing_area;
-  struct xr_rendering *r;
-  struct string title;
-  GtkTreeStore *store;
-  GtkTreePath *path;
-  GtkTreeIter iter;
-  cairo_t *cr;
-  int tw, th;
 
   if (pod->window == NULL)
     {
@@ -225,166 +148,9 @@ psppire_output_submit (struct output_driver *this,
     }
   window = pod->window;
 
-  if (window->n_items >= window->allocated_items)
-    window->items = x2nrealloc (window->items, &window->allocated_items,
-                                sizeof *window->items);
-  window->items[window->n_items++] = output_item_ref (item);
-
-  if (is_text_item (item))
-    {
-      const struct text_item *text_item = to_text_item (item);
-      enum text_item_type type = text_item_get_type (text_item);
-      const char *text = text_item_get_text (text_item);
-
-      if (type == TEXT_ITEM_COMMAND_CLOSE)
-        {
-          window->in_command = false;
-          return;
-        }
-      else if (text[0] == '\0')
-        return;
-    }
-
-  cr = gdk_cairo_create (GTK_WIDGET (pod->window)->window);
-  if (pod->xr == NULL)
-    {
-      const GtkStyle *style = gtk_widget_get_style (GTK_WIDGET (window));
-      struct text_item *text_item;
-      PangoFontDescription *font_desc;
-      char *font_name;
-      int font_width;
-      
-      /* Set the widget's text color as the foreground color for the output driver */
-      gchar *fgc = gdk_color_to_string (&style->text[gtk_widget_get_state (GTK_WIDGET (window))]);
-
-      string_map_insert (&pod->window->render_opts, "foreground-color", fgc);
-      g_free (fgc);
-
-      /* Use GTK+ default font as proportional font. */
-      font_name = pango_font_description_to_string (style->font_desc);
-      string_map_insert (&pod->window->render_opts, "prop-font", font_name);
-      g_free (font_name);
-
-      /* Derived emphasized font from proportional font. */
-      font_desc = pango_font_description_copy (style->font_desc);
-      pango_font_description_set_style (font_desc, PANGO_STYLE_ITALIC);
-      font_name = pango_font_description_to_string (font_desc);
-      string_map_insert (&pod->window->render_opts, "emph-font", font_name);
-      g_free (font_name);
-      pango_font_description_free (font_desc);
-
-      /* Pretend that the "page" has a reasonable width and a very big length,
-         so that most tables can be conveniently viewed on-screen with vertical
-         scrolling only.  (The length should not be increased very much because
-         it is already close enough to INT_MAX when expressed as thousands of a
-         point.) */
-      string_map_insert (&pod->window->render_opts, "paper-size", "300x200000mm");
-      string_map_insert (&pod->window->render_opts, "left-margin", "0");
-      string_map_insert (&pod->window->render_opts, "right-margin", "0");
-      string_map_insert (&pod->window->render_opts, "top-margin", "0");
-      string_map_insert (&pod->window->render_opts, "bottom-margin", "0");
-
-      pod->xr = xr_driver_create (cr, &pod->window->render_opts);
-
-
-      text_item = text_item_create (TEXT_ITEM_PARAGRAPH, "X");
-      r = xr_rendering_create (pod->xr, text_item_super (text_item), cr);
-      xr_rendering_measure (r, &font_width, &pod->font_height);
-      /* xr_rendering_destroy (r); */
-      text_item_unref (text_item);
-    }
-  else
-    pod->window->y += pod->font_height / 2;
-
-  r = xr_rendering_create (pod->xr, item, cr);
-  if (r == NULL)
-    goto done;
-
-  xr_rendering_measure (r, &tw, &th);
-
-  drawing_area = gtk_drawing_area_new ();
-
-  g_object_set_data (G_OBJECT (drawing_area), "rendering", r);
-  g_signal_connect (drawing_area, "realize",
-                     G_CALLBACK (on_dwgarea_realize), pod->window);
-
-  g_signal_connect (drawing_area, "expose_event",
-                     G_CALLBACK (expose_event_callback), pod->window);
-
-  gtk_widget_set_size_request (drawing_area, tw, th);
-  gtk_layout_put (pod->window->output, drawing_area, 0, pod->window->y);
-
-  gtk_widget_show (drawing_area);
-
-  if (!is_text_item (item)
-      || text_item_get_type (to_text_item (item)) != TEXT_ITEM_SYNTAX
-      || !window->in_command)
-    {
-      store = GTK_TREE_STORE (gtk_tree_view_get_model (window->overview));
-
-      ds_init_empty (&title);
-      if (is_text_item (item)
-          && text_item_get_type (to_text_item (item)) == TEXT_ITEM_COMMAND_OPEN)
-        {
-          gtk_tree_store_append (store, &iter, NULL);
-          window->cur_command = iter; /* XXX shouldn't save a GtkTreeIter */
-          window->in_command = true;
-        }
-      else
-        {
-          GtkTreeIter *p = window->in_command ? &window->cur_command : NULL;
-          gtk_tree_store_append (store, &iter, p);
-        }
-
-      ds_clear (&title);
-      if (is_text_item (item))
-        ds_put_cstr (&title, text_item_get_text (to_text_item (item)));
-      else if (is_message_item (item))
-        {
-          const struct message_item *msg_item = to_message_item (item);
-          const struct msg *msg = message_item_get_msg (msg_item);
-          ds_put_format (&title, "%s: %s", _("Message"),
-                         msg_severity_to_string (msg->severity));
-        }
-      else if (is_table_item (item))
-        {
-          const char *caption = table_item_get_caption (to_table_item (item));
-          if (caption != NULL)
-            ds_put_format (&title, "Table: %s", caption);
-          else
-            ds_put_cstr (&title, "Table");
-        }
-      else if (is_chart_item (item))
-        {
-          const char *s = chart_item_get_title (to_chart_item (item));
-          if (s != NULL)
-            ds_put_format (&title, "Chart: %s", s);
-          else
-            ds_put_cstr (&title, "Chart");
-        }
-      gtk_tree_store_set (store, &iter,
-                          COL_TITLE, ds_cstr (&title),
-			  COL_ADDR, item, 
-                          COL_Y, window->y,
-                          -1);
-      ds_destroy (&title);
-
-      path = gtk_tree_model_get_path (GTK_TREE_MODEL (store), &iter);
-      gtk_tree_view_expand_row (window->overview, path, TRUE);
-      gtk_tree_path_free (path);
-    }
-
-  if (pod->window->max_width < tw)
-    pod->window->max_width = tw;
-  pod->window->y += th;
-
-  gtk_layout_set_size (pod->window->output,
-                       pod->window->max_width, pod->window->y);
+  psppire_output_view_put (window->view, item);
 
   gtk_window_set_urgency_hint (GTK_WINDOW (pod->window), TRUE);
-
-done:
-  cairo_destroy (cr);
 }
 
 static struct output_driver_class psppire_output_class =
@@ -432,36 +198,6 @@ cancel_urgency (GtkWindow *window,  gpointer data)
   gtk_window_set_urgency_hint (window, FALSE);
 }
 
-static void
-on_row_activate (GtkTreeView *overview,
-                 GtkTreePath *path,
-                 GtkTreeViewColumn *column,
-                 PsppireOutputWindow *window)
-{
-  GtkTreeModel *model;
-  GtkTreeIter iter;
-  GtkAdjustment *vadj;
-  GValue value = {0};
-  double y, min, max;
-
-  model = gtk_tree_view_get_model (overview);
-  if (!gtk_tree_model_get_iter (model, &iter, path))
-    return;
-
-  gtk_tree_model_get_value (model, &iter, COL_Y, &value);
-  y = g_value_get_long (&value);
-  g_value_unset (&value);
-
-  vadj = gtk_layout_get_vadjustment (window->output);
-  min = vadj->lower;
-  max = vadj->upper - vadj->page_size;
-  if (y < min)
-    y = min;
-  else if (y > max)
-    y = max;
-  gtk_adjustment_set_value (vadj, y);
-}
-
 static void psppire_output_window_print (PsppireOutputWindow *window);
 
 
@@ -469,17 +205,8 @@ static void
 export_output (PsppireOutputWindow *window, struct string_map *options,
                const char *format)
 {
-  struct output_driver *driver;
-  size_t i;
-
   string_map_insert (options, "format", format);
-  driver = output_driver_create (options);
-  if (driver == NULL)
-    return;
-
-  for (i = 0; i < window->n_items; i++)
-    driver->class->submit (driver, window->items[i]);
-  output_driver_destroy (driver);
+  psppire_output_view_export (window->view, options);
 }
 
 
@@ -728,285 +455,23 @@ psppire_output_window_export (PsppireOutputWindow *window)
   gtk_widget_destroy (dialog);
 }
 
-
-enum {
-  SELECT_FMT_NULL,
-  SELECT_FMT_TEXT,
-  SELECT_FMT_UTF8,
-  SELECT_FMT_HTML,
-  SELECT_FMT_ODT
-};
-
-/* GNU Hurd doesn't have PATH_MAX.  Use a fallback.
-   Temporary directory names are usually not that long.  */
-#ifndef PATH_MAX
-# define PATH_MAX 1024
-#endif
-
-static void
-clipboard_get_cb (GtkClipboard     *clipboard,
-		  GtkSelectionData *selection_data,
-		  guint             info,
-		  gpointer          data)
-{
-  PsppireOutputWindow *window = data;
-
-  gsize length;
-  gchar *text = NULL;
-  struct output_driver *driver = NULL;
-  char dirname[PATH_MAX], *filename;
-  struct string_map options;
-
-  GtkTreeSelection *sel = gtk_tree_view_get_selection (window->overview);
-  GtkTreeModel *model = gtk_tree_view_get_model (window->overview);
-
-  GList *rows = gtk_tree_selection_get_selected_rows (sel, &model);
-  GList *n = rows;
-
-  if ( n == NULL)
-    return;
-
-  if (path_search (dirname, sizeof dirname, NULL, NULL, true)
-      || mkdtemp (dirname) == NULL)
-    {
-      msg_error (errno, _("failed to create temporary directory during clipboard operation"));
-      return;
-    }
-  filename = xasprintf ("%s/clip.tmp", dirname);
-
-  string_map_init (&options);
-  string_map_insert (&options, "output-file", filename);
-
-  switch (info)
-    {
-    case SELECT_FMT_UTF8:
-      string_map_insert (&options, "box", "unicode");
-      /* fall-through */
-
-    case SELECT_FMT_TEXT:
-      string_map_insert (&options, "format", "txt");
-      break;
-
-    case SELECT_FMT_HTML:
-      string_map_insert (&options, "format", "html");
-      string_map_insert (&options, "borders", "false");
-      string_map_insert (&options, "css", "false");
-      break;
-
-    case SELECT_FMT_ODT:
-      string_map_insert (&options, "format", "odt");
-      break;
-
-    default:
-      g_warning ("unsupported clip target\n");
-      goto finish;
-      break;
-    }
-
-  driver = output_driver_create (&options);
-  if (driver == NULL)
-    goto finish;
-
-  while (n)
-    {
-      GtkTreePath *path = n->data ; 
-      GtkTreeIter iter;
-      struct output_item *item ;
-
-      gtk_tree_model_get_iter (model, &iter, path);
-      gtk_tree_model_get (model, &iter, COL_ADDR, &item, -1);
-
-      driver->class->submit (driver, item);
-
-      n = n->next;
-    }
-
-  if ( driver->class->flush)
-    driver->class->flush (driver);
-
-
-  /* Some drivers (eg: the odt one) don't write anything until they
-     are closed */
-  output_driver_destroy (driver);
-  driver = NULL;
-
-  if ( g_file_get_contents (filename, &text, &length, NULL) )
-    {
-      gtk_selection_data_set (selection_data, selection_data->target,
-			      8,
-			      (const guchar *) text, length);
-    }
-
- finish:
-
-  if (driver != NULL)
-    output_driver_destroy (driver);
-
-  g_free (text);
-
-  unlink (filename);
-  free (filename);
-  rmdir (dirname);
-
-  g_list_free (rows);
-}
-
-static void
-clipboard_clear_cb (GtkClipboard *clipboard,
-		    gpointer data)
-{
-}
-
-static const GtkTargetEntry targets[] = {
-
-  { "STRING",        0, SELECT_FMT_TEXT },
-  { "TEXT",          0, SELECT_FMT_TEXT },
-  { "COMPOUND_TEXT", 0, SELECT_FMT_TEXT },
-  { "text/plain",    0, SELECT_FMT_TEXT },
-
-  { "UTF8_STRING",   0, SELECT_FMT_UTF8 },
-  { "text/plain;charset=utf-8", 0, SELECT_FMT_UTF8 },
-
-  { "text/html",     0, SELECT_FMT_HTML },
-
-  { "application/vnd.oasis.opendocument.text", 0, SELECT_FMT_ODT }
-};
-
-static void
-on_copy (PsppireOutputWindow *window)
-{
-  {
-    GtkClipboard *clipboard =
-      gtk_widget_get_clipboard (GTK_WIDGET (window),
-				GDK_SELECTION_CLIPBOARD);
-
-    if (!gtk_clipboard_set_with_data (clipboard, targets,
-				       G_N_ELEMENTS (targets),
-				       clipboard_get_cb, clipboard_clear_cb,
-				      window))
-
-      clipboard_clear_cb (clipboard, window);
-  }
-}
-
-static void
-on_selection_change (GtkTreeSelection *sel, GtkAction *copy_action)
-{
-  /* The Copy action is available only if there is something selected */
-  gtk_action_set_sensitive (copy_action, gtk_tree_selection_count_selected_rows (sel) > 0);
-}
-
-static void
-on_select_all (PsppireOutputWindow *window)
-{
-  GtkTreeSelection *sel = gtk_tree_view_get_selection (window->overview);
-  gtk_tree_view_expand_all (window->overview);
-  gtk_tree_selection_select_all (sel);
-}
-
-
-static void
-copy_base_to_bg (GtkWidget *dest, GtkWidget *src)
-{
-  int i;
-  for (i = 0; i < 5; ++i)
-    {
-      GdkColor *col = &gtk_widget_get_style (src)->base[i];
-      gtk_widget_modify_bg (dest, i, col);
-
-      col = &gtk_widget_get_style (src)->text[i];
-      gtk_widget_modify_fg (dest, i, col);
-    }
-}
-
-static void 
-on_dwgarea_realize (GtkWidget *dwg_area, gpointer data)
-{
-  GtkWidget *window = GTK_WIDGET (data);
-
-  copy_base_to_bg (dwg_area, window);
-}
-
-
-static void
-psppire_output_window_style_set (GtkWidget *w, GtkStyle *prev)
-{
-  GtkWidget *op = GTK_WIDGET (PSPPIRE_OUTPUT_WINDOW (w)->output);
-
-  /* Copy the base style from the parent widget to the container and 
-     all its children.
-     We do this, because the container's primary purpose is to 
-     display text.  This way psppire appears to follow the chosen
-     gnome theme.
-   */
-  copy_base_to_bg (op, w);
-  gtk_container_foreach (GTK_CONTAINER (op), (GtkCallback) copy_base_to_bg,
-			 PSPPIRE_OUTPUT_WINDOW (w)->output);
-
-    /* Chain up to the parent class */
-  GTK_WIDGET_CLASS (parent_class)->style_set (w, prev);
-}
-
 static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
-  GtkTreeViewColumn *column;
-  GtkCellRenderer *renderer;
   GtkBuilder *xml;
-  GtkAction *copy_action;
-  GtkAction *select_all_action;
-  GtkTreeSelection *sel;
-  GtkTreeModel *model;
-
-  string_map_init (&window->render_opts);
 
   xml = builder_new ("output-window.ui");
 
-  copy_action = get_action_assert (xml, "edit_copy");
-  select_all_action = get_action_assert (xml, "edit_select-all");
-
-  gtk_action_set_sensitive (copy_action, FALSE);
-
-  g_signal_connect_swapped (copy_action, "activate", G_CALLBACK (on_copy), window);
-
-  g_signal_connect_swapped (select_all_action, "activate", G_CALLBACK (on_select_all), window);
-
   gtk_widget_reparent (get_widget_assert (xml, "vbox1"), GTK_WIDGET (window));
 
-  window->output = GTK_LAYOUT (get_widget_assert (xml, "output"));
-  window->y = 0;
-  window->print_settings = NULL;
   window->dispose_has_run = FALSE;
 
-  window->overview = GTK_TREE_VIEW (get_widget_assert (xml, "overview"));
+  window->view = psppire_output_view_new (
+    GTK_LAYOUT (get_widget_assert (xml, "output")),
+    GTK_TREE_VIEW (get_widget_assert (xml, "overview")),
+    get_action_assert (xml, "edit_copy"),
+    get_action_assert (xml, "edit_select-all"));
 
-  sel = gtk_tree_view_get_selection (window->overview);
-
-  gtk_tree_selection_set_mode (sel, GTK_SELECTION_MULTIPLE);
-
-  g_signal_connect (sel, "changed", G_CALLBACK (on_selection_change), copy_action);
-
-  model = GTK_TREE_MODEL (gtk_tree_store_new (
-                                             N_COLS,
-                                             G_TYPE_STRING,  /* COL_TITLE */
-					     G_TYPE_POINTER, /* COL_ADDR */
-                                             G_TYPE_LONG));  /* COL_Y */
-  gtk_tree_view_set_model (window->overview, model);
-  g_object_unref (model);
-
-  window->in_command = false;
-
-  window->items = NULL;
-  window->n_items = window->allocated_items = 0;
-
-  column = gtk_tree_view_column_new ();
-  gtk_tree_view_append_column (GTK_TREE_VIEW (window->overview), column);
-  renderer = gtk_cell_renderer_text_new ();
-  gtk_tree_view_column_pack_start (column, renderer, TRUE);
-  gtk_tree_view_column_add_attribute (column, renderer, "text", COL_TITLE);
-
-  g_signal_connect (GTK_TREE_VIEW (window->overview),
-                    "row-activated", G_CALLBACK (on_row_activate), window);
 
   connect_help (xml);
 
@@ -1052,156 +517,8 @@ psppire_output_window_new (void)
 				   NULL));
 }
 
-
-
-static cairo_t *
-get_cairo_context_from_print_context (GtkPrintContext *context)
-{
-  cairo_t *cr = gtk_print_context_get_cairo_context (context);
-  
-  /*
-    For all platforms except windows, gtk_print_context_get_dpi_[xy] returns 72.
-    Windows returns 600.
-  */
-  double xres = gtk_print_context_get_dpi_x (context);
-  double yres = gtk_print_context_get_dpi_y (context);
-  
-  /* This means that the cairo context now has its dimensions in Points */
-  cairo_scale (cr, xres / 72.0, yres / 72.0);
-  
-  return cr;
-}
-
-
-static void
-create_xr_print_driver (GtkPrintContext *context, PsppireOutputWindow *window)
-{
-  struct string_map options;
-  GtkPageSetup *page_setup;
-  double width, height;
-  double left_margin;
-  double right_margin;
-  double top_margin;
-  double bottom_margin;
-
-  page_setup = gtk_print_context_get_page_setup (context);
-  width = gtk_page_setup_get_paper_width (page_setup, GTK_UNIT_MM);
-  height = gtk_page_setup_get_paper_height (page_setup, GTK_UNIT_MM);
-  left_margin = gtk_page_setup_get_left_margin (page_setup, GTK_UNIT_MM);
-  right_margin = gtk_page_setup_get_right_margin (page_setup, GTK_UNIT_MM);
-  top_margin = gtk_page_setup_get_top_margin (page_setup, GTK_UNIT_MM);
-  bottom_margin = gtk_page_setup_get_bottom_margin (page_setup, GTK_UNIT_MM);
-
-  string_map_init (&options);
-  string_map_insert_nocopy (&options, xstrdup ("paper-size"),
-                            c_xasprintf("%.2fx%.2fmm", width, height));
-  string_map_insert_nocopy (&options, xstrdup ("left-margin"),
-                            c_xasprintf ("%.2fmm", left_margin));
-  string_map_insert_nocopy (&options, xstrdup ("right-margin"),
-                            c_xasprintf ("%.2fmm", right_margin));
-  string_map_insert_nocopy (&options, xstrdup ("top-margin"),
-                            c_xasprintf ("%.2fmm", top_margin));
-  string_map_insert_nocopy (&options, xstrdup ("bottom-margin"),
-                            c_xasprintf ("%.2fmm", bottom_margin));
-
-  window->print_xrd = xr_driver_create (get_cairo_context_from_print_context (context), &options);
-
-  string_map_destroy (&options);
-}
-
-static gboolean
-paginate (GtkPrintOperation *operation,
-	  GtkPrintContext   *context,
-	  PsppireOutputWindow *window)
-{
-  if (window->paginated)
-    {
-      /* Sometimes GTK+ emits this signal again even after pagination is
-         complete.  Don't let that screw up printing. */
-      return TRUE;
-    }
-  else if ( window->print_item < window->n_items )
-    {
-      xr_driver_output_item (window->print_xrd, window->items[window->print_item++]);
-      while (xr_driver_need_new_page (window->print_xrd))
-	{
-	  xr_driver_next_page (window->print_xrd, NULL);
-	  window->print_n_pages ++;
-	}
-      return FALSE;
-    }
-  else
-    {
-      gtk_print_operation_set_n_pages (operation, window->print_n_pages);
-
-      /* Re-create the driver to do the real printing. */
-      xr_driver_destroy (window->print_xrd);
-      create_xr_print_driver (context, window);
-      window->print_item = 0;
-      window->paginated = TRUE;
-
-      return TRUE;
-    }
-}
-
-static void
-begin_print (GtkPrintOperation *operation,
-	     GtkPrintContext   *context,
-	     PsppireOutputWindow *window)
-{
-  create_xr_print_driver (context, window);
-
-  window->print_item = 0;
-  window->print_n_pages = 1;
-  window->paginated = FALSE;
-}
-
-static void
-end_print (GtkPrintOperation *operation,
-	   GtkPrintContext   *context,
-	   PsppireOutputWindow *window)
-{
-  xr_driver_destroy (window->print_xrd);
-}
-
-
-static void
-draw_page (GtkPrintOperation *operation,
-	   GtkPrintContext   *context,
-	   gint               page_number,
-	   PsppireOutputWindow *window)
-{
-  xr_driver_next_page (window->print_xrd, get_cairo_context_from_print_context (context));
-  while (!xr_driver_need_new_page (window->print_xrd)
-         && window->print_item < window->n_items)
-    xr_driver_output_item (window->print_xrd, window->items [window->print_item++]);
-}
-
-
 static void
 psppire_output_window_print (PsppireOutputWindow *window)
 {
-  GtkPrintOperationResult res;
-
-  GtkPrintOperation *print = gtk_print_operation_new ();
-
-  if (window->print_settings != NULL) 
-    gtk_print_operation_set_print_settings (print, window->print_settings);
-
-  g_signal_connect (print, "begin_print", G_CALLBACK (begin_print), window);
-  g_signal_connect (print, "end_print",   G_CALLBACK (end_print),   window);
-  g_signal_connect (print, "paginate",    G_CALLBACK (paginate),    window);
-  g_signal_connect (print, "draw_page",   G_CALLBACK (draw_page),   window);
-
-  res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
-                                 GTK_WINDOW (window), NULL);
-
-  if (res == GTK_PRINT_OPERATION_RESULT_APPLY)
-    {
-      if (window->print_settings != NULL)
-        g_object_unref (window->print_settings);
-      window->print_settings = g_object_ref (gtk_print_operation_get_print_settings (print));
-    }
-
-  g_object_unref (print);
+  psppire_output_view_print (window->view, GTK_WINDOW (window));
 }

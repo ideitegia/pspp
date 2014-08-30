@@ -253,6 +253,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-lex-reader.h \
 	src/ui/gui/psppire-means-layer.c \
 	src/ui/gui/psppire-means-layer.h \
+	src/ui/gui/psppire-output-view.c \
+	src/ui/gui/psppire-output-view.h \
 	src/ui/gui/psppire-output-window.c \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-var-view.c \

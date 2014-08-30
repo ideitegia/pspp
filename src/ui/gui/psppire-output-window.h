@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation
+   Copyright (C) 2008, 2009, 2010, 2011, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,24 +49,7 @@ struct _PsppireOutputWindow
 
   /* <private> */
   struct psppire_output_driver *driver;
-  GtkLayout *output;
-  int max_width;
-  int y;
-
-  struct string_map render_opts;
-  GtkTreeView *overview;
-  GtkTreeIter cur_command;
-  bool in_command;
-
-  struct output_item **items;
-  size_t n_items, allocated_items;
-
-  /* Variables pertaining to printing */
-  GtkPrintSettings *print_settings;
-  struct xr_driver *print_xrd;
-  int print_item;
-  int print_n_pages;
-  gboolean paginated;
+  struct psppire_output_view *view;
 
   gboolean dispose_has_run;
 };
