@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2009, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2007, 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
 
    This program is free software: you can redistribute it and/or modify
@@ -26,11 +26,14 @@
 #include "data/value-labels.h"
 #include "data/variable.h"
 #include "libpspp/i18n.h"
+#include "output/driver.h"
 #include "ui/gui/builder-wrapper.h"
+#include "ui/gui/executor.h"
 #include "ui/gui/helper.h"
 #include "ui/gui/psppire-data-window.h"
 #include "ui/gui/psppire-dialog.h"
 #include "ui/gui/psppire-dictview.h"
+#include "ui/gui/psppire-output-view.h"
 #include "ui/gui/var-display.h"
 
 static void psppire_dialog_action_var_info_init            (PsppireDialogActionVarInfo      *act);
@@ -41,21 +44,6 @@ G_DEFINE_TYPE (PsppireDialogActionVarInfo, psppire_dialog_action_var_info, PSPPI
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-
-static const gchar none[] = N_("None");
-
-
-static const gchar *
-label_to_string (const struct variable *var)
-{
-  const char *label = var_get_label (var);
-
-  if (NULL == label) return g_strdup (none);
-
-  return label;
-}
-
 
 static gboolean
 treeview_item_selected (gpointer data)
@@ -68,8 +56,7 @@ treeview_item_selected (gpointer data)
 }
 
 static gchar *
-generate_syntax (PsppireDialogAction *act)
-
+generate_syntax__ (PsppireDialogAction *act, const char *prefix)
 {
   struct variable **vars;
   size_t n_vars;
@@ -81,7 +68,7 @@ generate_syntax (PsppireDialogAction *act)
   psppire_dict_view_get_selected_variables (PSPPIRE_DICT_VIEW (act->source),
                                             &vars, &n_vars);
 
-  s = g_string_new ("");
+  s = g_string_new (prefix);
   line_len = 0;
   for (i = 0; i < n_vars; i++)
     {
@@ -113,92 +100,43 @@ generate_syntax (PsppireDialogAction *act)
   return str;
 }
 
-static void
-populate_text_var (GString *gstring, const struct variable *var)
+static gchar *
+generate_syntax (PsppireDialogAction *act)
 {
-  gchar *text = NULL;
-
-  g_string_append (gstring, var_get_name (var));
-  g_string_append (gstring, "\n");
-
-
-  g_string_append_printf (gstring, _("Label: %s\n"), label_to_string (var));
-  {
-    const struct fmt_spec *fmt = var_get_print_format (var);
-    char buffer[FMT_STRING_LEN_MAX + 1];
-
-    fmt_to_string (fmt, buffer);
-    /* No conversion necessary.  buffer will always be ascii */
-    g_string_append_printf (gstring, _("Type: %s\n"), buffer);
-  }
-
-  text = missing_values_to_string (var, NULL);
-  g_string_append_printf (gstring, _("Missing Values: %s\n"),
-			  text);
-  g_free (text);
-
-  g_string_append_printf (gstring, _("Measurement Level: %s\n"),
-			  measure_to_string (var_get_measure (var)));
-
-
-  /* Value Labels */
-  if ( var_has_value_labels (var))
-    {
-      const struct val_labs *vls = var_get_value_labels (var);
-      const struct val_lab **labels;
-      size_t n_labels;
-      size_t i;
-
-      g_string_append (gstring, "\n");
-      g_string_append (gstring, _("Value Labels:\n"));
-
-      labels = val_labs_sorted (vls);
-      n_labels = val_labs_count (vls);
-      for (i = 0; i < n_labels; i++)
-        {
-          const struct val_lab *vl = labels[i];
-	  gchar *const vstr  = value_to_text (vl->value,  var);
-
-	  g_string_append_printf (gstring, _("%s %s\n"),
-                                  vstr, val_lab_get_escaped_label (vl));
-
-	  g_free (vstr);
-	}
-      free (labels);
-    }
+  return generate_syntax__ (act, "");
 }
-
-
+
 static void
-populate_text (GtkTreeSelection *selection, gpointer data)
+populate_output (GtkTreeSelection *selection, gpointer data)
 {
+  PsppireDialogActionVarInfo *act = data;
   GtkTreeView *treeview = gtk_tree_selection_get_tree_view (selection);
-  GString *gstring;
   PsppireDict *dict;
   size_t n_vars;
-  size_t i;
 
-  GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (data));
   struct variable **vars;
 
   g_object_get (treeview, "model", &dict,
 		NULL);
 
-  gstring = g_string_sized_new (200);
-
   psppire_dict_view_get_selected_variables (PSPPIRE_DICT_VIEW (treeview),
                                             &vars, &n_vars);
-  for (i = 0; i < n_vars; i++)
+
+  if (n_vars > 0)
     {
-      if (i > 0)
-        g_string_append_c (gstring, '\n');
-      populate_text_var (gstring, vars[i]);
+      PsppireDataWindow *dw;
+
+      g_object_get (act, "top-level", &dw, NULL);
+
+      psppire_output_view_clear (act->output);
+
+      output_engine_push ();
+      psppire_output_view_register_driver (act->output);
+      g_free (execute_syntax_string (
+                dw, generate_syntax__ (&act->parent,
+                                       "DISPLAY DICTIONARY /VARIABLES=")));
+      output_engine_pop ();
     }
-  g_free (vars);
-
-  gtk_text_buffer_set_text (textbuffer, gstring->str, gstring->len);
-
-  g_string_free (gstring, TRUE);
 }
 
 
@@ -229,9 +167,11 @@ static void
 psppire_dialog_action_var_info_activate (GtkAction *a)
 {
   PsppireDialogAction *pda = PSPPIRE_DIALOG_ACTION (a);
+  PsppireDialogActionVarInfo *act = PSPPIRE_DIALOG_ACTION_VAR_INFO (pda);
 
   GtkBuilder *xml = builder_new ("variable-info.ui");
-  GtkWidget *textview = get_widget_assert (xml, "textview1");  
+  act->output = psppire_output_view_new (
+    GTK_LAYOUT (get_widget_assert (xml, "layout1")), NULL, NULL, NULL);
 
   pda->dialog = get_widget_assert (xml, "variable-info-dialog");
   pda->source = get_widget_assert (xml, "treeview2");
@@ -241,8 +181,8 @@ psppire_dialog_action_var_info_activate (GtkAction *a)
 		NULL);
 
   g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (pda->source)),
-                    "changed", G_CALLBACK (populate_text),
-		    textview);
+                    "changed", G_CALLBACK (populate_output),
+		    act);
 
 
   g_signal_connect (pda->dialog, "response", G_CALLBACK (jump_to),

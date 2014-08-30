@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2012  Free Software Foundation
+   Copyright (C) 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -60,8 +60,8 @@ struct _PsppireDialogActionVarInfo
   /*< private >*/
   gboolean dispose_has_run ;
 
-  /* Treeview containing the selected variables */
-  GtkWidget *variables;
+  GtkWidget *variables;               /* Treeview of selected variables. */
+  struct psppire_output_view *output; /* Manages output layout. */
 };
 
 
