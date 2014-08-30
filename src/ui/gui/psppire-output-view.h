@@ -27,6 +27,7 @@ struct psppire_output_view *psppire_output_view_new (GtkLayout *output,
                                                      GtkTreeView *overview,
                                                      GtkAction *copy_action,
                                                      GtkAction *select_all_action);
+void psppire_output_view_clear (struct psppire_output_view *);
 void psppire_output_view_destroy (struct psppire_output_view *);
 
 void psppire_output_view_put (struct psppire_output_view *,
@@ -36,5 +37,7 @@ void psppire_output_view_export (struct psppire_output_view *,
                                  struct string_map *options);
 void psppire_output_view_print (struct psppire_output_view *,
                                 GtkWindow *parent_window);
+
+void psppire_output_view_register_driver (struct psppire_output_view *);
 
 #endif /* psppire-output-view.h */

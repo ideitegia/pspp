@@ -699,6 +699,25 @@ psppire_output_view_destroy (struct psppire_output_view *view)
 
   free (view);
 }
+
+void
+psppire_output_view_clear (struct psppire_output_view *view)
+{
+  size_t i;
+
+  view->max_width = 0;
+  view->y = 0;
+
+  for (i = 0; i < view->n_items; i++)
+    {
+      gtk_container_remove (GTK_CONTAINER (view->output),
+                            view->items[i].drawing_area);
+      output_item_unref (view->items[i].item);
+    }
+  free (view->items);
+  view->items = NULL;
+  view->n_items = view->allocated_items = 0;
+}
 
 /* Export. */
 
@@ -873,4 +892,48 @@ psppire_output_view_print (struct psppire_output_view *view,
     }
 
   g_object_unref (print);
+}
+
+struct psppire_output_view_driver
+  {
+    struct output_driver driver;
+    struct psppire_output_view *view;
+  };
+
+static struct psppire_output_view_driver *
+psppire_output_view_driver_cast (struct output_driver *driver)
+{
+  return UP_CAST (driver, struct psppire_output_view_driver, driver);
+}
+
+static void
+psppire_output_view_submit (struct output_driver *this,
+                            const struct output_item *item)
+{
+  struct psppire_output_view_driver *povd = psppire_output_view_driver_cast (this);
+
+  if (is_table_item (item))
+    psppire_output_view_put (povd->view, item);
+}
+
+static struct output_driver_class psppire_output_view_driver_class =
+  {
+    "PSPPIRE Output View",      /* name */
+    NULL,                       /* destroy */
+    psppire_output_view_submit, /* submit */
+    NULL,                       /* flush */
+  };
+
+void
+psppire_output_view_register_driver (struct psppire_output_view *view)
+{
+  struct psppire_output_view_driver *povd;
+  struct output_driver *d;
+
+  povd = xzalloc (sizeof *povd);
+  povd->view = view;
+  d = &povd->driver;
+  output_driver_init (d, &psppire_output_view_driver_class, "PSPPIRE Output View",
+                      SETTINGS_DEVICE_UNFILTERED);
+  output_driver_register (d);
 }
