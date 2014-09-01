@@ -52,7 +52,7 @@ treeview_item_selected (gpointer data)
   GtkTreeView *tv = GTK_TREE_VIEW (pda->source);
   GtkTreeSelection *selection = gtk_tree_view_get_selection (tv);
 
-  return gtk_tree_selection_count_selected_rows (selection) > 0;
+  return gtk_tree_selection_count_selected_rows (selection) == 1;
 }
 
 static gchar *
