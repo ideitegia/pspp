@@ -421,8 +421,8 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
   if (caption != NULL)
     {
       xmlTextWriterStartElement (odt->content_wtr, _xml("text:h"));
-      xmlTextWriterWriteFormatAttribute (odt->content_wtr, _xml("text:level"),
-                                         "%d", 2);
+      xmlTextWriterWriteFormatAttribute (odt->content_wtr,
+                                         _xml("text:outline-level"), "%d", 2);
       xmlTextWriterWriteString (odt->content_wtr,
                                 _xml (table_item_get_caption (item)) );
       xmlTextWriterEndElement (odt->content_wtr);
