@@ -68,7 +68,7 @@ static void html_output_table (struct html_driver *, const struct table *,
                                const char *caption);
 static void escape_string (FILE *file,
                            const char *text, size_t length,
-                           const char *space);
+                           const char *space, const char *newline);
 static void print_title_tag (FILE *file, const char *name,
                              const char *content);
 
@@ -201,7 +201,7 @@ print_title_tag (FILE *file, const char *name, const char *content)
   if (content != NULL)
     {
       fprintf (file, "<%s>", name);
-      escape_string (file, content, strlen (content), " ");
+      escape_string (file, content, strlen (content), " ", " - ");
       fprintf (file, "</%s>\n", name);
     }
 }
@@ -276,7 +276,7 @@ html_submit (struct output_driver *driver,
 
         case TEXT_ITEM_COMMAND_OPEN:
           fprintf (html->file, "<DIV class=\"");
-          escape_string (html->file, s, strlen (s), "_");
+          escape_string (html->file, s, strlen (s), "_", "<BR>");
           fprintf (html->file, "\">");
           print_title_tag (html->file, "H3", s);
           break;
@@ -291,7 +291,7 @@ html_submit (struct output_driver *driver,
 
         case TEXT_ITEM_SYNTAX:
           fprintf (html->file, "<PRE class=\"syntax\">");
-          escape_string (html->file, s, strlen (s), " ");
+          escape_string (html->file, s, strlen (s), " ", "<BR>");
           fprintf (html->file, "</PRE>\n");
           break;
 
@@ -327,19 +327,23 @@ html_submit (struct output_driver *driver,
     }
 }
 
-/* Write LENGTH characters in TEXT to file F, escaping characters
-   as necessary for HTML.  Spaces are replaced by SPACE, which
-   should be " " or "&nbsp;". */
+/* Write LENGTH characters in TEXT to file F, escaping characters as necessary
+   for HTML.  Spaces are replaced by SPACE, which should be " " or "&nbsp;"
+   New-lines are replaced by NEWLINE, which might be "<BR>" or "\n" or
+   something else appropriate. */
 static void
 escape_string (FILE *file,
                const char *text, size_t length,
-               const char *space)
+               const char *space, const char *newline)
 {
   while (length-- > 0)
     {
       char c = *text++;
       switch (c)
         {
+        case '\n':
+          fputs (newline, file);
+          break;
         case '&':
           fputs ("&amp;", file);
           break;
@@ -382,7 +386,7 @@ html_output_table (struct html_driver *html,
   if (caption != NULL)
     {
       fputs ("  <CAPTION>", html->file);
-      escape_string (html->file, caption, strlen (caption), " ");
+      escape_string (html->file, caption, strlen (caption), " ", "<BR>");
       fputs ("</CAPTION>\n", html->file);
     }
 
@@ -470,13 +474,13 @@ html_output_table (struct html_driver *html,
                   if (c->options & TAB_FIX)
                     {
                       fputs ("<TT>", html->file);
-                      escape_string (html->file, s, strlen (s), "&nbsp;");
+                      escape_string (html->file, s, strlen (s), "&nbsp;", "<BR>");
                       fputs ("</TT>", html->file);
                     }
                   else
                     {
                       s += strspn (s, CC_SPACES);
-                      escape_string (html->file, s, strlen (s), " ");
+                      escape_string (html->file, s, strlen (s), " ", "<BR>");
                     }
                   if (c->options & TAB_EMPH)
                     fputs ("</EM>", html->file);
