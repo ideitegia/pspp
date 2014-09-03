@@ -377,7 +377,7 @@ html_output_table (struct html_driver *html,
 {
   int x, y;
 
-  fputs ("<TABLE>\n", html->file);
+  fputs ("<TABLE><TBODY VALIGN=\"TOP\">\n", html->file);
 
   if (caption != NULL)
     {
@@ -493,7 +493,7 @@ html_output_table (struct html_driver *html,
       fputs ("  </TR>\n", html->file);
     }
 
-  fputs ("</TABLE>\n\n", html->file);
+  fputs ("</TBODY></TABLE>\n\n", html->file);
 }
 
 struct output_driver_factory html_driver_factory =
