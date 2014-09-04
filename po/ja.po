@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: pspp 0.8.1.1\n"
+"Project-Id-Version: pspp 0.8.2.1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2013-11-09 17:02-0800\n"
-"PO-Revision-Date: 2013-11-17 13:40+0900\n"
+"POT-Creation-Date: 2014-04-03 23:15-0700\n"
+"PO-Revision-Date: 2014-09-03 20:26+0900\n"
 "Last-Translator: Tetsuya Suga <t-suga@users.sourceforge.net>\n"
 "Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
 "Language: ja\n"
@@ -26,37 +26,49 @@ msgstr "ヘルプシステムはまだ実装されていません．"
 msgid "Continue"
 msgstr "続く"
 
-#: src/ui/gui/psppire-dictview.c:486 src/language/dictionary/split-file.c:82
-#: src/language/dictionary/sys-file-info.c:166
-#: src/language/dictionary/sys-file-info.c:350
-#: src/language/dictionary/sys-file-info.c:672
-#: src/language/stats/descriptives.c:982
+#: src/ui/gui/psppire-dictview.c:545 src/language/dictionary/split-file.c:82
+#: src/language/dictionary/sys-file-info.c:217
+#: src/language/dictionary/sys-file-info.c:406
+#: src/language/dictionary/sys-file-info.c:734
+#: src/language/stats/descriptives.c:1018
 #: src/language/data-io/data-parser.c:682
 #: src/language/data-io/data-parser.c:721 src/language/data-io/print.c:446
 #: src/ui/gui/psppire-var-sheet.c:1242
 msgid "Variable"
 msgstr "変数"
 
-#: src/ui/gui/psppire-dictview.c:523
+#: src/ui/gui/psppire-dictview.c:583
 msgid "Prefer variable labels"
 msgstr "変数ラベルの使用"
+
+#: src/ui/gui/psppire-dictview.c:596
+msgid "Unsorted (dictionary order)"
+msgstr "未ソート（辞書順）"
+
+#: src/ui/gui/psppire-dictview.c:602
+msgid "Sort by name"
+msgstr "名前による並び替え"
+
+#: src/ui/gui/psppire-dictview.c:607
+msgid "Sort by label"
+msgstr "ラベルによる並び替え"
 
 #: src/ui/gui/psppire-var-view.c:189
 #, c-format
 msgid "Var%d"
-msgstr "変数%d"
+msgstr "Var%d"
 
-#: src/data/any-reader.c:60
+#: src/data/any-reader.c:52 src/data/sys-file-encryption.c:74
 #, c-format
 msgid "An error occurred while opening `%s': %s."
 msgstr "`%s' を開くときにエラーが発生しました: %s．"
 
-#: src/data/any-reader.c:111
+#: src/data/any-reader.c:115
 #, c-format
 msgid "`%s' is not a system or portable file."
 msgstr "`%s' はシステムファイルまたはポータブルファイルではありません．"
 
-#: src/data/any-reader.c:117 src/data/any-writer.c:67
+#: src/data/any-reader.c:121 src/data/any-writer.c:67
 msgid "The inline file is not allowed here."
 msgstr "ここではインラインファイルは使えません．"
 
@@ -90,7 +102,7 @@ msgstr "コンマ区切りデータ(CSV)ファイル"
 msgid "Error opening `%s' for writing as a system file: %s."
 msgstr "システムファイルとして書き込むために開く `%s' でエラー: %s. "
 
-#: src/data/csv-file-writer.c:460
+#: src/data/csv-file-writer.c:466
 #, c-format
 msgid "An I/O error occurred writing CSV file `%s'."
 msgstr "CSVファイル `%s' の書き込み中にエラーが発生しました．"
@@ -208,12 +220,12 @@ msgstr "曜日が識別不能．英語の少なくとも最初の2文字で指�
 msgid "`%c' expected in date field."
 msgstr "日付フィールドには `%c' が必要です．"
 
-#: src/data/data-out.c:566
+#: src/data/data-out.c:574
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
 msgstr "曜日(%f)が1から7の範囲外です．"
 
-#: src/data/data-out.c:591
+#: src/data/data-out.c:599
 #, c-format
 msgid "Month number %f is not between 1 and 12."
 msgstr "月(%f)が1から12の範囲外です．"
@@ -271,8 +283,8 @@ msgstr "%s を %s として再オープンできません．"
 
 #: src/data/file-name.c:173
 #, c-format
-msgid "Not opening pipe file `%s' because SAFER option set."
-msgstr "SAFERオプションが設定されているためパイプファイル %s が開けません．"
+msgid "Not opening pipe file `%s' because %s option set."
+msgstr "パイプファイル %s が開けません．%s オプションが指定されています．"
 
 #: src/data/format.c:329
 msgid "Input format"
@@ -330,8 +342,8 @@ msgstr "文字列"
 msgid "Numeric"
 msgstr "数値"
 
-#: src/data/format.c:416 src/data/sys-file-reader.c:1825
-#: src/data/sys-file-reader.c:1827 src/language/xforms/recode.c:512
+#: src/data/format.c:416 src/data/sys-file-reader.c:2173
+#: src/data/sys-file-reader.c:2175 src/language/xforms/recode.c:512
 #: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
 #: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
@@ -339,8 +351,8 @@ msgstr "数値"
 msgid "numeric"
 msgstr "数値"
 
-#: src/data/format.c:416 src/data/sys-file-reader.c:1825
-#: src/data/sys-file-reader.c:1827 src/language/xforms/recode.c:512
+#: src/data/format.c:416 src/data/sys-file-reader.c:2173
+#: src/data/sys-file-reader.c:2175 src/language/xforms/recode.c:512
 #: src/language/xforms/recode.c:513 src/language/xforms/recode.c:525
 #: src/language/xforms/recode.c:526
 #: src/language/dictionary/apply-dictionary.c:77
@@ -596,7 +608,7 @@ msgstr "不正な変数幅 %d."
 msgid "Invalid variable name `%s' in position %d."
 msgstr "不正な変数名 `%s'(出現位置 %d)．"
 
-#: src/data/por-file-reader.c:698 src/data/sys-file-reader.c:1089
+#: src/data/por-file-reader.c:698 src/data/sys-file-reader.c:1417
 #, c-format
 msgid "Bad width %d for variable %s."
 msgstr "不正な横幅 %d(変数 %s)．"
@@ -683,490 +695,564 @@ msgstr "警告は再び有効になりました．シンタックス処理を中
 msgid "%s: Custom currency string `%s' does not contain exactly three periods or commas (or it contains both)."
 msgstr "%s: カスタム通貨文字列 `%s'  には3つのピリオドかコンマがきっちりとありません(または両方が含まれています)．"
 
+#: src/data/sys-file-encryption.c:85
+#, c-format
+msgid "An error occurred while reading `%s': %s."
+msgstr "`%s' を読み込み中にエラーが発生しました: %s．"
+
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
-#: src/data/sys-file-reader.c:399 src/data/sys-file-writer.c:246
+#: src/data/sys-file-reader.c:395 src/data/sys-file-writer.c:246
 msgid "system file"
 msgstr "システムファイル"
 
-#: src/data/sys-file-reader.c:406
+#: src/data/sys-file-reader.c:402
 #, c-format
 msgid "Error opening `%s' for reading as a system file: %s."
 msgstr "システムファイルとして読み込む `%s' を開くときにエラー: %s."
 
-#: src/data/sys-file-reader.c:458
+#: src/data/sys-file-reader.c:477
 msgid "Misplaced type 4 record."
 msgstr "誤配置されたタイプ4レコード"
 
-#: src/data/sys-file-reader.c:462
+#: src/data/sys-file-reader.c:483
 msgid "Duplicate type 6 (document) record."
 msgstr "重複したタイプ6(ドキュメント)レコード"
 
-#: src/data/sys-file-reader.c:471 src/data/sys-file-reader.c:1010
+#: src/data/sys-file-reader.c:496 src/data/sys-file-reader.c:1335
 #, c-format
 msgid "Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s."
 msgstr "認識できないレコード：タイプ7，サブタイプ %d．このファイルのコピーと作成したシンタックスを %s に送って下さい．"
 
-#: src/data/sys-file-reader.c:480
+#: src/data/sys-file-reader.c:505
 #, c-format
 msgid "Record type 7, subtype %d found here has the same type as the record found near offset 0x%llx.  Please send a copy of this file, and the syntax which created it to %s."
 msgstr "ここで見つかったレコードタイプ7，サブタイプ %d は，オフセット 0X%llx の近くで見つかったレコードと同じ型を持っています。このファイルのコピーおよびそれを作成したシンタックスを %s へ送ってください．"
 
-#: src/data/sys-file-reader.c:493
+#: src/data/sys-file-reader.c:517
 #, c-format
 msgid "Unrecognized record type %d."
 msgstr "不明なレコードタイプ %d."
 
-#: src/data/sys-file-reader.c:546
+#: src/data/sys-file-reader.c:650
 #, c-format
-msgid "Weighting variable must be numeric (not string variable `%s')."
-msgstr "重み付け変数は数値型でなければなりません(文字列型変数 %s は無効．)"
+msgid "Variable %zu"
+msgstr "変数 %zu"
 
-#: src/data/sys-file-reader.c:588
+#: src/data/sys-file-reader.c:658
+#, c-format
+msgid "Variable %zu Label"
+msgstr "変数 %zu ラベル"
+
+#: src/data/sys-file-reader.c:666
+#, c-format
+msgid "Value Label %zu"
+msgstr "値ラベル %zu"
+
+#: src/data/sys-file-reader.c:668
+msgid "Creation Date"
+msgstr "作成日"
+
+#: src/data/sys-file-reader.c:669
+msgid "Creation Time"
+msgstr "作成時刻"
+
+#: src/data/sys-file-reader.c:670
+msgid "Product"
+msgstr "プロダクト"
+
+#: src/data/sys-file-reader.c:671
+msgid "File Label"
+msgstr "ファイルラベル"
+
+#: src/data/sys-file-reader.c:675
+msgid "Extra Product Info"
+msgstr "追加製品情報"
+
+#: src/data/sys-file-reader.c:688
+#, c-format
+msgid "Document Line %zu"
+msgstr "ドキュメント行 %zu"
+
+#: src/data/sys-file-reader.c:696
+#, c-format
+msgid "MRSET %zu"
+msgstr "MRSET %zu"
+
+#: src/data/sys-file-reader.c:698
+#, c-format
+msgid "MRSET %zu Label"
+msgstr "MRSET %zu ラベル"
+
+#: src/data/sys-file-reader.c:703
+#, c-format
+msgid "MRSET %zu Counted Value"
+msgstr "MRSET %zu 計数値"
+
+#: src/data/sys-file-reader.c:742
+#, c-format
+msgid "This system file does not indicate its own character encoding.  Using default encoding %s.  For best results, specify an encoding explicitly.  Use SYSFILE INFO with ENCODING=\"DETECT\" to analyze the possible encodings."
+msgstr "このシステムファイルでは文字エンコーディングが示されていません．デフォールトのエンコーディング %s が適用されます．最適な結果を得るためには，エンコーディングを明示して下さい．利用可能なエンコーディングを調べるには，SYSTEM INFOコマンドでENCODING=\"DETECT\"を使って下さい．"
+
+#: src/data/sys-file-reader.c:796
+#, c-format
+msgid "Ignoring string variable `%s' set as weighting variable."
+msgstr "重み付け変数としての文字列型変数 `%s' は無視されます．"
+
+#: src/data/sys-file-reader.c:841
 #, c-format
 msgid "File header claims %d variable positions but %zu were read from file."
 msgstr "ファイルヘッダには %d 変数位置とありますが %zu がファイルから読み込まれました．"
 
-#: src/data/sys-file-reader.c:640
+#: src/data/sys-file-reader.c:888
 #, c-format
 msgid "Error closing system file `%s': %s."
 msgstr "システムファイル `%s' を閉じるときにエラーが発生しました: %s."
 
-#: src/data/sys-file-reader.c:701 src/data/sys-file-reader.c:711
+#: src/data/sys-file-reader.c:952 src/data/sys-file-reader.c:966
 msgid "This is not an SPSS system file."
 msgstr "SPSSのシステムファイルではありません．"
 
-#: src/data/sys-file-reader.c:752
+#: src/data/sys-file-reader.c:1021
 msgid "Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
 msgstr "圧縮バイアス通常の値である100でないか、またはシステムファイルでは認識できない浮動小数点形式が使われています．"
 
-#: src/data/sys-file-reader.c:818
+#: src/data/sys-file-reader.c:1096
 msgid "Variable label indicator field is not 0 or 1."
 msgstr "変数ラベル表示子フィールドが0または1でありません．"
 
-#: src/data/sys-file-reader.c:828
+#: src/data/sys-file-reader.c:1109
 msgid "Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 msgstr "数値型の欠損値の指示子は-3, -2, 0, 1, 2, 3ではありません．"
 
-#: src/data/sys-file-reader.c:835
+#: src/data/sys-file-reader.c:1119
 msgid "String missing value indicator field is not 0, 1, 2, or 3."
 msgstr "文字列欠損値の指示子が0, 1, 2, 3ではありません．"
 
-#: src/data/sys-file-reader.c:855
+#: src/data/sys-file-reader.c:1146
 #, c-format
-msgid "Invalid number of labels %zu."
-msgstr "不正なラベル %zu の数．"
+msgid "Invalid number of labels %u."
+msgstr "不正なラベル %u の数．"
 
-#: src/data/sys-file-reader.c:880
+#: src/data/sys-file-reader.c:1179
 msgid "Variable index record (type 4) does not immediately follow value label record (type 3) as it should."
 msgstr "変数インデックスレコード(タイプ4)が値ラベルレコード(タイプ3)の直後にありません．"
 
-#: src/data/sys-file-reader.c:888
+#: src/data/sys-file-reader.c:1191
 #, c-format
-msgid "Number of variables associated with a value label (%zu) is not between 1 and the number of variables (%zu)."
-msgstr "値ラベル(%zu)に関連づけられた変数の数は1と変数の数(%zu)の範囲内にありません．"
+msgid "Number of variables associated with a value label (%u) is not between 1 and the number of variables (%zu)."
+msgstr "値ラベル(%u)に関連づけられた変数の数は1と変数の数(%zu)の範囲内にありません．"
 
-#: src/data/sys-file-reader.c:909
+#: src/data/sys-file-reader.c:1220
 #, c-format
 msgid "Number of document lines (%d) must be greater than 0 and less than %d."
 msgstr "ドキュメントの行数(%d)は1以上，%d 未満でなければなりません．"
 
-#: src/data/sys-file-reader.c:986
+#: src/data/sys-file-reader.c:1309
 #, c-format
-msgid "Record type 7, subtype %d has bad size %zu (expected %d)."
-msgstr "レコードタイプ7，サブタイプ %d のサイズ %zu は誤っています(%d でなければなりません)．"
+msgid "Record type 7, subtype %d has bad size %u (expected %d)."
+msgstr "レコードタイプ7，サブタイプ %d のサイズ %u は誤っています(%d でなければなりません)．"
 
-#: src/data/sys-file-reader.c:990
+#: src/data/sys-file-reader.c:1313
 #, c-format
-msgid "Record type 7, subtype %d has bad count %zu (expected %d)."
-msgstr "レコードタイプ7，サブタイプ %d のカウント %zu は誤っています(%d でなければなりません)．"
+msgid "Record type 7, subtype %d has bad count %u (expected %d)."
+msgstr "レコードタイプ7，サブタイプ %d のカウント %u は誤っています(%d でなければなりません)．"
 
-#: src/data/sys-file-reader.c:1085
+#: src/data/sys-file-reader.c:1410
 #, c-format
 msgid "Invalid variable name `%s'."
 msgstr "不正な変数名 `%s'."
 
-#: src/data/sys-file-reader.c:1093
+#: src/data/sys-file-reader.c:1425
 #, c-format
-msgid "Duplicate variable name `%s'."
-msgstr "重複した変数名 `%s'."
+msgid "Renaming variable with duplicate name `%s' to `%s'."
+msgstr "名前の変更で変数名 `%s' と `%s' が重複します．"
 
-#: src/data/sys-file-reader.c:1165
+#: src/data/sys-file-reader.c:1503
 msgid "Missing string continuation record."
 msgstr "文字継続レコードがありません．"
 
-#: src/data/sys-file-reader.c:1207
+#: src/data/sys-file-reader.c:1549
 #, c-format
 msgid "Variable %s with width %d has invalid print format 0x%x."
 msgstr "変数 %s(横幅 %d)の印刷フォーマット 0x%x は適切ではありません．"
 
-#: src/data/sys-file-reader.c:1211
+#: src/data/sys-file-reader.c:1553
 #, c-format
 msgid "Variable %s with width %d has invalid write format 0x%x."
 msgstr "変数 %s(横幅 %d)の書き出しフォーマット 0x%x は適切ではありません．"
 
-#: src/data/sys-file-reader.c:1216
+#: src/data/sys-file-reader.c:1558
 msgid "Suppressing further invalid format warnings."
 msgstr " `%s' "
 
-#: src/data/sys-file-reader.c:1268
+#: src/data/sys-file-reader.c:1612
 #, c-format
 msgid "Floating-point representation indicated by system file (%d) differs from expected (%d)."
 msgstr "システムファイル(%d)での浮動小数点形式は規定(%d)にあっていません。"
 
-#: src/data/sys-file-reader.c:1282
+#: src/data/sys-file-reader.c:1628
 #, c-format
 msgid "Integer format indicated by system file (%d) differs from expected (%d)."
 msgstr "システムファイル(%d)での整数形式は規定(%d)にあっていません。"
 
-#: src/data/sys-file-reader.c:1347 src/data/sys-file-reader.c:1353
+#: src/data/sys-file-reader.c:1646 src/data/sys-file-reader.c:1652
 #, c-format
 msgid "File specifies unexpected value %g (%a) as %s, instead of %g (%a)."
 msgstr "ファイルは予期せぬ値 %g(%a) を %s としています．正しくは %g(%a)です．"
 
-#: src/data/sys-file-reader.c:1362
+#: src/data/sys-file-reader.c:1661
 #, c-format
 msgid "File specifies unexpected value %g (%a) as %s, instead of %g (%a) or %g (%a)."
 msgstr "ファイルは予期せぬ値 %g(%a) を %s としています．正しくは %g(%a) または %g(%a) です．"
 
-#: src/data/sys-file-reader.c:1409
-#, c-format
-msgid "`%s' does not begin with `$' at offset %zu in MRSETS record."
-msgstr "%s はMRSETSレコードにおいてオフセット %zu は`$'で始まっていません．"
-
-#: src/data/sys-file-reader.c:1420 src/data/sys-file-reader.c:1439
+#: src/data/sys-file-reader.c:1713 src/data/sys-file-reader.c:1732
 #, c-format
 msgid "Missing space following `%c' at offset %zu in MRSETS record."
 msgstr "MRSETSレコードで `%c' (オフセット %zu)の次に空白がありません．"
 
-#: src/data/sys-file-reader.c:1449
+#: src/data/sys-file-reader.c:1742
 #, c-format
-msgid "Unexpected label source value `%s' following `E' at offset %zu in MRSETS record."
-msgstr "予期しないラベルソース値 `%s ' がMRSETSレコード内のオフセット %zu にある`E'に続いています．"
+msgid "Unexpected label source value following `E' at offset %zu in MRSETS record."
+msgstr "予期しないラベルソース値がMRSETSレコード内のオフセット %zu にある`E' に続いています．"
 
-#: src/data/sys-file-reader.c:1456
+#: src/data/sys-file-reader.c:1749
 #, c-format
 msgid "Missing `C', `D', or `E' at offset %zu in MRSETS record."
 msgstr "MRSETSレコードにおいてオフセット %zu で`C', `D', `E'がありません．"
 
-#: src/data/sys-file-reader.c:1488
+#: src/data/sys-file-reader.c:1776
 #, c-format
 msgid "Missing new-line parsing variable names at offset %zu in MRSETS record."
 msgstr "MRSETSレコード内のオフセット %zu で変数名を解析中に改行が見つかりません。"
 
-#: src/data/sys-file-reader.c:1504
+#: src/data/sys-file-reader.c:1811
 #, c-format
-msgid "Duplicate variable name %s at offset %zu in MRSETS record."
-msgstr "MRSETSレコードの変数名 %s(オフセット %zu)は重複しています．"
+msgid "Multiple response set name `%s' does not begin with `$'."
+msgstr "`%s' という名前の多重回答セットは `$' で始まっていません．"
 
-#: src/data/sys-file-reader.c:1520
+#: src/data/sys-file-reader.c:1845
+#, c-format
+msgid "MRSET %s contains duplicate variable name %s."
+msgstr "MRSET %s には重複した変数名 %s が含まれています．"
+
+#: src/data/sys-file-reader.c:1860
 #, c-format
 msgid "MRSET %s contains both string and numeric variables."
 msgstr "MRSET %s　には文字列と数値の両方が入っています．"
 
-#: src/data/sys-file-reader.c:1536
+#: src/data/sys-file-reader.c:1872
 #, c-format
-msgid "MRSET %s has only %zu variables."
-msgstr "MRSET %s には %zu 変数しかありません．"
+msgid "MRSET %s has no variables."
+msgstr "MRSET %s には変数がありません．"
 
-#: src/data/sys-file-reader.c:1583
+#: src/data/sys-file-reader.c:1874
 #, c-format
-msgid "Extension 11 has bad count %zu (for %zu variables)."
-msgstr "エクステンション11のカウント数 %zu は誤りです(%zu 変数が対象)．"
+msgid "MRSET %s has only one variable."
+msgstr "MRSET %s には変数が１つしかありません．"
 
-#: src/data/sys-file-reader.c:1616
+#: src/data/sys-file-reader.c:1918
+#, c-format
+msgid "Extension 11 has bad count %u (for %zu variables)."
+msgstr "エクステンション11のカウント数 %u は誤りです(%zu 変数が対象)．"
+
+#: src/data/sys-file-reader.c:1951
 #, c-format
 msgid "Invalid variable display parameters for variable %zu (%s).  Default parameters substituted."
 msgstr "無効な変数 %zu(%s)の変数表示パラメータ。デフォルトのパラメータが置換。"
 
-#: src/data/sys-file-reader.c:1710
+#: src/data/sys-file-reader.c:2045
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
 msgstr "長い変数マッピング: %s　から不正な変数名 `%s' まで．"
 
-#: src/data/sys-file-reader.c:1721
+#: src/data/sys-file-reader.c:2056
 #, c-format
 msgid "Duplicate long variable name `%s'."
 msgstr "長い変数名 `%s' は重複しています．"
 
-#: src/data/sys-file-reader.c:1754
+#: src/data/sys-file-reader.c:2089
 #, c-format
 msgid "%s listed as string of invalid length %s in very long string record."
 msgstr "%s は非常に長い文字列レコードにおいて不正な長さ %s の文字列としてリストされました．"
 
-#: src/data/sys-file-reader.c:1765
+#: src/data/sys-file-reader.c:2100
 #, c-format
 msgid "%s listed in very long string record with width %s, which requires only one segment."
 msgstr "%s は長さ %s の非常に長い文字列の中でリストされました(セグメントは1つだけ必要)．"
 
-#: src/data/sys-file-reader.c:1772
+#: src/data/sys-file-reader.c:2108
 #, c-format
 msgid "Very long string %s overflows dictionary."
 msgstr "非常に長い文字列 %s によりディクショナリがオーバーフローしました．"
 
-#: src/data/sys-file-reader.c:1787
+#: src/data/sys-file-reader.c:2126
 #, c-format
 msgid "Very long string with width %ld has segment %d of width %d (expected %d)."
 msgstr "長さが %ld の非常に長い文字列はセグメント %d(長さ %d)を持っています(予想は %d)"
 
-#: src/data/sys-file-reader.c:1821
+#: src/data/sys-file-reader.c:2169
 #, c-format
 msgid "Variables associated with value label are not all of identical type.  Variable %s is %s, but variable %s is %s."
 msgstr "値ラベルに関連付けられた変数は，すべてが同一タイプではありません．変数 %s は %s ですが，変数 %s は %s です．"
 
-#: src/data/sys-file-reader.c:1838
+#: src/data/sys-file-reader.c:2189
 #, c-format
 msgid "Value labels may not be added to long string variables (e.g. %s) using records types 3 and 4."
 msgstr "値ラベルは長い文字列型変数(たとえば %s)に対してレコードタイプ3と4を使用して追加することはできません。"
 
-#: src/data/sys-file-reader.c:1857
+#: src/data/sys-file-reader.c:2210
 #, c-format
 msgid "Duplicate value label for %g on %s."
 msgstr "%g(%s 内)のための値ラベルに重複があります．"
 
-#: src/data/sys-file-reader.c:1861 src/data/sys-file-reader.c:2162
+#: src/data/sys-file-reader.c:2214 src/data/sys-file-reader.c:2527
 #, c-format
 msgid "Duplicate value label for `%.*s' on %s."
 msgstr "`%.*s'(%s 内)のための値ラベルに重複があります．"
 
-#: src/data/sys-file-reader.c:1886
+#: src/data/sys-file-reader.c:2241
 #, c-format
 msgid "Variable index %d not in valid range 1...%zu."
 msgstr "変数インデックス %d は有効な 1 ... %zu の範囲外です．"
 
-#: src/data/sys-file-reader.c:1895
+#: src/data/sys-file-reader.c:2250
 #, c-format
 msgid "Variable index %d refers to long string continuation."
 msgstr "変数インデックス %d は長い文字列の連続を参照しています．"
 
-#: src/data/sys-file-reader.c:1931
+#: src/data/sys-file-reader.c:2286
 #, c-format
 msgid "Error parsing attribute value %s[%d]."
 msgstr "属性値 %s[%d] の解析中にエラーが発生しました．"
 
-#: src/data/sys-file-reader.c:1945
+#: src/data/sys-file-reader.c:2300
 #, c-format
 msgid "Attribute value %s[%d] is not quoted: %s."
 msgstr "属性値 %s[%d]は参照されていません: %s."
 
-#: src/data/sys-file-reader.c:2035
+#: src/data/sys-file-reader.c:2390
 #, c-format
 msgid "Invalid role for variable %s."
 msgstr "変数 %s にとっての不正な役割"
 
-#: src/data/sys-file-reader.c:2044
+#: src/data/sys-file-reader.c:2399
 #, c-format
 msgid "%zu other variables had invalid roles."
 msgstr "%zu の他の変数は不適切な役割を担っています．"
 
-#: src/data/sys-file-reader.c:2056
+#: src/data/sys-file-reader.c:2412
 #, c-format
 msgid "Extension record subtype %d ends unexpectedly."
 msgstr "拡張レコードのサブタイプ %d は予期せぬ終了となっています．"
 
-#: src/data/sys-file-reader.c:2096
+#: src/data/sys-file-reader.c:2457
 #, c-format
 msgid "Ignoring long string value label record for unknown variable %s."
 msgstr "不明な変数 %s のための長い文字列の変数ラベルレコードは無視されました．"
 
-#: src/data/sys-file-reader.c:2101
+#: src/data/sys-file-reader.c:2462
 #, c-format
 msgid "Ignoring long string value label record for numeric variable %s."
 msgstr "数値型変数 %s のための長い文字列の変数ラベルレコードは無視されました．"
 
-#: src/data/sys-file-reader.c:2108
+#: src/data/sys-file-reader.c:2469
 #, c-format
 msgid "Ignoring long string value label record for variable %s because the record's width (%d) does not match the variable's width (%d)."
 msgstr "変数 %s のための長い文字列の変数ラベルレコードは無視されました．レコード長(%d)が変数長(%d)と一致しません．"
 
-#: src/data/sys-file-reader.c:2137
+#: src/data/sys-file-reader.c:2500
 #, c-format
 msgid "Ignoring long string value label %zu for variable %s, with width %d, that has bad value width %zu."
 msgstr "長い文字列値 %zu(変数は %s，長さは %d)は無視されます．値幅 %zu が正しくないからです．"
 
-#: src/data/sys-file-reader.c:2206
+#: src/data/sys-file-reader.c:2575
 #, c-format
 msgid "Long string missing values record says variable %s has %d missing values, but only 1 to 3 missing values are allowed."
 msgstr "長い文字列謙遜値レコードでは変数 %s には %d 個の欠損値があるとされているが，1から3個の欠損値だけが許されています．"
 
-#: src/data/sys-file-reader.c:2216
+#: src/data/sys-file-reader.c:2585
 #, c-format
 msgid "Ignoring long string missing value record for unknown variable %s."
 msgstr "不明な変数 %s のための長い文字列の欠損値レコードは無視されました．"
 
-#: src/data/sys-file-reader.c:2221
+#: src/data/sys-file-reader.c:2590
 #, c-format
 msgid "Ignoring long string missing value record for numeric variable %s."
 msgstr "数値型変数 %s のための長い文字列の欠損値レコードは無視されました．"
 
-#: src/data/sys-file-reader.c:2244
+#: src/data/sys-file-reader.c:2615
 #, c-format
 msgid "Ignoring long string missing value %zu for variable %s, with width %d, that has bad value width %zu."
 msgstr "長い文字欠損値 %zu(変数は %s，長さは %d)は無視されます．値幅 %zu が正しくないからです．"
 
-#: src/data/sys-file-reader.c:2324
+#: src/data/sys-file-reader.c:2672
+msgid "File ends in partial string value."
+msgstr "文字列の断片でファイルが終わっています。"
+
+#: src/data/sys-file-reader.c:2694
 msgid "File ends in partial case."
 msgstr "ケースの一部でファイルが終わっています。"
 
-#: src/data/sys-file-reader.c:2332
+#: src/data/sys-file-reader.c:2702
 #, c-format
 msgid "Error reading case from file %s."
 msgstr "ファイル %s からケースを読み込み中にエラーが発生しました．"
 
-#: src/data/sys-file-reader.c:2434
+#: src/data/sys-file-reader.c:2811
 msgid "Possible compressed data corruption: compressed spaces appear in numeric field."
 msgstr "圧縮データの破損の可能性: 圧縮されたスペースは数値フィールドに表示されます．"
 
-#: src/data/sys-file-reader.c:2488
+#: src/data/sys-file-reader.c:2865
 #, c-format
 msgid "Possible compressed data corruption: string contains compressed integer (opcode %d)."
 msgstr "圧縮データの破損の可能性: 文字列に圧縮された整数(オペコード %d)が含まれています．"
 
-#: src/data/sys-file-reader.c:2582
+#: src/data/sys-file-reader.c:2962
 #, c-format
 msgid "Suppressed %d additional related warnings."
 msgstr "以下の %d 個の関連する警告は非表示とされました．"
 
-#: src/data/sys-file-reader.c:2628 src/data/sys-file-reader.c:2645
+#: src/data/sys-file-reader.c:3008 src/data/sys-file-reader.c:3025
 #, c-format
 msgid "Dictionary record refers to unknown variable %s."
 msgstr "ディクショナリのレコードは不明な変数 %s を参照しています．"
 
-#: src/data/sys-file-reader.c:2707
+#: src/data/sys-file-reader.c:3087
 #, c-format
 msgid "Expecting digit at offset %zu in MRSETS record."
 msgstr "MRSETSレコードのオフセット %zu には数字が必要です．"
 
-#: src/data/sys-file-reader.c:2715
+#: src/data/sys-file-reader.c:3095
 #, c-format
 msgid "Expecting space at offset %zu in MRSETS record."
 msgstr "MRSETSレコードのオフセット %zu には空白が必要です．"
 
-#: src/data/sys-file-reader.c:2723
+#: src/data/sys-file-reader.c:3103
 #, c-format
 msgid "%zu-byte string starting at offset %zu exceeds record length %zu."
 msgstr "%zu-バイトの文字列(開始オフセット %zu)はレコード長 %zu を超えています．"
 
-#: src/data/sys-file-reader.c:2733
+#: src/data/sys-file-reader.c:3113
 #, c-format
 msgid "Expecting space at offset %zu following %zu-byte string."
 msgstr "オフセット %zu に空白が必要です(%zu-バイトの文字列に続く)．"
 
-#: src/data/sys-file-reader.c:2780
+#: src/data/sys-file-reader.c:3160
 #, c-format
 msgid "`%s' near offset 0x%llx: "
 msgstr "`%s'(オフセット 0x%llx 付近):"
 
-#: src/data/sys-file-reader.c:2783
+#: src/data/sys-file-reader.c:3163
 #, c-format
 msgid "`%s': "
 msgstr "`%s': "
 
-#: src/data/sys-file-reader.c:2840
+#: src/data/sys-file-reader.c:3219
 #, c-format
 msgid "System error: %s."
 msgstr "システムエラー: %s."
 
-#: src/data/sys-file-reader.c:2842
+#: src/data/sys-file-reader.c:3224
 msgid "Unexpected end of file."
 msgstr "予期せぬファイル終端"
 
-#: src/data/sys-file-reader.c:2981
+#: src/data/sys-file-reader.c:3407
 #, c-format
 msgid "Wrong ZLIB data header offset %#llx (expected %#llx)."
 msgstr "誤ったZLIBデータヘッダのオフセット %#llx(予測は %#llx)．"
 
-#: src/data/sys-file-reader.c:2986
+#: src/data/sys-file-reader.c:3415
 #, c-format
 msgid "Impossible ZLIB trailer offset 0x%llx."
 msgstr "誤ったZLIBトレイラーのオフセット 0x%llx．"
 
-#: src/data/sys-file-reader.c:2990
+#: src/data/sys-file-reader.c:3422
 #, c-format
 msgid "Invalid ZLIB trailer length %lld."
 msgstr "不正なZLIBトレイラー長 %lld."
 
-#: src/data/sys-file-reader.c:3014
+#: src/data/sys-file-reader.c:3449
 #, c-format
 msgid "%s: seek failed (%s)."
 msgstr "%s: 探索でエラー(%s)．"
 
-#: src/data/sys-file-reader.c:3036
+#: src/data/sys-file-reader.c:3472
 #, c-format
 msgid "%s: stat failed (%s)."
 msgstr "%s: 情報取得でエラー(%s)．"
 
-#: src/data/sys-file-reader.c:3048
+#: src/data/sys-file-reader.c:3486
 #, c-format
 msgid "End of ZLIB trailer (0x%llx) is not file size (0x%llx)."
 msgstr "ZLIBトレイラーの終わり(0x%llx)はファイルサイズ(0x%llx)ではありません．"
 
-#: src/data/sys-file-reader.c:3056
+#: src/data/sys-file-reader.c:3496
 #, c-format
 msgid "ZLIB trailer bias (%lld) differs from file header bias (%.2f)."
 msgstr "ZLIBトレイラーのバイアス(%lld)はファイルヘッダのバイアス(%.2f)とは異なります．"
 
-#: src/data/sys-file-reader.c:3063
+#: src/data/sys-file-reader.c:3506
 #, c-format
 msgid "ZLIB trailer \"zero\" field has nonzero value %lld."
 msgstr "ZLIBトレイラーの \"zero\" フィールドは非0値(%lld)です．"
 
-#: src/data/sys-file-reader.c:3068
+#: src/data/sys-file-reader.c:3512
 #, c-format
 msgid "ZLIB trailer specifies unexpected %u-byte block size."
 msgstr "ZLIBトレーラーは予期せぬ %u-バイトのブロック長を指定しています．"
 
-#: src/data/sys-file-reader.c:3074
+#: src/data/sys-file-reader.c:3520
 #, c-format
 msgid "%lld-byte ZLIB trailer specifies %u data blocks (expected %lld)."
 msgstr "%lld-バイトのZLIBトレイラーは %u のデータブロックを指定しています(予測は %lld)．"
 
-#: src/data/sys-file-reader.c:3090
+#: src/data/sys-file-reader.c:3545
 #, c-format
 msgid "ZLIB block descriptor %u reported uncompressed data offset %#llx, when %#llx was expected."
 msgstr "ZLIBブロック記述子 %u は非圧縮データのオフセットを %#llx としていますが，%#llx なければなりません．"
 
-#: src/data/sys-file-reader.c:3096
+#: src/data/sys-file-reader.c:3554
 #, c-format
 msgid "ZLIB block descriptor %u reported compressed data offset %#llx, when %#llx was expected."
 msgstr "ZLIBブロック記述子 %u は圧縮データのオフセットを %#llx としていますが，%#llx なければなりません．"
 
-#: src/data/sys-file-reader.c:3104
+#: src/data/sys-file-reader.c:3564
 #, c-format
 msgid "ZLIB block descriptor %u reported block size %#x, when %#x was expected."
 msgstr "ZLIBブロック記述子 %u はブロックサイズを %#x としていますが，%#x なければなりません．"
 
-#: src/data/sys-file-reader.c:3112
+#: src/data/sys-file-reader.c:3572
 #, c-format
 msgid "ZLIB block descriptor %u reported block size %#x, when at most %#x was expected."
 msgstr "ZLIBブロック記述子 %u はブロックサイズを %#x としていますが，多くても %x なければなりません．"
 
-#: src/data/sys-file-reader.c:3123
+#: src/data/sys-file-reader.c:3584
 #, c-format
 msgid "ZLIB block descriptor %u reports compressed size %u and uncompressed size %u."
 msgstr "ZLIBブロック記述子 %u は圧縮サイズは %u ，非圧縮サイズは %u だと報告しています．"
 
-#: src/data/sys-file-reader.c:3132
+#: src/data/sys-file-reader.c:3596
 #, c-format
 msgid "ZLIB trailer is at offset %#llx but %#llx would be expected from block descriptors."
 msgstr "ZLIBトレイラーはオフセット %#llxにありますが，ブロック記述子からは %#llx だと予測されています．"
 
-#: src/data/sys-file-reader.c:3147
+#: src/data/sys-file-reader.c:3615
 #, c-format
 msgid "ZLIB initialization failed (%s)."
 msgstr "ZLIBの初期化でエラー(%s)．"
 
-#: src/data/sys-file-reader.c:3158
+#: src/data/sys-file-reader.c:3630
 #, c-format
 msgid "Inconsistency at end of ZLIB stream (%s)."
 msgstr "ZLIBストリームの最後での不一致(%s)．"
 
-#: src/data/sys-file-reader.c:3212
+#: src/data/sys-file-reader.c:3689
 #, c-format
 msgid "ZLIB stream inconsistency (%s)."
 msgstr "ZLIBストリームの不一致(%s)．"
 
-#: src/data/sys-file-reader.c:3229
+#: src/data/sys-file-reader.c:3713
 msgid "Unexpected end of ZLIB compressed data."
 msgstr "予期せぬZLIB圧縮データの終端"
 
@@ -1205,37 +1291,32 @@ msgstr "%s: 探索でエラー(%s)．"
 msgid "%s (%s)"
 msgstr "%s (%s)"
 
-#: src/data/variable.c:747
-#, c-format
-msgid "Truncating variable label for variable `%s' to %d bytes."
-msgstr "変数 `%s'  の変数ラベルは %d バイトに短縮されました．"
-
-#: src/data/variable.c:816
+#: src/data/variable.c:777
 msgid "Nominal"
 msgstr "名義"
 
-#: src/data/variable.c:819
+#: src/data/variable.c:780
 msgid "Ordinal"
 msgstr "順序"
 
-#: src/data/variable.c:822 src/language/stats/ks-one-sample.c:327
+#: src/data/variable.c:783 src/language/stats/ks-one-sample.c:327
 msgid "Scale"
 msgstr "尺度"
 
-#: src/data/variable.c:913
+#: src/data/variable.c:874
 msgid "Input"
 msgstr "入力"
 
 #. TRANSLATORS: This will form a filename.  Please avoid whitespace.
-#: src/data/variable.c:916 src/ui/gui/psppire-output-window.c:1050
+#: src/data/variable.c:877 src/ui/gui/psppire-output-window.c:1050
 msgid "Output"
 msgstr "出力"
 
-#: src/data/variable.c:919
+#: src/data/variable.c:880
 msgid "Both"
 msgstr "両方"
 
-#: src/data/variable.c:922 src/language/dictionary/sys-file-info.c:155
+#: src/data/variable.c:883 src/language/dictionary/sys-file-info.c:206
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:84
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:96
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:131
@@ -1245,28 +1326,28 @@ msgstr "両方"
 msgid "None"
 msgstr "なし"
 
-#: src/data/variable.c:925
+#: src/data/variable.c:886
 msgid "Partition"
 msgstr "区分"
 
-#: src/data/variable.c:928
+#: src/data/variable.c:889
 msgid "Split"
 msgstr "折半法"
 
-#: src/data/variable.c:1039
+#: src/data/variable.c:1000
 msgid "Left"
 msgstr "左"
 
-#: src/data/variable.c:1042
+#: src/data/variable.c:1003
 msgid "Right"
 msgstr "右"
 
-#: src/data/variable.c:1045
+#: src/data/variable.c:1006
 msgid "Center"
 msgstr "中央"
 
 #: src/language/command.c:207 src/language/expressions/parse.c:1295
-#: src/language/utilities/set.q:227
+#: src/language/utilities/set.q:228
 #, c-format
 msgid "%s is not yet implemented."
 msgstr "%s は実装されていません．"
@@ -1300,15 +1381,10 @@ msgstr "%s はアクティブなデータセットが定義される以前にお
 msgid "%s is allowed only after the active dataset has been defined."
 msgstr "%s はアクティブなデータセットが定義された以降においてのみ有効です．"
 
-#: src/language/command.c:388
+#: src/language/command.c:388 src/language/command.c:392
 #, c-format
-msgid "%s is allowed only inside INPUT PROGRAM."
-msgstr "%s はINPUT PROGRAMの内側でしか使えません．"
-
-#: src/language/command.c:392
-#, c-format
-msgid "%s is allowed only inside FILE TYPE."
-msgstr "%s は FILE TYPEの内側でしか使えません．"
+msgid "%s is allowed only inside %s."
+msgstr "%s は %s 内でしか許されません．"
 
 #: src/language/command.c:399 src/language/command.c:403
 #, c-format
@@ -1322,30 +1398,31 @@ msgstr "%s はアクティブなデータセットが定義された以降か %s
 
 #: src/language/command.c:415
 #, c-format
-msgid "%s is allowed only inside INPUT PROGRAM or inside FILE TYPE."
-msgstr "%s INPUT PROGRAMまたはFILE TYPEの内部においてのみ有効です．"
+msgid "%s is allowed only inside %s or inside %s."
+msgstr "%s は %s か %s の内部でしか認められません．"
 
-#: src/language/command.c:420
+#: src/language/command.c:421
 #, c-format
 msgid "%s is allowed only after the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
 msgstr "%s アクティブなデータセットが定義された後か，INPUT PROGRAMまたはFILE TYPEの内部においてのみ有効です．"
 
-#: src/language/command.c:425
+#: src/language/command.c:426
 #, c-format
 msgid "%s is allowed only before the active dataset has been defined, inside INPUT PROGRAM, or inside FILE TYPE."
 msgstr "%s アクティブなデータセットが定義される前か，INPUT PROGRAMまたはFILE TYPEの内部においてのみ有効です．"
 
-#: src/language/command.c:443 src/language/command.c:446
+#: src/language/command.c:444 src/language/command.c:447
 #, c-format
 msgid "%s is not allowed inside %s."
 msgstr "%s は %s 内では許されません．"
 
-#: src/language/command.c:528 src/language/utilities/host.c:130
+#: src/language/command.c:529 src/language/utilities/host.c:130
 #: src/language/utilities/permissions.c:105
-msgid "This command not allowed when the SAFER option is set."
-msgstr "このコマンドはSAFERオプションが設定されているときには使えません．"
+#, c-format
+msgid "This command not allowed when the %s option is set."
+msgstr "このコマンドは %s オプションが設定されているときには使えません．"
 
-#: src/language/command.c:544
+#: src/language/command.c:545
 #, c-format
 msgid "Error removing `%s': %s."
 msgstr "エラーで `%s' を除外しています: %s."
@@ -1415,7 +1492,7 @@ msgid "Syntax error at end of input"
 msgstr "入力の最後でシンタックスエラー．"
 
 #: src/language/lexer/lexer.c:419 src/language/xforms/select-if.c:60
-#: src/language/stats/autorecode.c:216 src/language/stats/npar.c:504
+#: src/language/stats/autorecode.c:217 src/language/stats/npar.c:504
 #: src/language/data-io/print-space.c:83
 msgid "expecting end of command"
 msgstr "コマンドの終了していなければなりません。"
@@ -1512,7 +1589,7 @@ msgid "expecting valid format specifier"
 msgstr "有効なフォーマット指定が必要です．"
 
 #: src/language/lexer/format-parser.c:116
-#: src/language/lexer/format-parser.c:143 src/language/data-io/data-list.c:439
+#: src/language/lexer/format-parser.c:143 src/language/data-io/data-list.c:438
 #: src/language/data-io/get-data.c:639
 #: src/language/data-io/placement-parser.c:236
 #, c-format
@@ -1528,25 +1605,26 @@ msgstr "フォーマット指定子 `%s' は必要"
 msgid "expecting format type"
 msgstr "フォーマットのタイプが必要です．"
 
-#: src/language/lexer/value-parser.c:65
+#: src/language/lexer/value-parser.c:66
 #, c-format
-msgid "The high end of the range (%g) is below the low end (%g).  The range will be treated as if reversed."
-msgstr "範囲の上限(%g)が下限(%g)未満です．範囲は上下を逆転して設定されます．"
+msgid "The high end of the range (%.*g) is below the low end (%.*g).  The range will be treated as if reversed."
+msgstr "範囲の上限(%.*g)が下限(%.*g)未満です．範囲は上下を逆転して設定されます．"
 
-#: src/language/lexer/value-parser.c:73
+#: src/language/lexer/value-parser.c:74
 #, c-format
-msgid "Ends of range are equal (%g)."
-msgstr "両範囲の終わりは同じです(%g)．"
+msgid "Ends of range are equal (%.*g)."
+msgstr "両範囲の終わりは同じです(%.*g)．"
 
-#: src/language/lexer/value-parser.c:81
-msgid "LO or LOWEST must be part of a range."
-msgstr "LOまたはLOWESTと範囲内の一部でなければなりません．"
+#: src/language/lexer/value-parser.c:82
+#, c-format
+msgid "%s or %s must be part of a range."
+msgstr "%s または %s は範囲の一部でなければなりません．"
 
-#: src/language/lexer/value-parser.c:117
+#: src/language/lexer/value-parser.c:118
 msgid "System-missing value is not valid here."
 msgstr "ここではシステム欠損値は無効です．"
 
-#: src/language/lexer/value-parser.c:125
+#: src/language/lexer/value-parser.c:126
 msgid "expecting number or data string"
 msgstr "数値またはデータの文字列が必要です．"
 
@@ -1622,17 +1700,17 @@ msgstr "TO変換の使用でプリフィックスが一致していません．"
 msgid "Bad bounds in use of TO convention."
 msgstr "TO 変換における誤った境界"
 
-#: src/language/xforms/compute.c:149 src/language/xforms/compute.c:204
+#: src/language/xforms/compute.c:150 src/language/xforms/compute.c:205
 #, c-format
 msgid "When executing COMPUTE: SYSMIS is not a valid value as an index into vector %s."
 msgstr "COMPUTEの実行: SYSMISはベクトルの %s へのインデックスとして有効な値ではありません．"
 
-#: src/language/xforms/compute.c:153 src/language/xforms/compute.c:211
+#: src/language/xforms/compute.c:154 src/language/xforms/compute.c:212
 #, c-format
-msgid "When executing COMPUTE: %g is not a valid value as an index into vector %s."
-msgstr "COMPUTEの実行: %g はベクトル %s へのインデックスとして有効な値ではありません．"
+msgid "When executing COMPUTE: %.*g is not a valid value as an index into vector %s."
+msgstr "COMPUTEの実行中: %.*g はベクトル %s へのインデックスとして有効な値ではありません．"
 
-#: src/language/xforms/compute.c:355
+#: src/language/xforms/compute.c:356
 #, c-format
 msgid "There is no vector named %s."
 msgstr "%s というベクトルはありません．"
@@ -1659,8 +1737,9 @@ msgid "CONVERT requires string input values and numeric output values."
 msgstr "CONVERT には文字列型の入力値と数値型の出力値が必要です．"
 
 #: src/language/xforms/recode.c:339
-msgid "THRU is not allowed with string variables."
-msgstr "文字列変数でTHRUｇは使えません．"
+#, c-format
+msgid "%s is not allowed with string variables."
+msgstr "文字列変数では %s は使えません．"
 
 #: src/language/xforms/recode.c:422
 msgid "expecting output value"
@@ -1719,8 +1798,9 @@ msgid "This command cannot appear outside %s...%s."
 msgstr "このコマンドは %s..%s の範囲外では使えません．"
 
 #: src/language/control/do-if.c:177
-msgid "This command may not follow ELSE in DO IF...END IF."
-msgstr "このコマンドはDO IF..ENDIFにおけるELSEの次に来てはいけません．"
+#, c-format
+msgid "This command may not follow %s in %s ... %s."
+msgstr "このコマンドは %s にの次に来てはいけません（%s ... %s内）．"
 
 #: src/language/control/loop.c:214
 msgid "Only one index clause may be specified."
@@ -1751,8 +1831,9 @@ msgid "%ld TO %ld is an invalid range."
 msgstr "%ld から %ld は不正な範囲です．"
 
 #: src/language/control/repeat.c:442
-msgid "No matching DO REPEAT."
-msgstr "DOとREPEATが対応しません．"
+#, c-format
+msgid "No matching %s."
+msgstr "%s が対応しません．"
 
 #: src/language/control/temporary.c:45
 msgid "This command may only appear once between procedures and procedure-like commands."
@@ -1772,12 +1853,16 @@ msgid "No matching variables found between the source and target files."
 msgstr "ソースとターゲットとなるファイル間に一致する変数がありません．"
 
 #: src/language/dictionary/delete-variables.c:40
-msgid "DELETE VARIABLES may not be used after TEMPORARY.  Temporary transformations will be made permanent."
-msgstr "DELETE VARIABLESをTEMPORARYの後で使用することはできません．一時的な変換が確定されます．"
+#: src/language/dictionary/modify-variables.c:92
+#: src/language/dictionary/rename-variables.c:48
+#, c-format
+msgid "%s may not be used after %s.  Temporary transformations will be made permanent."
+msgstr "%s は %s の後で使用することはできません．一時的な変換が確定されます．"
 
-#: src/language/dictionary/delete-variables.c:47
-msgid "DELETE VARIABLES may not be used to delete all variables from the active dataset dictionary.  Use NEW FILE instead."
-msgstr "DELETE VARIABLESはアクティブなデータセットの辞書からすべての変数を削除するために使用することはできません。代わりに NEW FILE を使用します。"
+#: src/language/dictionary/delete-variables.c:48
+#, c-format
+msgid "%s may not be used to delete all variables from the active dataset dictionary.  Use %s instead."
+msgstr "%s はアクティブなデータセットの辞書からすべての変数を削除するために使用することはできません。代わりに %s を使用して下さい．"
 
 #: src/language/dictionary/missing-values.c:70
 #, c-format
@@ -1794,10 +1879,6 @@ msgstr "欠損値は許される最大長(%d バイト)に短縮されました�
 msgid "Missing values provided are too long to assign to variable of width %d."
 msgstr "与えられた欠損値は長さ %d の変数に割り当てるには長すぎます。"
 
-#: src/language/dictionary/modify-variables.c:92
-msgid "MODIFY VARS may not be used after TEMPORARY.  Temporary transformations will be made permanent."
-msgstr "MODIFY VARS はTEMPORARYの後で使用することはできません．一時的な変換が確定されます．"
-
 #: src/language/dictionary/modify-variables.c:137
 msgid "Cannot specify ALL after specifying a set of variables."
 msgstr "1組の変数群を定めた後ではALLは指定できません．"
@@ -1809,19 +1890,17 @@ msgid "Differing number of variables in old name list (%zu) and in new name list
 msgstr "古い名前リスト(%zu)と新しい名前リスト(%zu)で変数の数が異なります．"
 
 #: src/language/dictionary/modify-variables.c:232
-msgid "KEEP subcommand may be given at most once.  It may not be given in conjunction with the DROP subcommand."
-msgstr "KEEPサブコマンドは1度だけ使用できます．またDROPサブコマンドと一緒には使えません．"
+#: src/language/dictionary/modify-variables.c:276
+#, c-format
+msgid "%s subcommand may be given at most once.  It may not be given in conjunction with the %s subcommand."
+msgstr "%s サブコマンドは1度だけ使用できます．また %s サブコマンドと一緒には使えません．"
 
-#: src/language/dictionary/modify-variables.c:275
-msgid "DROP subcommand may be given at most once.  It may not be given in conjunction with the KEEP subcommand."
-msgstr "DROPサブコマンドは1度だけ使用できます．またKEEPサブコマンドと一緒には使えません．"
-
-#: src/language/dictionary/modify-variables.c:301
+#: src/language/dictionary/modify-variables.c:304
 #, c-format
 msgid "Unrecognized subcommand name `%s'."
 msgstr "識別不能なサブコマンド名 `%s'."
 
-#: src/language/dictionary/modify-variables.c:303
+#: src/language/dictionary/modify-variables.c:306
 msgid "Subcommand name expected."
 msgstr "サブコマンド名が必要です．"
 
@@ -1909,8 +1988,8 @@ msgstr "多重カテゴリセット"
 
 #: src/language/dictionary/mrsets.c:567
 #: src/language/dictionary/split-file.c:84
-#: src/language/dictionary/sys-file-info.c:354
-#: src/language/dictionary/sys-file-info.c:601
+#: src/language/dictionary/sys-file-info.c:410
+#: src/language/dictionary/sys-file-info.c:663
 #: src/ui/gui/psppire-var-sheet.c:1374 src/ui/gui/compute.ui:479
 msgid "Label"
 msgstr "ラベル"
@@ -1943,24 +2022,20 @@ msgstr "変数ラベル"
 msgid "Value labels of counted value"
 msgstr "計数値の値ラベル"
 
-#: src/language/dictionary/numeric.c:68
+#: src/language/dictionary/numeric.c:67
 #, c-format
 msgid "Format type %s may not be used with a numeric variable."
 msgstr "フォーマットタイプ %s は数値型変数では使えません．"
 
-#: src/language/dictionary/numeric.c:87 src/language/dictionary/numeric.c:157
+#: src/language/dictionary/numeric.c:86 src/language/dictionary/numeric.c:153
 #, c-format
 msgid "There is already a variable named %s."
 msgstr "%s という変数名はすでに存在します．"
 
-#: src/language/dictionary/numeric.c:142
+#: src/language/dictionary/numeric.c:138
 #, c-format
 msgid "Format type %s may not be used with a string variable."
 msgstr "フォーマットタイプ %s は文字列型変数では使えません．"
-
-#: src/language/dictionary/rename-variables.c:48
-msgid "RENAME VARS may not be used after TEMPORARY.  Temporary transformations will be made permanent."
-msgstr "RENAME VARSはTEMPORARYの後で使用することはできません．一時的な変換が確定されます．"
 
 #: src/language/dictionary/rename-variables.c:89
 #, c-format
@@ -1968,202 +2043,243 @@ msgid "Renaming would duplicate variable name %s."
 msgstr "名前の変更で変数名 %s が重複します．"
 
 #: src/language/dictionary/split-file.c:83
-#: src/language/dictionary/sys-file-info.c:443
-#: src/language/dictionary/sys-file-info.c:600
-#: src/language/stats/cochran.c:170 src/language/stats/examine.c:1130
+#: src/language/dictionary/sys-file-info.c:499
+#: src/language/dictionary/sys-file-info.c:662
+#: src/language/stats/cochran.c:171 src/language/stats/examine.c:1130
 #: src/language/stats/reliability.c:794 src/language/stats/reliability.c:805
-#: src/language/stats/crosstabs.q:1277 src/language/stats/crosstabs.q:1304
-#: src/language/stats/crosstabs.q:1327 src/language/stats/crosstabs.q:1352
-#: src/language/stats/frequencies.q:826 src/ui/gui/count.ui:244
+#: src/language/stats/crosstabs.q:1278 src/language/stats/crosstabs.q:1305
+#: src/language/stats/crosstabs.q:1328 src/language/stats/crosstabs.q:1353
+#: src/language/stats/frequencies.q:833 src/ui/gui/count.ui:244
 msgid "Value"
 msgstr "値"
 
-#: src/language/dictionary/sys-file-info.c:96
+#: src/language/dictionary/sys-file-info.c:147
 msgid "File:"
 msgstr "ファイル:"
 
-#: src/language/dictionary/sys-file-info.c:99
+#: src/language/dictionary/sys-file-info.c:150
 msgid "Label:"
 msgstr "ラベル(_L):"
 
-#: src/language/dictionary/sys-file-info.c:103
+#: src/language/dictionary/sys-file-info.c:154
 msgid "No label."
 msgstr "ラベルなし"
 
-#: src/language/dictionary/sys-file-info.c:107
+#: src/language/dictionary/sys-file-info.c:158
 msgid "Created:"
 msgstr "新規作成:"
 
-#: src/language/dictionary/sys-file-info.c:113
+#: src/language/dictionary/sys-file-info.c:164
 msgid "Product:"
 msgstr "プロダクト:"
 
-#: src/language/dictionary/sys-file-info.c:117
+#: src/language/dictionary/sys-file-info.c:168
 msgid "Integer Format:"
 msgstr "整数フォーマット:"
 
-#: src/language/dictionary/sys-file-info.c:119
+#: src/language/dictionary/sys-file-info.c:170
 msgid "Big Endian"
 msgstr "上位バイト順"
 
-#: src/language/dictionary/sys-file-info.c:120
+#: src/language/dictionary/sys-file-info.c:171
 msgid "Little Endian"
 msgstr "下位バイト順"
 
-#: src/language/dictionary/sys-file-info.c:121
-#: src/language/dictionary/sys-file-info.c:130
-#: src/language/dictionary/sys-file-info.c:137
-#: src/language/utilities/set.q:926
+#: src/language/dictionary/sys-file-info.c:172
+#: src/language/dictionary/sys-file-info.c:181
+#: src/language/dictionary/sys-file-info.c:188
+#: src/language/utilities/set.q:928
 msgid "Unknown"
 msgstr "不明"
 
-#: src/language/dictionary/sys-file-info.c:123
+#: src/language/dictionary/sys-file-info.c:174
 msgid "Real Format:"
 msgstr "実数フォーマット:"
 
-#: src/language/dictionary/sys-file-info.c:125
+#: src/language/dictionary/sys-file-info.c:176
 msgid "IEEE 754 LE."
 msgstr "IEEE 754 LE."
 
-#: src/language/dictionary/sys-file-info.c:126
+#: src/language/dictionary/sys-file-info.c:177
 msgid "IEEE 754 BE."
 msgstr "IEEE 754 BE."
 
-#: src/language/dictionary/sys-file-info.c:127
+#: src/language/dictionary/sys-file-info.c:178
 msgid "VAX D."
 msgstr "VAX D."
 
-#: src/language/dictionary/sys-file-info.c:128
+#: src/language/dictionary/sys-file-info.c:179
 msgid "VAX G."
 msgstr "VAX G."
 
-#: src/language/dictionary/sys-file-info.c:129
+#: src/language/dictionary/sys-file-info.c:180
 msgid "IBM 390 Hex Long."
 msgstr "IBM 390 16進 長整数．"
 
-#: src/language/dictionary/sys-file-info.c:132
+#: src/language/dictionary/sys-file-info.c:183
 msgid "Variables:"
 msgstr "変数:"
 
-#: src/language/dictionary/sys-file-info.c:135
+#: src/language/dictionary/sys-file-info.c:186
 msgid "Cases:"
 msgstr "ケース:"
 
-#: src/language/dictionary/sys-file-info.c:142
+#: src/language/dictionary/sys-file-info.c:193
 msgid "Type:"
 msgstr "タイプ:"
 
-#: src/language/dictionary/sys-file-info.c:143
-#: src/ui/gui/psppire-data-window.c:517
+#: src/language/dictionary/sys-file-info.c:194
+#: src/ui/gui/psppire-data-window.c:532
 msgid "System File"
 msgstr "システムファイル"
 
-#: src/language/dictionary/sys-file-info.c:145
+#: src/language/dictionary/sys-file-info.c:196
 msgid "Weight:"
 msgstr "重み付け:"
 
-#: src/language/dictionary/sys-file-info.c:150
+#: src/language/dictionary/sys-file-info.c:201
 msgid "Not weighted."
 msgstr "非加重．"
 
-#: src/language/dictionary/sys-file-info.c:153
+#: src/language/dictionary/sys-file-info.c:204
 msgid "Compression:"
 msgstr "圧縮:"
 
-#: src/language/dictionary/sys-file-info.c:159
-msgid "Charset:"
-msgstr "文字セット:"
+#: src/language/dictionary/sys-file-info.c:210
+msgid "Encoding:"
+msgstr "エンコーディング："
 
-#: src/language/dictionary/sys-file-info.c:167
-#: src/language/dictionary/sys-file-info.c:354
+#: src/language/dictionary/sys-file-info.c:218
+#: src/language/dictionary/sys-file-info.c:410
 msgid "Description"
 msgstr "記述"
 
-#: src/language/dictionary/sys-file-info.c:168
-#: src/language/dictionary/sys-file-info.c:356
-#: src/language/dictionary/sys-file-info.c:671
+#: src/language/dictionary/sys-file-info.c:219
+#: src/language/dictionary/sys-file-info.c:412
+#: src/language/dictionary/sys-file-info.c:733
 msgid "Position"
 msgstr "位置"
 
-#: src/language/dictionary/sys-file-info.c:216
+#: src/language/dictionary/sys-file-info.c:272
 msgid "The active dataset does not have a file label."
 msgstr "アクティブなデータセットにはファイルラベルがありません．"
 
-#: src/language/dictionary/sys-file-info.c:218
+#: src/language/dictionary/sys-file-info.c:274
 #, c-format
 msgid "File label: %s"
 msgstr "ファイルラベル: %s"
 
-#: src/language/dictionary/sys-file-info.c:292
+#: src/language/dictionary/sys-file-info.c:348
 msgid "No variables to display."
 msgstr "表示する変数がありません．"
 
-#: src/language/dictionary/sys-file-info.c:306
+#: src/language/dictionary/sys-file-info.c:362
 msgid "Macros not supported."
 msgstr "マクロはサポートされていません．"
 
-#: src/language/dictionary/sys-file-info.c:315
+#: src/language/dictionary/sys-file-info.c:371
 msgid "The active dataset dictionary does not contain any documents."
 msgstr "アクティブなデータセットのディクショナリにはドキュメントが含まれていません．"
 
-#: src/language/dictionary/sys-file-info.c:322
+#: src/language/dictionary/sys-file-info.c:378
 msgid "Documents in the active dataset:"
 msgstr "アクティブなデータセット中のドキュメント:"
 
-#: src/language/dictionary/sys-file-info.c:442
+#: src/language/dictionary/sys-file-info.c:498
 msgid "Attribute"
 msgstr "属性"
 
-#: src/language/dictionary/sys-file-info.c:498
+#: src/language/dictionary/sys-file-info.c:542
+#, c-format
+msgid "Label: %s"
+msgstr "ラベル: %s"
+
+#: src/language/dictionary/sys-file-info.c:558
 #, c-format
 msgid "Format: %s"
 msgstr "フォーマット: %s"
 
-#: src/language/dictionary/sys-file-info.c:505
+#: src/language/dictionary/sys-file-info.c:565
 #, c-format
 msgid "Print Format: %s"
 msgstr "印刷フォーマット: %s"
 
-#: src/language/dictionary/sys-file-info.c:509
+#: src/language/dictionary/sys-file-info.c:569
 #, c-format
 msgid "Write Format: %s"
 msgstr "出力フォーマット: %s"
 
-#: src/language/dictionary/sys-file-info.c:521
+#: src/language/dictionary/sys-file-info.c:581
 #, c-format
 msgid "Measure: %s"
 msgstr "測度: %s"
 
-#: src/language/dictionary/sys-file-info.c:528
+#: src/language/dictionary/sys-file-info.c:588
 #, c-format
 msgid "Role: %s"
 msgstr "使途: %s"
 
-#: src/language/dictionary/sys-file-info.c:533
+#: src/language/dictionary/sys-file-info.c:593
 #, c-format
 msgid "Display Alignment: %s"
 msgstr "表示配置: %s"
 
-#: src/language/dictionary/sys-file-info.c:538
+#: src/language/dictionary/sys-file-info.c:598
 #, c-format
 msgid "Display Width: %d"
 msgstr "表示横幅: %d"
 
-#: src/language/dictionary/sys-file-info.c:552
+#: src/language/dictionary/sys-file-info.c:612
 msgid "Missing Values: "
 msgstr "欠損値:"
 
-#: src/language/dictionary/sys-file-info.c:651
+#: src/language/dictionary/sys-file-info.c:713
 msgid "No vectors defined."
 msgstr "ベクトルが未定義です．"
 
-#: src/language/dictionary/sys-file-info.c:670
+#: src/language/dictionary/sys-file-info.c:732
 msgid "Vector"
 msgstr "ベクトル"
 
-#: src/language/dictionary/sys-file-info.c:673
+#: src/language/dictionary/sys-file-info.c:735
 msgid "Print Format"
 msgstr "印字フォーマット"
+
+#: src/language/dictionary/sys-file-info.c:1002
+msgid "No valid encodings found."
+msgstr "有効な院コーディングが見つかりません．"
+
+#: src/language/dictionary/sys-file-info.c:1009
+#, c-format
+msgid "The following table lists the encodings that can successfully read %s, by specifying the encoding name on the GET command's ENCODING subcommand.  Encodings that yield identical text are listed together."
+msgstr "次の表は %s を正しく読めるエンコーディングの一覧である．そのためにはGETコマンドのENCODINGサブコマンドでエンコード名を指定する．同じテキストを算出するエンコーディングも一緒にリストされる． "
+
+#: src/language/dictionary/sys-file-info.c:1016
+#, c-format
+msgid "Usable encodings for %s."
+msgstr "%s にとって許されるエンコーディング．"
+
+#: src/language/dictionary/sys-file-info.c:1021
+msgid "Encodings"
+msgstr "エンコーディング"
+
+#: src/language/dictionary/sys-file-info.c:1050
+msgid "The following table lists text strings in the file dictionary that the encodings above interpret differently, along with those interpretations."
+msgstr "次の表は上記のエンコーディングを異なって解釈するファイル辞書内のテキスト文字列の一覧である．"
+
+#: src/language/dictionary/sys-file-info.c:1056
+#, c-format
+msgid "%s encoded text strings."
+msgstr "%s でエンコードされたテキスト文字列．"
+
+#: src/language/dictionary/sys-file-info.c:1061
+msgid "Purpose"
+msgstr "目的"
+
+#: src/language/dictionary/sys-file-info.c:1063
+#: src/ui/gui/page-first-line.c:144
+msgid "Text"
+msgstr "テキスト"
 
 #: src/language/dictionary/value-labels.c:154
 #, c-format
@@ -2219,8 +2335,9 @@ msgid "Cannot change directory to %s:  %s "
 msgstr "ディレクトリを %s に変更できません: %s"
 
 #: src/language/utilities/date.c:33
-msgid "Only USE ALL is currently implemented."
-msgstr "USE ALLだけが今のところ実装されています．"
+#, c-format
+msgid "Only %s is currently implemented."
+msgstr "今のところ %s だけが実装されています．"
 
 #: src/language/utilities/host.c:87
 #, c-format
@@ -2380,54 +2497,54 @@ msgstr "関数 %s に渡された値の引数は順序が不正です．それ�
 msgid "Variable name %s is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
 msgstr "変数名 %s は集計変数とブレーク変数が含まれている集計ファイルディクショナリ内で一意ではありません．"
 
-#: src/language/stats/autorecode.c:163
+#: src/language/stats/autorecode.c:164
 #, c-format
 msgid "Source variable count (%zu) does not match target variable count (%zu)."
 msgstr "ソース変数カウント(%zu)とターゲット変数カウント(%zu)が一致していません．"
 
-#: src/language/stats/autorecode.c:175
+#: src/language/stats/autorecode.c:176
 #, c-format
 msgid "Target variable %s duplicates existing variable %s."
 msgstr "対象となる変数 %s はすでにある変数 %s と重複しています．"
 
-#: src/language/stats/binomial.c:136
+#: src/language/stats/binomial.c:137
 #, c-format
 msgid "Variable %s is not dichotomous"
 msgstr "変数 %s は2値型ではありません．"
 
-#: src/language/stats/binomial.c:187 src/ui/gui/binomial.ui:13
+#: src/language/stats/binomial.c:188 src/ui/gui/binomial.ui:13
 msgid "Binomial Test"
 msgstr "２項検定"
 
-#: src/language/stats/binomial.c:217
+#: src/language/stats/binomial.c:219
 msgid "Group1"
 msgstr "グループ1"
 
-#: src/language/stats/binomial.c:218
+#: src/language/stats/binomial.c:220
 msgid "Group2"
 msgstr "グループ2"
 
-#: src/language/stats/binomial.c:219 src/language/stats/chisquare.c:180
+#: src/language/stats/binomial.c:221 src/language/stats/chisquare.c:180
 #: src/language/stats/chisquare.c:239 src/language/stats/examine.c:1335
 #: src/language/stats/factor.c:1517 src/language/stats/glm.c:849
 #: src/language/stats/kruskal-wallis.c:325 src/language/stats/logistic.c:1409
 #: src/language/stats/mann-whitney.c:188 src/language/stats/means.c:1079
-#: src/language/stats/oneway.c:998 src/language/stats/oneway.c:1169
-#: src/language/stats/reliability.c:574 src/language/stats/regression.c:888
+#: src/language/stats/oneway.c:999 src/language/stats/oneway.c:1170
+#: src/language/stats/reliability.c:574 src/language/stats/regression.c:944
 #: src/language/stats/sign.c:95 src/language/stats/wilcoxon.c:255
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:91
-#: src/language/stats/crosstabs.q:874 src/language/stats/crosstabs.q:1219
-#: src/language/stats/crosstabs.q:1604 src/language/stats/frequencies.q:884
+#: src/language/stats/crosstabs.q:875 src/language/stats/crosstabs.q:1220
+#: src/language/stats/crosstabs.q:1605 src/language/stats/frequencies.q:891
 msgid "Total"
 msgstr "合計"
 
-#: src/language/stats/binomial.c:252 src/language/stats/chisquare.c:202
-#: src/language/stats/crosstabs.q:1302 src/language/stats/crosstabs.q:1349
+#: src/language/stats/binomial.c:254 src/language/stats/chisquare.c:202
+#: src/language/stats/crosstabs.q:1303 src/language/stats/crosstabs.q:1350
 msgid "Category"
 msgstr "カテゴリ"
 
-#: src/language/stats/binomial.c:253 src/language/stats/cochran.c:211
-#: src/language/stats/correlations.c:120 src/language/stats/correlations.c:229
+#: src/language/stats/binomial.c:255 src/language/stats/cochran.c:214
+#: src/language/stats/correlations.c:120 src/language/stats/correlations.c:230
 #: src/language/stats/examine.c:1340 src/language/stats/friedman.c:275
 #: src/language/stats/kruskal-wallis.c:273
 #: src/language/stats/ks-one-sample.c:293 src/language/stats/logistic.c:1403
@@ -2435,25 +2552,25 @@ msgstr "カテゴリ"
 #: src/language/stats/mann-whitney.c:190 src/language/stats/means.c:408
 #: src/language/stats/means.c:1088 src/language/stats/mcnemar.c:259
 #: src/language/stats/median.c:417 src/language/stats/npar-summary.c:123
-#: src/language/stats/oneway.c:1068 src/language/stats/reliability.c:577
+#: src/language/stats/oneway.c:1069 src/language/stats/reliability.c:577
 #: src/language/stats/sign.c:74 src/language/stats/t-test-indep.c:211
 #: src/language/stats/t-test-one-sample.c:158
 #: src/language/stats/t-test-paired.c:179
 #: src/language/stats/t-test-paired.c:233 src/language/stats/wilcoxon.c:238
-#: src/language/stats/crosstabs.q:881 src/language/stats/frequencies.q:1046
+#: src/language/stats/crosstabs.q:882 src/language/stats/frequencies.q:1053
 msgid "N"
 msgstr "N"
 
-#: src/language/stats/binomial.c:254
+#: src/language/stats/binomial.c:256
 msgid "Observed Prop."
 msgstr "観測比率"
 
-#: src/language/stats/binomial.c:255
+#: src/language/stats/binomial.c:257
 msgid "Test Prop."
 msgstr "検定比率"
 
-#: src/language/stats/binomial.c:258 src/language/stats/crosstabs.q:1282
-#: src/language/stats/crosstabs.q:1284
+#: src/language/stats/binomial.c:260 src/language/stats/crosstabs.q:1283
+#: src/language/stats/crosstabs.q:1285
 #, c-format
 msgid "Exact Sig. (%d-tailed)"
 msgstr "正確有意水準(%d-tailed検定)"
@@ -2472,18 +2589,18 @@ msgid "Expected N"
 msgstr "期待度数"
 
 #: src/language/stats/chisquare.c:166 src/language/stats/chisquare.c:205
-#: src/language/stats/regression.c:887
+#: src/language/stats/regression.c:943
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:93
 msgid "Residual"
 msgstr "残差"
 
-#: src/language/stats/chisquare.c:198 src/language/stats/cochran.c:159
+#: src/language/stats/chisquare.c:198 src/language/stats/cochran.c:160
 #: src/language/stats/median.c:319 src/language/stats/sign.c:62
 #: src/ui/gui/frequencies.ui:9
 msgid "Frequencies"
 msgstr "度数分布表"
 
-#: src/language/stats/chisquare.c:252 src/language/stats/cochran.c:208
+#: src/language/stats/chisquare.c:252 src/language/stats/cochran.c:211
 #: src/language/stats/friedman.c:272 src/language/stats/kruskal-wallis.c:343
 #: src/language/stats/mann-whitney.c:251 src/language/stats/mcnemar.c:240
 #: src/language/stats/median.c:407 src/language/stats/sign.c:114
@@ -2496,38 +2613,38 @@ msgstr "検定統計"
 msgid "Chi-Square"
 msgstr "カイ2乗"
 
-#: src/language/stats/chisquare.c:267 src/language/stats/cochran.c:217
+#: src/language/stats/chisquare.c:267 src/language/stats/cochran.c:220
 #: src/language/stats/factor.c:1884 src/language/stats/friedman.c:285
 #: src/language/stats/glm.c:750 src/language/stats/kruskal-wallis.c:349
 #: src/language/stats/logistic.c:1223 src/language/stats/median.c:426
-#: src/language/stats/oneway.c:975 src/language/stats/oneway.c:1380
-#: src/language/stats/regression.c:881 src/language/stats/t-test-indep.c:291
+#: src/language/stats/oneway.c:976 src/language/stats/oneway.c:1382
+#: src/language/stats/regression.c:937 src/language/stats/t-test-indep.c:293
 #: src/language/stats/t-test-one-sample.c:95
-#: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1278
+#: src/language/stats/t-test-paired.c:306 src/language/stats/crosstabs.q:1279
 msgid "df"
 msgstr "自由度"
 
-#: src/language/stats/chisquare.c:268 src/language/stats/cochran.c:220
+#: src/language/stats/chisquare.c:268 src/language/stats/cochran.c:223
 #: src/language/stats/friedman.c:288 src/language/stats/kruskal-wallis.c:352
 #: src/language/stats/median.c:429
 msgid "Asymp. Sig."
 msgstr "近似的有意水準"
 
-#: src/language/stats/cochran.c:109
+#: src/language/stats/cochran.c:110
 msgid "More than two values encountered.  Cochran Q test will not be run."
 msgstr "2つ以上の値に遭遇．コクランのQ検定は実行されません．"
 
-#: src/language/stats/cochran.c:172
-#, c-format
-msgid "Success (%g)"
-msgstr "成功 (%g)"
-
 #: src/language/stats/cochran.c:173
 #, c-format
-msgid "Failure (%g)"
-msgstr "失敗 (%g)"
+msgid "Success (%.*g)"
+msgstr "成功 (%.*g)"
 
-#: src/language/stats/cochran.c:214
+#: src/language/stats/cochran.c:175
+#, c-format
+msgid "Failure (%.*g)"
+msgstr "失敗 (%.*g)"
+
+#: src/language/stats/cochran.c:217
 msgid "Cochran's Q"
 msgstr "コクランのQ"
 
@@ -2536,10 +2653,10 @@ msgstr "コクランのQ"
 msgid "Descriptive Statistics"
 msgstr "記述統計"
 
-#: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:106
+#: src/language/stats/correlations.c:118 src/language/stats/descriptives.c:108
 #: src/language/stats/examine.c:886 src/language/stats/factor.c:1810
 #: src/language/stats/ks-one-sample.c:302 src/language/stats/means.c:407
-#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:1069
+#: src/language/stats/npar-summary.c:126 src/language/stats/oneway.c:1070
 #: src/language/stats/t-test-indep.c:212
 #: src/language/stats/t-test-one-sample.c:159
 #: src/language/stats/t-test-paired.c:180
@@ -2553,7 +2670,7 @@ msgstr "平均"
 #: src/language/stats/correlations.c:119 src/language/stats/examine.c:978
 #: src/language/stats/factor.c:1811 src/language/stats/ks-one-sample.c:304
 #: src/language/stats/means.c:409 src/language/stats/npar-summary.c:129
-#: src/language/stats/oneway.c:1070 src/language/stats/t-test-indep.c:213
+#: src/language/stats/oneway.c:1071 src/language/stats/t-test-indep.c:213
 #: src/language/stats/t-test-one-sample.c:160
 #: src/language/stats/t-test-paired.c:181
 #: src/language/stats/t-test-paired.c:309
@@ -2564,46 +2681,46 @@ msgstr "標準偏差"
 msgid "Correlations"
 msgstr "相関"
 
-#: src/language/stats/correlations.c:218
+#: src/language/stats/correlations.c:219
 msgid "Pearson Correlation"
 msgstr "ピアソン相関"
 
-#: src/language/stats/correlations.c:220 src/language/stats/oneway.c:1381
-#: src/language/stats/t-test-indep.c:292
+#: src/language/stats/correlations.c:221 src/language/stats/oneway.c:1383
+#: src/language/stats/t-test-indep.c:294
 #: src/language/stats/t-test-one-sample.c:96
 #: src/language/stats/t-test-paired.c:307
 msgid "Sig. (2-tailed)"
 msgstr "有意水準(両側)"
 
-#: src/language/stats/correlations.c:220 src/language/stats/factor.c:1689
+#: src/language/stats/correlations.c:221 src/language/stats/factor.c:1689
 msgid "Sig. (1-tailed)"
 msgstr "有意水準(片側)"
 
-#: src/language/stats/correlations.c:224
+#: src/language/stats/correlations.c:225
 msgid "Cross-products"
 msgstr "外積"
 
-#: src/language/stats/correlations.c:225
+#: src/language/stats/correlations.c:226
 msgid "Covariance"
 msgstr "共分散"
 
-#: src/language/stats/correlations.c:458 src/language/stats/descriptives.c:371
+#: src/language/stats/correlations.c:460 src/language/stats/descriptives.c:373
 #: src/language/data-io/list.c:167
 msgid "No variables specified."
 msgstr "変数が指定されていません．"
 
-#: src/language/stats/descriptives.c:107 src/language/stats/means.c:414
+#: src/language/stats/descriptives.c:109 src/language/stats/means.c:414
 #: src/language/stats/t-test-indep.c:214
 #: src/language/stats/t-test-one-sample.c:161
 #: src/language/stats/t-test-paired.c:182 src/language/stats/frequencies.q:108
 msgid "S.E. Mean"
 msgstr "標準誤差(平均)"
 
-#: src/language/stats/descriptives.c:108 src/language/stats/frequencies.q:111
+#: src/language/stats/descriptives.c:110 src/language/stats/frequencies.q:111
 msgid "Std Dev"
 msgstr "標準偏差"
 
-#: src/language/stats/descriptives.c:109 src/language/stats/examine.c:966
+#: src/language/stats/descriptives.c:111 src/language/stats/examine.c:966
 #: src/language/stats/means.c:419
 #: src/ui/gui/psppire-dialog-action-descriptives.c:46
 #: src/ui/gui/psppire-dialog-action-frequencies.c:45
@@ -2611,7 +2728,7 @@ msgstr "標準偏差"
 msgid "Variance"
 msgstr "分散"
 
-#: src/language/stats/descriptives.c:110 src/language/stats/examine.c:1068
+#: src/language/stats/descriptives.c:112 src/language/stats/examine.c:1068
 #: src/language/stats/means.c:420
 #: src/ui/gui/psppire-dialog-action-descriptives.c:47
 #: src/ui/gui/psppire-dialog-action-frequencies.c:50
@@ -2619,12 +2736,12 @@ msgstr "分散"
 msgid "Kurtosis"
 msgstr "尖度"
 
-#: src/language/stats/descriptives.c:111 src/language/stats/means.c:421
+#: src/language/stats/descriptives.c:113 src/language/stats/means.c:421
 #: src/language/stats/frequencies.q:114
 msgid "S.E. Kurt"
 msgstr "標準誤差(尖度)"
 
-#: src/language/stats/descriptives.c:112 src/language/stats/examine.c:1051
+#: src/language/stats/descriptives.c:114 src/language/stats/examine.c:1051
 #: src/language/stats/means.c:422
 #: src/ui/gui/psppire-dialog-action-descriptives.c:48
 #: src/ui/gui/psppire-dialog-action-frequencies.c:46
@@ -2632,12 +2749,12 @@ msgstr "標準誤差(尖度)"
 msgid "Skewness"
 msgstr "歪度"
 
-#: src/language/stats/descriptives.c:113 src/language/stats/means.c:423
+#: src/language/stats/descriptives.c:115 src/language/stats/means.c:423
 #: src/language/stats/frequencies.q:116
 msgid "S.E. Skew"
 msgstr "標準誤差(歪度)"
 
-#: src/language/stats/descriptives.c:114 src/language/stats/examine.c:1018
+#: src/language/stats/descriptives.c:116 src/language/stats/examine.c:1018
 #: src/language/stats/means.c:418
 #: src/ui/gui/psppire-dialog-action-descriptives.c:43
 #: src/ui/gui/psppire-dialog-action-frequencies.c:48
@@ -2645,81 +2762,81 @@ msgstr "標準誤差(歪度)"
 msgid "Range"
 msgstr "範囲"
 
-#: src/language/stats/descriptives.c:115 src/language/stats/examine.c:990
+#: src/language/stats/descriptives.c:117 src/language/stats/examine.c:990
 #: src/language/stats/ks-one-sample.c:311
-#: src/language/stats/npar-summary.c:132 src/language/stats/oneway.c:1083
+#: src/language/stats/npar-summary.c:132 src/language/stats/oneway.c:1084
 #: src/ui/gui/psppire-dialog-action-descriptives.c:41
 #: src/ui/gui/psppire-dialog-action-frequencies.c:42
 #: src/language/stats/frequencies.q:118
 msgid "Minimum"
 msgstr "最小値"
 
-#: src/language/stats/descriptives.c:116 src/language/stats/examine.c:1004
+#: src/language/stats/descriptives.c:118 src/language/stats/examine.c:1004
 #: src/language/stats/ks-one-sample.c:313
-#: src/language/stats/npar-summary.c:135 src/language/stats/oneway.c:1084
+#: src/language/stats/npar-summary.c:135 src/language/stats/oneway.c:1085
 #: src/ui/gui/psppire-dialog-action-descriptives.c:42
 #: src/ui/gui/psppire-dialog-action-frequencies.c:43
 #: src/language/stats/frequencies.q:119
 msgid "Maximum"
 msgstr "最大値"
 
-#: src/language/stats/descriptives.c:117 src/language/stats/means.c:415
+#: src/language/stats/descriptives.c:119 src/language/stats/means.c:415
 #: src/ui/gui/psppire-dialog-action-descriptives.c:44
 #: src/ui/gui/psppire-dialog-action-frequencies.c:53
 #: src/language/stats/frequencies.q:120
 msgid "Sum"
 msgstr "合計"
 
-#: src/language/stats/descriptives.c:353
+#: src/language/stats/descriptives.c:355
 #, c-format
 msgid "Z-score variable name %s would be a duplicate variable name."
 msgstr "標準得点の変数名 %s は重複した変数名になってしまいます．"
 
-#: src/language/stats/descriptives.c:404
+#: src/language/stats/descriptives.c:406
 msgid "DESCRIPTIVES with Z scores ignores TEMPORARY.  Temporary transformations will be made permanent."
 msgstr "標準得点を伴ったDESCRIPTIVSによりTEMPORARYは無視されます．一時的な変換が確定されます．"
 
-#: src/language/stats/descriptives.c:482
+#: src/language/stats/descriptives.c:483
 msgid "expecting statistic name: reverting to default"
 msgstr "分析名が必要: デフォールトに戻します．"
 
-#: src/language/stats/descriptives.c:565
+#: src/language/stats/descriptives.c:566
 msgid "Ran out of generic names for Z-score variables.  There are only 126 generic names: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
 msgstr "標準得点のための変数の一般名を使い果たしました．一般名は126しかありません: ZSC001 - ZSC0999，STDZ01 - STDZ09，ZZZZ01 - ZZZZ09，ZQZQ01 - ZQZQ09."
 
-#: src/language/stats/descriptives.c:594
+#: src/language/stats/descriptives.c:595
 msgid "Mapping of variables to corresponding Z-scores."
 msgstr "標準得点に対応した変数のマッピング．"
 
-#: src/language/stats/descriptives.c:598 src/language/stats/glm.c:744
+#: src/language/stats/descriptives.c:599 src/language/stats/glm.c:744
 msgid "Source"
 msgstr "ソース"
 
-#: src/language/stats/descriptives.c:599
+#: src/language/stats/descriptives.c:600
 msgid "Target"
 msgstr "ターゲット"
 
-#: src/language/stats/descriptives.c:651
+#: src/language/stats/descriptives.c:672
 msgid "Internal error processing Z scores"
 msgstr "Z得点処理中の初期エラー"
 
-#: src/language/stats/descriptives.c:749
+#: src/language/stats/descriptives.c:770
 #, c-format
 msgid "Z-score of %s"
 msgstr "%s の標準得点"
 
-#: src/language/stats/descriptives.c:985
+#: src/language/stats/descriptives.c:1021
 msgid "Valid N"
 msgstr "有効データ数"
 
-#: src/language/stats/descriptives.c:986
+#: src/language/stats/descriptives.c:1022
 msgid "Missing N"
 msgstr "欠損値数"
 
-#: src/language/stats/descriptives.c:1014
+#: src/language/stats/descriptives.c:1050
 #, c-format
-msgid "Valid cases = %g; cases with missing value(s) = %g."
-msgstr "有効ケース = %g; 欠損値を含むケース =%g."
+msgid "Valid cases = %.*g; cases with missing value(s) = %.*g."
+msgstr "有効ケース = %.*g; 欠損値を含むケース =%.*g."
 
 #: src/language/stats/examine.c:74
 msgid " (missing)"
@@ -2749,7 +2866,7 @@ msgid "Not creating spreadlevel chart for %s"
 msgstr "%s のための拡散レベルチャートチャートを作成できません．"
 
 #: src/language/stats/examine.c:608 src/language/stats/examine.c:626
-#: src/language/stats/npar-summary.c:142 src/language/stats/frequencies.q:1062
+#: src/language/stats/npar-summary.c:142 src/language/stats/frequencies.q:1069
 msgid "Percentiles"
 msgstr "パーセンタイル"
 
@@ -2762,35 +2879,37 @@ msgstr "%g"
 msgid "Tukey's Hinges"
 msgstr "テューキーのヒンジ"
 
-#: src/language/stats/examine.c:787 src/language/stats/oneway.c:1086
+#: src/language/stats/examine.c:787 src/language/stats/oneway.c:1087
 #: src/ui/gui/descriptives.ui:8
 msgid "Descriptives"
 msgstr "記述統計量"
 
 #: src/language/stats/examine.c:804 src/ui/gui/psppire-checkbox-treeview.c:103
-#: src/language/stats/crosstabs.q:1276 src/language/stats/crosstabs.q:1303
-#: src/language/stats/crosstabs.q:1326 src/language/stats/crosstabs.q:1350
+#: src/language/stats/crosstabs.q:1277 src/language/stats/crosstabs.q:1304
+#: src/language/stats/crosstabs.q:1327 src/language/stats/crosstabs.q:1351
 msgid "Statistic"
 msgstr "統計量"
 
-#: src/language/stats/examine.c:807 src/language/stats/oneway.c:1071
-#: src/language/stats/oneway.c:1378 src/language/stats/oneway.c:1583
-#: src/language/stats/roc.c:978 src/language/stats/regression.c:792
+#: src/language/stats/examine.c:807 src/language/stats/oneway.c:1072
+#: src/language/stats/oneway.c:1380 src/language/stats/oneway.c:1585
+#: src/language/stats/roc.c:978 src/language/stats/regression.c:827
 msgid "Std. Error"
 msgstr "標準誤差"
 
-#: src/language/stats/examine.c:903 src/language/stats/oneway.c:1077
+#: src/language/stats/examine.c:903 src/language/stats/oneway.c:1078
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr "平均の%g%%信頼区間"
 
-#: src/language/stats/examine.c:911 src/language/stats/oneway.c:1080
-#: src/language/stats/oneway.c:1590 src/language/stats/roc.c:981
+#: src/language/stats/examine.c:911 src/language/stats/oneway.c:1081
+#: src/language/stats/oneway.c:1592 src/language/stats/roc.c:981
+#: src/language/stats/regression.c:845
 msgid "Lower Bound"
 msgstr "下限"
 
-#: src/language/stats/examine.c:924 src/language/stats/oneway.c:1081
-#: src/language/stats/oneway.c:1591 src/language/stats/roc.c:982
+#: src/language/stats/examine.c:924 src/language/stats/oneway.c:1082
+#: src/language/stats/oneway.c:1593 src/language/stats/roc.c:982
+#: src/language/stats/regression.c:846
 msgid "Upper Bound"
 msgstr "上限"
 
@@ -2831,24 +2950,24 @@ msgid "Case Processing Summary"
 msgstr "ケース処理の要約"
 
 #: src/language/stats/examine.c:1321 src/language/stats/means.c:1075
-#: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:871
+#: src/language/stats/reliability.c:565 src/language/stats/crosstabs.q:872
 msgid "Cases"
 msgstr "ケース"
 
 #: src/language/stats/examine.c:1325 src/language/stats/quick-cluster.c:475
-#: src/language/stats/reliability.c:568 src/language/stats/crosstabs.q:872
-#: src/language/stats/frequencies.q:1047
+#: src/language/stats/reliability.c:568 src/language/stats/crosstabs.q:873
+#: src/language/stats/frequencies.q:1054
 msgid "Valid"
 msgstr "有効"
 
-#: src/language/stats/examine.c:1330 src/language/stats/crosstabs.q:873
-#: src/language/stats/frequencies.q:877 src/language/stats/frequencies.q:1048
+#: src/language/stats/examine.c:1330 src/language/stats/crosstabs.q:874
+#: src/language/stats/frequencies.q:884 src/language/stats/frequencies.q:1055
 msgid "Missing"
 msgstr "欠損"
 
 #: src/language/stats/examine.c:1342 src/language/stats/logistic.c:1404
-#: src/language/stats/means.c:1090 src/language/stats/crosstabs.q:882
-#: src/language/stats/frequencies.q:828
+#: src/language/stats/means.c:1090 src/language/stats/crosstabs.q:883
+#: src/language/stats/frequencies.q:835
 msgid "Percent"
 msgstr "パーセント"
 
@@ -2966,85 +3085,94 @@ msgid "Approx. Chi-Square"
 msgstr "近似カイ2乗値"
 
 #: src/language/stats/factor.c:1885 src/language/stats/glm.c:753
-#: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:1584
-#: src/language/stats/t-test-indep.c:289
+#: src/language/stats/logistic.c:1224 src/language/stats/oneway.c:979
+#: src/language/stats/oneway.c:1226 src/language/stats/oneway.c:1586
+#: src/language/stats/regression.c:831 src/language/stats/regression.c:940
+#: src/language/stats/t-test-indep.c:291
 #: src/language/stats/t-test-paired.c:235
 msgid "Sig."
 msgstr "有意水準"
 
 #: src/language/stats/factor.c:1926
-msgid "The FACTOR criteria result in zero factors extracted. Therefore no analysis will be performed."
-msgstr "FACTOR基準により因子はまったく抽出されませんでした．したがって解析は行われません．"
+#, c-format
+msgid "The %s criteria result in zero factors extracted. Therefore no analysis will be performed."
+msgstr "%s 基準により因子はまったく抽出されませんでした．したがって解析は行われません．"
 
-#: src/language/stats/factor.c:1932
-msgid "The FACTOR criteria result in more factors than variables, which is not meaningful. No analysis will be performed."
-msgstr "FACTOR基準により意味がない変数の数以上の因子が抽出されました．解析は行われません．"
+#: src/language/stats/factor.c:1933
+#, c-format
+msgid "The %s criteria result in more factors than variables, which is not meaningful. No analysis will be performed."
+msgstr "%s 基準により意味がない変数の数以上の因子が抽出されました．解析は行われません．"
 
-#: src/language/stats/factor.c:2015
+#: src/language/stats/factor.c:2017
 msgid "Component Matrix"
 msgstr "成分行列"
 
-#: src/language/stats/factor.c:2015
+#: src/language/stats/factor.c:2017
 msgid "Factor Matrix"
 msgstr "因子行列"
 
-#: src/language/stats/factor.c:2021
+#: src/language/stats/factor.c:2023
 msgid "Rotated Component Matrix"
 msgstr "回転後の成分行列"
 
-#: src/language/stats/factor.c:2021
+#: src/language/stats/factor.c:2023
 msgid "Rotated Factor Matrix"
 msgstr "回転後の因子行列"
 
 #: src/language/stats/flip.c:100
-msgid "FLIP ignores TEMPORARY.  Temporary transformations will be made permanent."
-msgstr "FLIPによりTEMPORARYは無視されました．一時的な変換が確定されます．"
+#, c-format
+msgid "%s ignores %s.  Temporary transformations will be made permanent."
+msgstr "%s は %s を無視しました．一時的な変換が確定されます．"
 
 #: src/language/stats/flip.c:151
-msgid "Could not create temporary file for FLIP."
-msgstr "FLIPファイル用の一時ファイルを新規作成できませんでした．"
+#, c-format
+msgid "Could not create temporary file for %s."
+msgstr "%s 用の一時ファイルを新規作成できませんでした．"
 
 #: src/language/stats/flip.c:333
 #, c-format
-msgid "Error rewinding FLIP file: %s."
-msgstr "FLIPファイルの「巻き戻し」エラー: %s."
+msgid "Error rewinding %s file: %s."
+msgstr "%s ファイルの「巻き戻し」エラー: %s."
 
 #: src/language/stats/flip.c:340
-msgid "Error creating FLIP source file."
-msgstr "ELIPソースファイルの新規作成エラー"
+#, c-format
+msgid "Error creating %s source file."
+msgstr "%s ソースファイルの新規作成エラー．"
 
 #: src/language/stats/flip.c:353
 #, c-format
-msgid "Error reading FLIP file: %s."
-msgstr "FLIPファイルの読み込みエラー: %s."
+msgid "Error reading %s file: %s."
+msgstr "%s ファイルの読み込みエラー: %s."
 
 #: src/language/stats/flip.c:355
-msgid "Unexpected end of file reading FLIP file."
-msgstr "FLIPファイル読み込み中の予期せぬファイル終端．"
+#, c-format
+msgid "Unexpected end of file reading %s file."
+msgstr "%s ファイル読み込み中の予期せぬファイル終端．"
 
 #: src/language/stats/flip.c:371
 #, c-format
-msgid "Error seeking FLIP source file: %s."
-msgstr "FLIPソースファイルの探索エラー: %s."
+msgid "Error seeking %s source file: %s."
+msgstr "%s ソースファイルの探索エラー: %s."
 
 #: src/language/stats/flip.c:379
 #, c-format
-msgid "Error writing FLIP source file: %s."
-msgstr "FLIPソースワイルの書き込みエラー: %s."
+msgid "Error writing %s source file: %s."
+msgstr "%s ソースワイルの書き込みエラー: %s."
 
 #: src/language/stats/flip.c:394
 #, c-format
-msgid "Error rewinding FLIP source file: %s."
-msgstr "FLIPソースファイルの「巻き戻し」エラー: %s."
+msgid "Error rewinding %s source file: %s."
+msgstr "%s ソースファイルの「巻き戻し」エラー: %s."
 
 #: src/language/stats/flip.c:425
 #, c-format
-msgid "Error reading FLIP temporary file: %s."
-msgstr "FLIP一時ファイルの読み込みエラー: %s."
+msgid "Error reading %s temporary file: %s."
+msgstr "%s 一時ファイルの読み込みエラー: %s."
 
 #: src/language/stats/flip.c:428
-msgid "Unexpected end of file reading FLIP temporary file."
-msgstr "FLIP一時ファイル読み込み中の予期せぬファイル終端．"
+#, c-format
+msgid "Unexpected end of file reading %s temporary file."
+msgstr "%s 一時ファイル読み込み中の予期せぬファイル終端．"
 
 #: src/language/stats/friedman.c:227 src/language/stats/kruskal-wallis.c:258
 #: src/language/stats/mann-whitney.c:171 src/language/stats/wilcoxon.c:225
@@ -3077,13 +3205,13 @@ msgstr "被験者間効果の検定"
 msgid "Type %s Sum of Squares"
 msgstr "タイプ %s の平方和"
 
-#: src/language/stats/glm.c:751 src/language/stats/oneway.c:976
-#: src/language/stats/regression.c:882
+#: src/language/stats/glm.c:751 src/language/stats/oneway.c:977
+#: src/language/stats/regression.c:938
 msgid "Mean Square"
 msgstr "平均平方"
 
-#: src/language/stats/glm.c:752 src/language/stats/oneway.c:977
-#: src/language/stats/regression.c:883 src/language/stats/t-test-indep.c:288
+#: src/language/stats/glm.c:752 src/language/stats/oneway.c:978
+#: src/language/stats/regression.c:939 src/language/stats/t-test-indep.c:290
 msgid "F"
 msgstr "F"
 
@@ -3091,7 +3219,7 @@ msgstr "F"
 msgid "Corrected Model"
 msgstr "修正モデル"
 
-#: src/language/stats/glm.c:763 src/language/stats/regression.c:935
+#: src/language/stats/glm.c:763 src/language/stats/regression.c:991
 msgid "Model"
 msgstr "モデル"
 
@@ -3125,7 +3253,7 @@ msgstr "ポアソン分布母数"
 
 #: src/language/stats/ks-one-sample.c:320
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:74
-#: src/language/stats/crosstabs.q:1988
+#: src/language/stats/crosstabs.q:1989
 msgid "Lambda"
 msgstr "ラムダ"
 
@@ -3155,8 +3283,8 @@ msgstr "コルモゴロフ・スミルノフのZ"
 
 #: src/language/stats/ks-one-sample.c:399
 #: src/language/stats/jonckheere-terpstra.c:385
-#: src/language/stats/mann-whitney.c:267 src/language/stats/runs.c:399
-#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1280
+#: src/language/stats/mann-whitney.c:267 src/language/stats/runs.c:401
+#: src/language/stats/wilcoxon.c:318 src/language/stats/crosstabs.q:1281
 msgid "Asymp. Sig. (2-tailed)"
 msgstr "近似的有意水準(両側検定)"
 
@@ -3213,7 +3341,7 @@ msgstr "等式内の変数群"
 msgid "Step 1"
 msgstr "ステップ 1"
 
-#: src/language/stats/logistic.c:1220 src/language/stats/regression.c:791
+#: src/language/stats/logistic.c:1220 src/language/stats/regression.c:826
 msgid "B"
 msgstr "B"
 
@@ -3234,15 +3362,15 @@ msgstr "Exp(B)"
 msgid "%d%% CI for Exp(B)"
 msgstr "%d%% CI for Exp(B)"
 
-#: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:295
+#: src/language/stats/logistic.c:1232 src/language/stats/t-test-indep.c:297
 #: src/language/stats/t-test-one-sample.c:98
-#: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1328
+#: src/language/stats/t-test-paired.c:312 src/language/stats/crosstabs.q:1329
 msgid "Lower"
 msgstr "下限"
 
-#: src/language/stats/logistic.c:1233 src/language/stats/t-test-indep.c:296
+#: src/language/stats/logistic.c:1233 src/language/stats/t-test-indep.c:298
 #: src/language/stats/t-test-one-sample.c:99
-#: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1329
+#: src/language/stats/t-test-paired.c:313 src/language/stats/crosstabs.q:1330
 msgid "Upper"
 msgstr "上限"
 
@@ -3282,8 +3410,8 @@ msgstr "欠損ケース"
 msgid "Categorical Variables' Codings"
 msgstr "カテゴリ変数にコード化"
 
-#: src/language/stats/logistic.c:1467 src/output/charts/plot-hist-cairo.c:119
-#: src/language/stats/frequencies.q:827
+#: src/language/stats/logistic.c:1467 src/output/charts/plot-hist-cairo.c:121
+#: src/language/stats/frequencies.q:834
 msgid "Frequency"
 msgstr "度数"
 
@@ -3355,7 +3483,7 @@ msgstr "マン・ホイットニーのU"
 msgid "Wilcoxon W"
 msgstr "ウィルコクソンのW"
 
-#: src/language/stats/mann-whitney.c:266 src/language/stats/runs.c:396
+#: src/language/stats/mann-whitney.c:266 src/language/stats/runs.c:398
 #: src/language/stats/wilcoxon.c:317
 msgid "Z"
 msgstr "Z"
@@ -3442,12 +3570,14 @@ msgid "≤ Median"
 msgstr "≤ 中央値"
 
 #: src/language/stats/npar.c:537
-msgid "NPAR subcommand not currently implemented."
-msgstr "NPARサブコマンドは今のところ実装されていません．"
+#, c-format
+msgid "%s subcommand not currently implemented."
+msgstr "%s サブコマンドはまだ実装されていません．"
 
 #: src/language/stats/npar.c:691
-msgid "Expecting MEAN, MEDIAN, MODE or number"
-msgstr "平均または中央値、最頻値、数値のどれかが必要です．"
+#, c-format
+msgid "Expecting %s, %s, %s or a number."
+msgstr "%s か %s, %s または数値が必要です．"
 
 #: src/language/stats/npar.c:841
 #, c-format
@@ -3476,143 +3606,138 @@ msgstr "下50%分位(中央値)"
 msgid "75th"
 msgstr "下75%分位"
 
-#: src/language/stats/oneway.c:359
+#: src/language/stats/oneway.c:360
 msgid "LSD"
 msgstr "LSD"
 
-#: src/language/stats/oneway.c:360
+#: src/language/stats/oneway.c:361
 msgid "Tukey HSD"
 msgstr "テューキーのHSD"
 
-#: src/language/stats/oneway.c:361
+#: src/language/stats/oneway.c:362
 msgid "Bonferroni"
 msgstr "ボンフェローニ"
 
-#: src/language/stats/oneway.c:362
+#: src/language/stats/oneway.c:363
 msgid "Scheffé"
 msgstr "シェッフェ"
 
-#: src/language/stats/oneway.c:363
+#: src/language/stats/oneway.c:364
 msgid "Games-Howell"
 msgstr "ゲームズ・ハウエル"
 
-#: src/language/stats/oneway.c:364
+#: src/language/stats/oneway.c:365
 msgid "Šidák"
 msgstr "シダック"
 
-#: src/language/stats/oneway.c:512
+#: src/language/stats/oneway.c:513
 #, c-format
 msgid "The post hoc analysis method %s is not supported."
 msgstr "事後における多重比較の検定法 %s はサポートされていません．"
 
-#: src/language/stats/oneway.c:827
+#: src/language/stats/oneway.c:828
 #, c-format
 msgid "Dependent variable %s has no non-missing values.  No analysis for this variable will be done."
 msgstr "従属変数 %s には非欠損値が有りません．この変数のための分析は行われません．"
 
-#: src/language/stats/oneway.c:909
+#: src/language/stats/oneway.c:910
 #, c-format
 msgid "In contrast list %zu, the number of coefficients (%zu) does not equal the number of groups (%d). This contrast list will be ignored."
 msgstr "対比リスト %zu において，係数の数(%zu)がグループの数(%d)と等しくありません．この対比リストは無視されます．"
 
-#: src/language/stats/oneway.c:921
+#: src/language/stats/oneway.c:922
 #, c-format
 msgid "Coefficients for contrast %zu do not total zero"
 msgstr "対比係数 %zu の合計が0でありません．"
 
-#: src/language/stats/oneway.c:974 src/language/stats/regression.c:880
+#: src/language/stats/oneway.c:975 src/language/stats/regression.c:936
 msgid "Sum of Squares"
 msgstr "平方和"
 
-#: src/language/stats/oneway.c:978 src/language/stats/oneway.c:1225
-#: src/language/stats/regression.c:795 src/language/stats/regression.c:884
-msgid "Significance"
-msgstr "有意水準"
-
-#: src/language/stats/oneway.c:996
+#: src/language/stats/oneway.c:997
 msgid "Between Groups"
 msgstr "群間"
 
-#: src/language/stats/oneway.c:997
+#: src/language/stats/oneway.c:998
 msgid "Within Groups"
 msgstr "郡内"
 
-#: src/language/stats/oneway.c:1030
+#: src/language/stats/oneway.c:1031
 msgid "ANOVA"
 msgstr "分散分析"
 
-#: src/language/stats/oneway.c:1222
+#: src/language/stats/oneway.c:1223
 msgid "Levene Statistic"
 msgstr "レーベンの検定"
 
-#: src/language/stats/oneway.c:1223
+#: src/language/stats/oneway.c:1224
 msgid "df1"
 msgstr "df1"
 
-#: src/language/stats/oneway.c:1224
+#: src/language/stats/oneway.c:1225
 msgid "df2"
 msgstr "df2"
 
-#: src/language/stats/oneway.c:1227
+#: src/language/stats/oneway.c:1228
 msgid "Test of Homogeneity of Variances"
 msgstr "分散の等質性検定"
 
-#: src/language/stats/oneway.c:1300
+#: src/language/stats/oneway.c:1301
 msgid "Contrast Coefficients"
 msgstr "対比係数"
 
-#: src/language/stats/oneway.c:1302 src/language/stats/oneway.c:1376
+#: src/language/stats/oneway.c:1303 src/language/stats/oneway.c:1378
 msgid "Contrast"
 msgstr "対比"
 
-#: src/language/stats/oneway.c:1374
+#: src/language/stats/oneway.c:1376
 msgid "Contrast Tests"
 msgstr "対比検定"
 
-#: src/language/stats/oneway.c:1377
+#: src/language/stats/oneway.c:1379
 msgid "Value of Contrast"
 msgstr "対比値"
 
-#: src/language/stats/oneway.c:1379 src/language/stats/regression.c:794
-#: src/language/stats/t-test-indep.c:290
+#: src/language/stats/oneway.c:1381 src/language/stats/regression.c:830
+#: src/language/stats/t-test-indep.c:292
 #: src/language/stats/t-test-one-sample.c:94
 #: src/language/stats/t-test-paired.c:305
 msgid "t"
 msgstr "t"
 
-#: src/language/stats/oneway.c:1431
+#: src/language/stats/oneway.c:1433
 msgid "Assume equal variances"
 msgstr "等分散を仮定する．"
 
-#: src/language/stats/oneway.c:1435
+#: src/language/stats/oneway.c:1437
 msgid "Does not assume equal"
 msgstr "等分散を仮定しない．"
 
-#: src/language/stats/oneway.c:1577
+#: src/language/stats/oneway.c:1579
 #, c-format
 msgid "Multiple Comparisons (%s)"
 msgstr "多重比較(%s)"
 
-#: src/language/stats/oneway.c:1579
+#: src/language/stats/oneway.c:1581
 #, c-format
 msgid "(I) %s"
 msgstr "(I) %s"
 
-#: src/language/stats/oneway.c:1580
+#: src/language/stats/oneway.c:1582
 #, c-format
 msgid "(J) %s"
 msgstr "(J) %s"
 
-#: src/language/stats/oneway.c:1581 src/language/stats/t-test-indep.c:293
+#: src/language/stats/oneway.c:1583 src/language/stats/t-test-indep.c:295
 #: src/language/stats/t-test-one-sample.c:97
 msgid "Mean Difference"
 msgstr "平均の差"
 
-#: src/language/stats/oneway.c:1582
+#: src/language/stats/oneway.c:1584
 msgid "(I - J)"
 msgstr "(I - J)"
 
-#: src/language/stats/oneway.c:1587
+#: src/language/stats/oneway.c:1589
 #, c-format
 msgid "%g%% Confidence Interval"
 msgstr "%g%% 信頼区間"
@@ -3638,14 +3763,23 @@ msgstr "クラスタ"
 msgid "Number of Cases in each Cluster"
 msgstr "各クラスタ内のケース数"
 
+#: src/language/stats/quick-cluster.c:553
+msgid "The number of clusters must be positive"
+msgstr "クラスタ数は正でなければなりません．"
+
+#: src/language/stats/quick-cluster.c:568
+msgid "The number of iterations must be positive"
+msgstr "反復回数は正でなければなりません．"
+
 #: src/language/stats/rank.c:206
 #, c-format
 msgid "Cannot generate variable name for ranking %s with %s.  All candidates in use."
 msgstr "%s の順位付け(%s による)のための変数名を生成することができません．すべての候補対象は使用中です．"
 
 #: src/language/stats/rank.c:321
-msgid "Too many variables in INTO clause."
-msgstr "INTO句の変数は多すぎます．"
+#, c-format
+msgid "Too many variables in %s clause."
+msgstr "%s 句の変数は多すぎます．"
 
 #: src/language/stats/rank.c:323
 #, c-format
@@ -3668,8 +3802,9 @@ msgid "%s of %s"
 msgstr "%s / %s"
 
 #: src/language/stats/rank.c:823
-msgid "Variables Created By RANK"
-msgstr "ランク(RANK)によって作成された変数"
+#, c-format
+msgid "Variables Created By %s"
+msgstr "%s によって作成された変数"
 
 #: src/language/stats/rank.c:847
 #, c-format
@@ -3840,109 +3975,122 @@ msgstr "感度"
 msgid "1 - Specificity"
 msgstr "1 - 特異度"
 
-#: src/language/stats/regression.c:346
+#: src/language/stats/regression.c:370
 msgid "REGRESSION with SAVE ignores TEMPORARY.  Temporary transformations will be made permanent."
 msgstr "SAVEを伴うREGRESSIONによりTEMPORARYは無視されます。一時的な変換が確定されます．"
 
-#: src/language/stats/regression.c:481
+#: src/language/stats/regression.c:505
 msgid "The dependent variable is equal to the independent variable. The least squares line is therefore Y=X. Standard errors and related statistics may be meaningless."
 msgstr "従属変数が独立変数は同じです．したがって最小2乗直線はY=Xとなります．標準誤差および関連する統計は無意味となります．"
 
-#: src/language/stats/regression.c:665
+#: src/language/stats/regression.c:689
 msgid "No valid data found. This command was skipped."
 msgstr "適正なコマンドが見つかりません．このコマンドはスキップされました。"
 
-#: src/language/stats/regression.c:750
-#: src/ui/gui/psppire-dialog-action-regression.c:41
+#: src/language/stats/regression.c:774
+#: src/ui/gui/psppire-dialog-action-regression.c:42
 msgid "R"
 msgstr "R"
 
-#: src/language/stats/regression.c:751
+#: src/language/stats/regression.c:775
 msgid "R Square"
 msgstr "R2乗"
 
-#: src/language/stats/regression.c:752
+#: src/language/stats/regression.c:776
 msgid "Adjusted R Square"
 msgstr "自由度調整済みR2乗"
 
-#: src/language/stats/regression.c:753
+#: src/language/stats/regression.c:777
 msgid "Std. Error of the Estimate"
 msgstr "推定の標準誤差"
 
-#: src/language/stats/regression.c:758
+#: src/language/stats/regression.c:782
 #, c-format
 msgid "Model Summary (%s)"
 msgstr "モデル要約 (%s)"
 
-#: src/language/stats/regression.c:793
+#: src/language/stats/regression.c:825
+msgid "Unstandardized Coefficients"
+msgstr "非基準化係数"
+
+#: src/language/stats/regression.c:828
+msgid "Standardized Coefficients"
+msgstr "基準化係数"
+
+#: src/language/stats/regression.c:829
 msgid "Beta"
 msgstr "ベータ"
 
-#: src/language/stats/regression.c:796
+#: src/language/stats/regression.c:832
 msgid "(Constant)"
 msgstr "(定数)"
 
-#: src/language/stats/regression.c:851
+#: src/language/stats/regression.c:843
+#, c-format
+msgid "%g%% Confidence Interval for B"
+msgstr "Bの%g%%信頼区間"
+
+#: src/language/stats/regression.c:907
 #, c-format
 msgid "Coefficients (%s)"
 msgstr "係数 (%s)"
 
-#: src/language/stats/regression.c:886 src/ui/gui/regression.ui:7
+#: src/language/stats/regression.c:942 src/ui/gui/regression.ui:7
 msgid "Regression"
 msgstr "回帰"
 
-#: src/language/stats/regression.c:909
+#: src/language/stats/regression.c:965
 #, c-format
 msgid "ANOVA (%s)"
 msgstr "分散分析 (%s)"
 
-#: src/language/stats/regression.c:936
+#: src/language/stats/regression.c:992
 msgid "Covariances"
 msgstr "共分散"
 
-#: src/language/stats/regression.c:951
+#: src/language/stats/regression.c:1007
 #, c-format
 msgid "Coefficient Correlations (%s)"
 msgstr "係数相関 (%s)"
 
-#: src/language/stats/runs.c:167
+#: src/language/stats/runs.c:168
 #, c-format
-msgid "Multiple modes exist for variable `%s'.  Using %g as the threshold value."
-msgstr "複数のモードが変数`%s 'には存在します．閾値として %g が使われます．"
+msgid "Multiple modes exist for variable `%s'.  Using %.*g as the threshold value."
+msgstr "複数のモードが変数`%s 'には存在します．閾値として %.*g が使われます．"
 
-#: src/language/stats/runs.c:322 src/ui/gui/runs.ui:7
+#: src/language/stats/runs.c:324 src/ui/gui/runs.ui:7
 msgid "Runs Test"
 msgstr "ラン(連)検定"
 
-#: src/language/stats/runs.c:367
+#: src/language/stats/runs.c:369
 msgid "Test Value"
 msgstr "検定値"
 
-#: src/language/stats/runs.c:371
+#: src/language/stats/runs.c:373
 msgid "Test Value (mode)"
 msgstr "検定値 (最頻値)"
 
-#: src/language/stats/runs.c:375
+#: src/language/stats/runs.c:377
 msgid "Test Value (mean)"
 msgstr "検定値（平均）"
 
-#: src/language/stats/runs.c:379
+#: src/language/stats/runs.c:381
 msgid "Test Value (median)"
 msgstr "検定値 (中央値)"
 
-#: src/language/stats/runs.c:384
+#: src/language/stats/runs.c:386
 msgid "Cases < Test Value"
 msgstr "ケース < 検定値"
 
-#: src/language/stats/runs.c:387
+#: src/language/stats/runs.c:389
 msgid "Cases ≥ Test Value"
 msgstr "ケース ≥ 検定値"
 
-#: src/language/stats/runs.c:390
+#: src/language/stats/runs.c:392
 msgid "Total Cases"
 msgstr "全ケース数"
 
-#: src/language/stats/runs.c:393
+#: src/language/stats/runs.c:395
 msgid "Number of Runs"
 msgstr "ラン(連)の数"
 
@@ -3971,34 +4119,34 @@ msgstr "変数 %s は並べ替え基準で2度指定されています．"
 msgid "Group Statistics"
 msgstr "グループ統計"
 
-#: src/language/stats/t-test-indep.c:277
+#: src/language/stats/t-test-indep.c:279
 msgid "Independent Samples Test"
 msgstr "独立したサンプルのｔ検定"
 
-#: src/language/stats/t-test-indep.c:285
+#: src/language/stats/t-test-indep.c:287
 msgid "Levene's Test for Equality of Variances"
 msgstr "レーベンの分散同等性検定"
 
-#: src/language/stats/t-test-indep.c:286
+#: src/language/stats/t-test-indep.c:288
 msgid "t-test for Equality of Means"
 msgstr "平均値同等性のt検定"
 
-#: src/language/stats/t-test-indep.c:294
+#: src/language/stats/t-test-indep.c:296
 msgid "Std. Error Difference"
 msgstr "標準誤差の差分"
 
-#: src/language/stats/t-test-indep.c:299
+#: src/language/stats/t-test-indep.c:301
 #: src/language/stats/t-test-one-sample.c:89
 #: src/language/stats/t-test-paired.c:300
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
 msgstr "差分の %g%% 信頼区間"
 
-#: src/language/stats/t-test-indep.c:313
+#: src/language/stats/t-test-indep.c:317
 msgid "Equal variances assumed"
 msgstr "等分散性を仮定する"
 
-#: src/language/stats/t-test-indep.c:345
+#: src/language/stats/t-test-indep.c:349
 msgid "Equal variances not assumed"
 msgstr "等分散性を仮定しない"
 
@@ -4057,13 +4205,15 @@ msgid "%s - %s"
 msgstr "%s - %s"
 
 #: src/language/stats/t-test-parser.c:123
-msgid "When applying GROUPS to a string variable, two values must be specified."
-msgstr "文字列変数に GROUPS を適用する場合は，2つの値を指定する必要があります．"
+#, c-format
+msgid "When applying %s to a string variable, two values must be specified."
+msgstr "文字列変数に %s を適用する場合は，2つの値を指定する必要があります．"
 
 #: src/language/stats/t-test-parser.c:135
 #: src/language/stats/t-test-parser.c:231
-msgid "VARIABLES subcommand may not be used with PAIRS."
-msgstr "VARIABLESサブコマンドはPAIRSと共には使えません．"
+#, c-format
+msgid "%s subcommand may not be used with %s."
+msgstr "%s サブコマンドは %s と共には使えません．"
 
 #: src/language/stats/t-test-parser.c:293
 msgid "Exactly one of TESTVAL, GROUPS and PAIRS subcommands must be specified."
@@ -4149,46 +4299,49 @@ msgid "Encountered %zu sets of duplicate cases in the master file."
 msgstr "マスターファイルにおいて %zu 組の重複したケースに遭遇しました．"
 
 #: src/language/data-io/data-list.c:141
-msgid "The END subcommand may only be used within INPUT PROGRAM."
-msgstr "ENDサブコマンドはINPUT PROGRAMにおいてのみ使用できます．"
+#, c-format
+msgid "The %s subcommand may only be used within %s."
+msgstr "%s サブコマンドは %s においてのみ使用できます．"
 
-#: src/language/data-io/data-list.c:147
-msgid "The END subcommand may only be specified once."
-msgstr "ENDサブコマンドは1度だけしか使えません．"
+#: src/language/data-io/data-list.c:146
+#, c-format
+msgid "The %s subcommand may only be specified once."
+msgstr "%s サブコマンドは1度だけしか指定できません．"
 
-#: src/language/data-io/data-list.c:185
+#: src/language/data-io/data-list.c:184
 msgid "Only one of FIXED, FREE, or LIST may be specified."
 msgstr "FIXEDまたはFREE，LISTのどれか1つしか使えません．"
 
-#: src/language/data-io/data-list.c:246
+#: src/language/data-io/data-list.c:245
 msgid "Encoding should not be specified for inline data. It will be ignored."
 msgstr "エンコーディングはインラインデータに対して指定すべきではありません．無視されます．"
 
-#: src/language/data-io/data-list.c:255
-msgid "The END subcommand may be used only with DATA LIST FIXED."
-msgstr "ENDサブコマンドはDATAまたはLIST，FIXEDとともにしか使えません．"
+#: src/language/data-io/data-list.c:254
+#, c-format
+msgid "The %s subcommand may be used only with %s."
+msgstr "%s サブコマンドは %s とともにしか使えません．"
 
-#: src/language/data-io/data-list.c:270
+#: src/language/data-io/data-list.c:269
 msgid "At least one variable must be specified."
 msgstr "少なくとも1つの変数は指定されねばなりません。"
 
-#: src/language/data-io/data-list.c:369 src/language/data-io/data-list.c:477
+#: src/language/data-io/data-list.c:368 src/language/data-io/data-list.c:476
 #: src/language/data-io/get-data.c:666
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr "%s は重複した変数名です．"
 
-#: src/language/data-io/data-list.c:376
+#: src/language/data-io/data-list.c:375
 #, c-format
 msgid "There is already a variable %s of a different type."
 msgstr "異なる型の変数 %s がすでに存在します．"
 
-#: src/language/data-io/data-list.c:383
+#: src/language/data-io/data-list.c:382
 #, c-format
 msgid "There is already a string variable %s of a different width."
 msgstr "異なる長さの文字列変数 %s がすでに存在します．"
 
-#: src/language/data-io/data-list.c:391
+#: src/language/data-io/data-list.c:390
 #, c-format
 msgid "Cannot place variable %s on record %d when RECORDS=%d is specified."
 msgstr "変数 %s をレコード %d の格納できません．RECORDS = %d が指定されているためです．"
@@ -4269,8 +4422,9 @@ msgid "Could not read `%s' as a text file with encoding `%s': %s."
 msgstr "`%s' をテキストファイル(エンコード `%s')として読み込めませんでした: %s."
 
 #: src/language/data-io/data-reader.c:239
-msgid "Missing END DATA while reading inline data.  This probably indicates a missing or incorrectly formatted END DATA command.  END DATA must appear by itself on a single line with exactly one space between words."
-msgstr "インラインデータを読み込み中にEND DATAがエンドが見当たりません．おそらく存在しないか，または間違ってフォーマットされたEND DATAコマンドの可能性があります。END DATAは単語の間に正確に1つの空白を持つ単一の行に単独で存在する必要があります．"
+#, c-format
+msgid "Missing %s while reading inline data.  This probably indicates a missing or incorrectly formatted %s command.  %s must appear by itself on a single line with exactly one space between words."
+msgstr "インラインデータを読み込み中に %s が見当たりません．おそらく存在しないか，または間違ってフォーマットされた %s コマンドの可能性があります。%s は単語の間に正確に1つの空白を持つ単一の行に単独で存在する必要があります．"
 
 #: src/language/data-io/data-reader.c:259
 #: src/language/data-io/data-reader.c:393
@@ -4308,8 +4462,9 @@ msgid "Attempt to read beyond end-of-file on file %s."
 msgstr "ファイル %s の終端より先を読み込もうとしました．"
 
 #: src/language/data-io/data-reader.c:576
-msgid "Attempt to read beyond END DATA."
-msgstr "END DATAより先を読み込もうとしました．"
+#, c-format
+msgid "Attempt to read beyond %s."
+msgstr "%s より先を読み込もうとしました．"
 
 #: src/language/data-io/data-reader.c:764
 msgid "This command is not valid here since the current input program does not access the inline file."
@@ -4362,21 +4517,16 @@ msgstr "%s は \"%s\" または \"%s\" のいずれか1つの次に来なけれ�
 msgid "%s is allowed only with %s arrangement, but %s arrangement was stated or implied earlier in this command."
 msgstr "%s は %s 配置のみで許可されますが，%s 配置はこのコマンドより前に明示または暗示されています．"
 
-#: src/language/data-io/get-data.c:436
-msgid "Value of FIRSTCASE must be 1 or greater."
-msgstr "FIRSTCASEの値は1以上です．"
-
-#: src/language/data-io/get-data.c:474
-msgid "Value of FIXCASE must be at least 1."
-msgstr "FIXCASEの値は少なくとも1です．"
-
+#: src/language/data-io/get-data.c:436 src/language/data-io/get-data.c:474
 #: src/language/data-io/get-data.c:494
-msgid "Value of FIRST must be at least 1."
-msgstr "FIRSTの値は少なくても1です．"
+#, c-format
+msgid "Value of %s must be 1 or greater."
+msgstr "%s の値は1以上です．"
 
 #: src/language/data-io/get-data.c:506
-msgid "Value of PERCENT must be between 1 and 100."
-msgstr "PERCENTの値は1から100です．"
+#, c-format
+msgid "Value of %s must be between 1 and 100."
+msgstr "%s の値は1から100です．"
 
 #: src/language/data-io/get-data.c:557
 msgid "In compatible syntax mode, the QUALIFIER string must contain exactly one character."
@@ -4394,12 +4544,14 @@ msgid "The record number specified, %ld, exceeds the number of records per case 
 msgstr "指定されたレコード番号 %ld は，FIXCASEで指定されたケースあたりのレコード数 %d を超えています．"
 
 #: src/language/data-io/inpt-pgm.c:133
-msgid "Unexpected end-of-file within INPUT PROGRAM."
-msgstr "INPUT PROGRAMにおいて予期せぬファイル終端．"
+#, c-format
+msgid "Unexpected end-of-file within %s."
+msgstr "%s において予期せぬファイル終端．"
 
 #: src/language/data-io/inpt-pgm.c:146
-msgid "Input program must contain DATA LIST or END FILE."
-msgstr "入力プログラムにはDATA LISTかEND FILEが含まれていなければなりません。"
+#, c-format
+msgid "Input program must contain %s or %s."
+msgstr "入力プログラムには %s か %s が含まれていなければなりません。"
 
 #: src/language/data-io/inpt-pgm.c:152
 msgid "Input program did not create any variables."
@@ -4456,21 +4608,23 @@ msgid "The ending column for a field must be greater than the starting column."
 msgstr "フィールドの最後の列は最初の列よりも大きくなければなりません．"
 
 #: src/language/data-io/print-space.c:127
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr "PRINT SPACE中の表現はシステム欠損値として評価されました．"
+#, c-format
+msgid "The expression on %s evaluated to the system-missing value."
+msgstr "%s 中の表現はシステム欠損値として評価されました．"
 
 #: src/language/data-io/print-space.c:130
 #, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr "PRINT SPACEでの表現は %g と評価されました．"
+msgid "The expression on %s evaluated to %g."
+msgstr "%s での表現は %g と評価されました．"
 
 #: src/language/data-io/print.c:193 src/language/data-io/trim.c:54
 msgid "expecting a valid subcommand"
 msgstr "有効なサブコマンドが必要です．"
 
 #: src/language/data-io/print.c:223
-msgid "OUTFILE is required when binary formats are specified."
-msgstr "バイナリのフォーマットが指定されたときはOUTFILEが必要です．"
+#, c-format
+msgid "%s is required when binary formats are specified."
+msgstr "バイナリのフォーマットが指定されたときは %s が必要です．"
 
 #: src/language/data-io/print.c:306
 #, c-format
@@ -4497,8 +4651,8 @@ msgstr "%s 文字列はきっちり1文字でなければなりません．"
 
 #: src/language/data-io/save-translate.c:252
 #, c-format
-msgid "Output file `%s' exists but REPLACE was not specified."
-msgstr "出力ファイル `%s' は存在しますが REPLACE が指定されていません．"
+msgid "Output file `%s' exists but %s was not specified."
+msgstr "出力ファイル `%s' は存在しますが %s が指定されていません．"
 
 #: src/language/data-io/trim.c:89
 #, c-format
@@ -4645,8 +4799,8 @@ msgstr "%s はPSPPのによる拡張です．"
 
 #: src/language/expressions/parse.c:1301
 #, c-format
-msgid "%s may not appear after TEMPORARY."
-msgstr "%s がTEMPORARY以後に現れません．"
+msgid "%s may not appear after %s."
+msgstr "%s が %s 以後にありません．"
 
 #: src/libpspp/ext-array.c:66
 msgid "failed to create temporary file"
@@ -4678,115 +4832,115 @@ msgstr "インフレ－タを初期化できません: %s"
 msgid "Error inflating: %s"
 msgstr "インフレータの使用でエラー: %s"
 
-#: src/libpspp/i18n.c:940
+#: src/libpspp/i18n.c:1003
 msgid "Arabic"
 msgstr "アラビア語"
 
-#: src/libpspp/i18n.c:942
+#: src/libpspp/i18n.c:1005
 msgid "Armenian"
 msgstr "米語"
 
-#: src/libpspp/i18n.c:943
+#: src/libpspp/i18n.c:1006
 msgid "Baltic"
 msgstr "バルティック語"
 
-#: src/libpspp/i18n.c:945
+#: src/libpspp/i18n.c:1008
 msgid "Celtic"
 msgstr "ケルト語"
 
-#: src/libpspp/i18n.c:946
+#: src/libpspp/i18n.c:1009
 msgid "Central European"
 msgstr "中央ヨーロッパ"
 
-#: src/libpspp/i18n.c:948
+#: src/libpspp/i18n.c:1011
 msgid "Chinese Simplified"
 msgstr "中国(略字体)"
 
-#: src/libpspp/i18n.c:950
+#: src/libpspp/i18n.c:1013
 msgid "Chinese Traditional"
 msgstr "中国(繁字体)"
 
-#: src/libpspp/i18n.c:952
+#: src/libpspp/i18n.c:1015
 msgid "Croatian"
 msgstr "クロアチア語"
 
-#: src/libpspp/i18n.c:953
+#: src/libpspp/i18n.c:1016
 msgid "Cyrillic"
 msgstr "キリル"
 
-#: src/libpspp/i18n.c:955
+#: src/libpspp/i18n.c:1018
 msgid "Cyrillic/Russian"
 msgstr "キリル/ロシア語"
 
-#: src/libpspp/i18n.c:956
+#: src/libpspp/i18n.c:1019
 msgid "Cyrillic/Ukrainian"
 msgstr "キリル/ウクライナ語"
 
-#: src/libpspp/i18n.c:958
+#: src/libpspp/i18n.c:1021
 msgid "Georgian"
 msgstr "グルジア語"
 
-#: src/libpspp/i18n.c:959
+#: src/libpspp/i18n.c:1022
 msgid "Greek"
 msgstr "ギリシャ語"
 
-#: src/libpspp/i18n.c:960
+#: src/libpspp/i18n.c:1023
 msgid "Gujarati"
 msgstr "グジャラート語"
 
-#: src/libpspp/i18n.c:961
+#: src/libpspp/i18n.c:1024
 msgid "Gurmukhi"
 msgstr "グルムキー"
 
-#: src/libpspp/i18n.c:962
+#: src/libpspp/i18n.c:1025
 msgid "Hebrew"
 msgstr "ヘブライ語"
 
-#: src/libpspp/i18n.c:964
+#: src/libpspp/i18n.c:1027
 msgid "Hebrew Visual"
 msgstr "ヘブライ語ビジュアル"
 
-#: src/libpspp/i18n.c:965
+#: src/libpspp/i18n.c:1028
 msgid "Hindi"
 msgstr "ヒンディー語"
 
-#: src/libpspp/i18n.c:966
+#: src/libpspp/i18n.c:1029
 msgid "Icelandic"
 msgstr "アイスランド語"
 
-#: src/libpspp/i18n.c:967
+#: src/libpspp/i18n.c:1030
 msgid "Japanese"
 msgstr "日本語"
 
-#: src/libpspp/i18n.c:969
+#: src/libpspp/i18n.c:1032
 msgid "Korean"
 msgstr "韓国語"
 
-#: src/libpspp/i18n.c:971
+#: src/libpspp/i18n.c:1034
 msgid "Nordic"
 msgstr "ノルディック語"
 
-#: src/libpspp/i18n.c:972
+#: src/libpspp/i18n.c:1035
 msgid "Romanian"
 msgstr "ルーマニア語"
 
-#: src/libpspp/i18n.c:974
+#: src/libpspp/i18n.c:1037
 msgid "South European"
 msgstr "南ヨーロッパ語"
 
-#: src/libpspp/i18n.c:975
+#: src/libpspp/i18n.c:1038
 msgid "Thai"
 msgstr "タイ語"
 
-#: src/libpspp/i18n.c:977
+#: src/libpspp/i18n.c:1040
 msgid "Turkish"
 msgstr "トルコ語"
 
-#: src/libpspp/i18n.c:979
+#: src/libpspp/i18n.c:1042
 msgid "Vietnamese"
 msgstr "ベトナム語"
 
-#: src/libpspp/i18n.c:981
+#: src/libpspp/i18n.c:1044
 msgid "Western European"
 msgstr "西ヨーロッパ語"
 
@@ -4890,32 +5044,32 @@ msgstr "実証的"
 msgid "Empirical with averaging"
 msgstr "平均化による実証"
 
-#: src/output/ascii.c:314
+#: src/output/ascii.c:315
 #, c-format
 msgid "%s: %s must be positive integer or `auto'"
 msgstr "%s: %s は正の整数か`auto'でなければなりません．"
 
-#: src/output/ascii.c:347
+#: src/output/ascii.c:348
 #, c-format
 msgid "ascii: page excluding margins and headers must be at least %d characters wide by %d lines long, but as configured is only %d characters by %d lines"
 msgstr "ASCII: ページは余白やヘッダを除いて少なくとも横 %d 文字×縦 %d 行でなければなりませんが，設定では横 %d 文字×縦 %d 行しかありません．"
 
-#: src/output/ascii.c:395
+#: src/output/ascii.c:396
 #, c-format
 msgid "ascii: closing output file `%s'"
 msgstr "ASCII: 出力ファイル `%s' 閉じています．"
 
-#: src/output/ascii.c:539
+#: src/output/ascii.c:540
 #, c-format
 msgid "See %s for a chart."
 msgstr "チャートでは %s を参照"
 
-#: src/output/ascii.c:1013
+#: src/output/ascii.c:1014
 #, c-format
 msgid "ascii: opening output file `%s'"
 msgstr "ASCII: 出力ファイル `%s' を開いています．"
 
-#: src/output/ascii.c:1070
+#: src/output/ascii.c:1071
 #, c-format
 msgid "%s - Page %d"
 msgstr "%s - ページ %d"
@@ -4949,32 +5103,32 @@ msgstr "記述なし"
 msgid "error writing output file `%s'"
 msgstr "出力ファイル `%s' の書き込み中にエラー"
 
-#: src/output/measure.c:67
+#: src/output/measure.c:68
 #, c-format
 msgid "`%s' is not a valid length."
 msgstr "`%s' は適切な長さではありません．"
 
-#: src/output/measure.c:95
+#: src/output/measure.c:96
 #, c-format
 msgid "syntax error in paper size `%s'"
 msgstr "用紙サイズ `%s' シンタックスエラー"
 
-#: src/output/measure.c:232
+#: src/output/measure.c:233
 #, c-format
 msgid "unknown paper type `%.*s'"
 msgstr "不明な用紙タイプ `%.*s'"
 
-#: src/output/measure.c:250
+#: src/output/measure.c:251
 #, c-format
 msgid "error opening input file `%s'"
 msgstr "入力ファイル `%s' を開くときにエラー"
 
-#: src/output/measure.c:261
+#: src/output/measure.c:262
 #, c-format
 msgid "error reading file `%s'"
 msgstr "ファイル `%s' の読み込み中にエラー"
 
-#: src/output/measure.c:278
+#: src/output/measure.c:279
 #, c-format
 msgid "paper size file `%s' does not state a paper size"
 msgstr "用紙サイズファイル `%s' には用紙サイズが記述されていません．"
@@ -5059,7 +5213,7 @@ msgstr "定義されたページには、デフォルトのフォントで少な
 msgid "error drawing output for %s driver: %s"
 msgstr "%s ドライバへの描画出力中にエラー: %s"
 
-#: src/output/cairo.c:1125
+#: src/output/cairo.c:1116
 #, c-format
 msgid "error writing output file `%s': %s"
 msgstr "出力ファイル `%s' の書き込み中にエラー: %s"
@@ -5086,22 +5240,22 @@ msgstr "%s のトレンド除去された正規Q-Qプロット"
 msgid "Dev from Normal"
 msgstr "正規分布から逸脱"
 
-#: src/output/charts/plot-hist-cairo.c:41
+#: src/output/charts/plot-hist-cairo.c:42
 #, c-format
 msgid "N = %.2f"
 msgstr "データ数 = %.2f"
 
-#: src/output/charts/plot-hist-cairo.c:50
+#: src/output/charts/plot-hist-cairo.c:51
 #, c-format
 msgid "Mean = %.1f"
 msgstr "平均 = %.1f"
 
-#: src/output/charts/plot-hist-cairo.c:59
+#: src/output/charts/plot-hist-cairo.c:60
 #, c-format
 msgid "Std. Dev = %.2f"
 msgstr "標準偏差 = %.2f"
 
-#: src/output/charts/plot-hist-cairo.c:117
+#: src/output/charts/plot-hist-cairo.c:119
 msgid "HISTOGRAM"
 msgstr "ヒストグラム"
 
@@ -5256,30 +5410,30 @@ msgstr "対角スラッシュ"
 msgid "Whether to draw a diagonal slash across the button."
 msgstr "下へ向かっての対角斜線を描画"
 
-#: src/ui/gui/autorecode-dialog.c:292 src/ui/gui/recode-dialog.c:658
-#: src/ui/gui/recode-dialog.c:743
+#: src/ui/gui/autorecode-dialog.c:292 src/ui/gui/recode-dialog.c:659
+#: src/ui/gui/recode-dialog.c:744
 msgid "New"
 msgstr "新規"
 
-#: src/ui/gui/autorecode-dialog.c:306 src/ui/gui/recode-dialog.c:673
-#: src/ui/gui/recode-dialog.c:735
+#: src/ui/gui/autorecode-dialog.c:306 src/ui/gui/recode-dialog.c:674
+#: src/ui/gui/recode-dialog.c:736
 msgid "Old"
 msgstr "現在"
 
-#: src/ui/gui/aggregate-dialog.c:154
+#: src/ui/gui/aggregate-dialog.c:155
 msgid "Aggregate destination file"
 msgstr "書き出し先ファイルの統合"
 
-#: src/ui/gui/aggregate-dialog.c:166 src/ui/gui/psppire-data-window.c:486
+#: src/ui/gui/aggregate-dialog.c:167 src/ui/gui/psppire-data-window.c:500
 msgid "System Files (*.sav)"
 msgstr "システムファイル(*sav)"
 
-#: src/ui/gui/aggregate-dialog.c:171 src/ui/gui/psppire-data-window.c:491
+#: src/ui/gui/aggregate-dialog.c:172 src/ui/gui/psppire-data-window.c:505
 msgid "Compressed System Files (*.zsav)"
 msgstr "圧縮されたシステムファイル(*.zsav)"
 
-#: src/ui/gui/aggregate-dialog.c:176 src/ui/gui/psppire-data-window.c:496
-#: src/ui/gui/psppire-window.c:738
+#: src/ui/gui/aggregate-dialog.c:177 src/ui/gui/psppire-data-window.c:510
+#: src/ui/gui/psppire-window.c:718
 msgid "Portable Files (*.por) "
 msgstr "ポータブルファイル (*.por)"
 
@@ -5382,11 +5536,11 @@ msgstr "変数タイプに対して不正な値"
 msgid "Incorrect range specification"
 msgstr "不正な範囲指定"
 
-#: src/ui/gui/psppire.c:304
+#: src/ui/gui/psppire.c:277
 msgid "_Reset"
 msgstr "戻す(_R)"
 
-#: src/ui/gui/psppire.c:305
+#: src/ui/gui/psppire.c:278
 msgid "_Select"
 msgstr "選択(_S)"
 
@@ -5426,80 +5580,80 @@ msgstr "ケース"
 msgid "var"
 msgstr "変数"
 
-#: src/ui/gui/psppire-data-window.c:171
+#: src/ui/gui/psppire-data-window.c:172
 msgid "Transformations Pending"
 msgstr "変換保留"
 
-#: src/ui/gui/psppire-data-window.c:187
+#: src/ui/gui/psppire-data-window.c:188
 msgid "Filter off"
 msgstr "フィルタリングなし"
 
-#: src/ui/gui/psppire-data-window.c:199
+#: src/ui/gui/psppire-data-window.c:200
 #, c-format
 msgid "Filter by %s"
 msgstr "%s によるフィルタリング"
 
-#: src/ui/gui/psppire-data-window.c:220
+#: src/ui/gui/psppire-data-window.c:221
 msgid "No Split"
 msgstr "分割なし"
 
-#: src/ui/gui/psppire-data-window.c:229
+#: src/ui/gui/psppire-data-window.c:230
 msgid "Split by "
 msgstr "分割"
 
-#: src/ui/gui/psppire-data-window.c:257
+#: src/ui/gui/psppire-data-window.c:258
 msgid "Weights off"
 msgstr "重み付けなし"
 
-#: src/ui/gui/psppire-data-window.c:269
+#: src/ui/gui/psppire-data-window.c:270
 #, c-format
 msgid "Weight by %s"
 msgstr "%s による重み付け"
 
-#: src/ui/gui/psppire-data-window.c:476 src/ui/gui/aggregate.ui:450
+#: src/ui/gui/psppire-data-window.c:490 src/ui/gui/aggregate.ui:450
 msgid "Save"
 msgstr "保存"
 
-#: src/ui/gui/psppire-data-window.c:501 src/ui/gui/psppire-syntax-window.c:605
-#: src/ui/gui/psppire-window.c:749 src/ui/gui/page-file.c:249
+#: src/ui/gui/psppire-data-window.c:515 src/ui/gui/psppire-syntax-window.c:605
+#: src/ui/gui/psppire-window.c:729 src/ui/gui/page-file.c:249
 msgid "All Files"
 msgstr "すべてのファイル"
 
-#: src/ui/gui/psppire-data-window.c:524
+#: src/ui/gui/psppire-data-window.c:539
 msgid "Compressed System File"
 msgstr "圧縮されたシステムファイル"
 
-#: src/ui/gui/psppire-data-window.c:530
+#: src/ui/gui/psppire-data-window.c:545
 msgid "Portable File"
 msgstr "ポータブルファイル"
 
-#: src/ui/gui/psppire-data-window.c:533
+#: src/ui/gui/psppire-data-window.c:548
 msgid "Format:"
 msgstr "フォーマット:"
 
-#: src/ui/gui/psppire-data-window.c:597
+#: src/ui/gui/psppire-data-window.c:612
 msgid "Delete Existing Dataset?"
 msgstr "現在あるデータセットを消去しますか?"
 
-#: src/ui/gui/psppire-data-window.c:601
+#: src/ui/gui/psppire-data-window.c:616
 #, c-format
 msgid "Renaming \"%s\" to \"%s\" will destroy the existing dataset named \"%s\".  Are you sure that you want to do this?"
 msgstr "\"%s \" から \"%s\"への名前の変更は既存のデータセット \"%s\" を破壊します．本当に実行しますか?"
 
-#: src/ui/gui/psppire-data-window.c:629
+#: src/ui/gui/psppire-data-window.c:644
 #, c-format
 msgid "Please enter a new name for dataset \"%s\":"
 msgstr "データセット \"%s\" の新しい名前を入力して下さい:"
 
-#: src/ui/gui/psppire-data-window.c:631
+#: src/ui/gui/psppire-data-window.c:646
 msgid "Rename Dataset"
 msgstr "データセット名を変更"
 
-#: src/ui/gui/psppire-data-window.c:689
+#: src/ui/gui/psppire-data-window.c:704
 msgid "Font Selection"
 msgstr "フォント選択"
 
-#: src/ui/gui/psppire-data-window.c:1284
+#: src/ui/gui/psppire-data-window.c:1299
 msgid "Data Editor"
 msgstr "データ エディタ"
 
@@ -5508,7 +5662,7 @@ msgid "Chisq"
 msgstr "カイ2乗"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:72
-#: src/language/stats/crosstabs.q:1850
+#: src/language/stats/crosstabs.q:1851
 msgid "Phi"
 msgstr "Phi"
 
@@ -5533,7 +5687,7 @@ msgid "Risk"
 msgstr "相対リスク"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:79
-#: src/language/stats/crosstabs.q:1855
+#: src/language/stats/crosstabs.q:1856
 msgid "Gamma"
 msgstr "ガンマ"
 
@@ -5542,12 +5696,12 @@ msgid "D"
 msgstr "Somersのd"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:81
-#: src/language/stats/crosstabs.q:1858
+#: src/language/stats/crosstabs.q:1859
 msgid "Kappa"
 msgstr "カッパ"
 
 #: src/ui/gui/psppire-dialog-action-crosstabs.c:82
-#: src/language/stats/crosstabs.q:1992
+#: src/language/stats/crosstabs.q:1993
 msgid "Eta"
 msgstr "イータ"
 
@@ -5583,7 +5737,7 @@ msgstr "調整済みの標準化された残差"
 msgid "Standard error"
 msgstr "標準誤差"
 
-#: src/ui/gui/psppire-dialog-action-factor.c:320
+#: src/ui/gui/psppire-dialog-action-factor.c:323
 #, c-format
 msgid "_Eigenvalues over %4.2f times the mean eigenvalue"
 msgstr "固有値平均の %4.2f 倍以上の固有値(_E)"
@@ -5605,7 +5759,7 @@ msgstr "最頻値"
 msgid "Standard error of the kurtosis"
 msgstr "尖度の標準誤差"
 
-#: src/ui/gui/psppire-dialog-action-oneway.c:151
+#: src/ui/gui/psppire-dialog-action-oneway.c:153
 #, c-format
 msgid "Contrast %d of %d"
 msgstr "対比 %d / %d"
@@ -5623,13 +5777,37 @@ msgstr "対応のあるサンプルのｔ検定"
 msgid "Coeff"
 msgstr "係数"
 
+#: src/ui/gui/psppire-dialog-action-regression.c:40
+msgid "Show the regression coefficients"
+msgstr "回帰係数の表示"
+
+#: src/ui/gui/psppire-dialog-action-regression.c:41
+msgid "Conf. Interval"
+msgstr "信頼区間"
+
+#: src/ui/gui/psppire-dialog-action-regression.c:41
+msgid "Show the confidence interval for the regression coefficients"
+msgstr "回帰係数の信頼区間の表示"
+
 #: src/ui/gui/psppire-dialog-action-regression.c:42
+msgid "Show the correlation between observed and predicted values"
+msgstr "観測値と予測値との相関の表示"
+
+#: src/ui/gui/psppire-dialog-action-regression.c:43
 msgid "Anova"
 msgstr "分散分析"
 
 #: src/ui/gui/psppire-dialog-action-regression.c:43
+msgid "Show the analysis of variance table"
+msgstr "分散分析表の表示"
+
+#: src/ui/gui/psppire-dialog-action-regression.c:44
 msgid "Bcov"
 msgstr "BCOV"
+
+#: src/ui/gui/psppire-dialog-action-regression.c:44
+msgid "Show the variance coefficient matrix"
+msgstr "分散係数行列の表示"
 
 #: src/ui/gui/psppire-dialog-action-two-sample.c:183
 msgid "Two-Related-Samples Tests"
@@ -5709,7 +5887,7 @@ msgstr "ロケール"
 msgid "Character Encoding: "
 msgstr "文字コード:"
 
-#: src/ui/gui/psppire-means-layer.c:73
+#: src/ui/gui/psppire-means-layer.c:95
 #, c-format
 msgid "Layer %d of %d"
 msgstr "レイヤー %d / %d"
@@ -5758,7 +5936,7 @@ msgstr "クリップボード操作の際に一時的なディレクトリの作
 msgid "Output Viewer"
 msgstr "出力ビューア"
 
-#: src/ui/gui/psppire-spreadsheet-model.c:268
+#: src/ui/gui/psppire-spreadsheet-model.c:270
 msgid "(empty)"
 msgstr "(空)"
 
@@ -5771,48 +5949,48 @@ msgstr "保存ファイル `%s'"
 msgid "Save Syntax"
 msgstr "シンタックス保存"
 
-#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:743
+#: src/ui/gui/psppire-syntax-window.c:599 src/ui/gui/psppire-window.c:723
 msgid "Syntax Files (*.sps) "
 msgstr "シンタックスファイル(*.sps)"
 
-#: src/ui/gui/psppire-syntax-window.c:913
+#: src/ui/gui/psppire-syntax-window.c:914
 msgid "Syntax Editor"
 msgstr "シンタックスエディタ"
 
-#: src/ui/gui/psppire-syntax-window.c:928
+#: src/ui/gui/psppire-syntax-window.c:929
 #, c-format
 msgid "Cannot load syntax file `%s'"
 msgstr "シンタックスファイル `%s' をロードできません．"
 
-#: src/ui/gui/psppire-val-chooser.c:300
+#: src/ui/gui/psppire-val-chooser.c:301
 msgid "through"
 msgstr "～"
 
-#: src/ui/gui/psppire-val-chooser.c:329
+#: src/ui/gui/psppire-val-chooser.c:330
 msgid "_Value:"
 msgstr "値(_V):"
 
-#: src/ui/gui/psppire-val-chooser.c:330
+#: src/ui/gui/psppire-val-chooser.c:331
 msgid "_System Missing"
 msgstr "システム欠損値(_S)"
 
-#: src/ui/gui/psppire-val-chooser.c:331
+#: src/ui/gui/psppire-val-chooser.c:332
 msgid "System _or User Missing"
 msgstr "システムまたはユーザ欠損値(_o)"
 
-#: src/ui/gui/psppire-val-chooser.c:332
+#: src/ui/gui/psppire-val-chooser.c:333
 msgid "_Range:"
 msgstr "範囲(_R):"
 
-#: src/ui/gui/psppire-val-chooser.c:333
+#: src/ui/gui/psppire-val-chooser.c:334
 msgid "Range, _LOWEST thru value"
 msgstr "範囲，最小値から次の値まで(_L)"
 
-#: src/ui/gui/psppire-val-chooser.c:334
+#: src/ui/gui/psppire-val-chooser.c:335
 msgid "Range, value thru _HIGHEST"
 msgstr "範囲，次の値から最大値まで(_H)"
 
-#: src/ui/gui/psppire-val-chooser.c:335
+#: src/ui/gui/psppire-val-chooser.c:336
 msgid "_All other values"
 msgstr "その他の全ての値(_A)"
 
@@ -5848,7 +6026,7 @@ msgstr "新しい変数を追加するための新しい変数名を入力して
 msgid "{%s, %s}\n"
 msgstr "{%s, %s}\n"
 
-#: src/ui/gui/psppire-var-sheet.c:1367 src/language/stats/crosstabs.q:1351
+#: src/ui/gui/psppire-var-sheet.c:1367 src/language/stats/crosstabs.q:1352
 #: src/ui/gui/compute.ui:618
 msgid "Type"
 msgstr "タイプ"
@@ -5896,45 +6074,45 @@ msgstr "保存しない場合は，これまで %ld 秒の変更は永久に失�
 msgid "Close _without saving"
 msgstr "保存せずに閉じる(_w)"
 
-#: src/ui/gui/psppire-window.c:714
+#: src/ui/gui/psppire-window.c:694
 msgid "Open"
 msgstr "開く"
 
-#: src/ui/gui/psppire-window.c:723
+#: src/ui/gui/psppire-window.c:703
 msgid "Data and Syntax Files"
 msgstr "データおよびシンタックスファイル"
 
-#: src/ui/gui/psppire-window.c:732
+#: src/ui/gui/psppire-window.c:712
 msgid "System Files (*.sav, *.zsav)"
 msgstr "システムファイル(*.sav, *.zsav)"
 
-#: src/ui/gui/recode-dialog.c:641
+#: src/ui/gui/recode-dialog.c:642
 msgid "Recode into Different Variables"
 msgstr "他の変数への値の再割り当て"
 
-#: src/ui/gui/recode-dialog.c:644 src/ui/gui/recode.ui:332
+#: src/ui/gui/recode-dialog.c:645 src/ui/gui/recode.ui:332
 msgid "Recode into Same Variables"
 msgstr "同一の変数への値の再割り当て"
 
-#: src/ui/gui/recode-dialog.c:905
+#: src/ui/gui/recode-dialog.c:906
 msgid "Recode into Different Variables: Old and New Values "
 msgstr "同じ変数への再コード化: 今までの値と新しい値"
 
-#: src/ui/gui/recode-dialog.c:906
+#: src/ui/gui/recode-dialog.c:907
 msgid "Recode into Same Variables: Old and New Values"
 msgstr "新しい変数への再コード化: 今までの値と新しい値"
 
-#: src/ui/gui/select-cases-dialog.c:63
+#: src/ui/gui/select-cases-dialog.c:64
 #, c-format
 msgid "Approximately %3d%% of all cases."
 msgstr "およそ全ケースの%3d%%"
 
-#: src/ui/gui/select-cases-dialog.c:64
+#: src/ui/gui/select-cases-dialog.c:65
 #, c-format
 msgid "Exactly %3d cases from the first %3d cases."
 msgstr "きっちり %3d ケース(最初に %3d ケース中)"
 
-#: src/ui/gui/select-cases-dialog.c:203
+#: src/ui/gui/select-cases-dialog.c:204
 #, c-format
 msgid "%d thru %d"
 msgstr "%d から %d"
@@ -6037,10 +6215,6 @@ msgstr "オープンドキュメント表計算ファイル"
 msgid "All Spreadsheet Files"
 msgstr "すべての表計算ファイル"
 
-#: src/ui/gui/page-first-line.c:144
-msgid "Text"
-msgstr "テキスト"
-
 #: src/ui/gui/page-sheet-spec.c:252
 msgid "An error occurred reading the spreadsheet file."
 msgstr "表計算ファイルの読み込み中にエラーが発生しました．"
@@ -6079,337 +6253,349 @@ msgstr "ケースの重み付けなし"
 msgid "Weight cases by %s"
 msgstr "重み付け変数は%s"
 
-#: utilities/pspp-convert.c:117
+#: utilities/pspp-convert.c:133
 msgid "exactly two non-option arguments are required; use --help for help"
 msgstr "きっちり2つの非引数が必要です．--helpでヘルプを参照して下さい．"
 
-#: utilities/pspp-convert.c:126
+#: utilities/pspp-convert.c:142
 #, c-format
 msgid "%s: cannot guess output format (use -O option)"
 msgstr "%s: 推測できない出力フォーマット(-Oオプションを使用)"
 
-#: utilities/pspp-convert.c:162
+#: utilities/pspp-convert.c:151
+msgid "can only convert encrypted data file to sav or sys format"
+msgstr "暗号化されたデータファイルはsavかsysフォーマットにのみ変換可能"
+
+#: utilities/pspp-convert.c:188
 #, c-format
 msgid "%s: unknown output format (use -O option)"
 msgstr "%s: 不明な出力フォーマット(-Oオプションを使用)"
 
-#: utilities/pspp-convert.c:179
+#: utilities/pspp-convert.c:205
 #, c-format
 msgid "%s: error reading input file"
 msgstr "%s: 入力ファイルの読み込みエラー"
 
-#: utilities/pspp-convert.c:181
+#: utilities/pspp-convert.c:207
 #, c-format
 msgid "%s: error writing output file"
 msgstr "%s: 出力ファイルの書き込みエラー"
 
-#: src/language/utilities/set.q:163 src/language/utilities/set.q:170
+#: utilities/pspp-convert.c:233
+msgid "sorry, wrong password"
+msgstr "パスワードが誤りです"
+
+#: src/language/utilities/set.q:164 src/language/utilities/set.q:171
 #, c-format
 msgid "%s must be at least 1."
 msgstr "%s は少なくとも1でなければなりません．"
 
-#: src/language/utilities/set.q:177 src/language/data-io/file-handle.q:106
+#: src/language/utilities/set.q:178 src/language/data-io/file-handle.q:106
 #, c-format
 msgid "%s must not be negative."
 msgstr "%s は非負でなければなりません．"
 
-#: src/language/utilities/set.q:196
-msgid "WORKSPACE must be at least 1MB"
-msgstr "WORKSPACEは最小で1MBです．"
+#: src/language/utilities/set.q:197
+#, c-format
+msgid "%s must be at least 1MB"
+msgstr "%s は少なくとも1MBでなければなりません．"
 
-#: src/language/utilities/set.q:198
-msgid "WORKSPACE must be positive"
-msgstr "WORKSPACEは正でなければなりません。"
+#: src/language/utilities/set.q:199
+#, c-format
+msgid "%s must be positive"
+msgstr "%s は正でなければなりません。"
 
-#: src/language/utilities/set.q:204 src/language/utilities/set.q:206
-#: src/language/utilities/set.q:208 src/language/utilities/set.q:210
-#: src/language/utilities/set.q:212 src/language/utilities/set.q:214
-#: src/language/utilities/set.q:216 src/language/utilities/set.q:218
-#: src/language/utilities/set.q:220 src/language/utilities/set.q:222
-#: src/language/utilities/set.q:224
+#: src/language/utilities/set.q:205 src/language/utilities/set.q:207
+#: src/language/utilities/set.q:209 src/language/utilities/set.q:211
+#: src/language/utilities/set.q:213 src/language/utilities/set.q:215
+#: src/language/utilities/set.q:217 src/language/utilities/set.q:219
+#: src/language/utilities/set.q:221 src/language/utilities/set.q:223
+#: src/language/utilities/set.q:225
 #, c-format
 msgid "%s is obsolete."
 msgstr "%s は退化しています．"
 
-#: src/language/utilities/set.q:230
+#: src/language/utilities/set.q:231
 msgid "Active file compression is not implemented."
 msgstr "アクティブなファイルの圧縮は実装されていません．"
 
-#: src/language/utilities/set.q:406
-msgid "EPOCH must be 1500 or later."
-msgstr "EPOCHは1500以上に限られます．"
+#: src/language/utilities/set.q:407
+#, c-format
+msgid "%s must be 1500 or later."
+msgstr "%s は1500以降に限られます．"
 
-#: src/language/utilities/set.q:413
-msgid "expecting AUTOMATIC or year"
-msgstr "AUTOMATICか年が必要です．"
+#: src/language/utilities/set.q:414
+#, c-format
+msgid "expecting %s or year"
+msgstr "%s か年が必要です．"
 
-#: src/language/utilities/set.q:441
-msgid "LENGTH must be at least 1."
-msgstr "LENGTHは少なくとも1でなければなりません｡"
+#: src/language/utilities/set.q:442 src/language/utilities/set.q:539
+#, c-format
+msgid "%s must be at least %d."
+msgstr "%s は少なくとも %d でなければなりません．"
 
-#: src/language/utilities/set.q:477
+#: src/language/utilities/set.q:478
 #, c-format
 msgid "%s is not a recognized encoding or locale name"
 msgstr "%s は既知のエンコーディングまたはロケールではありません．"
 
-#: src/language/utilities/set.q:538
-msgid "WIDTH must be at least 40."
-msgstr "WIDTHは少なくとも40です．"
-
-#: src/language/utilities/set.q:565
+#: src/language/utilities/set.q:566
 #, c-format
-msgid "FORMAT requires numeric output format as an argument.  Specified format %s is of type string."
-msgstr "FORMATは引数として数値の出力形式を必要とします．指定された書式 %s は文字列型です．"
+msgid "%s requires numeric output format as an argument.  Specified format %s is of type string."
+msgstr "%s は引数として数値の出力形式を必要とします．指定された書式 %s は文字列型です．"
 
-#: src/language/utilities/set.q:787
+#: src/language/utilities/set.q:789
 msgid "ISL (32-bit IEEE 754 single, little-endian)"
 msgstr "ISL (32-bit IEEE 754 単精度, 下位バイト順)"
 
-#: src/language/utilities/set.q:790
+#: src/language/utilities/set.q:792
 msgid "ISB (32-bit IEEE 754 single, big-endian)"
 msgstr "ISB (32-bit IEEE 754 単精度, 上位バイト順)"
 
-#: src/language/utilities/set.q:793
+#: src/language/utilities/set.q:795
 msgid "IDL (64-bit IEEE 754 double, little-endian)"
 msgstr "IDL (64-bit IEEE 754 倍精度, 下位バイト順)"
 
-#: src/language/utilities/set.q:796
+#: src/language/utilities/set.q:798
 msgid "IDB (64-bit IEEE 754 double, big-endian)"
 msgstr "IDB (64-bit IEEE 754 倍精度, 上位バイト順)"
 
-#: src/language/utilities/set.q:800
+#: src/language/utilities/set.q:802
 msgid "VF (32-bit VAX F, VAX-endian)"
 msgstr "VF (32-bit VAX F, VAXバイト順)"
 
-#: src/language/utilities/set.q:803
+#: src/language/utilities/set.q:805
 msgid "VD (64-bit VAX D, VAX-endian)"
 msgstr "VD (64-bit VAX D, VAXバイト順"
 
-#: src/language/utilities/set.q:806
+#: src/language/utilities/set.q:808
 msgid "VG (64-bit VAX G, VAX-endian)"
 msgstr "VG (64-bit VAX G, VAXバイト順)"
 
-#: src/language/utilities/set.q:810
+#: src/language/utilities/set.q:812
 msgid "ZS (32-bit IBM Z hexadecimal short, big-endian)"
 msgstr "ZS (32-bit IBM Z 16進数 単精度, 上位バイト順)"
 
-#: src/language/utilities/set.q:813
+#: src/language/utilities/set.q:815
 msgid "ZL (64-bit IBM Z hexadecimal long, big-endian)"
 msgstr "ZL (64-bit IBM Z 16進数 倍精度, 上位バイト順)"
 
-#: src/language/utilities/set.q:980
+#: src/language/utilities/set.q:982
 #, c-format
 msgid "%s is %s."
 msgstr "%s は %s です．"
 
-#: src/language/utilities/set.q:1084
+#: src/language/utilities/set.q:1086
 #, c-format
-msgid "Too many PRESERVE commands without a RESTORE: at most %d levels of saved settings are allowed."
-msgstr "RESTOREを伴わない多すぎるPRESERVEコマンド: 保存された設定の最大で %d レベルまでが許可されています．"
+msgid "Too many %s commands without a %s: at most %d levels of saved settings are allowed."
+msgstr "RESTOREを伴わない多すぎる %s コマンド（%s はない）: 保存された設定の最大で %d レベルまでが許可されています．"
 
-#: src/language/utilities/set.q:1103
-msgid "RESTORE without matching PRESERVE."
-msgstr "RESTOREに対応するMATCHINGがありません．"
+#: src/language/utilities/set.q:1106
+#, c-format
+msgid "%s without matching %s."
+msgstr "%s は %s とマッチしない．"
 
-#: src/language/stats/crosstabs.q:297
-msgid "Missing mode REPORT not allowed in general mode.  Assuming MISSING=TABLE."
-msgstr "MISSING=REPORTは一般モードで使用できません．MISSING=TABLEと仮定されます．"
+#: src/language/stats/crosstabs.q:298
+#, c-format
+msgid "Missing mode %s not allowed in general mode.  Assuming %s."
+msgstr "欠損モード %s は一般モードで使用できません．%s が仮定されます．"
 
-#: src/language/stats/crosstabs.q:413
+#: src/language/stats/crosstabs.q:414
 msgid "Too many cross-tabulation variables or dimensions."
 msgstr "クロス集計変数あまたは次元が多すぎます．"
 
-#: src/language/stats/crosstabs.q:481
-msgid "VARIABLES must be specified before TABLES."
-msgstr "VARIABLESはTABLESより前に指定せねばなりません．"
+#: src/language/stats/crosstabs.q:482
+#, c-format
+msgid "%s must be specified before %s."
+msgstr "%s は %s より前に指定せねばなりません．"
 
-#: src/language/stats/crosstabs.q:515
+#: src/language/stats/crosstabs.q:516
 #, c-format
 msgid "Maximum value (%ld) less than minimum value (%ld)."
 msgstr "最大値(%ld)が最小値(%ld)未満です．"
 
-#: src/language/stats/crosstabs.q:869
+#: src/language/stats/crosstabs.q:870
 msgid "Summary."
 msgstr "要約．"
 
 #. TRANSLATORS: The %s here describes a crosstabulation.  It takes the
 #. form "var1 * var2 * var3 * ...".
-#: src/language/stats/crosstabs.q:978
+#: src/language/stats/crosstabs.q:979
 #, c-format
 msgid "Crosstabulation %s contained no non-missing cases."
 msgstr "クロス集計表 %s には欠損値でないデータがありません"
 
-#: src/language/stats/crosstabs.q:1177
+#: src/language/stats/crosstabs.q:1178
 msgid "count"
 msgstr "計数"
 
-#: src/language/stats/crosstabs.q:1178
+#: src/language/stats/crosstabs.q:1179
 msgid "row %"
 msgstr "行％"
 
-#: src/language/stats/crosstabs.q:1179
+#: src/language/stats/crosstabs.q:1180
 msgid "column %"
 msgstr "列％"
 
-#: src/language/stats/crosstabs.q:1180
+#: src/language/stats/crosstabs.q:1181
 msgid "total %"
 msgstr "全体％"
 
-#: src/language/stats/crosstabs.q:1181
+#: src/language/stats/crosstabs.q:1182
 msgid "expected"
 msgstr "期待"
 
-#: src/language/stats/crosstabs.q:1182
+#: src/language/stats/crosstabs.q:1183
 msgid "residual"
 msgstr "残差"
 
-#: src/language/stats/crosstabs.q:1183
+#: src/language/stats/crosstabs.q:1184
 msgid "std. resid."
 msgstr "標準化残差"
 
-#: src/language/stats/crosstabs.q:1184
+#: src/language/stats/crosstabs.q:1185
 msgid "adj. resid."
 msgstr "調整済み残差"
 
-#: src/language/stats/crosstabs.q:1273
+#: src/language/stats/crosstabs.q:1274
 msgid "Chi-square tests."
 msgstr "カイ2乗検定"
 
-#: src/language/stats/crosstabs.q:1299
+#: src/language/stats/crosstabs.q:1300
 msgid "Symmetric measures."
 msgstr "対称測度"
 
-#: src/language/stats/crosstabs.q:1305 src/language/stats/crosstabs.q:1353
+#: src/language/stats/crosstabs.q:1306 src/language/stats/crosstabs.q:1354
 msgid "Asymp. Std. Error"
 msgstr "漸近的標準誤差"
 
-#: src/language/stats/crosstabs.q:1306 src/language/stats/crosstabs.q:1354
+#: src/language/stats/crosstabs.q:1307 src/language/stats/crosstabs.q:1355
 msgid "Approx. T"
 msgstr "近似t"
 
-#: src/language/stats/crosstabs.q:1307 src/language/stats/crosstabs.q:1355
+#: src/language/stats/crosstabs.q:1308 src/language/stats/crosstabs.q:1356
 msgid "Approx. Sig."
 msgstr "近似的有意水準"
 
-#: src/language/stats/crosstabs.q:1321
+#: src/language/stats/crosstabs.q:1322
 msgid "Risk estimate."
 msgstr "リスク推定"
 
-#: src/language/stats/crosstabs.q:1325
+#: src/language/stats/crosstabs.q:1326
 #, c-format
 msgid "95%% Confidence Interval"
 msgstr "95%% 信頼区間"
 
-#: src/language/stats/crosstabs.q:1346
+#: src/language/stats/crosstabs.q:1347
 msgid "Directional measures."
 msgstr "指向性測度"
 
-#: src/language/stats/crosstabs.q:1784
+#: src/language/stats/crosstabs.q:1785
 msgid "Pearson Chi-Square"
 msgstr "ピアソンのカイ2乗"
 
-#: src/language/stats/crosstabs.q:1785
+#: src/language/stats/crosstabs.q:1786
 msgid "Likelihood Ratio"
 msgstr "最尤比"
 
-#: src/language/stats/crosstabs.q:1786
+#: src/language/stats/crosstabs.q:1787
 msgid "Fisher's Exact Test"
 msgstr "フィッシャーの正確確率検定"
 
-#: src/language/stats/crosstabs.q:1787
+#: src/language/stats/crosstabs.q:1788
 msgid "Continuity Correction"
 msgstr "連続性のための修正"
 
-#: src/language/stats/crosstabs.q:1788
+#: src/language/stats/crosstabs.q:1789
 msgid "Linear-by-Linear Association"
 msgstr "線形－線形関連"
 
-#: src/language/stats/crosstabs.q:1823 src/language/stats/crosstabs.q:1898
-#: src/language/stats/crosstabs.q:1963
+#: src/language/stats/crosstabs.q:1824 src/language/stats/crosstabs.q:1899
+#: src/language/stats/crosstabs.q:1964
 msgid "N of Valid Cases"
 msgstr "有効ケース数"
 
-#: src/language/stats/crosstabs.q:1842 src/language/stats/crosstabs.q:1981
+#: src/language/stats/crosstabs.q:1843 src/language/stats/crosstabs.q:1982
 msgid "Nominal by Nominal"
 msgstr "名義と名義"
 
-#: src/language/stats/crosstabs.q:1843 src/language/stats/crosstabs.q:1982
+#: src/language/stats/crosstabs.q:1844 src/language/stats/crosstabs.q:1983
 msgid "Ordinal by Ordinal"
 msgstr "順序と順序"
 
-#: src/language/stats/crosstabs.q:1844
+#: src/language/stats/crosstabs.q:1845
 msgid "Interval by Interval"
 msgstr "間隔と間隔"
 
-#: src/language/stats/crosstabs.q:1845
+#: src/language/stats/crosstabs.q:1846
 msgid "Measure of Agreement"
 msgstr "合意尺度"
 
-#: src/language/stats/crosstabs.q:1851
+#: src/language/stats/crosstabs.q:1852
 msgid "Cramer's V"
 msgstr "クラメールのV"
 
-#: src/language/stats/crosstabs.q:1852
+#: src/language/stats/crosstabs.q:1853
 msgid "Contingency Coefficient"
 msgstr "C係数"
 
-#: src/language/stats/crosstabs.q:1853
+#: src/language/stats/crosstabs.q:1854
 msgid "Kendall's tau-b"
 msgstr "ケンドールのタウ"
 
-#: src/language/stats/crosstabs.q:1854
+#: src/language/stats/crosstabs.q:1855
 msgid "Kendall's tau-c"
 msgstr "ケンドールのタウ"
 
-#: src/language/stats/crosstabs.q:1856
+#: src/language/stats/crosstabs.q:1857
 msgid "Spearman Correlation"
 msgstr "スピアマンの順位相関"
 
-#: src/language/stats/crosstabs.q:1857
+#: src/language/stats/crosstabs.q:1858
 msgid "Pearson's R"
 msgstr "ピアソンの R"
 
-#: src/language/stats/crosstabs.q:1936
+#: src/language/stats/crosstabs.q:1937
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
 msgstr "%s(%g / %g)のためのオッズ比"
 
-#: src/language/stats/crosstabs.q:1939
+#: src/language/stats/crosstabs.q:1940
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
 msgstr "%s(%.*s / %.*s)のためのオッズ比"
 
-#: src/language/stats/crosstabs.q:1947
+#: src/language/stats/crosstabs.q:1948
 #, c-format
-msgid "For cohort %s = %g"
-msgstr "コホート %s = %g"
+msgid "For cohort %s = %.*g"
+msgstr "コホート %s = %.*g"
 
-#: src/language/stats/crosstabs.q:1950
+#: src/language/stats/crosstabs.q:1951
 #, c-format
 msgid "For cohort %s = %.*s"
 msgstr "コホート %s = %.*s"
 
-#: src/language/stats/crosstabs.q:1983
+#: src/language/stats/crosstabs.q:1984
 msgid "Nominal by Interval"
 msgstr "名義と間隔"
 
-#: src/language/stats/crosstabs.q:1989
+#: src/language/stats/crosstabs.q:1990
 msgid "Goodman and Kruskal tau"
 msgstr "グッドマン・クラスカルのタウ"
 
-#: src/language/stats/crosstabs.q:1990
+#: src/language/stats/crosstabs.q:1991
 msgid "Uncertainty Coefficient"
 msgstr "不確実係数"
 
-#: src/language/stats/crosstabs.q:1991
+#: src/language/stats/crosstabs.q:1992
 msgid "Somers' d"
 msgstr "ソマーズのd"
 
-#: src/language/stats/crosstabs.q:1997
+#: src/language/stats/crosstabs.q:1998
 msgid "Symmetric"
 msgstr "対称"
 
-#: src/language/stats/crosstabs.q:1998 src/language/stats/crosstabs.q:1999
+#: src/language/stats/crosstabs.q:1999 src/language/stats/crosstabs.q:2000
 #, c-format
 msgid "%s Dependent"
 msgstr "%s 従属"
@@ -6420,63 +6606,64 @@ msgstr "棒グラフは実装されていません．"
 
 #: src/language/stats/frequencies.q:400
 #, c-format
-msgid "MAX for histogram must be greater than or equal to MIN, but MIN was specified as %.15g and MAX as %.15g.  MIN and MAX will be ignored."
-msgstr "ヒストグラムにおけるMAXはMINよりも大きいか等しくなければなりませんが，MINは %.15g，MAXは %.15g と指定されていました．MINとMAXは無視されます．"
+msgid "%s for histogram must be greater than or equal to %s, but %s was specified as %.15g and %s as %.15g.  %s and %s will be ignored."
+msgstr "ヒストグラムにおける %s は %s よりも大きいか等しくなければなりませんが，%s は %.15g，%s は %.15g と指定されていました．%s と %s は無視されます．"
 
-#: src/language/stats/frequencies.q:421
+#: src/language/stats/frequencies.q:424
 #, c-format
-msgid "MAX for pie chart must be greater than or equal to MIN, but MIN was specified as %.15g and MAX as %.15g.  MIN and MAX will be ignored."
-msgstr "円グラフにおけるMAXはMINよりも大きいか等しくなければなりませんが，MINは %.15g，MAXは %.15g と指定されていました．MINとMAXは無視されます．"
+msgid "%s for pie chart must be greater than or equal to %s, but %s was specified as %.15g and %s as %.15g.  %s and %s will be ignored."
+msgstr "円グラフにおける %s は %s よりも大きいか等しくなければなりませんが，%s は %.15g，%s は %.15g と指定されていました．%s と %s は無視されます．"
 
-#: src/language/stats/frequencies.q:727
+#: src/language/stats/frequencies.q:734
 #, c-format
-msgid "Variables %s specified multiple times on GROUPED subcommand."
-msgstr "変数 %s はグループ化(GROUPED)サブコマンドで重複指定されている．"
+msgid "Variables %s specified multiple times on %s subcommand."
+msgstr "変数 %s は %s サブコマンドで重複指定されている．"
 
-#: src/language/stats/frequencies.q:737
+#: src/language/stats/frequencies.q:744
 #, c-format
-msgid "Variables %s specified on GROUPED but not on VARIABLES."
-msgstr "グループ化(GROUPED)で指定されている変数 %s は変数リスト(VARIABLES)にありません．"
+msgid "Variables %s specified on %s but not on %s."
+msgstr "変数 %s（%s 内で指定）は %s 内にはありません．"
 
-#: src/language/stats/frequencies.q:825
+#: src/language/stats/frequencies.q:832
 msgid "Value Label"
 msgstr "値ラベル"
 
-#: src/language/stats/frequencies.q:829
+#: src/language/stats/frequencies.q:836
 msgid "Valid Percent"
 msgstr "有効パーセント"
 
-#: src/language/stats/frequencies.q:830
+#: src/language/stats/frequencies.q:837
 msgid "Cum Percent"
 msgstr "累積パーセント"
 
-#: src/language/stats/frequencies.q:1020
+#: src/language/stats/frequencies.q:1027
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
 msgstr "変数 %s には有効なデータがありません; 分析結果は表示されません．"
 
-#: src/language/stats/frequencies.q:1066
+#: src/language/stats/frequencies.q:1073
 msgid "50 (Median)"
 msgstr "50(中央値)"
 
-#: src/language/stats/frequencies.q:1215
+#: src/language/stats/frequencies.q:1222
 #, c-format
 msgid "Omitting pie chart for %s, which has only %d unique values."
 msgstr "%s の円グラフは省略(ユニークな値が %d しかないため)"
 
-#: src/language/stats/frequencies.q:1218
+#: src/language/stats/frequencies.q:1225
 #, c-format
 msgid "Omitting pie chart for %s, which has over 50 unique values."
 msgstr "%s の円グラフは省略(ユニークな値が50を超えているため)"
 
 #: src/language/data-io/file-handle.q:74
 #, c-format
-msgid "File handle %s is already defined.  Use CLOSE FILE HANDLE before redefining a file handle."
-msgstr "ファイルハンドルが %s はすでに定義されています．ファイルハンドルを再定義する前にCLOSE FILE HANDLEを使用してください。"
+msgid "File handle %s is already defined.  Use %s before redefining a file handle."
+msgstr "ファイルハンドルが %s はすでに定義されています．ファイルハンドルを再定義する前に %s を使用してください．"
 
 #: src/language/data-io/file-handle.q:135
-msgid "RECFORM must be specified with MODE=360."
-msgstr "RECFORMはMODE=360とともに指定せねばなりません．"
+#, c-format
+msgid "%s must be specified with %s."
+msgstr "%s は %s とともに指定せねばなりません．"
 
 #: src/language/data-io/file-handle.q:146
 #, c-format
@@ -6825,8 +7012,8 @@ msgstr "期待度数:"
 msgid "Test _Variables"
 msgstr "検定変数リスト(_V)"
 
-#: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:112
-#: src/ui/gui/output-viewer.ui:29 src/ui/gui/syntax-editor.ui:71
+#: src/ui/gui/data-sheet.ui:51 src/ui/gui/data-editor.ui:115
+#: src/ui/gui/output-viewer.ui:30 src/ui/gui/syntax-editor.ui:71
 #: src/ui/gui/var-sheet.ui:35
 msgid "_Edit"
 msgstr "編集(_E)"
@@ -6851,7 +7038,7 @@ msgstr "現在の場所に新しいケースを作成．"
 msgid "Go To Variable..."
 msgstr "変数..."
 
-#: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:490
+#: src/ui/gui/data-sheet.ui:74 src/ui/gui/data-editor.ui:493
 #: src/ui/gui/var-sheet.ui:50
 msgid "Jump to variable"
 msgstr "変数へのジャンプ"
@@ -6929,7 +7116,7 @@ msgstr "ケースのラベル(_L):"
 msgid "_Factor List:"
 msgstr "因子(_F):"
 
-#: src/ui/gui/examine.ui:150 src/ui/gui/means.ui:110
+#: src/ui/gui/examine.ui:150 src/ui/gui/means.ui:113
 msgid "_Dependent List:"
 msgstr "従属変数(_D):"
 
@@ -6985,7 +7172,7 @@ msgstr "主因子法"
 msgid "Factor Analysis"
 msgstr "因子分析"
 
-#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:301
+#: src/ui/gui/factor.ui:55 src/ui/gui/data-editor.ui:304
 msgid "_Descriptives..."
 msgstr "記述統計量(_D)..."
 
@@ -7346,7 +7533,7 @@ msgstr "モデルに定数を含める(_c)"
 msgid "Means"
 msgstr "平均"
 
-#: src/ui/gui/means.ui:139
+#: src/ui/gui/means.ui:174
 msgid "_Independent List:"
 msgstr "独立変数(_I):"
 
@@ -8040,8 +8227,8 @@ msgstr "新規作成(_N)..."
 msgid "_Syntax"
 msgstr "シンタックス(_S)"
 
-#: src/ui/gui/data-editor.ui:30 src/ui/gui/data-editor.ui:153
-#: src/ui/gui/data-editor.ui:166 src/ui/gui/syntax-editor.ui:31
+#: src/ui/gui/data-editor.ui:30 src/ui/gui/data-editor.ui:156
+#: src/ui/gui/data-editor.ui:169 src/ui/gui/syntax-editor.ui:31
 msgid "_Data"
 msgstr "データ(_D)"
 
@@ -8049,297 +8236,297 @@ msgstr "データ(_D)"
 msgid "_Open..."
 msgstr "開く(_O)..."
 
-#: src/ui/gui/data-editor.ui:43
+#: src/ui/gui/data-editor.ui:44
 msgid "I_mport Data..."
 msgstr "テキストデータの読み込み(_I)..."
 
-#: src/ui/gui/data-editor.ui:50
+#: src/ui/gui/data-editor.ui:51
 msgid "_Rename Dataset..."
 msgstr "データセット名を変更(_R)..."
 
-#: src/ui/gui/data-editor.ui:58
+#: src/ui/gui/data-editor.ui:59
 msgid "_Save"
 msgstr "上書き保存"
 
-#: src/ui/gui/data-editor.ui:65 src/ui/gui/syntax-editor.ui:52
+#: src/ui/gui/data-editor.ui:67 src/ui/gui/syntax-editor.ui:52
 msgid "Save _As..."
 msgstr "名前を付けて保存(_A)..."
 
-#: src/ui/gui/data-editor.ui:71
+#: src/ui/gui/data-editor.ui:74
 msgid "D_isplay Data File Information"
 msgstr "データファイル情報の表示(_i)"
 
-#: src/ui/gui/data-editor.ui:78
+#: src/ui/gui/data-editor.ui:81
 msgid "Working File"
 msgstr "作業ファイル"
 
-#: src/ui/gui/data-editor.ui:85
+#: src/ui/gui/data-editor.ui:88
 msgid "External File..."
 msgstr "外部ファイル..."
 
-#: src/ui/gui/data-editor.ui:92
+#: src/ui/gui/data-editor.ui:95
 msgid "Recently Used Da_ta"
 msgstr "最近使ったデータ(_t)"
 
-#: src/ui/gui/data-editor.ui:99
+#: src/ui/gui/data-editor.ui:102
 msgid "Recently Used _Files"
 msgstr "最近使ったファイル(_F)"
 
-#: src/ui/gui/data-editor.ui:118
+#: src/ui/gui/data-editor.ui:121
 msgid "_View"
 msgstr "表示(_V)"
 
-#: src/ui/gui/data-editor.ui:125
+#: src/ui/gui/data-editor.ui:128
 msgid "_Status Bar"
 msgstr "ステータスバー(_S)"
 
-#: src/ui/gui/data-editor.ui:132
+#: src/ui/gui/data-editor.ui:135
 msgid "_Font..."
 msgstr "フォント(_F)..."
 
-#: src/ui/gui/data-editor.ui:139
+#: src/ui/gui/data-editor.ui:142
 msgid "_Grid Lines"
 msgstr "格子線(_G)"
 
-#: src/ui/gui/data-editor.ui:145
+#: src/ui/gui/data-editor.ui:148
 msgid "Value _Labels"
 msgstr "値ラベル(_L)"
 
-#: src/ui/gui/data-editor.ui:146
+#: src/ui/gui/data-editor.ui:149
 msgid "Show/hide value labels"
 msgstr "値ラベル表示／非表示"
 
-#: src/ui/gui/data-editor.ui:159
+#: src/ui/gui/data-editor.ui:162
 msgid "_Variables"
 msgstr "変数(_V)"
 
-#: src/ui/gui/data-editor.ui:171
+#: src/ui/gui/data-editor.ui:174
 msgid "_Sort Cases..."
 msgstr "ケースの並び替え(_S)..."
 
-#: src/ui/gui/data-editor.ui:175
+#: src/ui/gui/data-editor.ui:178
 msgid "Sort cases in the active dataset"
 msgstr "アクティブなデータセットのケース並べ替え"
 
-#: src/ui/gui/data-editor.ui:183
+#: src/ui/gui/data-editor.ui:186
 msgid "_Transpose..."
 msgstr "行と列の入れ換え(_T)..."
 
-#: src/ui/gui/data-editor.ui:184
+#: src/ui/gui/data-editor.ui:187
 msgid "Transpose the cases with the variables"
 msgstr "変数によるケースの置き換え"
 
-#: src/ui/gui/data-editor.ui:191
+#: src/ui/gui/data-editor.ui:194
 msgid "_Aggregate..."
 msgstr "データのグループ集計(_A)..."
 
-#: src/ui/gui/data-editor.ui:197
+#: src/ui/gui/data-editor.ui:200
 msgid "S_plit File..."
 msgstr "ファイルの分割(_p)..."
 
-#: src/ui/gui/data-editor.ui:198
+#: src/ui/gui/data-editor.ui:201
 msgid "Split the active dataset"
 msgstr "アクティブなデータセットの分割"
 
-#: src/ui/gui/data-editor.ui:205
+#: src/ui/gui/data-editor.ui:208
 msgid "Select _Cases..."
 msgstr "ケースの選択(_C)..."
 
-#: src/ui/gui/data-editor.ui:206
+#: src/ui/gui/data-editor.ui:209
 msgid "Choose a subset of cases for analysis"
 msgstr "分析対象となるケースを選択"
 
-#: src/ui/gui/data-editor.ui:213
+#: src/ui/gui/data-editor.ui:216
 msgid "_Weight Cases..."
 msgstr "ケースの重み付け(_W)..."
 
-#: src/ui/gui/data-editor.ui:214
+#: src/ui/gui/data-editor.ui:217
 msgid "Weight cases by variable"
 msgstr "変数によるケースの重み付け"
 
-#: src/ui/gui/data-editor.ui:221
+#: src/ui/gui/data-editor.ui:224
 msgid "_Transform"
 msgstr "変換(_T)"
 
-#: src/ui/gui/data-editor.ui:228
+#: src/ui/gui/data-editor.ui:231
 msgid "_Compute..."
 msgstr "変数の計算(_C)..."
 
-#: src/ui/gui/data-editor.ui:236
+#: src/ui/gui/data-editor.ui:239
 msgid "Cou_nt..."
 msgstr "出現数の計算(_n)..."
 
-#: src/ui/gui/data-editor.ui:244
+#: src/ui/gui/data-editor.ui:247
 msgid "Ran_k Cases..."
 msgstr "ケースのランク付け(_k)..."
 
-#: src/ui/gui/data-editor.ui:251
+#: src/ui/gui/data-editor.ui:254
 msgid "Auto_matic Recode..."
 msgstr "連続数への再割り当て_m)..."
 
-#: src/ui/gui/data-editor.ui:258
+#: src/ui/gui/data-editor.ui:261
 msgid "Recode into _Same Variables..."
 msgstr "同一の変数への値の再割り当て(_S)..."
 
-#: src/ui/gui/data-editor.ui:265
+#: src/ui/gui/data-editor.ui:268
 msgid "Recode into _Different Variables..."
 msgstr "他の変数への値の再割り当て(_D)..."
 
-#: src/ui/gui/data-editor.ui:272
+#: src/ui/gui/data-editor.ui:275
 msgid "_Run Pending Transforms"
 msgstr "保留された変換の実行(_R)"
 
-#: src/ui/gui/data-editor.ui:280
+#: src/ui/gui/data-editor.ui:283
 msgid "_Analyze"
 msgstr "分析(_A)"
 
-#: src/ui/gui/data-editor.ui:286
+#: src/ui/gui/data-editor.ui:289
 msgid "_Descriptive Statistics"
 msgstr "記述統計量(_D)"
 
-#: src/ui/gui/data-editor.ui:294
+#: src/ui/gui/data-editor.ui:297
 msgid "_Frequencies..."
 msgstr "度数分布表(_F)..."
 
-#: src/ui/gui/data-editor.ui:308
+#: src/ui/gui/data-editor.ui:311
 msgid "_Explore..."
 msgstr "探索的(_E)..."
 
-#: src/ui/gui/data-editor.ui:315
+#: src/ui/gui/data-editor.ui:318
 msgid "_Crosstabs..."
 msgstr "クロス集計表(_C)..."
 
-#: src/ui/gui/data-editor.ui:321
+#: src/ui/gui/data-editor.ui:324
 msgid "Compare _Means"
 msgstr "平均の比較(_M)"
 
-#: src/ui/gui/data-editor.ui:329
+#: src/ui/gui/data-editor.ui:332
 msgid "_Means..."
 msgstr "グループの平均(_M)..."
 
-#: src/ui/gui/data-editor.ui:336
+#: src/ui/gui/data-editor.ui:339
 msgid "_One Sample T Test..."
 msgstr "１サンプルのｔ検定(_O)..."
 
-#: src/ui/gui/data-editor.ui:343
+#: src/ui/gui/data-editor.ui:346
 msgid "_Independent Samples T Test..."
 msgstr "独立したサンプルのｔ検定(_I)..."
 
-#: src/ui/gui/data-editor.ui:350
+#: src/ui/gui/data-editor.ui:353
 msgid "_Paired Samples T Test..."
 msgstr "対応のあるサンプルのｔ検定(_P)..."
 
-#: src/ui/gui/data-editor.ui:357
+#: src/ui/gui/data-editor.ui:360
 msgid "One Way _ANOVA..."
 msgstr "一元配置分散分析(_A)..."
 
-#: src/ui/gui/data-editor.ui:364
+#: src/ui/gui/data-editor.ui:367
 msgid "_Univariate Analysis..."
 msgstr "一変量分析(_U)..."
 
-#: src/ui/gui/data-editor.ui:373
+#: src/ui/gui/data-editor.ui:376
 msgid "Bivariate _Correlation..."
 msgstr "2変量相関(_C)..."
 
-#: src/ui/gui/data-editor.ui:381
+#: src/ui/gui/data-editor.ui:384
 msgid "_K-Means Cluster..."
 msgstr "K平均法クラスタ分析(_K)..."
 
-#: src/ui/gui/data-editor.ui:389
+#: src/ui/gui/data-editor.ui:392
 msgid "Factor _Analysis..."
 msgstr "因子分析(_A)..."
 
-#: src/ui/gui/data-editor.ui:397
+#: src/ui/gui/data-editor.ui:400
 msgid "Re_liability..."
 msgstr "信頼性(_l)..."
 
-#: src/ui/gui/data-editor.ui:404
+#: src/ui/gui/data-editor.ui:407
 msgid "_Regression"
 msgstr "回帰(_R)"
 
-#: src/ui/gui/data-editor.ui:412
+#: src/ui/gui/data-editor.ui:415
 msgid "_Linear..."
 msgstr "線形(_L)..."
 
-#: src/ui/gui/data-editor.ui:419
+#: src/ui/gui/data-editor.ui:422
 msgid "_Binary Logistic..."
 msgstr "2項ロジスティック回帰(_B)..."
 
-#: src/ui/gui/data-editor.ui:425
+#: src/ui/gui/data-editor.ui:428
 msgid "_Non-Parametric Statistics"
 msgstr "ノンパラメトリック検定(_N)"
 
-#: src/ui/gui/data-editor.ui:433
+#: src/ui/gui/data-editor.ui:436
 msgid "_Chi-Square..."
 msgstr "カイ２乗(_C)..."
 
-#: src/ui/gui/data-editor.ui:440
+#: src/ui/gui/data-editor.ui:443
 msgid "_Binomial..."
 msgstr "２項(_B)..."
 
-#: src/ui/gui/data-editor.ui:447
+#: src/ui/gui/data-editor.ui:450
 msgid "R_uns..."
 msgstr "ラン(_U)..."
 
-#: src/ui/gui/data-editor.ui:454
+#: src/ui/gui/data-editor.ui:457
 msgid "1-Sample _K-S..."
 msgstr "１サンプルによるK-S検定(_K)..."
 
-#: src/ui/gui/data-editor.ui:461
+#: src/ui/gui/data-editor.ui:464
 msgid "2 _Related Samples..."
 msgstr "２個の対応サンプルの検定(_R)..."
 
-#: src/ui/gui/data-editor.ui:468
+#: src/ui/gui/data-editor.ui:471
 msgid "K Related _Samples..."
 msgstr "K個の対応サンプルの検定(_S)..."
 
-#: src/ui/gui/data-editor.ui:475
+#: src/ui/gui/data-editor.ui:478
 msgid "ROC Cur_ve..."
 msgstr "ROC曲線(_V)..."
 
-#: src/ui/gui/data-editor.ui:482
+#: src/ui/gui/data-editor.ui:485
 msgid "_Utilities"
 msgstr "ユーティリティ(_U)"
 
-#: src/ui/gui/data-editor.ui:489
+#: src/ui/gui/data-editor.ui:492
 msgid "_Variables..."
 msgstr "変数(_V)..."
 
-#: src/ui/gui/data-editor.ui:497
+#: src/ui/gui/data-editor.ui:500
 msgid "Data File _Comments..."
 msgstr "データファイルのコメント(_C)..."
 
-#: src/ui/gui/data-editor.ui:504 src/ui/gui/output-viewer.ui:49
+#: src/ui/gui/data-editor.ui:507 src/ui/gui/output-viewer.ui:50
 #: src/ui/gui/syntax-editor.ui:154
 msgid "_Windows"
 msgstr "ウィンドウ(_W)"
 
-#: src/ui/gui/data-editor.ui:510 src/ui/gui/output-viewer.ui:56
+#: src/ui/gui/data-editor.ui:513 src/ui/gui/output-viewer.ui:57
 #: src/ui/gui/syntax-editor.ui:161
 msgid "_Minimize All Windows"
 msgstr "すべてのウィンドウを最小化する(_M)"
 
-#: src/ui/gui/data-editor.ui:517
+#: src/ui/gui/data-editor.ui:520
 msgid "_Split"
 msgstr "画面分割(_S)"
 
-#: src/ui/gui/data-editor.ui:662
+#: src/ui/gui/data-editor.ui:665
 msgid "Information Area"
 msgstr "情報エリア"
 
-#: src/ui/gui/data-editor.ui:684
+#: src/ui/gui/data-editor.ui:687
 msgid "Case Counter Area"
 msgstr "ケース数エリア"
 
-#: src/ui/gui/data-editor.ui:709
+#: src/ui/gui/data-editor.ui:712
 msgid "Filter Use Status Area"
 msgstr "フィルタ使用状態エリア"
 
-#: src/ui/gui/data-editor.ui:735
+#: src/ui/gui/data-editor.ui:738
 msgid "Weight Status Area"
 msgstr "重み付け状態エリア"
 
-#: src/ui/gui/data-editor.ui:761
+#: src/ui/gui/data-editor.ui:764
 msgid "Split File Status Area"
 msgstr "分割ファイル状態エリア"
 
@@ -8347,15 +8534,15 @@ msgstr "分割ファイル状態エリア"
 msgid "_Print..."
 msgstr "印刷(_P)..."
 
-#: src/ui/gui/output-viewer.ui:23
+#: src/ui/gui/output-viewer.ui:24
 msgid "_Export..."
 msgstr "書き出し(_E)..."
 
-#: src/ui/gui/output-viewer.ui:36
+#: src/ui/gui/output-viewer.ui:37
 msgid "Select _All"
 msgstr "すべてを選択(_A)"
 
-#: src/ui/gui/output-viewer.ui:43
+#: src/ui/gui/output-viewer.ui:44
 msgid "_Copy"
 msgstr "コピー(_C)"
 
@@ -8414,6 +8601,69 @@ msgstr "統計ソフトウェア"
 #: src/ui/gui/gen-dot-desktop.sh:15
 msgid "Analyze statistical data with a free alternative to SPSS"
 msgstr "フリーなSPSS代替ソフトウェアによる統計データ分析"
+
+#~ msgid "Weighting variable must be numeric (not string variable `%s')."
+#~ msgstr "重み付け変数は数値型でなければなりません(文字列型変数 %s は無効．)"
+
+#~ msgid "Duplicate variable name `%s'."
+#~ msgstr "重複した変数名 `%s'."
+
+#~ msgid "`%s' does not begin with `$' at offset %zu in MRSETS record."
+#~ msgstr "%s はMRSETSレコードにおいてオフセット %zu は`$'で始まっていません．"
+
+#~ msgid "Duplicate variable name %s at offset %zu in MRSETS record."
+#~ msgstr "MRSETSレコードの変数名 %s(オフセット %zu)は重複しています．"
+
+#~ msgid "Truncating variable label for variable `%s' to %d bytes."
+#~ msgstr "変数 `%s'  の変数ラベルは %d バイトに短縮されました．"
+
+#~ msgid "%s is allowed only inside INPUT PROGRAM."
+#~ msgstr "%s はINPUT PROGRAMの内側でしか使えません．"
+
+#~ msgid "%s is allowed only inside FILE TYPE."
+#~ msgstr "%s は FILE TYPEの内側でしか使えません．"
+
+#~ msgid "DELETE VARIABLES may not be used after TEMPORARY.  Temporary transformations will be made permanent."
+#~ msgstr "DELETE VARIABLESをTEMPORARYの後で使用することはできません．一時的な変換が確定されます．"
+
+#~ msgid "DROP subcommand may be given at most once.  It may not be given in conjunction with the KEEP subcommand."
+#~ msgstr "DROPサブコマンドは1度だけ使用できます．またKEEPサブコマンドと一緒には使えません．"
+
+#~ msgid "RENAME VARS may not be used after TEMPORARY.  Temporary transformations will be made permanent."
+#~ msgstr "RENAME VARSはTEMPORARYの後で使用することはできません．一時的な変換が確定されます．"
+
+#~ msgid "Charset:"
+#~ msgstr "文字セット:"
+
+#~ msgid "Expecting MEAN, MEDIAN, MODE or number"
+#~ msgstr "平均または中央値、最頻値、数値のどれかが必要です．"
+
+#~ msgid "Significance"
+#~ msgstr "有意水準"
+
+#~ msgid "Value of FIXCASE must be at least 1."
+#~ msgstr "FIXCASEの値は少なくとも1です．"
+
+#~ msgid "Value of FIRST must be at least 1."
+#~ msgstr "FIRSTの値は少なくても1です．"
+
+#~ msgid "WORKSPACE must be at least 1MB"
+#~ msgstr "WORKSPACEは最小で1MBです．"
+
+#~ msgid "expecting AUTOMATIC or year"
+#~ msgstr "AUTOMATICか年が必要です．"
+
+#~ msgid "LENGTH must be at least 1."
+#~ msgstr "LENGTHは少なくとも1でなければなりません｡"
+
+#~ msgid "WIDTH must be at least 40."
+#~ msgstr "WIDTHは少なくとも40です．"
+
+#~ msgid "RESTORE without matching PRESERVE."
+#~ msgstr "RESTOREに対応するMATCHINGがありません．"
+
+#~ msgid "For cohort %s = %g"
+#~ msgstr "コホート %s = %g"
 
 #~ msgid "Mode:"
 #~ msgstr "モード:"
