@@ -26,7 +26,7 @@ struct cell_contents
 
     /* Exactly one of these must be nonnull. */
     char *text;                 /* A paragraph of text. */
-    struct table *table;        /* A table nested within the cell. */
+    struct table_item *table;   /* A table nested within the cell. */
   };
 
 /* A cell in a table. */

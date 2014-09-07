@@ -565,8 +565,7 @@ xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
   else
     *caption_heightp = 0;
 
-  return render_pager_create (render_page_create (xr->params,
-                                                  table_item_get_table (item)));
+  return render_pager_create (xr->params, item);
 }
 
 static void
@@ -1045,7 +1044,6 @@ xr_layout_cell_subtable (struct xr_driver *xr,
                          int bb[TABLE_N_AXES][2],
                          int clip[TABLE_N_AXES][2], int *widthp, int *brk)
 {
-  const struct table *table = contents->table;
   int single_width, double_width;
   struct render_params params;
   struct render_pager *p;
@@ -1074,7 +1072,7 @@ xr_layout_cell_subtable (struct xr_driver *xr,
     }
 
   xr->nest++;
-  p = render_pager_create (render_page_create (&params, table));
+  p = render_pager_create (&params, contents->table);
   width = render_pager_get_size (p, H);
   height = render_pager_get_size (p, V);
   if (bb[V][0] + height >= bb[V][1])

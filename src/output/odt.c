@@ -75,8 +75,6 @@ struct odt_driver
 
 static const struct output_driver_class odt_driver_class;
 
-static void write_table (struct odt_driver *, const struct table *);
-
 static struct odt_driver *
 odt_driver_cast (struct output_driver *driver)
 {
@@ -413,9 +411,11 @@ write_xml_with_line_breaks (xmlTextWriterPtr writer, char *line)
 }
 
 static void
-odt_submit_table (struct odt_driver *odt, struct table_item *item)
+write_table (struct odt_driver *odt, const struct table_item *item)
 {
+  const struct table *tab = table_item_get_table (item);
   const char *caption = table_item_get_caption (item);
+  int r, c;
 
   /* Write a heading for the table */
   if (caption != NULL)
@@ -427,14 +427,6 @@ odt_submit_table (struct odt_driver *odt, struct table_item *item)
                                 _xml (table_item_get_caption (item)) );
       xmlTextWriterEndElement (odt->content_wtr);
     }
-
-  write_table (odt, table_item_get_table (item));
-}
-
-static void
-write_table (struct odt_driver *odt, const struct table *tab)
-{
-  int r, c;
 
   /* Start table */
   xmlTextWriterStartElement (odt->content_wtr, _xml("table:table"));
@@ -553,7 +545,7 @@ odt_submit (struct output_driver *driver,
   output_driver_track_current_command (output_item, &odt->command_name);
 
   if (is_table_item (output_item))
-    odt_submit_table (odt, to_table_item (output_item));
+    write_table (odt, to_table_item (output_item));
   else if (is_text_item (output_item))
     {
       struct text_item *text_item = to_text_item (output_item);

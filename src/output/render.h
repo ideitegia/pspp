@@ -21,7 +21,7 @@
 #include <stddef.h>
 #include "output/table-provider.h"
 
-struct table;
+struct table_item;
 
 enum render_line_style
   {
@@ -98,20 +98,10 @@ struct render_params
     int min_break[TABLE_N_AXES];
   };
 
-/* A "page" of content that is ready to be rendered.
-
-   A page's size is not limited to the size passed in as part of render_params.
-   Use render_pager (see below) to break a render_page into smaller
-   render_pages that will fit in the available space. */
-struct render_page *render_page_create (const struct render_params *,
-                                        const struct table *);
-
-struct render_page *render_page_ref (const struct render_page *);
-void render_page_unref (struct render_page *);
 
 /* An iterator for breaking render_pages into smaller chunks. */
-
-struct render_pager *render_pager_create (struct render_page *);
+struct render_pager *render_pager_create (const struct render_params *,
+                                          const struct table_item *);
 void render_pager_destroy (struct render_pager *);
 
 bool render_pager_has_next (const struct render_pager *);

@@ -56,7 +56,7 @@ struct tab_joined_cell
     union
       {
         char *text;
-        struct table *subtable;
+        struct table_item *subtable;
       }
     u;
   };
@@ -600,14 +600,14 @@ tab_joint_text_format (struct tab_table *table, int x1, int y1, int x2, int y2,
 static void
 subtable_unref (void *subtable)
 {
-  table_unref (subtable);
+  table_item_unref (subtable);
 }
 
 /* Places SUBTABLE as the content for cells (X1,X2)-(Y1,Y2) inclusive in TABLE
    with options OPT. */
 void
 tab_subtable (struct tab_table *table, int x1, int y1, int x2, int y2,
-              unsigned opt, struct table *subtable)
+              unsigned opt, struct table_item *subtable)
 {
   add_joined_cell (table, x1, y1, x2, y2, opt | TAB_SUBTABLE)->u.subtable
     = subtable;
@@ -622,10 +622,11 @@ tab_subtable (struct tab_table *table, int x1, int y1, int x2, int y2,
    as a nested table but its contents become part of TABLE. */
 void
 tab_subtable_bare (struct tab_table *table, int x1, int y1, int x2, int y2,
-                   unsigned opt, struct table *subtable)
+                   unsigned opt, struct table_item *subtable)
 {
-  assert (table_nc (subtable) == 1);
-  assert (table_nr (subtable) == 1);
+  const struct table *t UNUSED = table_item_get_table (subtable);
+  assert (table_nc (t) == 1);
+  assert (table_nr (t) == 1);
   tab_subtable (table, x1, y1, x2, y2, opt | TAB_BARE, subtable);
 }
 
@@ -761,7 +762,7 @@ tab_get_cell (const struct table *table, int x, int y, struct table_cell *cell)
           assert (opt & TAB_SUBTABLE);
 
           /* This overwrites all of the members of CELL. */
-          table_get_cell (jc->u.subtable, 0, 0, cell);
+          table_get_cell (table_item_get_table (jc->u.subtable), 0, 0, cell);
         }
       else
         {

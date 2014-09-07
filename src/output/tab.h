@@ -144,9 +144,9 @@ void tab_joint_text_format (struct tab_table *, int x1, int y1, int x2, int y2,
      PRINTF_FORMAT (7, 8);
 
 void tab_subtable (struct tab_table *, int x1, int y1, int x2, int y2,
-                   unsigned opt, struct table *subtable);
+                   unsigned opt, struct table_item *subtable);
 void tab_subtable_bare (struct tab_table *, int x1, int y1, int x2, int y2,
-                        unsigned opt, struct table *subtable);
+                        unsigned opt, struct table_item *subtable);
 
 bool tab_cell_is_empty (const struct tab_table *, int c, int r);
 

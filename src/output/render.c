@@ -25,6 +25,7 @@
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
 #include "output/render.h"
+#include "output/table-item.h"
 #include "output/table.h"
 
 #include "gl/minmax.h"
@@ -38,7 +39,11 @@
 
    May represent the layout of an entire table presented to
    render_page_create(), or a rectangular subregion of a table broken out using
-   render_break_next() to allow a table to be broken across multiple pages. */
+   render_break_next() to allow a table to be broken across multiple pages.
+
+   A page's size is not limited to the size passed in as part of render_params.
+   render_pager breaks a render_page into smaller render_pages that will fit in
+   the available space. */
 struct render_page
   {
     const struct render_params *params; /* Parameters of the target device. */
@@ -119,6 +124,11 @@ struct render_page
        across both pages). */
     int *join_crossing[TABLE_N_AXES];
   };
+
+static struct render_page *render_page_create (const struct render_params *,
+                                               const struct table *);
+
+static void render_page_unref (struct render_page *);
 
 /* Returns the offset in struct render_page's cp[axis] array of the rule with
    index RULE_IDX.  That is, if RULE_IDX is 0, then the offset is that of the
@@ -607,7 +617,7 @@ set_join_crossings (struct render_page *page, enum table_axis axis,
    The new render_page will be suitable for rendering on a device whose page
    size is PARAMS->size, but the caller is responsible for actually breaking it
    up to fit on such a device, using the render_break abstraction.  */
-struct render_page *
+static struct render_page *
 render_page_create (const struct render_params *params,
                     const struct table *table_)
 {
@@ -783,18 +793,9 @@ render_page_create (const struct render_params *params,
   return page;
 }
 
-/* Increases PAGE's reference count. */
-struct render_page *
-render_page_ref (const struct render_page *page_)
-{
-  struct render_page *page = CONST_CAST (struct render_page *, page_);
-  page->ref_cnt++;
-  return page;
-}
-
 /* Decreases PAGE's reference count and destroys PAGE if this causes the
    reference count to fall to zero. */
-void
+static void
 render_page_unref (struct render_page *page)
 {
   if (page != NULL && --page->ref_cnt == 0)
@@ -1309,12 +1310,13 @@ struct render_pager
 /* Creates and returns a new render_pager for breaking PAGE into smaller
    chunks.  Takes ownership of PAGE. */
 struct render_pager *
-render_pager_create (struct render_page *page)
+render_pager_create (const struct render_params *params,
+                     const struct table_item *table_item)
 {
   struct render_pager *p = xmalloc (sizeof *p);
-  p->width = page->params->size[H];
-  p->page = render_page_ref (page);
-  render_break_init (&p->x_break, page, H);
+  p->width = params->size[H];
+  p->page = render_page_create (params, table_item_get_table (table_item));
+  render_break_init (&p->x_break, p->page, H);
   render_break_init_empty (&p->y_break);
   return p;
 }

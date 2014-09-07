@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -147,6 +147,20 @@ csv_output_field (struct csv_driver *csv, const char *field)
     fputs (field, csv->file);
 }
 
+static void PRINTF_FORMAT (2, 3)
+csv_output_field_format (struct csv_driver *csv, const char *format, ...)
+{
+  va_list args;
+  char *s;
+
+  va_start (args, format);
+  s = xvasprintf (format, args);
+  va_end (args);
+
+  csv_output_field (csv, s);
+  free (s);
+}
+
 static void
 csv_put_field (struct csv_driver *csv, struct string *s, const char *field)
 {
@@ -172,9 +186,17 @@ csv_put_field (struct csv_driver *csv, struct string *s, const char *field)
 
 static void
 csv_output_subtable (struct csv_driver *csv, struct string *s,
-                     const struct table *t)
+                     const struct table_item *item)
 {
+  const struct table *t = table_item_get_table (item);
+  const char *caption = table_item_get_caption (item);
   int y, x;
+
+  if (csv->captions && caption != NULL)
+    {
+      csv_output_field_format (csv, "Table: %s", caption);
+      putc ('\n', csv->file);
+    }
 
   for (y = 0; y < table_nr (t); y++)
     {
@@ -217,24 +239,6 @@ csv_output_subtable (struct csv_driver *csv, struct string *s,
           table_cell_free (&cell);
         }
     }
-}
-
-static void
-csv_output_field_format (struct csv_driver *csv, const char *format, ...)
-  PRINTF_FORMAT (2, 3);
-
-static void
-csv_output_field_format (struct csv_driver *csv, const char *format, ...)
-{
-  va_list args;
-  char *s;
-
-  va_start (args, format);
-  s = xvasprintf (format, args);
-  va_end (args);
-
-  csv_output_field (csv, s);
-  free (s);
 }
 
 static void

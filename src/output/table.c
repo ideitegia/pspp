@@ -24,6 +24,7 @@
 
 #include "libpspp/cast.h"
 #include "libpspp/compiler.h"
+#include "output/table-item.h"
 
 #include "gl/xalloc.h"
 
@@ -344,19 +345,28 @@ static const struct table_class table_string_class =
 struct table_nested
   {
     struct table table;
-    struct table *inner;
+    struct table_item *inner;
   };
 
 static const struct table_class table_nested_class;
 
-/* Creates and returns a table with a single cell that contains INNER. */
+/* Creates and returns a table with a single cell that contains INNER.
+   Takes ownership of INNER. */
 struct table *
-table_create_nested (const struct table *inner)
+table_create_nested (struct table *inner)
+{
+  return table_create_nested_item (table_item_create (inner, NULL));
+}
+
+/* Creates and returns a table with a single cell that contains INNER.
+   Takes ownership of INNER. */
+struct table *
+table_create_nested_item (struct table_item *inner)
 {
   struct table_nested *tn = xmalloc (sizeof *tn);
   table_init (&tn->table, &table_nested_class);
   tn->table.n[TABLE_HORZ] = tn->table.n[TABLE_VERT] = 1;
-  tn->inner = table_ref (inner);
+  tn->inner = table_item_ref (inner);
   return &tn->table;
 }
 
@@ -371,7 +381,7 @@ static void
 table_nested_destroy (struct table *tn_)
 {
   struct table_nested *tn = table_nested_cast (tn_);
-  table_unref (tn->inner);
+  table_item_unref (tn->inner);
   free (tn);
 }
 

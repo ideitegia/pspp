@@ -458,7 +458,8 @@ read_table (FILE *stream, struct table **tables, size_t n_tables)
                   default:
                     error (1, 0, "unexpected subtable modifier \"%c\"", *text);
                   }
-              tab_subtable (tab, c, r, c + cs - 1, r + rs - 1, opt, table);
+              tab_subtable (tab, c, r, c + cs - 1, r + rs - 1, opt,
+                            table_item_create (table, NULL));
             }
           else
             tab_joint_text (tab, c, r, c + cs - 1, r + rs - 1, opt, text);

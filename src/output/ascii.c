@@ -461,8 +461,7 @@ ascii_output_table_item (struct ascii_driver *a,
   if (a->file == NULL && !ascii_open_page (a))
     return;
 
-  p = render_pager_create (render_page_create (&params, table_item_get_table (
-                                                 table_item)));
+  p = render_pager_create (&params, table_item);
   while (render_pager_has_next (p))
     {
       int used;
@@ -942,7 +941,6 @@ ascii_layout_subtable (struct ascii_driver *a,
                        int bb[TABLE_N_AXES][2], int clip[TABLE_N_AXES][2] UNUSED,
                        int *widthp)
 {
-  const struct table *table = contents->table;
   struct render_params params;
   struct render_pager *p;
   int r[TABLE_N_AXES][2];
@@ -966,7 +964,7 @@ ascii_layout_subtable (struct ascii_driver *a,
       params.line_widths[V][i] = width;
     }
 
-  p = render_pager_create (render_page_create (&params, table));
+  p = render_pager_create (&params, contents->table);
   width = render_pager_get_size (p, TABLE_HORZ);
   height = render_pager_get_size (p, TABLE_VERT);
 

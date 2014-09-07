@@ -64,8 +64,7 @@ struct html_driver
 
 static const struct output_driver_class html_driver_class;
 
-static void html_output_table (struct html_driver *, const struct table *,
-                               const char *caption);
+static void html_output_table (struct html_driver *, const struct table_item *);
 static void escape_string (FILE *file,
                            const char *text, size_t length,
                            const char *space, const char *newline);
@@ -236,8 +235,7 @@ html_submit (struct output_driver *driver,
   if (is_table_item (output_item))
     {
       struct table_item *table_item = to_table_item (output_item);
-      html_output_table (html, table_item_get_table (table_item),
-                         table_item_get_caption (table_item));
+      html_output_table (html, table_item);
     }
 #ifdef HAVE_CAIRO
   else if (is_chart_item (output_item) && html->chart_file_name != NULL)
@@ -376,9 +374,10 @@ put_border (FILE *file, int n_borders, int style, const char *border_name)
 }
 
 static void
-html_output_table (struct html_driver *html,
-                   const struct table *t, const char *caption)
+html_output_table (struct html_driver *html, const struct table_item *item)
 {
+  const struct table *t = table_item_get_table (item);
+  const char *caption = table_item_get_caption (item);
   int x, y;
 
   fputs ("<TABLE><TBODY VALIGN=\"TOP\">\n", html->file);
@@ -486,7 +485,7 @@ html_output_table (struct html_driver *html,
                     fputs ("</EM>", html->file);
                 }
               else
-                html_output_table (html, c->table, NULL);
+                html_output_table (html, c->table);
             }
 
           /* Output </TH> or </TD>. */
