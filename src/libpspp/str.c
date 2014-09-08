@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -257,9 +257,10 @@ str_lowercase (char *s)
 }
 
 /* Converts NUMBER into a string in 26-adic notation in BUFFER,
-   which has room for SIZE bytes.  Returns true if successful,
-   false if NUMBER, plus a trailing null, is too large to fit in
-   the available space.
+   which has room for SIZE bytes.  Uses uppercase if UPPERCASE is
+   true, otherwise lowercase, Returns true if successful, false
+   if NUMBER, plus a trailing null, is too large to fit in the
+   available space.
 
    26-adic notation is "spreadsheet column numbering": 1 = A, 2 =
    B, 3 = C, ... 26 = Z, 27 = AA, 28 = AB, 29 = AC, ...
@@ -271,15 +272,18 @@ str_lowercase (char *s)
    For more information, see
    http://en.wikipedia.org/wiki/Bijective_numeration. */
 bool
-str_format_26adic (unsigned long int number, char buffer[], size_t size)
+str_format_26adic (unsigned long int number, bool uppercase,
+                   char buffer[], size_t size)
 {
+  const char *alphabet
+    = uppercase ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "abcdefghijklmnopqrstuvwxyz";
   size_t length = 0;
 
   while (number-- > 0)
     {
       if (length >= size)
         goto overflow;
-      buffer[length++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[number % 26];
+      buffer[length++] = alphabet[number % 26];
       number /= 26;
     }
 

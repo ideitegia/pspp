@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2010, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ static void
 check_26adic (unsigned long int number, const char *expected_string)
 {
   char string[8];
-  str_format_26adic (number, string, sizeof string);
+  str_format_26adic (number, true, string, sizeof string);
   if (strcmp (string, expected_string))
     {
       printf ("base-26 of %lu: expected \"%s\", got \"%s\"\n",

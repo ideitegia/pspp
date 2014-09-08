@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -907,7 +907,7 @@ make_hinted_name (const struct dictionary *dict, const char *hint)
           char *name;
 
           suffix[0] = '_';
-          if (!str_format_26adic (i + 1, &suffix[1], sizeof suffix - 1))
+          if (!str_format_26adic (i + 1, true, &suffix[1], sizeof suffix - 1))
             NOT_REACHED ();
 
           name = utf8_encoding_concat (root, suffix, dict->encoding, 64);

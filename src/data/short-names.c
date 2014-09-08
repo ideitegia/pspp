@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ assign_short_name (struct variable *v, size_t i,
       else
         {
           suffix[0] = '_';
-          str_format_26adic (trial, &suffix[1], sizeof suffix - 1);
+          str_format_26adic (trial, true, &suffix[1], sizeof suffix - 1);
         }
 
       /* Set name. */
