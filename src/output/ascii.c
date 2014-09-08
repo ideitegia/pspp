@@ -407,37 +407,14 @@ ascii_flush (struct output_driver *driver)
 }
 
 static void
-ascii_init_caption_cell (const char *caption, struct table_cell *cell)
-{
-  cell->inline_contents.options = TAB_LEFT;
-  cell->inline_contents.text = CONST_CAST (char *, caption);
-  cell->inline_contents.table = NULL;
-  cell->contents = &cell->inline_contents;
-  cell->n_contents = 1;
-  cell->destructor = NULL;
-}
-
-static void
 ascii_output_table_item (struct ascii_driver *a,
                          const struct table_item *table_item)
 {
-  const char *caption = table_item_get_caption (table_item);
   struct render_params params;
   struct render_pager *p;
-  int caption_height;
   int i;
 
   update_page_size (a, false);
-
-  if (caption != NULL)
-    {
-      /* XXX doesn't do well with very large captions */
-      struct table_cell cell;
-      ascii_init_caption_cell (caption, &cell);
-      caption_height = ascii_measure_cell_height (a, &cell, a->width);
-    }
-  else
-    caption_height = 0;
 
   params.draw_line = ascii_draw_line;
   params.measure_cell_width = ascii_measure_cell_width;
@@ -446,7 +423,7 @@ ascii_output_table_item (struct ascii_driver *a,
   params.draw_cell = ascii_draw_cell;
   params.aux = a;
   params.size[H] = a->width;
-  params.size[V] = a->length - caption_height;
+  params.size[V] = a->length;
   params.font_size[H] = 1;
   params.font_size[V] = 1;
   for (i = 0; i < RENDER_N_LINES; i++)
@@ -468,7 +445,6 @@ ascii_output_table_item (struct ascii_driver *a,
 
       if (a->y > 0)
         a->y++;
-      a->y += caption_height;
       used = render_pager_draw_next (p, a->length - a->y);
       if (used == 0)
         {
@@ -478,24 +454,7 @@ ascii_output_table_item (struct ascii_driver *a,
             break;
         }
       else
-        {
-          if (caption_height)
-            {
-              struct table_cell cell;
-              int bb[TABLE_N_AXES][2];
-
-              ascii_init_caption_cell (caption, &cell);
-              bb[H][0] = 0;
-              bb[H][1] = a->width;
-              bb[V][0] = 0;
-              bb[V][1] = caption_height;
-              a->y -= caption_height;
-              ascii_draw_cell (a, &cell, bb, bb);
-              a->y += caption_height;
-              caption_height = 0;
-            }
-          a->y += used;
-        }
+        a->y += used;
     }
   render_pager_destroy (p);
 }

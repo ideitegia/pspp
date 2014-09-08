@@ -110,6 +110,7 @@ int render_pager_draw_next (struct render_pager *, int space);
 void render_pager_draw (const struct render_pager *);
 void render_pager_draw_region (const struct render_pager *,
                                int x, int y, int w, int h);
+
 int render_pager_get_size (const struct render_pager *, enum table_axis);
 int render_pager_get_best_breakpoint (const struct render_pager *, int height);
 

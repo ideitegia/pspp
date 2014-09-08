@@ -532,43 +532,6 @@ xr_flush (struct output_driver *driver)
 }
 
 static void
-xr_init_caption_cell (const char *caption, struct table_cell *cell,
-                      struct cell_contents *contents)
-{
-  contents->options = TAB_LEFT;
-  contents->text = CONST_CAST (char *, caption);
-  contents->table = NULL;
-  cell->contents = contents;
-  cell->n_contents = 1;
-  cell->destructor = NULL;
-}
-
-static struct render_pager *
-xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
-                      int *caption_widthp, int *caption_heightp)
-{
-  const char *caption = table_item_get_caption (item);
-
-  if (caption != NULL)
-    {
-      /* XXX doesn't do well with very large captions */
-      struct cell_contents contents;
-      int min_width, max_width;
-      struct table_cell cell;
-
-      xr_init_caption_cell (caption, &cell, &contents);
-
-      xr_measure_cell_width (xr, &cell, &min_width, &max_width);
-      *caption_widthp = MIN (max_width, xr->width);
-      *caption_heightp = xr_measure_cell_height (xr, &cell, *caption_widthp);
-    }
-  else
-    *caption_heightp = 0;
-
-  return render_pager_create (xr->params, item);
-}
-
-static void
 xr_submit (struct output_driver *driver, const struct output_item *output_item)
 {
   struct xr_driver *xr = xr_driver_cast (driver);
@@ -1167,22 +1130,6 @@ xr_layout_cell (struct xr_driver *xr, const struct table_cell *cell,
     }
   *height = bb[V][0] - bb_[V][0];
 }
-
-static void
-xr_draw_title (struct xr_driver *xr, const char *title,
-               int title_width, int title_height)
-{
-  struct cell_contents contents;
-  struct table_cell cell;
-  int bb[TABLE_N_AXES][2];
-
-  xr_init_caption_cell (title, &cell, &contents);
-  bb[H][0] = 0;
-  bb[H][1] = title_width;
-  bb[V][0] = 0;
-  bb[V][1] = title_height;
-  xr_draw_cell (xr, &cell, bb, bb);
-}
 
 struct output_driver_factory pdf_driver_factory =
   { "pdf", "pspp.pdf", xr_pdf_create };
@@ -1208,8 +1155,6 @@ struct xr_rendering
     /* Table items. */
     struct render_pager *p;
     struct xr_driver *xr;
-    int title_width;
-    int title_height;
   };
 
 #define CHART_WIDTH 500
@@ -1284,8 +1229,7 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
       r->item = output_item_ref (item);
       r->xr = xr;
       xr_set_cairo (xr, cr);
-      r->p = xr_render_table_item (xr, to_table_item (item),
-                                   &r->title_width, &r->title_height);
+      r->p = render_pager_create (xr->params, to_table_item (item));
     }
   else if (is_chart_item (item))
     {
@@ -1312,10 +1256,8 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 {
   if (is_table_item (r->item))
     {
-      int w0 = render_pager_get_size (r->p, H);
-      int w1 = r->title_width;
-      *w = MAX (w0, w1) / XR_POINT;
-      *h = (render_pager_get_size (r->p, V) + r->title_height) / XR_POINT;
+      *w = render_pager_get_size (r->p, H) / XR_POINT;
+      *h = render_pager_get_size (r->p, V) / XR_POINT;
     }
   else
     {
@@ -1339,16 +1281,9 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
 
       xr_set_cairo (xr, cr);
 
-      if (r->title_height > 0)
-        {
-          xr->y = 0;
-          xr_draw_title (xr, table_item_get_caption (to_table_item (r->item)),
-                         r->title_width, r->title_height);
-        }
-
-      xr->y = r->title_height;
+      xr->y = 0;
       render_pager_draw_region (r->p,
-                                x * XR_POINT, (y * XR_POINT) - r->title_height,
+                                x * XR_POINT, y * XR_POINT,
                                 w * XR_POINT, h * XR_POINT);
     }
   else
@@ -1436,7 +1371,6 @@ struct xr_table_state
     struct xr_render_fsm fsm;
     struct table_item *table_item;
     struct render_pager *p;
-    int caption_height;
   };
 
 static bool
@@ -1446,28 +1380,16 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
 
   while (render_pager_has_next (ts->p))
     {
-      int caption_height = ts->caption_height;
       int used;
 
-      xr->y += caption_height;
       used = render_pager_draw_next (ts->p, xr->length - xr->y);
-      xr->y -= caption_height;
       if (!used)
         {
           assert (xr->y > 0);
           return true;
         }
       else
-        {
-          if (ts->caption_height)
-            {
-              if (xr->cairo)
-                xr_draw_title (xr, table_item_get_caption (ts->table_item),
-                               xr->width, ts->caption_height);
-              ts->caption_height = 0;
-            }
-          xr->y += caption_height + used;
-        }
+        xr->y += used;
     }
   return false;
 }
@@ -1486,7 +1408,6 @@ static struct xr_render_fsm *
 xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
 {
   struct xr_table_state *ts;
-  int caption_width;
 
   ts = xmalloc (sizeof *ts);
   ts->fsm.render = xr_table_render;
@@ -1496,9 +1417,7 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
   if (xr->y > 0)
     xr->y += xr->char_height;
 
-  ts->p = xr_render_table_item (xr, table_item,
-                                &caption_width, &ts->caption_height);
-  xr->params->size[V] = xr->length - ts->caption_height;
+  ts->p = render_pager_create (xr->params, table_item);
 
   return &ts->fsm;
 }
