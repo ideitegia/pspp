@@ -140,7 +140,9 @@ AT_CLEANUP
 AT_SETUP([read UTF-16 as Auto])
 AT_KEYWORDS([u8_istream])
 AT_CHECK([i18n-test supports_encodings UTF-16 UTF-16BE UTF-16LE])
-AT_CHECK([printf '\0e\0n\0t\0r\0\351\0e\0\n' | u8-istream-test read - Auto],
+dnl The "sleep 1" checks for a bug in which u8-istream did not properly
+dnl handle receiving data in multiple chunks.
+AT_CHECK([{ printf '\0e\0n\0t\0'; sleep 1; printf 'r\0\351\0e\0\n'; } | u8-istream-test read - Auto],
   [0], [entrée
 ])
 AT_CHECK([printf 'e\0n\0t\0r\0\351\0e\0\n\0' | u8-istream-test read - Auto],
