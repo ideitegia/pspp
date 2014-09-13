@@ -1436,8 +1436,7 @@ struct xr_table_state
   {
     struct xr_render_fsm fsm;
     struct table_item *table_item;
-    struct render_break x_break;
-    struct render_break y_break;
+    struct render_pager *p;
     int caption_height;
   };
 
@@ -1446,31 +1445,17 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
 {
   struct xr_table_state *ts = UP_CAST (fsm, struct xr_table_state, fsm);
 
-  for (;;)
+  while (render_pager_has_next (ts->p))
     {
-      struct render_page *y_slice;
-      int space;
+      int space = xr->length - xr->y - ts->caption_height;
+      struct render_page *slice = render_pager_next (ts->p, space);
 
-      while (!render_break_has_next (&ts->y_break))
-        {
-          struct render_page *x_slice;
-
-          render_break_destroy (&ts->y_break);
-          if (!render_break_has_next (&ts->x_break))
-            return false;
-
-          x_slice = render_break_next (&ts->x_break, xr->width);
-          render_break_init (&ts->y_break, x_slice, V);
-        }
-
-      space = xr->length - xr->y;
-      if (render_break_next_size (&ts->y_break) > space)
+      if (!slice)
         {
           assert (xr->y > 0);
           return true;
         }
 
-      y_slice = render_break_next (&ts->y_break, space);
       if (ts->caption_height)
         {
           if (xr->cairo)
@@ -1482,10 +1467,11 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
         }
 
       if (xr->cairo)
-        render_page_draw (y_slice);
-      xr->y += render_page_get_size (y_slice, V);
-      render_page_unref (y_slice);
+        render_page_draw (slice);
+      xr->y += render_page_get_size (slice, V);
+      render_page_unref (slice);
     }
+  return false;
 }
 
 static void
@@ -1494,8 +1480,7 @@ xr_table_destroy (struct xr_render_fsm *fsm)
   struct xr_table_state *ts = UP_CAST (fsm, struct xr_table_state, fsm);
 
   table_item_unref (ts->table_item);
-  render_break_destroy (&ts->x_break);
-  render_break_destroy (&ts->y_break);
+  render_pager_destroy (ts->p);
   free (ts);
 }
 
@@ -1518,8 +1503,7 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
                                &caption_width, &ts->caption_height);
   xr->params->size[V] = xr->length - ts->caption_height;
 
-  render_break_init (&ts->x_break, page, H);
-  render_break_init_empty (&ts->y_break);
+  ts->p = render_pager_create (page);
 
   return &ts->fsm;
 }

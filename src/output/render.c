@@ -1059,6 +1059,16 @@ render_page_draw_region (const struct render_page *page,
 
 /* Breaking up tables to fit on a page. */
 
+/* An iterator for breaking render_pages into smaller chunks. */
+struct render_break
+  {
+    struct render_page *page;   /* Page being broken up. */
+    enum table_axis axis;       /* Axis along which 'page' is being broken. */
+    int z;                      /* Next cell along 'axis'. */
+    int pixel;                  /* Pixel offset within cell 'z' (usually 0). */
+    int hw;                     /* Width of headers of 'page' along 'axis'. */
+  };
+
 static int needed_size (const struct render_break *, int cell);
 static bool cell_is_breakable (const struct render_break *, int cell);
 static struct render_page *render_page_select (const struct render_page *,
@@ -1070,7 +1080,7 @@ static struct render_page *render_page_select (const struct render_page *,
 
    Ownership of PAGE is transferred to B.  The caller must use
    render_page_ref() if it needs to keep a copy of PAGE. */
-void
+static void
 render_break_init (struct render_break *b, struct render_page *page,
                    enum table_axis axis)
 {
@@ -1083,7 +1093,7 @@ render_break_init (struct render_break *b, struct render_page *page,
 
 /* Initializes B as a render_break structure for which
    render_break_has_next() always returns false. */
-void
+static void
 render_break_init_empty (struct render_break *b)
 {
   b->page = NULL;
@@ -1094,7 +1104,7 @@ render_break_init_empty (struct render_break *b)
 }
 
 /* Frees B and unrefs the render_page that it owns. */
-void
+static void
 render_break_destroy (struct render_break *b)
 {
   if (b != NULL)
@@ -1106,7 +1116,7 @@ render_break_destroy (struct render_break *b)
 
 /* Returns true if B still has cells that are yet to be returned,
    false if all of B's page has been processed. */
-bool
+static bool
 render_break_has_next (const struct render_break *b)
 {
   const struct render_page *page = b->page;
@@ -1115,25 +1125,12 @@ render_break_has_next (const struct render_break *b)
   return page != NULL && b->z < page->n[axis] - page->h[axis][1];
 }
 
-/* Returns the minimum SIZE argument that, if passed to render_break_next(),
-   will avoid a null return value (if cells are still left). */
-int
-render_break_next_size (const struct render_break *b)
-{
-  const struct render_page *page = b->page;
-  enum table_axis axis = b->axis;
-
-  return (!render_break_has_next (b) ? 0
-          : !cell_is_breakable (b, b->z) ? needed_size (b, b->z + 1)
-          : b->hw + page->params->font_size[axis]);
-}
-
 /* Returns a new render_page that is up to SIZE pixels wide along B's axis.
    Returns a null pointer if B has already been completely broken up, or if
    SIZE is too small to reasonably render any cells.  The latter will never
    happen if SIZE is at least as large as the page size passed to
    render_page_create() along B's axis. */
-struct render_page *
+static struct render_page *
 render_break_next (struct render_break *b, int size)
 {
   const struct render_page *page = b->page;
@@ -1297,6 +1294,78 @@ cell_is_breakable (const struct render_break *b, int cell)
   enum table_axis axis = b->axis;
 
   return cell_width (page, axis, cell) >= page->params->min_break[axis];
+}
+
+/* render_pager. */
+
+struct render_pager
+  {
+    int width;
+    struct render_break x_break;
+    struct render_break y_break;
+  };
+
+/* Creates and returns a new render_pager for breaking PAGE into smaller
+   chunks.  Takes ownership of PAGE. */
+struct render_pager *
+render_pager_create (struct render_page *page)
+{
+  struct render_pager *p = xmalloc (sizeof *p);
+  p->width = page->params->size[H];
+  render_break_init (&p->x_break, page, H);
+  render_break_init_empty (&p->y_break);
+  return p;
+}
+
+/* Destroys P. */
+void
+render_pager_destroy (struct render_pager *p)
+{
+  if (p)
+    {
+      render_break_destroy (&p->x_break);
+      render_break_destroy (&p->y_break);
+      free (p);
+    }
+}
+
+/* Returns true if P has content remaining to render, false if rendering is
+   done. */
+bool
+render_pager_has_next (const struct render_pager *p_)
+{
+  struct render_pager *p = CONST_CAST (struct render_pager *, p_);
+
+  while (!render_break_has_next (&p->y_break))
+    {
+      render_break_destroy (&p->y_break);
+      if (render_break_has_next (&p->x_break))
+        {
+          struct render_page *x_slice;
+
+          x_slice = render_break_next (&p->x_break, p->width);
+          render_break_init (&p->y_break, x_slice, V);
+        }
+      else
+        {
+          render_break_init_empty (&p->y_break);
+          return false;
+        }
+    }
+  return true;
+}
+
+/* Returns the next render_page from P to render in a space that has vertical
+   size SPACE and the horizontal size as specified in render_params passed to
+   render_page_create().  The caller takes ownership of the returned
+   render_page.  If no content remains to render, or if SPACE is too small to
+   render anything, returns NULL. */
+struct render_page *
+render_pager_next (struct render_pager *p, int space)
+{
+  return (render_pager_has_next (p)
+          ? render_break_next (&p->y_break, space)
+          : NULL);
 }
 
 /* render_page_select() and helpers. */

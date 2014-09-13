@@ -101,7 +101,7 @@ struct render_params
 /* A "page" of content that is ready to be rendered.
 
    A page's size is not limited to the size passed in as part of render_params.
-   Use render_break (see below) to break a too-big render_page into smaller
+   Use render_pager (see below) to break a render_page into smaller
    render_pages that will fit in the available space. */
 struct render_page *render_page_create (const struct render_params *,
                                         const struct table *);
@@ -117,22 +117,11 @@ void render_page_draw_region (const struct render_page *,
 int render_page_get_best_breakpoint (const struct render_page *, int height);
 
 /* An iterator for breaking render_pages into smaller chunks. */
-struct render_break
-  {
-    struct render_page *page;   /* Page being broken up. */
-    enum table_axis axis;       /* Axis along which 'page' is being broken. */
-    int z;                      /* Next cell along 'axis'. */
-    int pixel;                  /* Pixel offset within cell 'z' (usually 0). */
-    int hw;                     /* Width of headers of 'page' along 'axis'. */
-  };
 
-void render_break_init (struct render_break *, struct render_page *,
-                        enum table_axis);
-void render_break_init_empty (struct render_break *);
-void render_break_destroy (struct render_break *);
+struct render_pager *render_pager_create (struct render_page *);
+void render_pager_destroy (struct render_pager *);
 
-bool render_break_has_next (const struct render_break *);
-int render_break_next_size (const struct render_break *);
-struct render_page *render_break_next (struct render_break *, int size);
+bool render_pager_has_next (const struct render_pager *);
+struct render_page *render_pager_next (struct render_pager *, int height);
 
 #endif /* output/render.h */

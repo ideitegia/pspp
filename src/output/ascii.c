@@ -424,7 +424,7 @@ ascii_output_table_item (struct ascii_driver *a,
   const char *caption = table_item_get_caption (table_item);
   struct render_params params;
   struct render_page *page;
-  struct render_break x_break;
+  struct render_pager *p;
   int caption_height;
   int i;
 
@@ -463,54 +463,45 @@ ascii_output_table_item (struct ascii_driver *a,
     return;
 
   page = render_page_create (&params, table_item_get_table (table_item));
-  for (render_break_init (&x_break, page, H);
-       render_break_has_next (&x_break); )
+  p = render_pager_create (page);
+  while (render_pager_has_next (p))
     {
-      struct render_page *x_slice;
-      struct render_break y_break;
-
-      x_slice = render_break_next (&x_break, a->width);
-      for (render_break_init (&y_break, x_slice, V);
-           render_break_has_next (&y_break); )
+      int space = a->length - (a->y + (a->y > 0) + caption_height);
+      struct render_page *slice = render_pager_next (p, space);
+      if (!slice)
         {
-          struct render_page *y_slice;
-          int space;
-
-          if (a->y > 0)
-            a->y++;
-
-          space = a->length - a->y - caption_height;
-          if (render_break_next_size (&y_break) > space)
+          assert (a->y > 0);
+          ascii_close_page (a);
+          if (!ascii_open_page (a))
             {
-              assert (a->y > 0);
-              ascii_close_page (a);
-              if (!ascii_open_page (a))
-                return;
-              continue;
+              render_pager_destroy (p);
+              return;
             }
-
-          y_slice = render_break_next (&y_break, space);
-          if (caption_height)
-            {
-              struct table_cell cell;
-              int bb[TABLE_N_AXES][2];
-
-              ascii_init_caption_cell (caption, &cell);
-              bb[H][0] = 0;
-              bb[H][1] = a->width;
-              bb[V][0] = 0;
-              bb[V][1] = caption_height;
-              ascii_draw_cell (a, &cell, bb, bb);
-              a->y += caption_height;
-              caption_height = 0;
-            }
-          render_page_draw (y_slice);
-          a->y += render_page_get_size (y_slice, V);
-          render_page_unref (y_slice);
+          continue;
         }
-      render_break_destroy (&y_break);
+
+      if (a->y > 0)
+        a->y++;
+
+      if (caption_height)
+        {
+          struct table_cell cell;
+          int bb[TABLE_N_AXES][2];
+
+          ascii_init_caption_cell (caption, &cell);
+          bb[H][0] = 0;
+          bb[H][1] = a->width;
+          bb[V][0] = 0;
+          bb[V][1] = caption_height;
+          ascii_draw_cell (a, &cell, bb, bb);
+          a->y += caption_height;
+          caption_height = 0;
+        }
+      render_page_draw (slice);
+      a->y += render_page_get_size (slice, V);
+      render_page_unref (slice);
     }
-  render_break_destroy (&x_break);
+  render_pager_destroy (p);
 }
 
 static void
