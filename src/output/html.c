@@ -377,7 +377,7 @@ static void
 html_output_table (struct html_driver *html, const struct table_item *item)
 {
   const struct table *t = table_item_get_table (item);
-  const char *caption = table_item_get_caption (item);
+  const char *title = table_item_get_title (item);
   int footnote_idx = 0;
   int y;
 
@@ -428,10 +428,10 @@ html_output_table (struct html_driver *html, const struct table_item *item)
 
   fputs ("<TBODY VALIGN=\"TOP\">\n", html->file);
 
-  if (caption != NULL)
+  if (title != NULL)
     {
       fputs ("  <CAPTION>", html->file);
-      escape_string (html->file, caption, strlen (caption), " ", "<BR>");
+      escape_string (html->file, title, strlen (title), " ", "<BR>");
       fputs ("</CAPTION>\n", html->file);
     }
 

@@ -25,9 +25,9 @@
    Some of the features of this type of table are obsolete but have not yet
    been removed, because some code still uses them.  These features are:
 
-       - The title.  The title (or caption, actually) is a property of the
-         table_item (see output/table-item.h) in which a table is embedded,
-         not a property of the table itself.
+       - The title.  The title is a property of the table_item (see
+         output/table-item.h) in which a table is embedded, not a property of
+         the table itself.
 
        - Row and columns offsets (via tab_offset(), tab_next_row()).  This
          feature simply isn't used enough to justify keeping it.

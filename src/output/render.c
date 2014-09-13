@@ -1484,14 +1484,14 @@ render_pager_create (const struct render_params *params,
                      const struct table_item *table_item)
 {
   struct render_pager *p;
-  const char *caption;
+  const char *title;
 
   p = xzalloc (sizeof *p);
   p->params = params;
 
-  caption = table_item_get_caption (table_item);
-  if (caption)
-    render_pager_add_table (p, table_from_string (TAB_LEFT, caption));
+  title = table_item_get_title (table_item);
+  if (title)
+    render_pager_add_table (p, table_from_string (TAB_LEFT, title));
   render_pager_add_table (p, table_ref (table_item_get_table (table_item)));
   add_footnote_page (p, p->pages[p->n_pages - 1]);
 

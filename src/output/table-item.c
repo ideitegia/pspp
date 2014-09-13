@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2011, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,15 +29,15 @@
 #include "gl/xalloc.h"
 
 /* Initializes ITEM as a table item for rendering TABLE.  The new table item
-   initially has the specified CAPTION, which may be NULL if no caption is yet
-   available.  The caller retains ownership of CAPTION. */
+   initially has the specified TITLE, which may be NULL if no title is yet
+   available.  The caller retains ownership of TITLE. */
 struct table_item *
-table_item_create (struct table *table, const char *caption)
+table_item_create (struct table *table, const char *title)
 {
   struct table_item *item = xmalloc (sizeof *item);
   output_item_init (&item->output_item, &table_item_class);
   item->table = table;
-  item->caption = caption != NULL ? xstrdup (caption) : NULL;
+  item->title = title != NULL ? xstrdup (title) : NULL;
   return item;
 }
 
@@ -49,25 +49,24 @@ table_item_get_table (const struct table_item *table_item)
   return table_item->table;
 }
 
-/* Returns ITEM's caption, which is a null pointer if no caption has been
+/* Returns ITEM's title, which is a null pointer if no title has been
    set. */
 const char *
-table_item_get_caption (const struct table_item *item)
+table_item_get_title (const struct table_item *item)
 {
-  return item->caption;
+  return item->title;
 }
 
-/* Sets ITEM's caption to CAPTION, replacing any previous caption.  Specify
-   NULL for CAPTION to clear any caption from ITEM.  The caller retains
-   ownership of CAPTION.
+/* Sets ITEM's title to TITLE, replacing any previous title.  Specify NULL for
+   TITLE to clear any title from ITEM.  The caller retains ownership of TITLE.
 
    This function may only be used on a table_item that is unshared. */
 void
-table_item_set_caption (struct table_item *item, const char *caption)
+table_item_set_title (struct table_item *item, const char *title)
 {
   assert (!table_item_is_shared (item));
-  free (item->caption);
-  item->caption = caption != NULL ? xstrdup (caption) : NULL;
+  free (item->title);
+  item->title = title != NULL ? xstrdup (title) : NULL;
 }
 
 /* Submits TABLE_ITEM to the configured output drivers, and transfers ownership
@@ -82,7 +81,7 @@ static void
 table_item_destroy (struct output_item *output_item)
 {
   struct table_item *item = to_table_item (output_item);
-  free (item->caption);
+  free (item->title);
   table_unref (item->table);
   free (item);
 }
