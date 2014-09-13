@@ -27,6 +27,10 @@ struct cell_contents
     /* Exactly one of these must be nonnull. */
     char *text;                 /* A paragraph of text. */
     struct table_item *table;   /* A table nested within the cell. */
+
+    /* Optional footnote(s). */
+    char **footnotes;
+    size_t n_footnotes;
   };
 
 /* A cell in a table. */

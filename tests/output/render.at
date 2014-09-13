@@ -242,6 +242,48 @@ AT_CHECK([render-test input], [0], [dnl
 ])
 AT_CLEANUP
 
+AT_SETUP([joined rows and columns (with footnotes)])
+AT_KEYWORDS([render rendering footnote])
+AT_DATA([input], [3 3
+1*2 @abc#Approximation.
+2*1 @d\ne\nf#This is a very long footnote that will have to wrap from one line to the next.  Let's see if the rendering engine does it acceptably.
+2*1 @g\nh\ni#One#Two#Three
+@j
+1*2 @klm
+])
+AT_CHECK([render-test --csv input], [0],
+[[+------------+----+
+|      abc[a]|   d|
++----------+-+   e|
+|         g|j|f[b]|
+|         h+-+----+
+|i[c][d][e]|   klm|
++----------+------+
+[a] Approximation.
+[b] This is a very long footnote that will have to wrap from one line to the
+    next.  Let's see if the rendering engine does it acceptably.
+[c] One
+[d] Two
+[e] Three
+]])
+AT_CHECK([cat render.csv], [0],
+[[abc[a],,"d
+e
+f[b]"
+"g
+h
+i[c][d][e]",j,
+,klm,
+
+Footnotes:
+a,Approximation.
+b,This is a very long footnote that will have to wrap from one line to the next.  Let's see if the rendering engine does it acceptably.
+c,One
+d,Two
+e,Three
+]])
+AT_CLEANUP
+
 AT_SETUP([6x6, joined rows and columns])
 AT_KEYWORDS([render rendering])
 AT_DATA([input], [WEAVE_6X6])

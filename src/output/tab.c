@@ -59,6 +59,9 @@ struct tab_joined_cell
         struct table_item *subtable;
       }
     u;
+
+    size_t n_footnotes;
+    char **footnotes;
   };
 
 static const struct table_class tab_table_class;
@@ -544,6 +547,8 @@ add_joined_cell (struct tab_table *table, int x1, int y1, int x2, int y2,
   j->d[TABLE_VERT][0] = y1 + table->row_ofs;
   j->d[TABLE_HORZ][1] = ++x2 + table->col_ofs;
   j->d[TABLE_VERT][1] = ++y2 + table->row_ofs;
+  j->n_footnotes = 0;
+  j->footnotes = NULL;
 
   {
     void **cc = &table->cc[x1 + y1 * table->cf];
@@ -595,6 +600,32 @@ tab_joint_text_format (struct tab_table *table, int x1, int y1, int x2, int y2,
   va_end (args);
 
   add_joined_cell (table, x1, y1, x2, y2, opt)->u.text = s;
+}
+
+void
+tab_footnote (struct tab_table *table, int x, int y, const char *format, ...)
+{
+  int index = x + y * table->cf;
+  unsigned char opt = table->ct[index];
+  struct tab_joined_cell *j;
+  va_list args;
+
+  if (opt & TAB_JOIN)
+    j = table->cc[index];
+  else
+    {
+      char *text = table->cc[index];
+
+      j = add_joined_cell (table, x, y, x, y, table->ct[index]);
+      j->u.text = text ? text : xstrdup ("");
+    }
+
+  j->footnotes = xrealloc (j->footnotes,
+                           (j->n_footnotes + 1) * sizeof *j->footnotes);
+
+  va_start (args, format);
+  j->footnotes[j->n_footnotes++] = pool_vasprintf (table->container, format, args);
+  va_end (args);
 }
 
 static void
@@ -752,6 +783,7 @@ tab_get_cell (const struct table *table, int x, int y, struct table_cell *cell)
 
   cell->inline_contents.options = opt;
   cell->inline_contents.table = NULL;
+  cell->inline_contents.n_footnotes = 0;
   cell->destructor = NULL;
 
   if (opt & TAB_JOIN)
@@ -776,6 +808,9 @@ tab_get_cell (const struct table *table, int x, int y, struct table_cell *cell)
           else
             cell->inline_contents.text = jc->u.text;
         }
+
+      cell->inline_contents.footnotes = jc->footnotes;
+      cell->inline_contents.n_footnotes = jc->n_footnotes;
 
       cell->d[TABLE_HORZ][0] = jc->d[TABLE_HORZ][0];
       cell->d[TABLE_HORZ][1] = jc->d[TABLE_HORZ][1];

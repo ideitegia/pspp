@@ -56,6 +56,9 @@ static int render_stdout = true;
 /* --pdf: Also render PDF output. */
 static int render_pdf;
 
+/* --csv: Also render CSV output. */
+static int render_csv;
+
 /* ASCII driver, for ASCII driver test mode. */
 static struct output_driver *ascii_driver;
 
@@ -206,6 +209,18 @@ configure_drivers (int width, int length, int min_break)
     }
 #endif
 
+  /* Render to <base>.csv. */
+  if (render_csv)
+    {
+      string_map_clear (&options);
+      string_map_insert_nocopy (&options, xstrdup ("output-file"),
+                                 xasprintf ("%s.csv", output_base));
+      driver = output_driver_create (&options);
+      if (driver == NULL)
+        exit (EXIT_FAILURE);
+      output_driver_register (driver);
+    }
+
   /* Render to <base>.odt. */
   string_map_replace_nocopy (&options, xstrdup ("output-file"),
                              xasprintf ("%s.odt", output_base));
@@ -246,6 +261,7 @@ parse_options (int argc, char **argv)
           {"no-txt", no_argument, &render_txt, 0},
           {"no-stdout", no_argument, &render_stdout, 0},
           {"pdf", no_argument, &render_pdf, 1},
+          {"csv", no_argument, &render_csv, 1},
           {"output", required_argument, NULL, 'o'},
           {"help", no_argument, NULL, OPT_HELP},
           {NULL, 0, NULL, 0},
@@ -462,7 +478,18 @@ read_table (FILE *stream, struct table **tables, size_t n_tables)
                             table_item_create (table, NULL));
             }
           else
-            tab_joint_text (tab, c, r, c + cs - 1, r + rs - 1, opt, text);
+            {
+              char *pos = text;
+              char *content;
+              int i;
+
+              for (i = 0; (content = strsep (&pos, "#")) != NULL; i++)
+                if (!i)
+                  tab_joint_text (tab, c, r, c + cs - 1, r + rs - 1, opt,
+                                  content);
+                else
+                  tab_footnote (tab, c, r, content);
+            }
         }
 
   return &tab->table;

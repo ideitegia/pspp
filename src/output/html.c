@@ -378,9 +378,55 @@ html_output_table (struct html_driver *html, const struct table_item *item)
 {
   const struct table *t = table_item_get_table (item);
   const char *caption = table_item_get_caption (item);
-  int x, y;
+  int footnote_idx = 0;
+  int y;
 
-  fputs ("<TABLE><TBODY VALIGN=\"TOP\">\n", html->file);
+  fputs ("<TABLE>", html->file);
+
+  footnote_idx = 0;
+  for (y = 0; y < table_nr (t); y++)
+    {
+      int x;
+
+      for (x = 0; x < table_nc (t); )
+        {
+          const struct cell_contents *c;
+          struct table_cell cell;
+
+          table_get_cell (t, x, y, &cell);
+          if (y != cell.d[TABLE_VERT][0])
+            continue;
+
+          for (c = cell.contents; c < &cell.contents[cell.n_contents]; c++)
+            {
+              int i;
+
+              for (i = 0; i < c->n_footnotes; i++)
+                {
+                  char marker[16];
+
+                  if (!footnote_idx)
+                    fprintf (html->file, "<TFOOT><TR><TD COLSPAN=%d>",
+                             table_nc (t));
+                  else
+                    fputs ("\n<BR>", html->file);
+                  str_format_26adic (++footnote_idx, false, marker, sizeof marker);
+                  fprintf (html->file, "<SUP>%s</SUP> ", marker);
+                  escape_string (html->file, c->footnotes[i],
+                                 strlen (c->footnotes[i]), " ", "<BR>");
+                }
+            }
+          x = cell.d[TABLE_HORZ][1];
+          table_cell_free (&cell);
+        }
+    }
+  if (footnote_idx)
+    {
+      fputs ("</TD></TR></TFOOT>\n", html->file);
+      footnote_idx = 0;
+    }
+
+  fputs ("<TBODY VALIGN=\"TOP\">\n", html->file);
 
   if (caption != NULL)
     {
@@ -391,8 +437,10 @@ html_output_table (struct html_driver *html, const struct table_item *item)
 
   for (y = 0; y < table_nr (t); y++)
     {
+      int x;
+
       fputs ("  <TR>\n", html->file);
-      for (x = 0; x < table_nc (t); x++)
+      for (x = 0; x < table_nc (t); )
         {
           const struct cell_contents *c;
           struct table_cell cell;
@@ -467,6 +515,7 @@ html_output_table (struct html_driver *html, const struct table_item *item)
               if (c->text)
                 {
                   const char *s = c->text;
+                  int i;
 
                   if (c->options & TAB_EMPH)
                     fputs ("<EM>", html->file);
@@ -483,6 +532,22 @@ html_output_table (struct html_driver *html, const struct table_item *item)
                     }
                   if (c->options & TAB_EMPH)
                     fputs ("</EM>", html->file);
+
+                  if (c->n_footnotes > 0)
+                    {
+                      fputs ("<SUP>", html->file);
+                      for (i = 0; i < c->n_footnotes; i++)
+                        {
+                          char marker[16];
+
+                          if (i > 0)
+                            putc (',', html->file);
+                          str_format_26adic (++footnote_idx, false,
+                                             marker, sizeof marker);
+                          fputs (marker, html->file);
+                        }
+                      fputs ("</SUP>", html->file);
+                    }
                 }
               else
                 html_output_table (html, c->table);
@@ -491,6 +556,7 @@ html_output_table (struct html_driver *html, const struct table_item *item)
           /* Output </TH> or </TD>. */
           fprintf (html->file, "</%s>\n", tag);
 
+          x = cell.d[TABLE_HORZ][1];
           table_cell_free (&cell);
         }
       fputs ("  </TR>\n", html->file);

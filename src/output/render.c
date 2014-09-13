@@ -26,6 +26,7 @@
 #include "libpspp/hash-functions.h"
 #include "libpspp/hmap.h"
 #include "output/render.h"
+#include "output/tab.h"
 #include "output/table-item.h"
 #include "output/table.h"
 
@@ -89,6 +90,15 @@ struct render_page
        border more.  (A single table cell that is so large that it fills the
        entire page can overflow on all four sides!) */
     struct hmap overflows;
+
+    /* Contains "struct render_footnote"s, one for each cell with one or more
+       footnotes.
+
+       'n_footnotes' is the number of footnotes in the table.  There might be
+       more than hmap_count(&page->footnotes) because there can be more than
+       one footnote in a cell. */
+    struct hmap footnotes;
+    size_t n_footnotes;
 
     /* If a single column (or row) is too wide (or tall) to fit on a page
        reasonably, then render_break_next() will split a single row or column
@@ -301,9 +311,9 @@ struct render_overflow
     int overflow[TABLE_N_AXES][2];
   };
 
-/* Returns a hash value for (X,Y). */
+/* Returns a hash value for (,Y). */
 static unsigned int
-hash_overflow (int x, int y)
+hash_cell (int x, int y)
 {
   return hash_int (x + (y << 16), 0);
 }
@@ -318,12 +328,61 @@ find_overflow (const struct render_page *page, int x, int y)
       const struct render_overflow *of;
 
       HMAP_FOR_EACH_WITH_HASH (of, struct render_overflow, node,
-                               hash_overflow (x, y), &page->overflows)
+                               hash_cell (x, y), &page->overflows)
         if (x == of->d[H] && y == of->d[V])
           return of;
     }
 
   return NULL;
+}
+
+/* A footnote. */
+struct render_footnote
+  {
+    struct hmap_node node;
+
+    /* The area of the table covered by the cell that has the footnote.
+
+       d[H][0] is the leftmost column.
+       d[H][1] is the rightmost column, plus 1.
+       d[V][0] is the top row.
+       d[V][1] is the bottom row, plus 1.
+
+       The cell in its original table might occupy a larger region.  This
+       member reflects the size of the cell in the current render_page, after
+       trimming off any rows or columns due to page-breaking. */
+    int d[TABLE_N_AXES][2];
+
+    /* The index of the first footnote in the cell. */
+    int idx;
+  };
+
+static int
+count_footnotes (const struct table_cell *cell)
+{
+  size_t i;
+  int n;
+
+  n = 0;
+  for (i = 0; i < cell->n_contents; i++)
+    n += cell->contents[i].n_footnotes;
+  return n;
+}
+
+static int
+find_footnote_idx (const struct table_cell *cell, const struct hmap *footnotes)
+{
+  const struct render_footnote *f;
+
+  if (!count_footnotes (cell))
+    return 0;
+
+  HMAP_FOR_EACH_WITH_HASH (f, struct render_footnote, node,
+                           hash_cell (cell->d[H][0], cell->d[V][0]), footnotes)
+    if (f->d[H][0] == cell->d[H][0] && f->d[V][0] == cell->d[V][0])
+      return f->idx;
+
+  NOT_REACHED ();
 }
 
 /* Row or column dimensions.  Used to figure the size of a table in
@@ -529,6 +588,8 @@ render_page_allocate (const struct render_params *params,
     }
 
   hmap_init (&page->overflows);
+  hmap_init (&page->footnotes);
+  page->n_footnotes = 0;
   memset (page->is_edge_cutoff, 0, sizeof page->is_edge_cutoff);
 
   return page;
@@ -630,6 +691,8 @@ render_page_create (const struct render_params *params,
   struct render_row *rows;
   int table_widths[2];
   int *rules[TABLE_N_AXES];
+  struct hmap footnotes;
+  int footnote_idx;
   int nr, nc;
   int x, y;
   int i;
@@ -651,7 +714,9 @@ render_page_create (const struct render_params *params,
     }
 
   /* Calculate minimum and maximum widths of cells that do not
-     span multiple columns. */
+     span multiple columns.  Assign footnote markers. */
+  hmap_init (&footnotes);
+  footnote_idx = 0;
   for (i = 0; i < 2; i++)
     columns[i] = xzalloc (nc * sizeof *columns[i]);
   for (y = 0; y < nr; y++)
@@ -660,15 +725,35 @@ render_page_create (const struct render_params *params,
         struct table_cell cell;
 
         table_get_cell (table, x, y, &cell);
-        if (y == cell.d[V][0] && table_cell_colspan (&cell) == 1)
+        if (y == cell.d[V][0])
           {
-            int w[2];
-            int i;
+            int n;
 
-            params->measure_cell_width (params->aux, &cell, &w[MIN], &w[MAX]);
-            for (i = 0; i < 2; i++)
-              if (columns[i][x].unspanned < w[i])
-                columns[i][x].unspanned = w[i];
+            if (table_cell_colspan (&cell) == 1)
+              {
+                int w[2];
+                int i;
+
+                params->measure_cell_width (params->aux, &cell, footnote_idx,
+                                            &w[MIN], &w[MAX]);
+                for (i = 0; i < 2; i++)
+                  if (columns[i][x].unspanned < w[i])
+                    columns[i][x].unspanned = w[i];
+              }
+
+            n = count_footnotes (&cell);
+            if (n > 0)
+              {
+                struct render_footnote *f = xmalloc (sizeof *f);
+                f->d[H][0] = cell.d[H][0];
+                f->d[H][1] = cell.d[H][1];
+                f->d[V][0] = cell.d[V][0];
+                f->d[V][1] = cell.d[V][1];
+                f->idx = footnote_idx;
+                hmap_insert (&footnotes, &f->node, hash_cell (x, y));
+
+                footnote_idx += n;
+              }
           }
         x = cell.d[H][1];
         table_cell_free (&cell);
@@ -688,7 +773,9 @@ render_page_create (const struct render_params *params,
           {
             int w[2];
 
-            params->measure_cell_width (params->aux, &cell, &w[MIN], &w[MAX]);
+            params->measure_cell_width (params->aux, &cell,
+                                        find_footnote_idx (&cell, &footnotes),
+                                        &w[MIN], &w[MAX]);
             for (i = 0; i < 2; i++)
               distribute_spanned_width (w[i], &columns[i][cell.d[H][0]],
                                         rules[H], table_cell_colspan (&cell));
@@ -737,7 +824,8 @@ render_page_create (const struct render_params *params,
               if (table_cell_rowspan (&cell) == 1)
                 {
                   int w = joined_width (page, H, cell.d[H][0], cell.d[H][1]);
-                  int h = params->measure_cell_height (params->aux, &cell, w);
+                  int h = params->measure_cell_height (
+                    params->aux, &cell, find_footnote_idx (&cell, &footnotes), w);
                   if (h > r->unspanned)
                     r->unspanned = r->width = h;
                 }
@@ -764,7 +852,8 @@ render_page_create (const struct render_params *params,
         if (y == cell.d[V][0] && table_cell_rowspan (&cell) > 1)
           {
             int w = joined_width (page, H, cell.d[H][0], cell.d[H][1]);
-            int h = params->measure_cell_height (params->aux, &cell, w);
+            int h = params->measure_cell_height (
+              params->aux, &cell, find_footnote_idx (&cell, &footnotes), w);
             distribute_spanned_width (h, &rows[cell.d[V][0]], rules[V],
                                       table_cell_rowspan (&cell));
           }
@@ -788,6 +877,10 @@ render_page_create (const struct render_params *params,
           page->h[axis][0] = page->h[axis][1] = 0;
         }
     }
+
+  hmap_swap (&page->footnotes, &footnotes);
+  hmap_destroy (&footnotes);
+  page->n_footnotes = footnote_idx;
 
   free (rules[H]);
   free (rules[V]);
@@ -957,7 +1050,8 @@ render_cell (const struct render_page *page, const int ofs[TABLE_N_AXES],
         }
     }
 
-  page->params->draw_cell (page->params->aux, cell, bb, clip);
+  page->params->draw_cell (page->params->aux, cell,
+                           find_footnote_idx (cell, &page->footnotes), bb, clip);
 }
 
 /* Draws the cells of PAGE indicated in BB. */
@@ -1216,7 +1310,8 @@ render_break_next (struct render_break *b, int size)
                       table_get_cell (page->table, x, z, &cell);
                       w = joined_width (page, H, cell.d[H][0], cell.d[H][1]);
                       better_pixel = page->params->adjust_break (
-                        page->params->aux, &cell, w, pixel);
+                        page->params->aux, &cell,
+                        find_footnote_idx (&cell, &page->footnotes), w, pixel);
                       x = cell.d[H][1];
                       table_cell_free (&cell);
 
@@ -1311,21 +1406,22 @@ cell_is_breakable (const struct render_break *b, int cell)
 
 struct render_pager
   {
-    int width;
+    const struct render_params *params;
+
     struct render_page **pages;
-    size_t cur_page, n_pages;
+    size_t n_pages, allocated_pages;
+
+    size_t cur_page;
     struct render_break x_break;
     struct render_break y_break;
   };
 
 static void
-render_pager_add_table (struct render_pager *p, struct table *table,
-                        const struct render_params *params,
-                        size_t *allocated_pages)
+render_pager_add_table (struct render_pager *p, struct table *table)
 {
-  if (p->n_pages >= *allocated_pages)
-    p->pages = x2nrealloc (p->pages, allocated_pages, sizeof *p->pages);
-  p->pages[p->n_pages++] = render_page_create (params, table);
+  if (p->n_pages >= p->allocated_pages)
+    p->pages = x2nrealloc (p->pages, &p->allocated_pages, sizeof *p->pages);
+  p->pages[p->n_pages++] = render_page_create (p->params, table);
 }
 
 static void
@@ -1335,6 +1431,52 @@ render_pager_start_page (struct render_pager *p)
   render_break_init_empty (&p->y_break);
 }
 
+static void
+add_footnote_page (struct render_pager *p, const struct render_page *body)
+{
+  const struct table *table = body->table;
+  int nc = table_nc (table);
+  int nr = table_nr (table);
+  int footnote_idx = 0;
+  struct tab_table *t;
+  int x, y;
+
+  if (!body->n_footnotes)
+    return;
+
+  t = tab_create (2, body->n_footnotes);
+  for (y = 0; y < nr; y++)
+    for (x = 0; x < nc; )
+      {
+        struct table_cell cell;
+
+        table_get_cell (table, x, y, &cell);
+        if (y == cell.d[V][0])
+          {
+            size_t i;
+
+            for (i = 0; i < cell.n_contents; i++)
+              {
+                const struct cell_contents *cc = &cell.contents[i];
+                size_t j;
+
+                for (j = 0; j < cc->n_footnotes; j++)
+                  {
+                    const char *f = cc->footnotes[j];
+
+                    tab_text (t, 0, footnote_idx, TAB_LEFT, "");
+                    tab_footnote (t, 0, footnote_idx, "(none)");
+                    tab_text (t, 1, footnote_idx, TAB_LEFT, f);
+                    footnote_idx++;
+                  }
+              }
+          }
+        x = cell.d[H][1];
+        table_cell_free (&cell);
+      }
+  render_pager_add_table (p, &t->table);
+}
+
 /* Creates and returns a new render_pager for rendering TABLE_ITEM on the
    device with the given PARAMS. */
 struct render_pager *
@@ -1342,18 +1484,16 @@ render_pager_create (const struct render_params *params,
                      const struct table_item *table_item)
 {
   struct render_pager *p;
-  size_t allocated_pages = 0;
   const char *caption;
 
   p = xzalloc (sizeof *p);
-  p->width = params->size[H];
+  p->params = params;
 
   caption = table_item_get_caption (table_item);
   if (caption)
-    render_pager_add_table (p, table_from_string (TAB_LEFT, caption), params,
-                            &allocated_pages);
-  render_pager_add_table (p, table_ref (table_item_get_table (table_item)), params,
-                          &allocated_pages);
+    render_pager_add_table (p, table_from_string (TAB_LEFT, caption));
+  render_pager_add_table (p, table_ref (table_item_get_table (table_item)));
+  add_footnote_page (p, p->pages[p->n_pages - 1]);
 
   render_pager_start_page (p);
 
@@ -1400,7 +1540,7 @@ render_pager_has_next (const struct render_pager *p_)
         }
       else
         render_break_init (&p->y_break,
-                           render_break_next (&p->x_break, p->width), V);
+                           render_break_next (&p->x_break, p->params->size[H]), V);
     }
   return true;
 }
@@ -1524,8 +1664,8 @@ static struct render_overflow *insert_overflow (struct render_page_selection *,
                                                 const struct table_cell *);
 
 /* Creates and returns a new render_page whose contents are a subregion of
-   PAGE's contents.  The new render_page includes cells Z0 through Z1 along
-   AXIS, plus any headers on AXIS.
+   PAGE's contents.  The new render_page includes cells Z0 through Z1
+   (exclusive) along AXIS, plus any headers on AXIS.
 
    If P0 is nonzero, then it is a number of pixels to exclude from the left or
    top (according to AXIS) of cell Z0.  Similarly, P1 is a number of pixels to
@@ -1541,6 +1681,7 @@ static struct render_page *
 render_page_select (const struct render_page *page, enum table_axis axis,
                     int z0, int p0, int z1, int p1)
 {
+  const struct render_footnote *f;
   struct render_page_selection s;
   enum table_axis a = axis;
   enum table_axis b = !a;
@@ -1707,6 +1848,21 @@ render_page_select (const struct render_page *page, enum table_axis axis,
       table_cell_free (&cell);
     }
 
+  /* Copy footnotes from PAGE into subpage. */
+  HMAP_FOR_EACH (f, struct render_footnote, node, &page->footnotes)
+    if ((f->d[a][0] >= z0 && f->d[a][0] < z1)
+        || (f->d[a][1] - 1 >= z0 && f->d[a][1] - 1 < z1))
+      {
+        struct render_footnote *nf = xmalloc (sizeof *nf);
+        nf->d[a][0] = MAX (z0, f->d[a][0]) - z0 + page->h[a][0];
+        nf->d[a][1] = MIN (z1, f->d[a][1]) - z0 + page->h[a][0];
+        nf->d[b][0] = f->d[b][0];
+        nf->d[b][1] = f->d[b][1];
+        nf->idx = f->idx;
+        hmap_insert (&subpage->footnotes, &nf->node,
+                     hash_cell (nf->d[H][0], nf->d[V][0]));
+      }
+
   return subpage;
 }
 
@@ -1759,7 +1915,7 @@ insert_overflow (struct render_page_selection *s,
   of = xzalloc (sizeof *of);
   cell_to_subpage (s, cell, of->d);
   hmap_insert (&s->subpage->overflows, &of->node,
-               hash_overflow (of->d[H], of->d[V]));
+               hash_cell (of->d[H], of->d[V]));
 
   old = find_overflow (s->page, cell->d[H][0], cell->d[V][0]);
   if (old != NULL)

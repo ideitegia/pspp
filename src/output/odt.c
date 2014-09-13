@@ -71,6 +71,9 @@ struct odt_driver
 
   /* Name of current command. */
   char *command_name;
+
+  /* Number of footnotes so far. */
+  int n_footnotes;
 };
 
 static const struct output_driver_class odt_driver_class;
@@ -386,28 +389,65 @@ odt_destroy (struct output_driver *driver)
 }
 
 static void
-write_xml_with_line_breaks (xmlTextWriterPtr writer, char *line)
+write_xml_with_line_breaks (struct odt_driver *odt, const char *line_)
 {
-  char *newline;
-  char *p;
+  xmlTextWriterPtr writer = odt->content_wtr;
 
-  for (p = line; *p; p = newline + 1)
+  if (!strchr (line_, '\n'))
+    xmlTextWriterWriteString (writer, _xml(line_));
+  else
     {
-      newline = strchr (p, '\n');
+      char *line = xstrdup (line_);
+      char *newline;
+      char *p;
 
-      if (!newline)
+      for (p = line; *p; p = newline + 1)
         {
-          xmlTextWriterWriteString (writer, _xml(p));
-          return;
-        }
+          newline = strchr (p, '\n');
 
-      if (newline > p && newline[-1] == '\r')
-        newline[-1] = '\0';
-      else
-        *newline = '\0';
-      xmlTextWriterWriteString (writer, _xml(p));
-      xmlTextWriterWriteElement (writer, _xml("text:line-break"), _xml(""));
+          if (!newline)
+            {
+              xmlTextWriterWriteString (writer, _xml(p));
+              free (line);
+              return;
+            }
+
+          if (newline > p && newline[-1] == '\r')
+            newline[-1] = '\0';
+          else
+            *newline = '\0';
+          xmlTextWriterWriteString (writer, _xml(p));
+          xmlTextWriterWriteElement (writer, _xml("text:line-break"), _xml(""));
+        }
     }
+}
+
+static void
+write_footnote (struct odt_driver *odt, const char *footnote)
+{
+  char marker[16];
+
+  xmlTextWriterStartElement (odt->content_wtr, _xml("text:note"));
+  xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:note-class"),
+                               _xml("footnote"));
+
+  xmlTextWriterStartElement (odt->content_wtr, _xml("text:note-citation"));
+  str_format_26adic (++odt->n_footnotes, false, marker, sizeof marker);
+  if (strlen (marker) > 1)
+    xmlTextWriterWriteFormatAttribute (odt->content_wtr, _xml("text:label"),
+                                       "(%s)", marker);
+  else
+    xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:label"),
+                                 _xml(marker));
+  xmlTextWriterEndElement (odt->content_wtr);
+
+  xmlTextWriterStartElement (odt->content_wtr, _xml("text:note-body"));
+  xmlTextWriterStartElement (odt->content_wtr, _xml("text:p"));
+  write_xml_with_line_breaks (odt, footnote);
+  xmlTextWriterEndElement (odt->content_wtr);
+  xmlTextWriterEndElement (odt->content_wtr);
+
+  xmlTextWriterEndElement (odt->content_wtr);
 }
 
 static void
@@ -480,6 +520,7 @@ write_table (struct odt_driver *odt, const struct table_item *item)
               for (i = 0; i < cell.n_contents; i++)
                 {
                   const struct cell_contents *contents = &cell.contents[i];
+                  int j;
 
                   if (contents->text)
                     {
@@ -490,22 +531,16 @@ write_table (struct odt_driver *odt, const struct table_item *item)
                       else
                         xmlTextWriterWriteAttribute (odt->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
 
-                      if (strchr (contents->text, '\n'))
-                        {
-                          char *line = xstrdup (contents->text);
-                          write_xml_with_line_breaks (odt->content_wtr, line);
-                          free (line);
-                        }
-                      else
-                        xmlTextWriterWriteString (odt->content_wtr, _xml(contents->text));
+                      write_xml_with_line_breaks (odt, contents->text);
+
+                      for (j = 0; j < contents->n_footnotes; j++)
+                        write_footnote (odt, contents->footnotes[j]);
 
                       xmlTextWriterEndElement (odt->content_wtr); /* text:p */
                     }
                   else if (contents->table)
-                    {
-                      write_table (odt, contents->table);
-                      continue;
-                    }
+                    write_table (odt, contents->table);
+
                 }
               xmlTextWriterEndElement (odt->content_wtr); /* table:table-cell */
 	    }

@@ -261,6 +261,7 @@ csv_submit (struct output_driver *driver,
       struct table_item *table_item = to_table_item (output_item);
       const char *caption = table_item_get_caption (table_item);
       const struct table *t = table_item_get_table (table_item);
+      int footnote_idx;
       int x, y;
 
       csv_put_separator (csv);
@@ -271,6 +272,7 @@ csv_submit (struct output_driver *driver,
           putc ('\n', csv->file);
         }
 
+      footnote_idx = 0;
       for (y = 0; y < table_nr (t); y++)
         {
           for (x = 0; x < table_nc (t); x++)
@@ -284,7 +286,9 @@ csv_submit (struct output_driver *driver,
 
               if (x != cell.d[TABLE_HORZ][0] || y != cell.d[TABLE_VERT][0])
                 csv_output_field (csv, "");
-              else if (cell.n_contents == 1 && cell.contents[0].text != NULL)
+              else if (cell.n_contents == 1
+                       && cell.contents[0].text != NULL
+                       && cell.contents[0].n_footnotes == 0)
                 csv_output_field (csv, cell.contents[0].text);
               else
                 {
@@ -294,13 +298,25 @@ csv_submit (struct output_driver *driver,
                   ds_init_empty (&s);
                   for (i = 0; i < cell.n_contents; i++)
                     {
+                      const struct cell_contents *c = &cell.contents[i];
+                      int j;
+
                       if (i > 0)
                         ds_put_cstr (&s, "\n\n");
 
-                      if (cell.contents[i].text != NULL)
-                        ds_put_cstr (&s, cell.contents[i].text);
+                      if (c->text != NULL)
+                        ds_put_cstr (&s, c->text);
                       else
-                        csv_output_subtable (csv, &s, cell.contents[i].table);
+                        csv_output_subtable (csv, &s, c->table);
+
+                      for (j = 0; j < c->n_footnotes; j++)
+                        {
+                          char marker[16];
+
+                          str_format_26adic (++footnote_idx, false,
+                                             marker, sizeof marker);
+                          ds_put_format (&s, "[%s]", marker);
+                        }
                     }
                   csv_output_field (csv, ds_cstr (&s));
                   ds_destroy (&s);
@@ -309,6 +325,43 @@ csv_submit (struct output_driver *driver,
               table_cell_free (&cell);
             }
           putc ('\n', csv->file);
+        }
+
+      if (footnote_idx)
+        {
+          size_t i;
+
+          fputs ("\nFootnotes:\n", csv->file);
+
+          footnote_idx = 0;
+          for (y = 0; y < table_nr (t); y++)
+            {
+              struct table_cell cell;
+              for (x = 0; x < table_nc (t); x = cell.d[TABLE_HORZ][1])
+                {
+                  table_get_cell (t, x, y, &cell);
+
+                  if (x == cell.d[TABLE_HORZ][0] && y == cell.d[TABLE_VERT][0])
+                    for (i = 0; i < cell.n_contents; i++)
+                      {
+                        const struct cell_contents *c = &cell.contents[i];
+                        int j;
+
+                        for (j = 0; j < c->n_footnotes; j++)
+                          {
+                            char marker[16];
+
+                            str_format_26adic (++footnote_idx, false,
+                                               marker, sizeof marker);
+                            csv_output_field (csv, marker);
+                            fputs (csv->separator, csv->file);
+                            csv_output_field (csv, c->footnotes[j]);
+                            putc ('\n', csv->file);
+                          }
+                      }
+                  table_cell_free (&cell);
+                }
+            }
         }
     }
   else if (is_text_item (output_item))

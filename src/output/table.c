@@ -321,6 +321,7 @@ table_string_get_cell (const struct table *ts_, int x UNUSED, int y UNUSED,
   cell->inline_contents.options = ts->options;
   cell->inline_contents.text = ts->string;
   cell->inline_contents.table = NULL;
+  cell->inline_contents.n_footnotes = 0;
   cell->n_contents = 1;
   cell->destructor = NULL;
 }
@@ -398,6 +399,7 @@ table_nested_get_cell (const struct table *tn_, int x UNUSED, int y UNUSED,
   cell->inline_contents.options = TAB_LEFT;
   cell->inline_contents.text = NULL;
   cell->inline_contents.table = tn->inner;
+  cell->inline_contents.n_footnotes = 0;
   cell->n_contents = 1;
   cell->destructor = NULL;
 }

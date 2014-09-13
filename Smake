@@ -76,6 +76,7 @@ GNULIB_MODULES = \
 	stpcpy \
 	strerror \
 	strftime \
+	strsep \
 	strtod \
 	strtok_r \
 	sys_stat \
