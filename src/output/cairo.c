@@ -543,7 +543,7 @@ xr_init_caption_cell (const char *caption, struct table_cell *cell,
   cell->destructor = NULL;
 }
 
-static struct render_page *
+static struct render_pager *
 xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
                       int *caption_widthp, int *caption_heightp)
 {
@@ -565,7 +565,8 @@ xr_render_table_item (struct xr_driver *xr, const struct table_item *item,
   else
     *caption_heightp = 0;
 
-  return render_page_create (xr->params, table_item_get_table (item));
+  return render_pager_create (render_page_create (xr->params,
+                                                  table_item_get_table (item)));
 }
 
 static void
@@ -1047,7 +1048,7 @@ xr_layout_cell_subtable (struct xr_driver *xr,
   const struct table *table = contents->table;
   int single_width, double_width;
   struct render_params params;
-  struct render_page *page;
+  struct render_pager *p;
   int r[TABLE_N_AXES][2];
   int width, height;
   int i;
@@ -1073,11 +1074,11 @@ xr_layout_cell_subtable (struct xr_driver *xr,
     }
 
   xr->nest++;
-  page = render_page_create (&params, table);
-  width = render_page_get_size (page, H);
-  height = render_page_get_size (page, V);
+  p = render_pager_create (render_page_create (&params, table));
+  width = render_pager_get_size (p, H);
+  height = render_pager_get_size (p, V);
   if (bb[V][0] + height >= bb[V][1])
-    *brk = bb[V][0] + render_page_get_best_breakpoint (page, bb[V][1] - bb[V][0]);
+    *brk = bb[V][0] + render_pager_get_best_breakpoint (p, bb[V][1] - bb[V][0]);
 
   /* r = intersect(bb, clip) - bb. */
   for (i = 0; i < TABLE_N_AXES; i++)
@@ -1099,13 +1100,13 @@ xr_layout_cell_subtable (struct xr_driver *xr,
       else if (alignment == TAB_CENTER)
         xr->x += (params.size[H] - width) / 2;
       xr->y += bb[V][0];
-      render_page_draw_region (page, r[H][0], r[V][0],
-                               r[H][1] - r[H][0], r[V][1] - r[V][0]);
+      render_pager_draw_region (p, r[H][0], r[V][0],
+                                r[H][1] - r[H][0], r[V][1] - r[V][0]);
       xr->y -= bb[V][0];
       xr->x = save_x;
       cairo_restore (xr->cairo);
     }
-  render_page_unref (page);
+  render_pager_destroy (p);
   xr->nest--;
 
   if (width > *widthp)
@@ -1207,7 +1208,7 @@ struct xr_rendering
     struct output_item *item;
 
     /* Table items. */
-    struct render_page *page;
+    struct render_pager *p;
     struct xr_driver *xr;
     int title_width;
     int title_height;
@@ -1285,8 +1286,8 @@ xr_rendering_create (struct xr_driver *xr, const struct output_item *item,
       r->item = output_item_ref (item);
       r->xr = xr;
       xr_set_cairo (xr, cr);
-      r->page = xr_render_table_item (xr, to_table_item (item),
-                                      &r->title_width, &r->title_height);
+      r->p = xr_render_table_item (xr, to_table_item (item),
+                                   &r->title_width, &r->title_height);
     }
   else if (is_chart_item (item))
     {
@@ -1303,7 +1304,7 @@ xr_rendering_destroy (struct xr_rendering *r)
   if (r)
     {
       output_item_unref (r->item);
-      render_page_unref (r->page);
+      render_pager_destroy (r->p);
       free (r);
     }
 }
@@ -1313,10 +1314,10 @@ xr_rendering_measure (struct xr_rendering *r, int *w, int *h)
 {
   if (is_table_item (r->item))
     {
-      int w0 = render_page_get_size (r->page, H);
+      int w0 = render_pager_get_size (r->p, H);
       int w1 = r->title_width;
       *w = MAX (w0, w1) / XR_POINT;
-      *h = (render_page_get_size (r->page, V) + r->title_height) / XR_POINT;
+      *h = (render_pager_get_size (r->p, V) + r->title_height) / XR_POINT;
     }
   else
     {
@@ -1348,9 +1349,9 @@ xr_rendering_draw (struct xr_rendering *r, cairo_t *cr,
         }
 
       xr->y = r->title_height;
-      render_page_draw_region (r->page, 
-			       x * XR_POINT, (y * XR_POINT) - r->title_height,
-                               w * XR_POINT, h * XR_POINT);
+      render_pager_draw_region (r->p,
+                                x * XR_POINT, (y * XR_POINT) - r->title_height,
+                                w * XR_POINT, h * XR_POINT);
     }
   else
     xr_draw_chart (to_chart_item (r->item), cr,
@@ -1447,29 +1448,28 @@ xr_table_render (struct xr_render_fsm *fsm, struct xr_driver *xr)
 
   while (render_pager_has_next (ts->p))
     {
-      int space = xr->length - xr->y - ts->caption_height;
-      struct render_page *slice = render_pager_next (ts->p, space);
+      int caption_height = ts->caption_height;
+      int used;
 
-      if (!slice)
+      xr->y += caption_height;
+      used = render_pager_draw_next (ts->p, xr->length - xr->y);
+      xr->y -= caption_height;
+      if (!used)
         {
           assert (xr->y > 0);
           return true;
         }
-
-      if (ts->caption_height)
+      else
         {
-          if (xr->cairo)
-            xr_draw_title (xr, table_item_get_caption (ts->table_item),
-                           xr->width, ts->caption_height);
-
-          xr->y += ts->caption_height;
-          ts->caption_height = 0;
+          if (ts->caption_height)
+            {
+              if (xr->cairo)
+                xr_draw_title (xr, table_item_get_caption (ts->table_item),
+                               xr->width, ts->caption_height);
+              ts->caption_height = 0;
+            }
+          xr->y += caption_height + used;
         }
-
-      if (xr->cairo)
-        render_page_draw (slice);
-      xr->y += render_page_get_size (slice, V);
-      render_page_unref (slice);
     }
   return false;
 }
@@ -1488,7 +1488,6 @@ static struct xr_render_fsm *
 xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
 {
   struct xr_table_state *ts;
-  struct render_page *page;
   int caption_width;
 
   ts = xmalloc (sizeof *ts);
@@ -1499,11 +1498,9 @@ xr_render_table (struct xr_driver *xr, const struct table_item *table_item)
   if (xr->y > 0)
     xr->y += xr->char_height;
 
-  page = xr_render_table_item (xr, table_item,
-                               &caption_width, &ts->caption_height);
+  ts->p = xr_render_table_item (xr, table_item,
+                                &caption_width, &ts->caption_height);
   xr->params->size[V] = xr->length - ts->caption_height;
-
-  ts->p = render_pager_create (page);
 
   return &ts->fsm;
 }

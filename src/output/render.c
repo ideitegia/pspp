@@ -1301,6 +1301,7 @@ cell_is_breakable (const struct render_break *b, int cell)
 struct render_pager
   {
     int width;
+    struct render_page *page;
     struct render_break x_break;
     struct render_break y_break;
   };
@@ -1312,6 +1313,7 @@ render_pager_create (struct render_page *page)
 {
   struct render_pager *p = xmalloc (sizeof *p);
   p->width = page->params->size[H];
+  p->page = render_page_ref (page);
   render_break_init (&p->x_break, page, H);
   render_break_init_empty (&p->y_break);
   return p;
@@ -1325,6 +1327,7 @@ render_pager_destroy (struct render_pager *p)
     {
       render_break_destroy (&p->x_break);
       render_break_destroy (&p->y_break);
+      render_page_unref (p->page);
       free (p);
     }
 }
@@ -1355,17 +1358,59 @@ render_pager_has_next (const struct render_pager *p_)
   return true;
 }
 
-/* Returns the next render_page from P to render in a space that has vertical
-   size SPACE and the horizontal size as specified in render_params passed to
-   render_page_create().  The caller takes ownership of the returned
-   render_page.  If no content remains to render, or if SPACE is too small to
-   render anything, returns NULL. */
-struct render_page *
-render_pager_next (struct render_pager *p, int space)
+/* Draws a chunk of content from P to fit in a space that has vertical size
+   SPACE and the horizontal size specified in the render_params passed to
+   render_page_create().  Returns the amount of space actually used by the
+   rendered chunk, which will be 0 if SPACE is too small to render anything or
+   if no content remains (use render_pager_has_next() to distinguish these
+   cases). */
+int
+render_pager_draw_next (struct render_pager *p, int space)
 {
-  return (render_pager_has_next (p)
-          ? render_break_next (&p->y_break, space)
-          : NULL);
+  struct render_page *page = (render_pager_has_next (p)
+                              ? render_break_next (&p->y_break, space)
+                              : NULL);
+  if (page)
+    {
+      int used = render_page_get_size (page, V);
+
+      render_page_draw (page);
+      render_page_unref (page);
+      return used;
+    }
+  else
+    return 0;
+}
+
+/* Draws all of P's content. */
+void
+render_pager_draw (const struct render_pager *p)
+{
+  render_page_draw (p->page);
+}
+
+/* Draws the region of P's content that lies in the region (X,Y)-(X+W,Y+H).
+   Some extra content might be drawn; the device should perform clipping as
+   necessary. */
+void
+render_pager_draw_region (const struct render_pager *p,
+                          int x, int y, int w, int h)
+{
+  render_page_draw_region (p->page, x, y, w, h);
+}
+
+/* Returns the size of P's content along AXIS; i.e. the content's width if AXIS
+   is TABLE_HORZ and its length if AXIS is TABLE_VERT. */
+int
+render_pager_get_size (const struct render_pager *p, enum table_axis axis)
+{
+  return render_page_get_size (p->page, axis);
+}
+
+int
+render_pager_get_best_breakpoint (const struct render_pager *p, int height)
+{
+  return render_page_get_best_breakpoint (p->page, height);
 }
 
 /* render_page_select() and helpers. */

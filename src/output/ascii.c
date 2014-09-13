@@ -423,7 +423,6 @@ ascii_output_table_item (struct ascii_driver *a,
 {
   const char *caption = table_item_get_caption (table_item);
   struct render_params params;
-  struct render_page *page;
   struct render_pager *p;
   int caption_height;
   int i;
@@ -462,44 +461,42 @@ ascii_output_table_item (struct ascii_driver *a,
   if (a->file == NULL && !ascii_open_page (a))
     return;
 
-  page = render_page_create (&params, table_item_get_table (table_item));
-  p = render_pager_create (page);
+  p = render_pager_create (render_page_create (&params, table_item_get_table (
+                                                 table_item)));
   while (render_pager_has_next (p))
     {
-      int space = a->length - (a->y + (a->y > 0) + caption_height);
-      struct render_page *slice = render_pager_next (p, space);
-      if (!slice)
+      int used;
+
+      if (a->y > 0)
+        a->y++;
+      a->y += caption_height;
+      used = render_pager_draw_next (p, a->length - a->y);
+      if (used == 0)
         {
           assert (a->y > 0);
           ascii_close_page (a);
           if (!ascii_open_page (a))
-            {
-              render_pager_destroy (p);
-              return;
-            }
-          continue;
+            break;
         }
-
-      if (a->y > 0)
-        a->y++;
-
-      if (caption_height)
+      else
         {
-          struct table_cell cell;
-          int bb[TABLE_N_AXES][2];
+          if (caption_height)
+            {
+              struct table_cell cell;
+              int bb[TABLE_N_AXES][2];
 
-          ascii_init_caption_cell (caption, &cell);
-          bb[H][0] = 0;
-          bb[H][1] = a->width;
-          bb[V][0] = 0;
-          bb[V][1] = caption_height;
-          ascii_draw_cell (a, &cell, bb, bb);
-          a->y += caption_height;
-          caption_height = 0;
+              ascii_init_caption_cell (caption, &cell);
+              bb[H][0] = 0;
+              bb[H][1] = a->width;
+              bb[V][0] = 0;
+              bb[V][1] = caption_height;
+              a->y -= caption_height;
+              ascii_draw_cell (a, &cell, bb, bb);
+              a->y += caption_height;
+              caption_height = 0;
+            }
+          a->y += used;
         }
-      render_page_draw (slice);
-      a->y += render_page_get_size (slice, V);
-      render_page_unref (slice);
     }
   render_pager_destroy (p);
 }
@@ -947,7 +944,7 @@ ascii_layout_subtable (struct ascii_driver *a,
 {
   const struct table *table = contents->table;
   struct render_params params;
-  struct render_page *page;
+  struct render_pager *p;
   int r[TABLE_N_AXES][2];
   int width, height;
   int i;
@@ -969,9 +966,9 @@ ascii_layout_subtable (struct ascii_driver *a,
       params.line_widths[V][i] = width;
     }
 
-  page = render_page_create (&params, table);
-  width = render_page_get_size (page, TABLE_HORZ);
-  height = render_page_get_size (page, TABLE_VERT);
+  p = render_pager_create (render_page_create (&params, table));
+  width = render_pager_get_size (p, TABLE_HORZ);
+  height = render_pager_get_size (p, TABLE_VERT);
 
   /* r = intersect(bb, clip) - bb. */
   for (i = 0; i < TABLE_N_AXES; i++)
@@ -991,11 +988,11 @@ ascii_layout_subtable (struct ascii_driver *a,
       else if (alignment == TAB_CENTER)
         a->x += (params.size[H] - width) / 2;
       a->y += bb[TABLE_VERT][0];
-      render_page_draw (page);
+      render_pager_draw (p);
       a->y -= bb[TABLE_VERT][0];
       a->x = save_x;
     }
-  render_page_unref (page);
+  render_pager_destroy (p);
 
   if (width > *widthp)
     *widthp = width;

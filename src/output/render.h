@@ -108,13 +108,6 @@ struct render_page *render_page_create (const struct render_params *,
 
 struct render_page *render_page_ref (const struct render_page *);
 void render_page_unref (struct render_page *);
-
-int render_page_get_size (const struct render_page *, enum table_axis);
-void render_page_draw (const struct render_page *);
-void render_page_draw_region (const struct render_page *,
-                              int x, int y, int w, int h);
-
-int render_page_get_best_breakpoint (const struct render_page *, int height);
 
 /* An iterator for breaking render_pages into smaller chunks. */
 
@@ -122,6 +115,12 @@ struct render_pager *render_pager_create (struct render_page *);
 void render_pager_destroy (struct render_pager *);
 
 bool render_pager_has_next (const struct render_pager *);
-struct render_page *render_pager_next (struct render_pager *, int height);
+int render_pager_draw_next (struct render_pager *, int space);
+
+void render_pager_draw (const struct render_pager *);
+void render_pager_draw_region (const struct render_pager *,
+                               int x, int y, int w, int h);
+int render_pager_get_size (const struct render_pager *, enum table_axis);
+int render_pager_get_best_breakpoint (const struct render_pager *, int height);
 
 #endif /* output/render.h */
