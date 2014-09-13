@@ -360,7 +360,7 @@ show_runs_result (const struct runs_test *rt, const struct run_state *rs, const 
 		  z, NULL, RC_OTHER);
 
       tab_double (table, row_headers +i, 7, 0,
-		  2.0 * gsl_cdf_ugaussian_P (z), NULL, RC_PVALUE);
+		  2.0 * (1.0 - gsl_cdf_ugaussian_P (z)), NULL, RC_PVALUE);
     }
 
   switch  ( rt->cp_mode)

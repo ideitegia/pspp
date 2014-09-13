@@ -884,7 +884,7 @@ Cases ≥ Test Value,309.0000
 Total Cases,486.0000
 Number of Runs,12
 Z,-20.9931
-Asymp. Sig. (2-tailed),.000
+Asymp. Sig. (2-tailed),2.000
 
 Table: Runs Test
 ,score
@@ -894,7 +894,7 @@ Cases ≥ Test Value,227.0000
 Total Cases,486.0000
 Number of Runs,12
 Z,-21.0650
-Asymp. Sig. (2-tailed),.000
+Asymp. Sig. (2-tailed),2.000
 
 Table: Runs Test
 ,score
@@ -904,9 +904,33 @@ Cases ≥ Test Value,170.0000
 Total Cases,486.0000
 Number of Runs,11
 Z,-21.0742
-Asymp. Sig. (2-tailed),.000
+Asymp. Sig. (2-tailed),2.000
 ])
 
+AT_CLEANUP
+
+
+dnl Thanks to Douglas Bonett for providing this test case.
+AT_SETUP([NPAR TESTS Runs (2)])
+AT_DATA([npar-runs.sps], [dnl
+data list notable free /y.
+begin data
+1 1 2 1 2 1 1 2 1 1 1 2 1 2
+end data.
+NPAR TEST /RUNS(1.5) = y.
+])
+
+AT_CHECK([pspp -O format=csv npar-runs.sps], [0], [dnl
+Table: Runs Test
+,y
+Test Value,1.50
+Cases < Test Value,9
+Cases ≥ Test Value,5
+Total Cases,14
+Number of Runs,10
+Z,1.26
+Asymp. Sig. (2-tailed),.206
+])
 AT_CLEANUP
 
 

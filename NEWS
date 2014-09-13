@@ -6,6 +6,9 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
 Changes since 0.8.3.1:
 
+ * The NPAR TESTS calculation of significance for the RUNS subcommand
+   has been corrected.
+
  * Formatting of SYSFILE INFO output was made easier to read.
 
 Changes from 0.8.3 to 0.8.3.1:
