@@ -1599,11 +1599,14 @@ render_pager_draw_region (const struct render_pager *p,
   for (i = 0; i < p->n_pages; i++)
     {
       const struct render_page *page = p->pages[i];
+      int size = render_page_get_size (page, V);
 
       clip[V][0] = MAX (y, ofs[V]) - ofs[V];
-      clip[V][1] = MIN (y + h, ofs[V] + render_page_get_size (page, V)) - ofs[V];
+      clip[V][1] = MIN (y + h, ofs[V] + size) - ofs[V];
       if (clip[V][1] > clip[V][0])
         render_page_draw_region (page, ofs, clip);
+
+      ofs[V] += size;
     }
 }
 
