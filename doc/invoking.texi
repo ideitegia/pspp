@@ -421,8 +421,8 @@ character itself.  If @var{qualifier} is longer than one character,
 only the first character is used; if @var{qualifier} is the empty
 string, then fields are never quoted.
 
-@item @option{-O captions=@var{boolean}}
-Whether table captions should be printed.  Default: @code{on}.
+@item @option{-O titles=@var{boolean}}
+Whether table titles should be printed.  Default: @code{on}.
 @end table
 
 The CSV format used is an extension to that specified in RFC 4180:
