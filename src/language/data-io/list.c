@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2009-2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009-2011, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ list_execute (const struct lst_cmd *lcmd, struct dataset *ds)
 
       casereader_destroy (group);
 
-      table_item_submit (table_item_create (t, "Data List"));
+      table_item_submit (table_item_create (t, "Data List", NULL));
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;

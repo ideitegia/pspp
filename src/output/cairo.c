@@ -1296,7 +1296,8 @@ xr_rendering_create_text (struct xr_driver *xr, const char *text, cairo_t *cr)
   struct table_item *table_item;
   struct xr_rendering *r;
 
-  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
+  table_item = table_item_create (table_from_string (TAB_LEFT, text),
+                                  NULL, NULL);
   r = xr_rendering_create (xr, &table_item->output_item, cr);
   table_item_unref (table_item);
 
@@ -1600,7 +1601,8 @@ xr_create_text_renderer (struct xr_driver *xr, const char *text)
   struct table_item *table_item;
   struct xr_render_fsm *fsm;
 
-  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
+  table_item = table_item_create (table_from_string (TAB_LEFT, text),
+                                  NULL, NULL);
   fsm = xr_render_table (xr, table_item);
   table_item_unref (table_item);
 

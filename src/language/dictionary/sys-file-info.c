@@ -232,7 +232,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                           describe_variable (dict_get_var (d, i),
                                              DF_ALL & ~DF_AT_ATTRIBUTES));
 
-  table_item_submit (table_item_create (table, NULL /* XXX */));
+  table_item_submit (table_item_create (table, NULL /* XXX */, NULL));
 
   dict_destroy (d);
 
@@ -443,7 +443,7 @@ display_variables (const struct variable **vl, size_t n, int flags)
   if (flags & ~DF_DICT_INDEX)
     tab_vline (t, TAL_1, nc - 1, 0, r - 1);
 #endif
-  table_item_submit (table_item_create (table, NULL /* XXX */));
+  table_item_submit (table_item_create (table, NULL /* XXX */, NULL));
 }
 
 static bool
@@ -516,7 +516,8 @@ display_data_file_attributes (struct attrset *set, int flags)
 {
   if (count_attributes (set, flags))
     table_item_submit (table_item_create (describe_attributes (set, flags),
-                                          _("Custom data file attributes.")));
+                                          _("Custom data file attributes."),
+                                          NULL));
 }
 
 static struct table *
@@ -953,7 +954,6 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
   size_t n_encodings, n_strings, n_unique_strings;
   size_t i, j;
   struct tab_table *t;
-  struct text_item *text;
   struct pool *pool;
   size_t row;
 
@@ -998,16 +998,12 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
       return;
     }
 
-  text = text_item_create_format (
-    TEXT_ITEM_PARAGRAPH,
-    _("The following table lists the encodings that can successfully read %s, "
-      "by specifying the encoding name on the GET command's ENCODING "
-      "subcommand.  Encodings that yield identical text are listed "
-      "together."), fh_get_name (h));
-  text_item_submit (text);
-
   t = tab_create (2, n_encodings + 1);
   tab_title (t, _("Usable encodings for %s."), fh_get_name (h));
+  tab_caption (t, _("Encodings that can successfully read %s (by specifying "
+                    "the encoding name on the GET command's ENCODING "
+                    "subcommand).  Encodings that yield identical text are "
+                    "listed together."), fh_get_name (h));
   tab_headers (t, 1, 0, 1, 0);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 1, n_encodings);
   tab_hline (t, TAL_1, 0, 1, 1);
@@ -1039,15 +1035,11 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
       return;
     }
 
-  text = text_item_create_format (
-    TEXT_ITEM_PARAGRAPH,
-    _("The following table lists text strings in the file dictionary that "
-      "the encodings above interpret differently, along with those "
-      "interpretations."));
-  text_item_submit (text);
-
   t = tab_create (3, (n_encodings * n_unique_strings) + 1);
   tab_title (t, _("%s encoded text strings."), fh_get_name (h));
+  tab_caption (t, _("Text strings in the file dictionary that the previously "
+                    "listed encodings interpret differently, along with the "
+                    "interpretations."));
   tab_headers (t, 1, 0, 1, 0);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 2, n_encodings * n_unique_strings);
   tab_hline (t, TAL_1, 0, 2, 1);

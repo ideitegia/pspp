@@ -356,7 +356,7 @@ static const struct table_class table_nested_class;
 struct table *
 table_create_nested (struct table *inner)
 {
-  return table_create_nested_item (table_item_create (inner, NULL));
+  return table_create_nested_item (table_item_create (inner, NULL, NULL));
 }
 
 /* Creates and returns a table with a single cell that contains INNER.

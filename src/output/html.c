@@ -374,15 +374,34 @@ put_border (FILE *file, int n_borders, int style, const char *border_name)
 }
 
 static void
+put_tfoot (struct html_driver *html, const struct table *t, bool *tfoot)
+{
+  if (!*tfoot)
+    {
+      fprintf (html->file, "<TFOOT><TR><TD COLSPAN=%d>", table_nc (t));
+      *tfoot = true;
+    }
+  else
+    fputs ("\n<BR>", html->file);
+}
+
+static void
 html_output_table (struct html_driver *html, const struct table_item *item)
 {
   const struct table *t = table_item_get_table (item);
   const char *title = table_item_get_title (item);
+  const char *caption = table_item_get_caption (item);
   int footnote_idx = 0;
+  bool tfoot = false;
   int y;
 
   fputs ("<TABLE>", html->file);
 
+  if (caption)
+    {
+      put_tfoot (html, t, &tfoot);
+      escape_string (html->file, caption, strlen (caption), " ", "<BR>");
+    }
   footnote_idx = 0;
   for (y = 0; y < table_nr (t); y++)
     {
@@ -405,11 +424,7 @@ html_output_table (struct html_driver *html, const struct table_item *item)
                 {
                   char marker[16];
 
-                  if (!footnote_idx)
-                    fprintf (html->file, "<TFOOT><TR><TD COLSPAN=%d>",
-                             table_nc (t));
-                  else
-                    fputs ("\n<BR>", html->file);
+                  put_tfoot (html, t, &tfoot);
                   str_format_26adic (++footnote_idx, false, marker, sizeof marker);
                   fprintf (html->file, "<SUP>%s</SUP> ", marker);
                   escape_string (html->file, c->footnotes[i],
@@ -420,11 +435,9 @@ html_output_table (struct html_driver *html, const struct table_item *item)
           table_cell_free (&cell);
         }
     }
-  if (footnote_idx)
-    {
-      fputs ("</TD></TR></TFOOT>\n", html->file);
-      footnote_idx = 0;
-    }
+  if (tfoot)
+    fputs ("</TD></TR></TFOOT>\n", html->file);
+  footnote_idx = 0;
 
   fputs ("<TBODY VALIGN=\"TOP\">\n", html->file);
 

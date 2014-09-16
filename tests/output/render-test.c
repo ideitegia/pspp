@@ -115,7 +115,7 @@ main (int argc, char **argv)
       table = tables[n_tables - 1];
       if (transpose)
         table = table_transpose (table);
-      table_item_submit (table_item_create (table, NULL));
+      table_item_submit (table_item_create (table, NULL, NULL));
     }
   else
     draw (input);
@@ -475,7 +475,7 @@ read_table (FILE *stream, struct table **tables, size_t n_tables)
                     error (1, 0, "unexpected subtable modifier \"%c\"", *text);
                   }
               tab_subtable (tab, c, r, c + cs - 1, r + rs - 1, opt,
-                            table_item_create (table, NULL));
+                            table_item_create (table, NULL, NULL));
             }
           else
             {

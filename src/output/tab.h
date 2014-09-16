@@ -25,8 +25,8 @@
    Some of the features of this type of table are obsolete but have not yet
    been removed, because some code still uses them.  These features are:
 
-       - The title.  The title is a property of the table_item (see
-         output/table-item.h) in which a table is embedded, not a property of
+       - The title and caption.  These are properties of the table_item (see
+         output/table-item.h) in which a table is embedded, not properties of
          the table itself.
 
        - Row and columns offsets (via tab_offset(), tab_next_row()).  This
@@ -57,10 +57,8 @@ struct tab_table
     struct table table;
     struct pool *container;
 
-    /* Table title, or a null pointer if no title has been set.
-
-       The table title is properly part of struct table_item, not struc*/
-    char *title;
+    /* Table title and caption, or null. */
+    char *title, *caption;
     int cf;			/* Column factor for indexing purposes. */
 
     /* Table contents.
@@ -106,6 +104,8 @@ void tab_resize (struct tab_table *, int nc, int nr);
 void tab_realloc (struct tab_table *, int nc, int nr);
 void tab_headers (struct tab_table *, int l, int r, int t, int b);
 void tab_title (struct tab_table *, const char *, ...)
+     PRINTF_FORMAT (2, 3);
+void tab_caption (struct tab_table *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 void tab_submit (struct tab_table *);
 

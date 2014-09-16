@@ -454,6 +454,7 @@ static void
 write_table (struct odt_driver *odt, const struct table_item *item)
 {
   const struct table *tab = table_item_get_table (item);
+  const char *caption = table_item_get_caption (item);
   const char *title = table_item_get_title (item);
   int r, c;
 
@@ -560,6 +561,18 @@ write_table (struct odt_driver *odt, const struct table_item *item)
     }
 
   xmlTextWriterEndElement (odt->content_wtr); /* table */
+
+  /* Write a caption for the table */
+  if (caption != NULL)
+    {
+      xmlTextWriterStartElement (odt->content_wtr, _xml("text:h"));
+      xmlTextWriterWriteFormatAttribute (odt->content_wtr,
+                                         _xml("text:outline-level"), "%d", 2);
+      xmlTextWriterWriteString (odt->content_wtr,
+                                _xml (table_item_get_caption (item)) );
+      xmlTextWriterEndElement (odt->content_wtr);
+    }
+
 }
 
 static void

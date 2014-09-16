@@ -47,6 +47,7 @@ struct csv_driver
     int quote;                  /* Quote character (usually ' or ") or 0. */
     char *quote_set;            /* Characters that force quoting. */
     bool titles;                /* Print table titles? */
+    bool captions;              /* Print table captions? */
 
     char *file_name;            /* Output file name. */
     char *command_name;         /* Current command. */
@@ -88,6 +89,7 @@ csv_create (const char *file_name, enum settings_output_devices device_type,
   free (quote);
   csv->quote_set = xasprintf ("\n\r\t%s%c", csv->separator, csv->quote);
   csv->titles = parse_boolean (opt (d, o, "titles", "true"));
+  csv->captions = parse_boolean (opt (d, o, "captions", "true"));
   csv->file_name = xstrdup (file_name);
   csv->file = fn_open (csv->file_name, "w");
   csv->n_items = 0;
@@ -190,6 +192,7 @@ csv_output_subtable (struct csv_driver *csv, struct string *s,
 {
   const struct table *t = table_item_get_table (item);
   const char *title = table_item_get_title (item);
+  const char *caption = table_item_get_caption (item);
   int y, x;
 
   if (csv->titles && title != NULL)
@@ -239,6 +242,12 @@ csv_output_subtable (struct csv_driver *csv, struct string *s,
           table_cell_free (&cell);
         }
     }
+
+  if (csv->captions && caption != NULL)
+    {
+      csv_output_field_format (csv, "Caption: %s", caption);
+      putc ('\n', csv->file);
+    }
 }
 
 static void
@@ -260,6 +269,7 @@ csv_submit (struct output_driver *driver,
     {
       struct table_item *table_item = to_table_item (output_item);
       const char *title = table_item_get_title (table_item);
+      const char *caption = table_item_get_caption (table_item);
       const struct table *t = table_item_get_table (table_item);
       int footnote_idx;
       int x, y;
@@ -324,6 +334,12 @@ csv_submit (struct output_driver *driver,
 
               table_cell_free (&cell);
             }
+          putc ('\n', csv->file);
+        }
+
+      if (csv->captions && caption != NULL)
+        {
+          csv_output_field_format (csv, "Caption: %s", caption);
           putc ('\n', csv->file);
         }
 

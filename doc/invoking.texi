@@ -422,7 +422,12 @@ only the first character is used; if @var{qualifier} is the empty
 string, then fields are never quoted.
 
 @item @option{-O titles=@var{boolean}}
-Whether table titles should be printed.  Default: @code{on}.
+Whether table titles (brief descriptions) should be printed.  Default:
+@code{on}.
+
+@item @option{-O captions=@var{boolean}}
+Whether table captions (more extensive descriptions) should be
+printed.  Default: on.
 @end table
 
 The CSV format used is an extension to that specified in RFC 4180:
@@ -432,9 +437,24 @@ The CSV format used is an extension to that specified in RFC 4180:
 Each table row is output on a separate line, and each column is output
 as a field.  The contents of a cell that spans multiple rows or
 columns is output only for the top-left row and column; the rest are
-output as empty fields.  When a table has a caption and captions are
-enabled, the caption is output just above the table as a single field
-prefixed by @samp{Table:}.
+output as empty fields.
+
+@item Titles
+When a table has a title and titles are enabled, the title is output
+just above the table as a single field prefixed by @samp{Table:}.
+
+@item Captions
+When a table has a caption and captions are enabled, the caption is
+output just below the table as a single field prefixed by
+@samp{Caption:}.
+
+@item Footnotes
+Within a table, footnote markers are output as bracketed letters
+following the cell's contents, e.g.@tie{}@samp{[a]}, @samp{[b]},
+@enddots{}  The footnotes themselves are output following the body of
+the table, as a separate two-column table introduced with a line that
+says @samp{Footnotes:}.  Each row in the table represent one footnote:
+the first column is the marker, the second column is the text.
 
 @item Text
 Text in output is printed as a field on a line by itself.  The TITLE

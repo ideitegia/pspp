@@ -1416,12 +1416,15 @@ struct render_pager
     struct render_break y_break;
   };
 
-static void
+static const struct render_page *
 render_pager_add_table (struct render_pager *p, struct table *table)
 {
+  struct render_page *page;
+
   if (p->n_pages >= p->allocated_pages)
     p->pages = x2nrealloc (p->pages, &p->allocated_pages, sizeof *p->pages);
-  p->pages[p->n_pages++] = render_page_create (p->params, table);
+  page = p->pages[p->n_pages++] = render_page_create (p->params, table);
+  return page;
 }
 
 static void
@@ -1483,17 +1486,28 @@ struct render_pager *
 render_pager_create (const struct render_params *params,
                      const struct table_item *table_item)
 {
+  const char *caption = table_item_get_caption (table_item);
+  const char *title = table_item_get_title (table_item);
+  const struct render_page *body_page;
   struct render_pager *p;
-  const char *title;
 
   p = xzalloc (sizeof *p);
   p->params = params;
 
-  title = table_item_get_title (table_item);
+  /* Title. */
   if (title)
     render_pager_add_table (p, table_from_string (TAB_LEFT, title));
-  render_pager_add_table (p, table_ref (table_item_get_table (table_item)));
-  add_footnote_page (p, p->pages[p->n_pages - 1]);
+
+  /* Body. */
+  body_page = render_pager_add_table (p, table_ref (table_item_get_table (
+                                                      table_item)));
+
+  /* Caption. */
+  if (caption)
+    render_pager_add_table (p, table_from_string (TAB_LEFT, caption));
+
+  /* Footnotes. */
+  add_footnote_page (p, body_page);
 
   render_pager_start_page (p);
 

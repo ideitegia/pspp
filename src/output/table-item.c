@@ -29,15 +29,16 @@
 #include "gl/xalloc.h"
 
 /* Initializes ITEM as a table item for rendering TABLE.  The new table item
-   initially has the specified TITLE, which may be NULL if no title is yet
-   available.  The caller retains ownership of TITLE. */
+   initially has the specified TITLE and CAPTION, which may each be NULL.  The
+   caller retains ownership of TITLE and CAPTION. */
 struct table_item *
-table_item_create (struct table *table, const char *title)
+table_item_create (struct table *table, const char *title, const char *caption)
 {
   struct table_item *item = xmalloc (sizeof *item);
   output_item_init (&item->output_item, &table_item_class);
   item->table = table;
   item->title = title != NULL ? xstrdup (title) : NULL;
+  item->caption = caption != NULL ? xstrdup (caption) : NULL;
   return item;
 }
 
@@ -69,6 +70,27 @@ table_item_set_title (struct table_item *item, const char *title)
   item->title = title != NULL ? xstrdup (title) : NULL;
 }
 
+/* Returns ITEM's caption, which is a null pointer if no caption has been
+   set. */
+const char *
+table_item_get_caption (const struct table_item *item)
+{
+  return item->caption;
+}
+
+/* Sets ITEM's caption to CAPTION, replacing any previous caption.  Specify
+   NULL for CAPTION to clear any caption from ITEM.  The caller retains
+   ownership of CAPTION.
+
+   This function may only be used on a table_item that is unshared. */
+void
+table_item_set_caption (struct table_item *item, const char *caption)
+{
+  assert (!table_item_is_shared (item));
+  free (item->caption);
+  item->caption = caption != NULL ? xstrdup (caption) : NULL;
+}
+
 /* Submits TABLE_ITEM to the configured output drivers, and transfers ownership
    to the output subsystem. */
 void
@@ -82,6 +104,7 @@ table_item_destroy (struct output_item *output_item)
 {
   struct table_item *item = to_table_item (output_item);
   free (item->title);
+  free (item->caption);
   table_unref (item->table);
   free (item);
 }

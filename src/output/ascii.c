@@ -464,7 +464,8 @@ ascii_output_text (struct ascii_driver *a, const char *text)
 {
   struct table_item *table_item;
 
-  table_item = table_item_create (table_from_string (TAB_LEFT, text), NULL);
+  table_item = table_item_create (table_from_string (TAB_LEFT, text),
+                                  NULL, NULL);
   ascii_output_table_item (a, table_item);
   table_item_unref (table_item);
 }

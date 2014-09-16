@@ -88,6 +88,7 @@ tab_create (int nc, int nr)
   table_set_nr (&t->table, nr);
 
   t->title = NULL;
+  t->caption = NULL;
   t->cf = nc;
   t->cc = pool_calloc (t->container, nr * nc, sizeof *t->cc);
   t->ct = pool_malloc (t->container, nr * nc);
@@ -682,11 +683,24 @@ tab_title (struct tab_table *t, const char *title, ...)
   va_end (args);
 }
 
+/* Set the caption of table T to CAPTION, which is formatted as if
+   passed to printf(). */
+void
+tab_caption (struct tab_table *t, const char *caption, ...)
+{
+  va_list args;
+
+  free (t->caption);
+  va_start (args, caption);
+  t->caption = xvasprintf (caption, args);
+  va_end (args);
+}
+
 /* Easy, type-safe way to submit a tab table to som. */
 void
 tab_submit (struct tab_table *t)
 {
-  table_item_submit (table_item_create (&t->table, t->title));
+  table_item_submit (table_item_create (&t->table, t->title, t->caption));
 }
 
 /* Editing. */
@@ -770,6 +784,8 @@ tab_destroy (struct table *table)
   struct tab_table *t = tab_cast (table);
   free (t->title);
   t->title = NULL;
+  free (t->caption);
+  t->caption = NULL;
   pool_destroy (t->container);
 }
 
