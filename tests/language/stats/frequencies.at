@@ -1,21 +1,33 @@
 AT_BANNER([FREQUENCIES procedure])
 
-AT_SETUP([FREQUENCIES string variable crash])
+AT_SETUP([FREQUENCIES string variable])
 AT_DATA([frequencies.sps],
   [DATA LIST FREE/
    name  (A8) value * quantity .
 BEGIN DATA.
-Cables 829 3 
+foo 1 5
+bar 2 6
+baz 1 9
+quux 3 1
+bar 1 2
+baz 4 3
+baz 1 4
+baz 1 1
+foo 6 0
+quux 5 8
 END DATA.
 EXECUTE.
 
 FREQUENCIES /VAR = name.
 ])
-AT_CHECK([pspp -O format=csv frequencies.sps], [0],
-  [Table: name
+AT_CHECK([pspp -O format=csv frequencies.sps], [0], [dnl
+Table: name
 Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
-,Cables  ,1,100.00,100.00,100.00
-Total,,1,100.0,100.0,
+,bar     ,2,20.00,20.00,20.00
+,baz     ,4,40.00,40.00,60.00
+,foo     ,2,20.00,20.00,80.00
+,quux    ,2,20.00,20.00,100.00
+Total,,10,100.0,100.0,
 ])
 AT_CLEANUP
 

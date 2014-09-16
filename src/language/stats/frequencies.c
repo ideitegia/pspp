@@ -626,6 +626,7 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   for (i = 0; i < frq.n_vars; ++i)
     {
       frq.vars[i].var = vars[i];
+      frq.vars[i].width = var_get_width (vars[i]);
     }
 
   while (lex_token (lexer) != T_ENDCMD)
