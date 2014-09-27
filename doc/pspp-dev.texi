@@ -37,7 +37,7 @@
 This manual is for GNU PSPP version @value{VERSION},
 software for statistical analysis.
 
-Copyright @copyright{} 1997, 1998, 2004, 2005, 2007, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1997, 1998, 2004, 2005, 2007, 2010, 2014 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -106,5 +106,5 @@ Free Documentation License".
 @bye
 
 @c Local Variables:
-@c compile-command: "makeinfo pspp-dev.texinfo"
+@c compile-command: "makeinfo pspp-dev.texi"
 @c End:

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-info_TEXINFOS = doc/pspp.texinfo doc/pspp-dev.texinfo
+info_TEXINFOS = doc/pspp.texi doc/pspp-dev.texi
 
 doc_pspp_TEXINFOS = doc/version.texi \
 	doc/bugs.texi \
@@ -55,10 +55,10 @@ $(srcdir)/doc/tut.texi:
 
 # The SED and AWK filters in this rule, are to work-around some nasty bugs in makeinfo version 4.13, which produces
 # broken docbook xml.  These workarounds are rather horrible and must be removed asap.
-$(srcdir)/doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
+$(srcdir)/doc/pspp.xml: doc/pspp.texi $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
 	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
-		$(top_srcdir)/doc/pspp.texinfo -o - \
+		$(top_srcdir)/doc/pspp.texi -o - \
 		| $(SED) -e 's/Time-&-Date/Time-\&amp;-Date/g' \
 		-e 's/&ldquo;/\&#8220;/g' \
 		-e 's/&rdquo;/\&#8221;/g' \
