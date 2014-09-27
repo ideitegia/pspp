@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006, 2010, 2011, 2012, 2013  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2010, 2011, 2012, 2013, 2014  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -287,7 +287,12 @@ main (int argc, char *argv[])
   set_program_name (argv[0]);
 
   g_mem_set_vtable (&vtable);
+
+#if !GLIB_CHECK_VERSION(2,32,0)
+  /* g_thread_init() was required before glib 2.32, but it is deprecated since
+     then and calling it yields a compile-time warning. */
   g_thread_init (NULL);
+#endif
 
   gtk_disable_setlocale ();
 
