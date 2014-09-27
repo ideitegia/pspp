@@ -4,17 +4,26 @@ See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
-Changes since 0.8.3.1:
-
- * The NPAR TESTS calculation of significance for the RUNS subcommand
-   has been corrected.
+Changes from 0.8.3 to 0.8.4:
 
  * Formatting of SYSFILE INFO output was made easier to read.
 
-Changes from 0.8.3 to 0.8.3.1:
+ * Bug fixes, including the following notable ones:
 
- * Fixed a bug where planned comparisons in oneway anova did not correctly
-   handle negative T-values.
+   - FREQUENCIES works properly for string variables.  (This bug was
+     introduced in 0.8.2.)
+
+   - CROSSTABS now correctly computes all of the measures that it
+     offers.  Some measures have been removed because they were not
+     computed correctly.
+
+   - The NPAR TESTS calculation of significance for the RUNS
+     subcommand has been corrected.
+
+   - Planned comparisons in ONEWAY ANOVA now correctly handle negative
+     T-values.
+
+   - Conformance fixes to Open Document output format.
 
 Changes from 0.8.2 to 0.8.3:
 
