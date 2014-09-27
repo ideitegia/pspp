@@ -335,7 +335,7 @@ PHONY += yelp-check
 AM_CPPFLAGS += -Isrc
 
 src/ui/gui/pspp.desktop: src/ui/gui/gen-dot-desktop.sh $(POFILES)
-	POFILES="$(POFILES)" top_builddir="$(top_builddir)" $(SHELL) $< > $@
+	$(AM_V_GEN)POFILES="$(POFILES)" top_builddir="$(top_builddir)" $(SHELL) $< > $@
 
 CLEANFILES+=src/ui/gui/pspp.desktop
 
