@@ -336,6 +336,8 @@ PSPP_CHECK_PREREQS
 AC_CONFIG_FILES(
   [Makefile gl/Makefile po/Makefile tests/atlocal perl-module/lib/PSPP.pm])
 
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
+
 AC_OUTPUT
 echo "PSPP configured successfully."
 
