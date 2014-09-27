@@ -11,6 +11,8 @@ AM_CPPFLAGS = \
 	-I$(top_builddir)/gl \
 	-DINSTALLDIR=\"$(bindir)\"
 
+AM_V_P ?= :
+
 AM_CFLAGS=
 
 if cc_is_gcc
