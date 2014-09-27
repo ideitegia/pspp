@@ -381,8 +381,8 @@ DISTCLEANFILES += tests/atconfig tests/atlocal $(TESTSUITE)
 AUTOTEST_PATH = tests/data:tests/language/lexer:tests/libpspp:tests/output:src/ui/terminal:utilities
 
 $(srcdir)/tests/testsuite.at: tests/testsuite.in tests/automake.mk
-	cp $< $@
-	for t in $(TESTSUITE_AT); do \
+	$(AM_V_GEN)cp $< $@
+	$(AM_V_at)for t in $(TESTSUITE_AT); do \
 	  echo "m4_include([$$t])" >> $@ ;\
 	done
 EXTRA_DIST += tests/testsuite.at
@@ -398,12 +398,12 @@ tests_clean:
 AUTOM4TE = $(SHELL) $(srcdir)/build-aux/missing --run autom4te
 AUTOTEST = $(AUTOM4TE) --language=autotest
 $(TESTSUITE): package.m4 $(srcdir)/tests/testsuite.at $(TESTSUITE_AT) 
-	$(AUTOTEST) -I '$(srcdir)' $@.at | sed 's/@<00A0>@/ /g' > $@.tmp
-	mv $@.tmp $@
+	$(AM_V_GEN)$(AUTOTEST) -I '$(srcdir)' $@.at | sed 's/@<00A0>@/ /g' > $@.tmp
+	$(AM_V_at)mv $@.tmp $@
 
 # The `:;' works around a Bash 3.2 bug when the output is not writeable.
 $(srcdir)/package.m4: $(top_srcdir)/configure.ac
-	:;{ \
+	$(AM_V_GEN):;{ \
 	  echo '# Signature of the current package.' && \
 	  echo 'm4_define([AT_PACKAGE_NAME],      [$(PACKAGE_NAME)])' && \
 	  echo 'm4_define([AT_PACKAGE_TARNAME],   [$(PACKAGE_TARNAME)])' && \
@@ -447,10 +447,10 @@ valgrind_wrappers = \
 
 $(valgrind_wrappers): tests/valgrind-wrapper.in
 	@$(MKDIR_P) tests/valgrind
-	sed -e 's,[@]wrap_program[@],$@,' \
+	$(AM_V_GEN)sed -e 's,[@]wrap_program[@],$@,' \
 		$(top_srcdir)/tests/valgrind-wrapper.in > $@.tmp
-	chmod +x $@.tmp
-	mv $@.tmp $@
+	$(AM_V_at)chmod +x $@.tmp
+	$(AM_V_at)mv $@.tmp $@
 CLEANFILES += $(valgrind_wrappers)
 EXTRA_DIST += tests/valgrind-wrapper.in
 

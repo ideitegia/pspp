@@ -340,11 +340,11 @@ src/ui/gui/pspp.desktop: src/ui/gui/gen-dot-desktop.sh $(POFILES)
 CLEANFILES+=src/ui/gui/pspp.desktop
 
 src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
-	echo '#include <config.h>' > $@
-	$(GLIB_GENMARSHAL) --body --prefix=psppire_marshal $? >> $@
+	$(AM_V_GEN)echo '#include <config.h>' > $@
+	$(AM_V_at)$(GLIB_GENMARSHAL) --body --prefix=psppire_marshal $? >> $@
 
 src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
-	$(GLIB_GENMARSHAL) --header --prefix=psppire_marshal $? > $@
+	$(AM_V_GEN)$(GLIB_GENMARSHAL) --header --prefix=psppire_marshal $? > $@
 
 desktopdir = $(datadir)/applications
 desktop_DATA = src/ui/gui/pspp.desktop

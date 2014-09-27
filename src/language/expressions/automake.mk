@@ -33,9 +33,9 @@ generate_from_pl = $(MKDIR_P) `dirname $@` && \
 	$(PERL) -I $(top_srcdir)/src/language/expressions $< -o $@ -i $(top_srcdir)/src/language/expressions/operations.def
 
 .hpl.h:
-	$(generate_from_pl)
+	$(AM_V_GEN)$(generate_from_pl)
 
 .incpl.inc:
-	$(generate_from_pl)
+	$(AM_V_GEN)$(generate_from_pl)
 
 EXTRA_DIST += src/language/expressions/TODO

@@ -20,7 +20,7 @@ endif
 
 .q.c:
 	@$(MKDIR_P) `dirname $@`
-	./src/language/lexer/q2c$(EXEEXT_FOR_BUILD) $< $@
+	$(AM_V_GEN)./src/language/lexer/q2c$(EXEEXT_FOR_BUILD) $< $@
 
 $(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT_FOR_BUILD)
 all_q_sources =

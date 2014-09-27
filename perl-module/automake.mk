@@ -18,7 +18,7 @@ module_sources = \
 PERL_MAKEFLAGS = $(AM_MAKEFLAGS) LD_RUN_PATH=$(pkglibdir)
 
 perl-module/pspp-module-config: Makefile
-	(echo '%Locations = (';\
+	$(AM_V_GEN)(echo '%Locations = (';\
 	 printf "  SourceDir => '";\
 	 (cd $(top_srcdir) && echo `pwd`\', ) ;\
 	 printf "  BuildDir => '";\
@@ -26,15 +26,15 @@ perl-module/pspp-module-config: Makefile
 	 echo ');') > $(top_builddir)/perl-module/pspp-module-config
 
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config $(module_sources)
-	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
+	$(AM_V_GEN)cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
 perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources) perl-module/Makefile
-	rm -f $@
-	cd perl-module && $(MAKE) $(PERL_MAKEFLAGS) tardist
+	$(AM_V_at)rm -f $@
+	$(AM_V_GEN)cd perl-module && $(MAKE) $(PERL_MAKEFLAGS) tardist
 
 PHONY += module-make
 module-make: perl-module/Makefile
-	cd perl-module && $(MAKE) $(PERL_MAKEFLAGS)
+	$(AM_V_GEN)cd perl-module && $(MAKE) $(PERL_MAKEFLAGS)
 
 ALL_LOCAL += perl_module_tarball
 perl_module_tarball: $(module_sources) src/libpspp-core.la
@@ -44,12 +44,16 @@ perl_module_tarball: $(module_sources) src/libpspp-core.la
 	  mkdir -p $$destdir ;\
 	  if test ! -e "$(top_builddir)/$$f" || \
 	     test "$(top_srcdir)/$$f" -nt "$(top_builddir)/$$f" ; then \
+		 if $(AM_V_P); then \
+		      echo cp $(top_srcdir)/$$f $$destdir ; \
+		 else \
+		      echo "  GEN      $$destdir/$$f"; \
+		 fi; \
 		 cp $(top_srcdir)/$$f $$destdir ; \
-		 echo cp $(top_srcdir)/$$f $$destdir ; \
 	  fi ; \
 	 done \
 	fi
-	$(MAKE) $(PERL_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
+	$(AM_V_GEN)$(MAKE) $(PERL_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
 
 CLEAN_LOCAL += perl_module_clean
 perl_module_clean:
