@@ -1,0 +1,149 @@
+AT_BANNER([GRAPH])
+
+AT_SETUP([GRAPH simple scatterplot])
+AT_DATA([scatterplot.sps],[
+* Simple Scatterplot test
+NEW FILE.
+INPUT PROGRAM.
+LOOP #i = 1 to 100.
+COMPUTE Age = RV.NORMAL(40,10).
+END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+
+COMPUTE Size = Age * 3 + 50.
+
+GRAPH
+    /SCATTERPLOT(BIVARIATE) = Age WITH Size. 
+
+])
+
+AT_CHECK([pspp -O format=csv scatterplot.sps], [0], [ignore])
+
+AT_CLEANUP
+
+
+AT_SETUP([GRAPH Scatter and Histogram])
+AT_DATA([scatterlong.sps],[
+NEW FILE.
+INPUT PROGRAM.
+LOOP #i = 1 to 10000.
+COMPUTE Age = RV.NORMAL(40,10).
+COMPUTE CityNum = TRUNC(UNIFORM(2.95)).
+END CASE.
+END LOOP.
+END FILE.
+END INPUT PROGRAM.
+
+COMPUTE Size = Age * 3 + 50 + 50*CityNum.
+
+STRING City (a20).
+
+Recode CityNum 
+       (0 = "Madrid")
+       (1 = "Paris")
+       (ELSE = "Stockholm")
+       into City.
+
+ GRAPH
+    /SCATTERPLOT(BIVARIATE) = Age WITH Size 
+
+ GRAPH
+    /SCATTERPLOT(BIVARIATE) = Age WITH CityNum
+ 
+ GRAPH
+    /SCATTERPLOT = CityNum WITH Age
+
+ GRAPH
+    /SCATTERPLOT = CityNum WITH Size
+
+ GRAPH
+    /SCATTERPLOT(BIVARIATE) = Age WITH Size BY City
+
+ GRAPH
+    /SCATTERPLOT(BIVARIATE) = Age WITH Size BY CityNum
+
+ ADD VALUE LABELS 
+    /CityNum 1 'Rio' 2 'Tokyo' 0 'Mumbai'.
+
+ GRAPH
+    /SCATTERPLOT(BIVARIATE) = Age WITH Size BY CityNum
+
+ GRAPH
+    /HISTOGRAM = Age.
+
+])
+
+AT_CHECK([pspp -O format=pdf scatterlong.sps], [0], [ignore])
+AT_CLEANUP
+
+AT_SETUP([GRAPH missing values don't crash])
+AT_DATA([scatter.sps], [dnl
+data list list /x * y *.
+begin data.
+1 0
+2 0
+. 0
+3 1
+4 1
+5 .
+6 1
+end data.
+graph 
+      /scatterplot = x with y.
+graph
+      /histogram = x. 
+])
+AT_CHECK([pspp -o pspp.pdf scatter.sps])
+dnl Ignore output -- this is just a no-crash check.
+AT_CLEANUP
+
+AT_SETUP([GRAPH missing=VARIABLE no crash])
+AT_DATA([scatter.sps], [dnl
+data list list /x * y *.
+begin data.
+1 0
+2 0
+. 0
+3 1
+4 1
+5 .
+6 1
+end data.
+graph 
+      /scatterplot = x with y
+      /missing = VARIABLE.
+graph
+      /histogram = x
+      /missing = VARIABLE.
+])
+AT_CHECK([pspp -o pspp.pdf scatter.sps])
+dnl Ignore output -- this is just a no-crash check.
+AT_CLEANUP
+
+AT_SETUP([GRAPH missing value in by variable])
+AT_DATA([scatter.sps], [dnl
+data list list /x * y * z *.
+begin data.
+1 0 9
+2 0 9
+. 0 9
+3 1 .
+4 1 8
+5 . 8
+6 1 8
+end data.
+graph 
+      /scatterplot = x with y by z
+      /missing = VARIABLE.
+
+graph 
+      /scatterplot = x with y by z.
+
+])
+AT_CHECK([pspp -o pspp.pdf scatter.sps])
+dnl Ignore output -- this is just a no-crash check.
+AT_CLEANUP
+
+

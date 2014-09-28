@@ -312,6 +312,7 @@ TESTSUITE_AT = \
 	tests/language/stats/crosstabs.at \
 	tests/language/stats/descriptives.at \
 	tests/language/stats/examine.at \
+	tests/language/stats/graph.at \
 	tests/language/stats/factor.at \
 	tests/language/stats/flip.at \
 	tests/language/stats/frequencies.at \

@@ -26,6 +26,7 @@ language_stats_sources = \
 	src/language/stats/friedman.c \
 	src/language/stats/friedman.h \
 	src/language/stats/glm.c \
+	src/language/stats/graph.c \
 	src/language/stats/kruskal-wallis.c \
 	src/language/stats/kruskal-wallis.h \
 	src/language/stats/ks-one-sample.c \

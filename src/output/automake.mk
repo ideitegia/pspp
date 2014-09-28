@@ -24,6 +24,8 @@ src_output_liboutput_la_SOURCES = \
 	src/output/charts/spreadlevel-plot.h \
 	src/output/charts/scree.c \
 	src/output/charts/scree.h \
+	src/output/charts/scatterplot.c \
+	src/output/charts/scatterplot.h \
 	src/output/csv.c \
 	src/output/driver-provider.h \
 	src/output/driver.c \
@@ -70,7 +72,8 @@ src_output_liboutput_la_SOURCES += \
 	src/output/charts/plot-hist-cairo.c \
 	src/output/charts/roc-chart-cairo.c \
 	src/output/charts/scree-cairo.c \
-	src/output/charts/spreadlevel-cairo.c
+	src/output/charts/spreadlevel-cairo.c \
+	src/output/charts/scatterplot-cairo.c
 endif
 if ODF_WRITE_SUPPORT
 src_output_liboutput_la_SOURCES += src/output/odt.c

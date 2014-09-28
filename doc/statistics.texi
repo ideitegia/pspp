@@ -8,6 +8,7 @@ far.
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.
 * EXAMINE::                     Testing data for normality.
+* GRAPH::                       Plot data.
 * CORRELATIONS::                Correlation tables.
 * CROSSTABS::                   Crosstabulation tables.
 * FACTOR::                      Factor analysis and Principal Components analysis.
@@ -374,6 +375,52 @@ If many dependent variables are specified, or if factor variables are
 specified for which
 there are many distinct values, then @cmd{EXAMINE} will produce a very
 large quantity of output.
+
+@node GRAPH
+@section GRAPH
+
+@vindex GRAPH
+@cindex Exploratory data analysis
+@cindex normality, testing
+
+@display
+GRAPH
+        /HISTOGRAM = @var{var}
+        /SCATTERPLOT [(BIVARIATE)] = @var{var1} WITH @var{var2} [BY @var{var3}] 
+        [ /MISSING=@{LISTWISE, VARIABLE@} [@{EXCLUDE, INCLUDE@}] ] 
+		[@{NOREPORT,REPORT@}]
+
+@end display
+
+The @cmd{GRAPH} produces graphical plots of data. Only one of the subcommands 
+@subcmd{HISTOGRAM} or @subcmd{SCATTERPLOT} can be specified, i.e. only one plot
+can be produced per call of @cmd{GRAPH}. The @subcmd{MISSING} is optional. 
+
+@cindex scatterplot
+
+The subcommand @subcmd{SCATTERPLOT} produces an xy plot of the data. The different 
+values of the optional third variable @var{var3} will result in different colours and/or
+markers for the plot. The following is an example for producing a scatterplot.
+
+@example
+GRAPH   
+        /SCATTERPLOT = @var{height} WITH @var{weight} BY @var{gender}.
+@end example
+
+This example will produce a scatterplot where height is plotted versus weight. Depending
+on the value of the gender variable, the colour of the datapoint is different. With
+this plot it is possible to analyze gender differences for height vs. weight relation.
+
+@cindex histogram
+
+The subcommand @subcmd{HISTOGRAM} produces a histogram. Only one variable is allowed for
+the histogram plot. For an alternative method to produce histograms @pxref{EXAMINE}. The
+following example produces a histogram plot for variable weigth.
+
+@example
+GRAPH   
+        /HISTOGRAM = @var{weight}.
+@end example
 
 @node CORRELATIONS
 @section CORRELATIONS
