@@ -46,18 +46,18 @@ EXTRA_DIST += doc/pspp.man \
 
 $(srcdir)/doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
-	$(PERL) $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
+	$(AM_V_GEN)$(PERL) $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
 
 $(srcdir)/doc/tut.texi:
 	@$(MKDIR_P) doc
-	echo "@set example-dir $(examplesdir)" > $@
+	$(AM_V_GEN)echo "@set example-dir $(examplesdir)" > $@
 
 
 # The SED and AWK filters in this rule, are to work-around some nasty bugs in makeinfo version 4.13, which produces
 # broken docbook xml.  These workarounds are rather horrible and must be removed asap.
 $(srcdir)/doc/pspp.xml: doc/pspp.texi $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
-	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
+	$(AM_V_GEN)$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
 		$(top_srcdir)/doc/pspp.texi -o - \
 		| $(SED) -e 's/Time-&-Date/Time-\&amp;-Date/g' \
 		-e 's/&ldquo;/\&#8220;/g' \
@@ -75,7 +75,7 @@ $(srcdir)/doc/pspp.xml: doc/pspp.texi $(doc_pspp_TEXINFOS)
 		-e 's%\(<figure [^>]*\)>%\1/>%g' \
 	 | $(AWK) '/<para>.*<table.*>.*<\/para>/{x=sub("</para>",""); print; s=1;next}/<\/table>/{print; if (s==1) print "</para>"; s=0; next}1' \
 	> $@
-	$(XMLLINT) --output /dev/null $@ || ( $(RM) $@ ; false)
+	$(AM_V_at)$(XMLLINT) --output /dev/null $@ || ( $(RM) $@ ; false)
 
 docbookdir = $(docdir)
 dist_docbook_DATA = doc/pspp.xml
