@@ -488,7 +488,7 @@ read_table (FILE *stream, struct table **tables, size_t n_tables)
                   tab_joint_text (tab, c, r, c + cs - 1, r + rs - 1, opt,
                                   content);
                 else
-                  tab_footnote (tab, c, r, content);
+                  tab_footnote (tab, c, r, "%s", content);
             }
         }
 
