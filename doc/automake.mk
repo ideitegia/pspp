@@ -41,8 +41,10 @@ doc_pspp_dev_TEXINFOS = doc/version-dev.texi \
 	doc/dev/portable-file-format.texi \
 	doc/dev/q2c.texi
 
-EXTRA_DIST += doc/pspp.man \
-	doc/get-commands.pl
+dist_man_MANS += doc/pspp.1 \
+                 doc/psppire.1
+
+EXTRA_DIST += doc/get-commands.pl
 
 $(srcdir)/doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
