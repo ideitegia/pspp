@@ -46,4 +46,5 @@ printf 'Terminal=false%s\n'
 printf 'Type=Application%s\n'
 printf 'Categories=GTK;Education;Science;Math;%s\n'
 printf 'MimeType=application/x-spss-sav;application/x-spss-por;%s\n'
+printf 'StartupNotify=false%s\n'
 
