@@ -139,16 +139,26 @@ psppire_output_submit (struct output_driver *this,
 {
   struct psppire_output_driver *pod = psppire_output_cast (this);
   PsppireOutputWindow *window;
+  bool new;
 
-  if (pod->window == NULL)
+  new = pod->window == NULL;
+  if (new)
     {
       pod->window = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
-      gtk_widget_show_all (GTK_WIDGET (pod->window));
       pod->window->driver = pod;
     }
   window = pod->window;
 
   psppire_output_view_put (window->view, item);
+
+  if (new)
+    {
+      /* We could have called this earlier in the previous "if (new)" block,
+         but doing it here finds, in a plain GTK+ environment, a bug that
+         otherwise only showed up on an Ubuntu Unity desktop.  See bug
+         #43362. */
+      gtk_widget_show_all (GTK_WIDGET (pod->window));
+    }
 
   gtk_window_set_urgency_hint (GTK_WINDOW (pod->window), TRUE);
 }

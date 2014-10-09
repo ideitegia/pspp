@@ -194,7 +194,7 @@ rerender (struct psppire_output_view *view)
   struct output_view_item *item;
   cairo_t *cr;
 
-  if (!view->n_items)
+  if (!view->n_items || !GTK_WIDGET (view->output)->window)
     return;
 
   string_map_clear (&view->render_opts);
@@ -209,6 +209,7 @@ rerender (struct psppire_output_view *view)
     {
       struct xr_rendering *r;
       int tw, th;
+      bool new;
 
       if (view->y > 0)
         view->y += view->font_height / 2;
@@ -221,10 +222,18 @@ rerender (struct psppire_output_view *view)
         }
 
       xr_rendering_measure (r, &tw, &th);
+
+      new = !item->drawing_area;
+      if (new)
+        item->drawing_area = gtk_drawing_area_new ();
       g_object_set_data_full (G_OBJECT (item->drawing_area),
                               "rendering", r, free_rendering);
+
       gtk_widget_set_size_request (item->drawing_area, tw, th);
-      gtk_layout_move (view->output, item->drawing_area, 0, view->y);
+      if (new)
+        gtk_layout_put (view->output, item->drawing_area, 0, view->y);
+      else
+        gtk_layout_move (view->output, item->drawing_area, 0, view->y);
 
       if (view->max_width < tw)
         view->max_width = tw;
@@ -239,13 +248,14 @@ void
 psppire_output_view_put (struct psppire_output_view *view,
                          const struct output_item *item)
 {
+  struct output_view_item *view_item;
   GtkWidget *drawing_area;
   struct xr_rendering *r;
   struct string name;
   GtkTreeStore *store;
+  cairo_t *cr = NULL;
   GtkTreePath *path;
   GtkTreeIter iter;
-  cairo_t *cr;
   int tw, th;
 
   if (is_text_item (item))
@@ -266,33 +276,38 @@ psppire_output_view_put (struct psppire_output_view *view,
   if (view->n_items >= view->allocated_items)
     view->items = x2nrealloc (view->items, &view->allocated_items,
                                 sizeof *view->items);
-  view->items[view->n_items].item = output_item_ref (item);
-  view->items[view->n_items].drawing_area = drawing_area = gtk_drawing_area_new ();
-  view->n_items++;
+  view_item = &view->items[view->n_items++];
+  view_item->item = output_item_ref (item);
+  view_item->drawing_area = NULL;
 
-  cr = gdk_cairo_create (GTK_WIDGET (view->output)->window);
-  if (view->xr == NULL)
-    create_xr (view);
+  if (GTK_WIDGET (view->output)->window)
+    {
+      view_item->drawing_area = drawing_area = gtk_drawing_area_new ();
 
-  if (view->y > 0)
-    view->y += view->font_height / 2;
+      cr = gdk_cairo_create (GTK_WIDGET (view->output)->window);
+      if (view->xr == NULL)
+        create_xr (view);
 
-  r = xr_rendering_create (view->xr, item, cr);
-  if (r == NULL)
-    goto done;
+      if (view->y > 0)
+        view->y += view->font_height / 2;
 
-  xr_rendering_measure (r, &tw, &th);
+      r = xr_rendering_create (view->xr, item, cr);
+      if (r == NULL)
+        goto done;
 
-  g_object_set_data_full (G_OBJECT (drawing_area), "rendering", r, free_rendering);
-  g_signal_connect (drawing_area, "realize",
-                    G_CALLBACK (on_dwgarea_realize), view);
-  g_signal_connect (drawing_area, "expose_event",
-                    G_CALLBACK (expose_event_callback), view);
+      xr_rendering_measure (r, &tw, &th);
 
-  gtk_widget_set_size_request (drawing_area, tw, th);
-  gtk_layout_put (view->output, drawing_area, 0, view->y);
+      g_object_set_data_full (G_OBJECT (drawing_area), "rendering", r, free_rendering);
+      g_signal_connect (drawing_area, "realize",
+                        G_CALLBACK (on_dwgarea_realize), view);
+      g_signal_connect (drawing_area, "expose_event",
+                        G_CALLBACK (expose_event_callback), view);
 
-  gtk_widget_show (drawing_area);
+      gtk_widget_set_size_request (drawing_area, tw, th);
+      gtk_layout_put (view->output, drawing_area, 0, view->y);
+
+      gtk_widget_show (drawing_area);
+    }
 
   if (view->overview
       && (!is_text_item (item)
