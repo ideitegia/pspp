@@ -433,16 +433,6 @@ display_variables (const struct variable **vl, size_t n, int flags)
   for (i = 0; i < n; i++)
     table = table_vpaste (table, describe_variable (vl[i], flags));
 
-#if 0
-  tab_hline (t, flags & ~DF_DICT_INDEX ? TAL_2 : TAL_1, 0, nc - 1, 1);
-  if (flags)
-    {
-      tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, nc - 1, r - 1);
-      tab_vline (t, TAL_1, 1, 0, r - 1);
-    }
-  if (flags & ~DF_DICT_INDEX)
-    tab_vline (t, TAL_1, nc - 1, 0, r - 1);
-#endif
   table_item_submit (table_item_create (table, NULL /* XXX */, NULL));
 }
 
@@ -551,12 +541,8 @@ describe_value_labels (const struct variable *var)
   return &t->table;
 }
 
-/* Puts a description of variable V into table T starting at row
-   R.  The variable will be described in the format given by
-   FLAGS.  Returns the next row available for use in the
-   table. */
 static struct table *
-describe_variable (const struct variable *v, int flags)
+describe_variable_details (const struct variable *v, int flags)
 {
   struct table *table;
   struct string s;
@@ -670,11 +656,21 @@ describe_variable (const struct variable *v, int flags)
           table, table_create_nested (describe_attributes (attrs, flags)));
     }
 
-  if (table == NULL)
-    table = table_from_string (TAB_LEFT, "");
+  return table ? table : table_from_string (TAB_LEFT, "");
+}
 
+/* Puts a description of variable V into table T starting at row
+   R.  The variable will be described in the format given by
+   FLAGS.  Returns the next row available for use in the
+   table. */
+static struct table *
+describe_variable (const struct variable *v, int flags)
+{
+  struct table *table;
+
+  table = flags & ~DF_DICT_INDEX ? describe_variable_details (v, flags) : NULL;
   table = table_hpaste (table_from_string (0, var_get_name (v)),
-                        table_stomp (table));
+                        table ? table_stomp (table) : NULL);
   if (flags & DF_DICT_INDEX)
     {
       char s[INT_BUFSIZE_BOUND (size_t)];

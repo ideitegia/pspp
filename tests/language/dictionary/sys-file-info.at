@@ -46,3 +46,82 @@ Display Alignment: Left
 Display Width: 10",2
 ])
 AT_CLEANUP
+
+AT_BANNER([DISPLAY])
+
+dnl DISPLAY DOCUMENTS is tested with commands for documents.
+
+AT_SETUP([DISPLAY FILE LABEL])
+AT_DATA([display.sps], [dnl
+DATA LIST LIST NOTABLE /x * name (a10) .
+
+DISPLAY FILE LABEL.
+
+FILE LABEL 'foo bar baz quux'.
+DISPLAY FILE LABEL.
+])
+AT_CHECK([pspp -O format=csv display.sps], [0], [dnl
+The active dataset does not have a file label.
+
+File label: foo bar baz quux
+])
+AT_CLEANUP
+
+dnl DISPLAY VECTORS is tested with commands for vectors.
+
+dnl DISPLAY ATTRIBUTES and @ATTRIBUTES are tested with commands for attributes.
+
+AT_SETUP([DISPLAY SCRATCH])
+AT_DATA([sysfile-info.sps], [dnl
+DATA LIST LIST NOTABLE /x * name (a10) .
+DISPLAY SCRATCH.
+COMPUTE #x=0.
+DISPLAY SCRATCH.
+])
+AT_CHECK([pspp -O format=csv sysfile-info.sps], [0], [dnl
+sysfile-info.sps:2: warning: DISPLAY: No variables to display.
+
+Variable
+#x
+])
+AT_CLEANUP
+
+AT_SETUP([DISPLAY INDEX])
+AT_DATA([sysfile-info.sps], [dnl
+DATA LIST LIST NOTABLE /x * name (a10) .
+DISPLAY INDEX.
+])
+AT_CHECK([pspp -O format=csv sysfile-info.sps], [0], [dnl
+Variable,Position
+x,1
+name,2
+])
+AT_CLEANUP
+
+AT_SETUP([DISPLAY NAMES])
+AT_DATA([sysfile-info.sps], [dnl
+DATA LIST LIST NOTABLE /x * name (a10) .
+DISPLAY NAMES.
+])
+AT_CHECK([pspp -O format=csv sysfile-info.sps], [0], [dnl
+Variable
+x
+name
+])
+AT_CLEANUP
+
+AT_SETUP([DISPLAY LABELS])
+AT_DATA([sysfile-info.sps], [dnl
+DATA LIST LIST NOTABLE /x * name (a10) .
+VARIABLE LABEL x 'variable one' name 'variable two'.
+VALUE LABEL x 1 'asdf' 2 'jkl;'.
+DISPLAY LABELS.
+])
+AT_CHECK([pspp -O format=csv sysfile-info.sps], [0], [dnl
+Variable,Label,Position
+x,variable one,1
+name,variable two,2
+])
+AT_CLEANUP
+
+dnl DISPLAY VARIABLES Is tested in multiple places.
