@@ -586,3 +586,34 @@ FREQUENCIES
 
 AT_CHECK([pspp frequencies.sps], [0],  [ignore])
 AT_CLEANUP
+
+
+AT_SETUP([FREQUENCIES median])
+AT_DATA([median.sps], [dnl
+data list notable list /x *.
+begin data.
+1
+2
+3000000
+end data.
+
+FREQUENCIES
+	/VARIABLES = x
+	/STATISTICS = MEDIAN
+	.
+])
+
+AT_CHECK([pspp median.sps -O format=csv], [0],  [dnl
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,1.00,1,33.33,33.33,33.33
+,2.00,1,33.33,33.33,66.67
+,3000000.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+
+Table: x
+N,Valid,3
+,Missing,0
+Percentiles,50 (Median),2.00
+])
+AT_CLEANUP

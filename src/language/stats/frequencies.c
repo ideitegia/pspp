@@ -994,7 +994,7 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
         }
     }
 
-  if (frq.stats & FRQ_ST_MEDIAN)
+  if (frq.stats & BIT_INDEX (FRQ_ST_MEDIAN))
     {
 	frq.percentiles =
 	  xrealloc (frq.percentiles, 
@@ -1364,7 +1364,7 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
     }
   calc_stats (vf, stat_value);
 
-  t = tab_create (3, ((frq->stats & FRQ_ST_MEDIAN) ? frq->n_stats - 1 : frq->n_stats)
+  t = tab_create (3, ((frq->stats & BIT_INDEX (FRQ_ST_MEDIAN)) ? frq->n_stats - 1 : frq->n_stats)
 		  + frq->n_show_percentiles + 2);
   tab_set_format (t, RC_WEIGHT, wfmt);
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
