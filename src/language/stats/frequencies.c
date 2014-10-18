@@ -635,10 +635,18 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 
       if (lex_match_id (lexer, "STATISTICS"))
 	{
-	  lex_match (lexer, T_EQUALS);
+	  frq.stats = BIT_INDEX (FRQ_ST_MEAN) 
+	    | BIT_INDEX (FRQ_ST_STDDEV) 
+	    | BIT_INDEX (FRQ_ST_MINIMUM)
+	    | BIT_INDEX (FRQ_ST_MAXIMUM);
+	  
+	  frq.n_stats = 4;
 
-	  frq.stats = 0;
-	  frq.n_stats = 0;
+	  if (lex_match (lexer, T_EQUALS))
+	    {
+	      frq.n_stats = 0;
+	      frq.stats = 0;
+	    }
 
 	  while (lex_token (lexer) != T_ENDCMD
 		 && lex_token (lexer) != T_SLASH)

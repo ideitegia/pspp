@@ -617,3 +617,58 @@ N,Valid,3
 Percentiles,50 (Median),2.00
 ])
 AT_CLEANUP
+
+
+
+AT_SETUP([FREQUENCIES default statistics])
+AT_DATA([median.sps], [dnl
+data list notable list /x *.
+begin data.
+10
+20
+3000000
+end data.
+
+FREQUENCIES
+	/VARIABLES = x
+	/STATISTICS
+	.
+
+FREQUENCIES
+	/VARIABLES = x
+	/STATISTICS = DEFAULT
+	.
+])
+
+AT_CHECK([pspp median.sps -O format=csv], [0],  [dnl
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,10.00,1,33.33,33.33,33.33
+,20.00,1,33.33,33.33,66.67
+,3000000.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+
+Table: x
+N,Valid,3
+,Missing,0
+Mean,,1000010.00
+Std Dev,,1732042.15
+Minimum,,10.00
+Maximum,,3000000.00
+
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,10.00,1,33.33,33.33,33.33
+,20.00,1,33.33,33.33,66.67
+,3000000.00,1,33.33,33.33,100.00
+Total,,3,100.0,100.0,
+
+Table: x
+N,Valid,3
+,Missing,0
+Mean,,1000010.00
+Std Dev,,1732042.15
+Minimum,,10.00
+Maximum,,3000000.00
+])
+AT_CLEANUP
