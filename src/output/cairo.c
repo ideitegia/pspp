@@ -287,7 +287,7 @@ apply_options (struct xr_driver *xr, struct string_map *o)
   xr->fonts[XR_FONT_MARKER].desc = parse_font (d, o, "marker-font", "serif",
                                                font_size * PANGO_SCALE_X_SMALL);
 
-  xr->line_gutter = 0;
+  xr->line_gutter = XR_POINT / 2;
   xr->line_space = XR_POINT;
   xr->line_width = XR_POINT / 2;
   xr->page_number = 0;
