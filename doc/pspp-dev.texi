@@ -53,7 +53,8 @@ Free Documentation License".
 @title PSPP Developers Guide
 @subtitle GNU PSPP Statistical Analysis Software
 @subtitle Release @value{VERSION}
-@author
+@author Ben Pfaff
+@author John Darrington
 @page
 @vskip 0pt plus 1filll
 @insertcopying
