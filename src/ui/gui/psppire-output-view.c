@@ -189,6 +189,25 @@ create_xr (struct psppire_output_view *view)
 }
 
 static void
+create_drawing_area (struct psppire_output_view *view,
+                     GtkWidget *drawing_area, struct xr_rendering *r,
+                     int tw, int th)
+{
+  g_object_set_data_full (G_OBJECT (drawing_area),
+                          "rendering", r, free_rendering);
+
+  g_signal_connect (drawing_area, "realize",
+                    G_CALLBACK (on_dwgarea_realize), view);
+  g_signal_connect (drawing_area, "expose_event",
+                    G_CALLBACK (expose_event_callback), view);
+
+  gtk_widget_set_size_request (drawing_area, tw, th);
+  gtk_layout_put (view->output, drawing_area, 0, view->y);
+
+  gtk_widget_show (drawing_area);
+}
+
+static void
 rerender (struct psppire_output_view *view)
 {
   struct output_view_item *item;
@@ -209,7 +228,6 @@ rerender (struct psppire_output_view *view)
     {
       struct xr_rendering *r;
       int tw, th;
-      bool new;
 
       if (view->y > 0)
         view->y += view->font_height / 2;
@@ -223,17 +241,18 @@ rerender (struct psppire_output_view *view)
 
       xr_rendering_measure (r, &tw, &th);
 
-      new = !item->drawing_area;
-      if (new)
-        item->drawing_area = gtk_drawing_area_new ();
-      g_object_set_data_full (G_OBJECT (item->drawing_area),
-                              "rendering", r, free_rendering);
-
-      gtk_widget_set_size_request (item->drawing_area, tw, th);
-      if (new)
-        gtk_layout_put (view->output, item->drawing_area, 0, view->y);
+      if (!item->drawing_area)
+        {
+          item->drawing_area = gtk_drawing_area_new ();
+          create_drawing_area (view, item->drawing_area, r, tw, th);
+        }
       else
-        gtk_layout_move (view->output, item->drawing_area, 0, view->y);
+        {
+          g_object_set_data_full (G_OBJECT (item->drawing_area),
+                                  "rendering", r, free_rendering);
+          gtk_widget_set_size_request (item->drawing_area, tw, th);
+          gtk_layout_move (view->output, item->drawing_area, 0, view->y);
+        }
 
       if (view->max_width < tw)
         view->max_width = tw;
@@ -297,17 +316,10 @@ psppire_output_view_put (struct psppire_output_view *view,
 
       xr_rendering_measure (r, &tw, &th);
 
-      g_object_set_data_full (G_OBJECT (drawing_area), "rendering", r, free_rendering);
-      g_signal_connect (drawing_area, "realize",
-                        G_CALLBACK (on_dwgarea_realize), view);
-      g_signal_connect (drawing_area, "expose_event",
-                        G_CALLBACK (expose_event_callback), view);
-
-      gtk_widget_set_size_request (drawing_area, tw, th);
-      gtk_layout_put (view->output, drawing_area, 0, view->y);
-
-      gtk_widget_show (drawing_area);
+      create_drawing_area (view, drawing_area, r, tw, th);
     }
+  else
+    tw = th = 0;
 
   if (view->overview
       && (!is_text_item (item)
