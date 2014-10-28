@@ -128,14 +128,22 @@ show_scatterplot (const struct graph *cmd, const struct casereader *input)
   struct scatterplot_chart *scatterplot;
   bool byvar_overflow = false;
 
-  ds_init_cstr (&title, var_to_string (cmd->dep_vars[0]));
-  ds_put_cstr (&title, " vs ");              
-  ds_put_cstr (&title, var_to_string (cmd->dep_vars[1]));
+  ds_init_empty (&title);
+
   if (cmd->byvar)
     {
-      ds_put_cstr (&title, " by ");                
-      ds_put_cstr (&title, var_to_string (cmd->byvar));
-    }    
+      ds_put_format (&title, _("%s vs. %s by %s"), 
+			   var_to_string (cmd->dep_vars[0]),  
+			   var_to_string (cmd->dep_vars[1]),
+			   var_to_string (cmd->byvar)); 
+    }
+  else
+    {
+      ds_put_format (&title, _("%s vs. %s"), 
+		     var_to_string (cmd->dep_vars[0]),
+		     var_to_string (cmd->dep_vars[1])); 
+    }
+		 
 
   scatterplot = scatterplot_create(input,
 				   cmd->dep_vars[0], 
@@ -342,7 +350,7 @@ cmd_graph (struct lexer *lexer, struct dataset *ds)
 	    goto error;
 	  if (graph.n_dep_vars > 1)
 	    {
-	      lex_error(lexer, _("Only one variable allowed"));
+	      lex_error(lexer, _("Only one variable is allowed"));
 	      goto error;
 	    }
 	}
