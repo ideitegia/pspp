@@ -672,3 +672,47 @@ Minimum,,10.00
 Maximum,,3000000.00
 ])
 AT_CLEANUP
+
+
+
+AT_SETUP([FREQUENCIES no valid data])
+AT_DATA([empty.sps], [dnl
+data list notable list /x *.
+begin data.
+.
+.
+.
+end data.
+
+FREQUENCIES
+	/VARIABLES = x
+	/STATISTICS = ALL
+	.
+])
+
+AT_CHECK([pspp empty.sps -O format=csv], [0],  [dnl
+Table: x
+Value Label,Value,Frequency,Percent,Valid Percent,Cum Percent
+,.  ,3,100.00,Missing,
+Total,,3,100.0,100.0,
+
+Table: x
+N,Valid,0
+,Missing,3
+Mean,,.
+S.E. Mean,,.
+Mode,,.
+Std Dev,,.
+Variance,,.
+Kurtosis,,.
+S.E. Kurt,,.
+Skewness,,.
+S.E. Skew,,.
+Range,,.
+Minimum,,.
+Maximum,,.
+Sum,,.
+Percentiles,,.
+])
+
+AT_CLEANUP

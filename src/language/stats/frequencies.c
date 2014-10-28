@@ -367,13 +367,9 @@ calc_percentiles (const struct frq_proc *frq, const struct var_freqs *vf)
   const struct freq_tab *ft = &vf->tab;
   double W = ft->valid_cases;
   const struct freq *f;
-  int percentile_idx;
-  double rank;
+  int percentile_idx = 0;
+  double  rank = 0;
 
-  assert (ft->n_valid > 0);
-
-  rank = 0;
-  percentile_idx = 0;
   for (f = ft->valid; f < ft->missing; f++)
     {
       rank += f->count;
@@ -1305,14 +1301,10 @@ calc_stats (const struct var_freqs *vf, double d[FRQ_ST_count])
   double W = ft->valid_cases;
   const struct freq *f;
   struct moments *m;
-  int most_often;
-  double X_mode;
-
-  assert (ft->n_valid > 0);
+  int most_often = -1;
+  double X_mode = SYSMIS;
 
   /* Calculate the mode. */
-  most_often = -1;
-  X_mode = SYSMIS;
   for (f = ft->valid; f < ft->missing; f++)
     {
       if (most_often < f->count)
@@ -1338,7 +1330,7 @@ calc_stats (const struct var_freqs *vf, double d[FRQ_ST_count])
                      &d[FRQ_ST_SKEWNESS], &d[FRQ_ST_KURTOSIS]);
   moments_destroy (m);
 
-  /* Formulas below are taken from _SPSS Statistical Algorithms_. */
+  /* Formulae below are taken from _SPSS Statistical Algorithms_. */
   d[FRQ_ST_MINIMUM] = ft->valid[0].value.f;
   d[FRQ_ST_MAXIMUM] = ft->valid[ft->n_valid - 1].value.f;
   d[FRQ_ST_MODE] = X_mode;
@@ -1359,29 +1351,21 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
   const struct freq_tab *ft = &vf->tab;
   double stat_value[FRQ_ST_count];
   struct tab_table *t;
-  int i, r;
+  int i, r = 2; /* N missing and N valid are always dumped */
 
   if (var_is_alpha (vf->var))
     return;
 
-  if (ft->n_valid == 0)
-    {
-      msg (SW, _("No valid data for variable %s; statistics not displayed."),
-	   var_get_name (vf->var));
-      return;
-    }
   calc_stats (vf, stat_value);
 
   t = tab_create (3, ((frq->stats & BIT_INDEX (FRQ_ST_MEDIAN)) ? frq->n_stats - 1 : frq->n_stats)
-		  + frq->n_show_percentiles + 2);
+		                + frq->n_show_percentiles + 2);
+
   tab_set_format (t, RC_WEIGHT, wfmt);
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 
-
   tab_vline (t, TAL_1 , 2, 0, tab_nr(t) - 1);
   tab_vline (t, TAL_GAP , 1, 0, tab_nr(t) - 1 ) ;
-
-  r = 2; /* N missing and N valid are always dumped */
 
   for (i = 0; i < FRQ_ST_count; i++)
     {
@@ -1392,7 +1376,11 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
       {
 	tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
 		      gettext (st_name[i]));
-	tab_double (t, 2, r, TAB_NONE, stat_value[i], NULL, RC_OTHER);
+
+	if (vf->tab.n_valid <= 0 && r >= 2)
+	  tab_text (t, 2, r, 0,   ".");
+	else
+	  tab_double (t, 2, r, TAB_NONE, stat_value[i], NULL, RC_OTHER);
 	r++;
       }
     }
@@ -1416,13 +1404,21 @@ dump_statistics (const struct frq_proc *frq, const struct var_freqs *vf,
 	  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Percentiles"));
 	}
 
+      if (vf->tab.n_valid <= 0)
+	{
+	  tab_text (t, 2, r, 0,   ".");
+	  ++r;
+	  continue;
+	}
+
       if (pc->p == 0.5)
         tab_text (t, 1, r, TAB_LEFT, _("50 (Median)"));
       else
         tab_double (t, 1, r, TAB_LEFT, pc->p * 100, NULL, RC_INTEGER);
       tab_double (t, 2, r, TAB_NONE, pc->value,
                   var_get_print_format (vf->var), RC_OTHER);
-      r++;
+
+      ++r;
     }
 
   tab_title (t, "%s", var_to_string (vf->var));

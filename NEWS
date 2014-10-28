@@ -6,7 +6,10 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
 Changes since 0.8.4:
 
- * The GRAPH command is now available.  Initially it support
+ * FREQUENCIES: A bug was fixed where an assertion failure occured
+   when an empty dataset was presented.
+
+ * The GRAPH command is now available.  Initially it supports
    scatterplots and histograms.
 
 Changes from 0.8.3 to 0.8.4:
