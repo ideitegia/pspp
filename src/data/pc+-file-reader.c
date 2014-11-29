@@ -73,6 +73,7 @@ struct pcp_main_header
     char creation_date[9];	/* "[m]m/dd/yy". */
     char creation_time[9];	/* "[H]H:MM:SS". */
     char file_label[65];        /* File label. */
+    unsigned int weight_index;  /* Index of weighting variable, 0 if none. */
   };
 
 struct pcp_var_record
@@ -84,6 +85,8 @@ struct pcp_var_record
     struct fmt_spec format;
     uint8_t missing[8];
     char *label;
+
+    bool weight;
 
     struct pcp_value_label *val_labs;
     size_t n_val_labs;
@@ -524,8 +527,8 @@ static bool
 read_main_header (struct pcp_reader *r, struct pcp_main_header *header)
 {
   unsigned int base_ofs = r->directory.main.ofs;
+  unsigned int zero0, zero1, zero2, zero3;
   size_t min_values, min_data_size;
-  unsigned int zero0, zero1, zero2;
   unsigned int one0, one1;
   unsigned int compressed;
   unsigned int n_cases1;
@@ -551,9 +554,11 @@ read_main_header (struct pcp_reader *r, struct pcp_main_header *header)
       || !read_uint16 (r, &one1)
       || !read_uint16 (r, &compressed)
       || !read_uint16 (r, &header->nominal_case_size)
-      || !read_uint32 (r, &r->n_cases)
+      || !read_uint16 (r, &r->n_cases)
+      || !read_uint16 (r, &header->weight_index)
       || !read_uint16 (r, &zero2)
-      || !read_uint32 (r, &n_cases1)
+      || !read_uint16 (r, &n_cases1)
+      || !read_uint16 (r, &zero3)
       || !read_string (r, header->creation_date, sizeof header->creation_date)
       || !read_string (r, header->creation_time, sizeof header->creation_time)
       || !read_string (r, header->file_label, sizeof header->file_label))
@@ -565,10 +570,11 @@ read_main_header (struct pcp_reader *r, struct pcp_main_header *header)
       pcp_warn (r, base_ofs, _("Record 0 specifies unexpected system missing "
                                "value %g (%a)."), d, d);
     }
-  if (one0 != 1 || one1 != 1 || zero0 != 0 || zero1 != 0 || zero2 != 0)
+  if (one0 != 1 || one1 != 1
+      || zero0 != 0 || zero1 != 0 || zero2 != 0 || zero3 != 0)
     pcp_warn (r, base_ofs, _("Record 0 reserved fields have unexpected values "
-                             "(%u,%u,%u,%u,%u)."),
-              one0, one1, zero0, zero1, zero2);
+                             "(%u,%u,%u,%u,%u,%u)."),
+              one0, one1, zero0, zero1, zero2, zero3);
   if (n_cases1 != r->n_cases)
     pcp_warn (r, base_ofs, _("Record 0 case counts differ (%u versus %u)."),
               r->n_cases, n_cases1);
@@ -701,6 +707,7 @@ static bool
 read_variables_record (struct pcp_reader *r)
 {
   unsigned int i;
+  bool weighted;
 
   if (!pcp_seek (r, r->directory.variables.ofs))
     return false;
@@ -713,6 +720,7 @@ read_variables_record (struct pcp_reader *r)
 
   r->vars = pool_calloc (r->pool,
                          r->header.nominal_case_size, sizeof *r->vars);
+  weighted = false;
   for (i = 0; i < r->header.nominal_case_size; i++)
     {
       struct pcp_var_record *var = &r->vars[r->n_vars++];
@@ -729,6 +737,10 @@ read_variables_record (struct pcp_reader *r)
           || !read_string (r, var->name, sizeof var->name)
           || !read_bytes (r, var->missing, sizeof var->missing))
         return false;
+
+      var->weight = r->header.weight_index && i == r->header.weight_index - 1;
+      if (var->weight)
+        weighted = true;
 
       raw_type = format >> 16;
       if (!fmt_from_io (raw_type, &var->format.type))
@@ -767,6 +779,9 @@ read_variables_record (struct pcp_reader *r)
             return false;
         }
     }
+
+  if (r->header.weight_index && !weighted)
+    pcp_warn (r, -1, _("Invalid weight index %u."), r->header.weight_index);
 
   return true;
 }
@@ -823,14 +838,12 @@ parse_variable_records (struct pcp_reader *r, struct dictionary *dict,
   for (rec = var_recs; rec < &var_recs[n_var_recs]; rec++)
     {
       struct variable *var;
-      bool weight;
       char *name;
       size_t i;
 
       name = recode_string_pool ("UTF-8", dict_encoding,
                                  rec->name, -1, r->pool);
       name[strcspn (name, " ")] = '\0';
-      weight = !strcmp (name, "$WEIGHT") && rec->width == 0;
 
       /* Transform $DATE => DATE_, $WEIGHT => WEIGHT_, $CASENUM => CASENUM_. */
       if (name[0] == '$')
@@ -852,8 +865,14 @@ parse_variable_records (struct pcp_reader *r, struct dictionary *dict,
           var = rec->var = dict_create_var_assert (dict, new_name, rec->width);
           free (new_name);
         }
-      if (weight)
-        dict_set_weight (dict, var);
+      if (rec->weight)
+        {
+          if (!rec->width)
+            dict_set_weight (dict, var);
+          else
+            pcp_warn (r, rec->pos,
+                      _("Cannot weight by string variable `%s'."), name);
+        }
 
       /* Set the short name the same as the long name. */
       var_set_short_name (var, 0, name);

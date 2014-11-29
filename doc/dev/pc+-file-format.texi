@@ -93,9 +93,11 @@ uint32              zero1;
 uint16              one1;
 uint16              compressed;
 uint16              nominal_case_size;
-uint32              n_cases0;
+uint16              n_cases0;
+uint16              weight_index;
 uint16              zero2;
-uint32              n_cases1;
+uint16              n_cases1;
+uint16              zero3;
 char                creation_date[8];
 char                creation_time[8];
 char                label[64];
@@ -109,6 +111,7 @@ Always set to 1.
 @item uint32 zero0;
 @itemx uint32 zero1;
 @itemx uint16 zero2;
+@itemx uint16 zero3;
 Always set to 0.
 
 It seems likely that one of these variables is set to 1 if weighting
@@ -143,11 +146,16 @@ except that long string variables add extra data elements (one for
 every 8 bytes after the first 8).  String variables in SPSS/PC+ system
 files are limited to 255 bytes.
 
-@item uint32 n_cases0;
-@itemx uint32 n_cases1;
+@item uint16 n_cases0;
+@itemx uint16 n_cases1;
 The number of cases in the data record.  Both values are the same.
 Some files in the corpus contain data for the number of cases noted
 here, followed by garbage that somewhat resembles data.
+
+@item uint16 weight_index;
+0, if the file is unweighted, otherwise a 1-based index into the data
+record of the weighting variable, e.g.@: 4 for the first variable
+after the 3 system-defined variables.
 
 @item char creation_date[8];
 The date that the file was created, in @samp{mm/dd/yy} format.

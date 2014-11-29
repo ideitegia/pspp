@@ -359,6 +359,90 @@ NUM1,NUM2,STR4,STR8,STR15
 1000,.,PQRS,TUVWXYZa,bcdefghijklmnop
 ])
 AT_CLEANUP
+
+AT_SETUP([weighted])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    i16 1; i16 6;
+    i16 0;         dnl Fixed.
+    i16 1; i16 0;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+SYSFILE INFO FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+File:,pc+-file.sav
+Label:,PSPP synthetic test file
+Created:,11/28/14 15:11:00 by PCSPSS PSPP synthetic test product
+Integer Format:,Little Endian
+Real Format:,IEEE 754 LE.
+Variables:,4
+Cases:,1
+Type:,SPSS/PC+ System File
+Weight:,NUM3
+Compression:,None
+Encoding:,us-ascii
+
+Variable,Description,Position
+NUM1,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",1
+NUM2,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",2
+NUM3,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",3
+NUM4,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",4
+])
+AT_CLEANUP
 
 AT_BANNER([SPSS/PC+ file reader - negative])
 
@@ -518,7 +602,7 @@ AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
 
 warning: `pc+-file.sav' near offset 0x100: Record 0 specifies unexpected system missing value 1 (0x1p+0).
 
-"warning: `pc+-file.sav' near offset 0x100: Record 0 reserved fields have unexpected values (1,1,0,2,0)."
+"warning: `pc+-file.sav' near offset 0x100: Record 0 reserved fields have unexpected values (1,1,0,2,0,0)."
 
 warning: `pc+-file.sav' near offset 0x100: Record 0 case counts differ (1 versus 3).
 ])
@@ -1211,5 +1295,109 @@ Table: Data List
 NUM1,NUM2,STR4,STR8,STR15
 -5,150,abcd,efghj   ,efghijklABCDEFG
 1000,.,PQRS,TUVWXYZa,bcdefghijklmnop
+])
+AT_CLEANUP
+
+AT_SETUP([invalid weight index])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    i16 1; i16 10;
+    i16 0;         dnl Fixed.
+    i16 1; i16 0;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0],
+  [warning: `pc+-file.sav': Invalid weight index 10.
+])
+AT_CLEANUP
+
+AT_SETUP([string weight])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    i16 1; i16 6;
+    i16 0;         dnl Fixed.
+    i16 1; i16 0;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "STR1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; s8 "acbdefgh"; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0],
+  [warning: `pc+-file.sav' near offset 0x250: Cannot weight by string variable `STR1'.
 ])
 AT_CLEANUP
