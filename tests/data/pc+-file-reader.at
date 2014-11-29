@@ -1,0 +1,1215 @@
+AT_BANNER([SPSS/PC+ file reader - positive])
+
+AT_SETUP([variable labels and missing values])
+AT_KEYWORDS([sack synthetic PC+ file positive])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+@LABELS; @LABELS_END - @LABELS;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 15;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variable, no label or missing values.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+
+    dnl Numeric variable, variable label.
+    0; 0; @NUM2_LABEL - @LABELS_OFS; 0x050800; s8 "NUM2"; PCSYSMIS;
+
+    dnl Numeric variable with missing value.
+    0; 0; 0; 0x050800; s8 "NUM3"; 1.0;
+
+    dnl Numeric variable, variable label and missing value.
+    0; 0; @NUM4_LABEL - @LABELS_OFS; 0x050800; s8 "NUM4"; 2.0;
+
+    dnl String variable, no label or missing values.
+    0; 0; 0; 0x010800; s8 "STR1"; PCSYSMIS;
+
+    dnl String variable, variable label.
+    0; 0; @STR2_LABEL - @LABELS_OFS; 0x010400; s8 "STR2"; PCSYSMIS;
+
+    dnl String variable with missing value.
+    0; 0; 0; 0x010500; s8 "STR3"; s8 "MISS";
+
+    dnl String variable, variable label and missing value.
+    0; 0; @STR4_LABEL - @LABELS_OFS; 0x010100; s8 "STR4"; s8 "OTHR";
+
+    dnl Long string variable
+    0; 0; 0; 0x010b00; s8 "STR5"; PCSYSMIS;
+    0 * 8;
+
+    dnl Long string variable with variable label
+    0; 0; @STR6_LABEL - @LABELS_OFS; 0x010b00; s8 "STR6"; PCSYSMIS;
+    0 * 8;
+VARS_END:
+
+LABELS:
+    3; i8 0 0 0; LABELS_OFS: i8 0;
+    NUM2_LABEL: COUNT8("Numeric variable 2's label");
+    NUM4_LABEL: COUNT8("Another numeric variable label");
+    STR2_LABEL: COUNT8("STR2's variable label");
+    STR4_LABEL: COUNT8("STR4's variable label");
+    STR6_LABEL: COUNT8("Another string variable's label");
+LABELS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0;
+    0.0; 1.0; 2.0; PCSYSMIS; s8 "abcdefgh"; s8 "ijkl"; s8 "mnopq"; s8 "r";
+    s16 "stuvwxyzAB"; s16 "CDEFGHIJKLM";
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+DISPLAY FILE LABEL.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv pc+-file.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+File label: PSPP synthetic test file
+
+Variable,Description,Position
+NUM1,Format: F8.0,1
+NUM2,"Label: Numeric variable 2's label
+Format: F8.0",2
+NUM3,"Format: F8.0
+Missing Values: 1",3
+NUM4,"Label: Another numeric variable label
+Format: F8.0
+Missing Values: 2",4
+STR1,Format: A8,5
+STR2,"Label: STR2's variable label
+Format: A4",6
+STR3,"Format: A5
+Missing Values: ""MISS """,7
+STR4,"Label: STR4's variable label
+Format: A1
+Missing Values: ""O""",8
+STR5,Format: A11,9
+STR6,"Label: Another string variable's label
+Format: A11",10
+
+Table: Data List
+NUM1,NUM2,NUM3,NUM4,STR1,STR2,STR3,STR4,STR5,STR6
+0,1,2,.,abcdefgh,ijkl,mnopq,r,stuvwxyzAB ,CDEFGHIJKLM
+])
+AT_CLEANUP
+
+AT_SETUP([value labels])
+AT_KEYWORDS([sack synthetic PC+ file positive])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+@LABELS; @LABELS_END - @LABELS;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 16;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    @N1 - @LOFF; @N1E - @LOFF; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    @N2 - @LOFF; @N2E - @LOFF; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    @N3 - @LOFF; @N3E - @LOFF; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    @N4 - @LOFF; @N4E - @LOFF; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+    @N5 - @LOFF; @N5E - @LOFF; 0; 0x050800; s8 "NUM5"; PCSYSMIS;
+
+    dnl String variables.
+    @S1 - @LOFF; @S1E - @LOFF; 0; 0x010100; s8 "STR1"; PCSYSMIS;
+    @S2 - @LOFF; @S2E - @LOFF; 0; 0x010200; s8 "STR2"; PCSYSMIS;
+    @S3 - @LOFF; @S3E - @LOFF; 0; 0x010300; s8 "STR3"; PCSYSMIS;
+    @S4 - @LOFF; @S4E - @LOFF; 0; 0x010400; s8 "STR4"; PCSYSMIS;
+    @S5 - @LOFF; @S5E - @LOFF; 0; 0x010500; s8 "STR5"; PCSYSMIS;
+    @S6 - @LOFF; @S6E - @LOFF; 0; 0x010600; s8 "STR6"; PCSYSMIS;
+    @S7 - @LOFF; @S7E - @LOFF; 0; 0x010700; s8 "STR7"; PCSYSMIS;
+    @S8 - @LOFF; @S8E - @LOFF; 0; 0x010800; s8 "STR8"; PCSYSMIS;
+VARS_END:
+
+LABELS:
+    3; i8 0 0 0; LOFF: i8 0;
+
+    N1: 1.0; COUNT8("one"); N1E:
+    N2: 2.0; COUNT8("two"); 3.0; COUNT8("three"); N2E:
+    N3:
+        3.0; COUNT8("three");
+    N4: N5:
+        4.0; COUNT8("four");
+    N3E: N4E:
+	5.0; COUNT8("five");
+    N5E:
+
+    S1: s8 "a"; COUNT8("value label for `a'"); S1E:
+    S2: s8 "ab"; COUNT8("value label for `ab'"); S2E:
+    S3: s8 "abc"; COUNT8("value label for `abc'"); S3E:
+    S4: S5: S6: S7:
+        s8 "abcdefgh"; COUNT8("value label for abcdefgh"); S4E:
+    S8:
+        s8 "ijklmnop"; COUNT8("value label for ijklmnop"); S5E:
+        s8 "qrstuvwx"; COUNT8("value label for qrstuvwx"); S6E:
+        s8 "yzABCDEF"; COUNT8("value label for yzABCDEF"); S7E:
+        s8 "GHIJKLMN"; COUNT8("value label for GHIJKLMN"); S8E:
+LABELS_END:
+
+DATA:
+    1.0; "11/28/14"; 1.0;
+    1.0; 2.0; 3.0; 4.0; 5.0;
+    s8 "a"; s8 "bc"; s8 "cde"; s8 "fghj"; s8 "klmno"; s8 "pqrstu";
+    s8 "vwxyzAB"; s8 "CDEFGHIJ";
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+DISPLAY FILE LABEL.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv pc+-file.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+File label: PSPP synthetic test file
+
+Variable,Description,Position
+NUM1,"Format: F8.0
+
+Value,Label
+1,one",1
+NUM2,"Format: F8.0
+
+Value,Label
+2,two
+3,three",2
+NUM3,"Format: F8.0
+
+Value,Label
+3,three
+4,four",3
+NUM4,"Format: F8.0
+
+Value,Label
+4,four",4
+NUM5,"Format: F8.0
+
+Value,Label
+4,four
+5,five",5
+STR1,"Format: A1
+
+Value,Label
+a,value label for `a'",6
+STR2,"Format: A2
+
+Value,Label
+ab,value label for `ab'",7
+STR3,"Format: A3
+
+Value,Label
+abc,value label for `abc'",8
+STR4,"Format: A4
+
+Value,Label
+abcd,value label for abcdefgh",9
+STR5,"Format: A5
+
+Value,Label
+abcde,value label for abcdefgh
+ijklm,value label for ijklmnop",10
+STR6,"Format: A6
+
+Value,Label
+abcdef,value label for abcdefgh
+ijklmn,value label for ijklmnop
+qrstuv,value label for qrstuvwx",11
+STR7,"Format: A7
+
+Value,Label
+abcdefg,value label for abcdefgh
+ijklmno,value label for ijklmnop
+qrstuvw,value label for qrstuvwx
+yzABCDE,value label for yzABCDEF",12
+STR8,"Format: A8
+
+Value,Label
+GHIJKLMN,value label for GHIJKLMN
+ijklmnop,value label for ijklmnop
+qrstuvwx,value label for qrstuvwx
+yzABCDEF,value label for yzABCDEF",13
+
+Table: Data List
+NUM1,NUM2,NUM3,NUM4,NUM5,STR1,STR2,STR3,STR4,STR5,STR6,STR7,STR8
+1,2,3,4,5,a,bc,cde,fghj,klmno,pqrstu,vwxyzAB,CDEFGHIJ
+])
+AT_CLEANUP
+
+AT_SETUP([compressed data])
+AT_KEYWORDS([sack synthetic PC+ file positive])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 1;
+    i16 9;
+    2;
+    i16 0;         dnl Fixed.
+    2;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+
+    dnl String variables.
+    0; 0; 0; 0x010400; s8 "STR4"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "STR8"; PCSYSMIS;
+    0; 0; 0; 0x010f00; s8 "STR15"; PCSYSMIS;
+    0 * 8;
+VARS_END:
+
+DATA:
+    i8 101 1 101 100 255 1 1 1;
+        s8 "11/28/14"; s8 "abcd"; s8 "efghj"; s8 "efghijkl";
+    i8 1; i8 102 1 101 1 0 1 1;
+         s8 "ABCDEFG"; s8 "11/28/14"; 1000.0; s8 "PQRS"; s8 "TUVWXYZa";
+    i8 1 1 0 0 0 0 0 0;
+        s16 "bcdefghijklmnop";
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+DISPLAY FILE LABEL.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -o pspp.csv pc+-file.sps])
+AT_CHECK([cat pspp.csv], [0], [dnl
+File label: PSPP synthetic test file
+
+Variable,Description,Position
+NUM1,Format: F8.0,1
+NUM2,Format: F8.0,2
+STR4,Format: A4,3
+STR8,Format: A8,4
+STR15,Format: A15,5
+
+Table: Data List
+NUM1,NUM2,STR4,STR8,STR15
+-5,150,abcd,efghj   ,efghijklABCDEFG
+1000,.,PQRS,TUVWXYZa,bcdefghijklmnop
+])
+AT_CLEANUP
+
+AT_BANNER([SPSS/PC+ file reader - negative])
+
+AT_SETUP([unspecified character encoding])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav'.
+DISPLAY FILE LABEL.
+DISPLAY DICTIONARY.
+LIST.
+
+SYSFILE INFO FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [stdout], [])
+AT_CHECK([sed 's/default encoding.*For/default encoding.  For/' stdout], [0], [dnl
+"warning: `pc+-file.sav': Using default encoding.  For best results, specify an encoding explicitly.  Use SYSFILE INFO with ENCODING=""DETECT"" to analyze the possible encodings."
+
+File label: PSPP synthetic test file
+
+Variable,Description,Position
+NUM1,Format: F8.0,1
+NUM2,Format: F8.0,2
+NUM3,Format: F8.0,3
+NUM4,Format: F8.0,4
+
+Table: Data List
+NUM1,NUM2,NUM3,NUM4
+2,3,4,5
+
+File:,pc+-file.sav
+Label:,PSPP synthetic test file
+Created:,11/28/14 15:11:00 by PCSPSS PSPP synthetic test product
+Integer Format:,Little Endian
+Real Format:,IEEE 754 LE.
+Variables:,4
+Cases:,1
+Type:,SPSS/PC+ System File
+Weight:,Not weighted.
+Compression:,None
+Encoding:,us-ascii
+
+Variable,Description,Position
+NUM1,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",1
+NUM2,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",2
+NUM3,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",3
+NUM4,"Format: F8.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8",4
+])
+AT_CLEANUP
+
+AT_SETUP([unexpected fixed values])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+>>1; 2;<<
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    >>1.0<<;
+    0; >>2<<; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    3;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+"warning: `pc+-file.sav' near offset 0x0: Directory fields have unexpected values (1,2)."
+
+warning: `pc+-file.sav' near offset 0x100: Record 0 specifies unexpected system missing value 1 (0x1p+0).
+
+"warning: `pc+-file.sav' near offset 0x100: Record 0 reserved fields have unexpected values (1,1,0,2,0)."
+
+warning: `pc+-file.sav' near offset 0x100: Record 0 case counts differ (1 versus 3).
+])
+AT_CLEANUP
+
+AT_SETUP([short main header])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+error: `pc+-file.sav' near offset 0x100: This is not an SPSS/PC+ system file.
+])
+AT_CLEANUP
+
+AT_SETUP([long main header])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    >>s80 "PSPP synthetic test file"<<;
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+warning: `pc+-file.sav' near offset 0x100: Record 0 has unexpected length 192.
+])
+AT_CLEANUP
+
+AT_SETUP([invalid compression type])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 >>2<<;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+error: `pc+-file.sav' near offset 0x100: Invalid compression type 2.
+])
+AT_CLEANUP
+
+AT_SETUP([unrealistic number of cases])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1000;
+    i16 0;         dnl Fixed.
+    1000;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+warning: `pc+-file.sav' near offset 0x100: Record 0 claims 1000 cases with 7 values per case (requiring at least 56000 bytes) but data record is only 56 bytes long.
+])
+AT_CLEANUP
+
+AT_SETUP([labels bad offsets])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+@LABELS; @LABELS_END - @LABELS;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    @N1L - @LOFF; @N1E - @LOFF; 1000; 0x050800; s8 "NUM1"; PCSYSMIS;
+    @N1L - @LOFF - 1; @LABELS_END - @LOFF; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    @N1L - @LOFF + 1; @LABELS_END - @LOFF; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; @LABELS_END - @LOFF - 1; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+LABELS:
+    3; i8 0 0 0; LOFF: i8 0;
+    N1L: PCSYSMIS;
+LABELS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0; N1E:
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+warning: `pc+-file.sav' near offset 0x210: Variable label claimed to start at offset 1007 in labels record but labels record is only 16 bytes.
+
+warning: `pc+-file.sav' near offset 0x210: Value labels claimed to end at offset 72 in labels record but labels record is only 16 bytes.
+
+"warning: `pc+-file.sav' near offset 0x2a0: Value labels end with partial label (0 bytes left in record, label length 255)."
+
+warning: `pc+-file.sav' near offset 0x299: 7 leftover bytes following value labels.
+
+warning: `pc+-file.sav' near offset 0x29f: Variable label with length 255 starting at offset 16 in labels record overruns end of 16-byte labels record.
+])
+AT_CLEANUP
+
+AT_SETUP([record 1 bad length])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+error: `pc+-file.sav' near offset 0x1b0: Record 1 has length 192 (expected 224).
+])
+AT_CLEANUP
+
+AT_SETUP([bad variable format])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0xff0000; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+error: `pc+-file.sav' near offset 0x210: Variable 3 has invalid type 255.
+])
+AT_CLEANUP
+
+AT_SETUP([bad variable name])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050000; s8 "#NUM"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+error: `pc+-file.sav' near offset 0x210: Invalid variable name `#NUM'.
+])
+AT_CLEANUP
+
+AT_SETUP([duplicate variable name])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    1;
+    i16 0;         dnl Fixed.
+    1;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050000; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    0.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+warning: `pc+-file.sav' near offset 0x230: Renaming variable with duplicate name `NUM1' to `VAR001'.
+
+warning: `pc+-file.sav' near offset 0x250: Renaming variable with duplicate name `NUM1' to `VAR002'.
+
+warning: `pc+-file.sav' near offset 0x270: Renaming variable with duplicate name `NUM1' to `VAR003'.
+])
+AT_CLEANUP
+
+AT_SETUP([partial case])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    3;
+    i16 0;         dnl Fixed.
+    3;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050000; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    1.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+    2.0; "11/28/14"; 1.0; 6.0; 7.0; 8.0; 9.0;
+    3.0; "11/28/14"; 1.0; 10.0;
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+warning: `pc+-file.sav' near offset 0x100: Record 0 claims 3 cases with 7 values per case (requiring at least 168 bytes) but data record is only 144 bytes long.
+
+error: `pc+-file.sav' near offset 0x320: File ends in partial case.
+
+error: Error reading case from file `pc+-file.sav'.
+
+Table: Data List
+NUM1,NUM2,NUM3,NUM4
+2,3,4,5
+6,7,8,9
+])
+AT_CLEANUP
+
+AT_SETUP([case extends past end of data record])
+AT_KEYWORDS([sack synthetic PC+ file negative])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 0;
+    i16 7;
+    3;
+    i16 0;         dnl Fixed.
+    3;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050000; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM3"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM4"; PCSYSMIS;
+VARS_END:
+
+DATA:
+    1.0; "11/28/14"; 1.0; 2.0; 3.0; 4.0; 5.0;
+    2.0; "11/28/14"; 1.0; 6.0; 7.0; 8.0; 9.0;
+    3.0; "11/28/14"; 1.0; 10.0;
+DATA_END:
+    11.0; 12.0; 13.0;
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+LIST.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [1], [dnl
+warning: `pc+-file.sav' near offset 0x100: Record 0 claims 3 cases with 7 values per case (requiring at least 168 bytes) but data record is only 144 bytes long.
+
+error: `pc+-file.sav' near offset 0x338: Case beginning at offset 0x00000300 extends past end of data record at offset 0x00000320.
+
+error: Error reading case from file `pc+-file.sav'.
+
+Table: Data List
+NUM1,NUM2,NUM3,NUM4
+2,3,4,5
+6,7,8,9
+])
+AT_CLEANUP
+
+AT_SETUP([corrupt compressed data])
+AT_KEYWORDS([sack synthetic PC+ file positive])
+AT_DATA([pc+-file.sack], [dnl
+dnl File header.
+2; 0;
+@MAIN; @MAIN_END - @MAIN;
+@VARS; @VARS_END - @VARS;
+0; 0;
+@DATA; @DATA_END - @DATA;
+(0; 0) * 11;
+i8 0 * 128;
+
+MAIN:
+    i16 1;         dnl Fixed.
+    s62 "PCSPSS PSPP synthetic test product";
+    PCSYSMIS;
+    0; 0; i16 1;   dnl Fixed.
+    i16 1;
+    i16 9;
+    2;
+    i16 0;         dnl Fixed.
+    2;
+    s8 "11/28/14";
+    s8 "15:11:00";
+    s64 "PSPP synthetic test file";
+MAIN_END:
+
+VARS:
+    0; 0; 0; 0x050800; s8 "$CASENUM"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "$DATE"; PCSYSMIS;
+    0; 0; 0; 0x050802; s8 "$WEIGHT"; PCSYSMIS;
+
+    dnl Numeric variables.
+    0; 0; 0; 0x050800; s8 "NUM1"; PCSYSMIS;
+    0; 0; 0; 0x050800; s8 "NUM2"; PCSYSMIS;
+
+    dnl String variables.
+    0; 0; 0; 0x010400; s8 "STR4"; PCSYSMIS;
+    0; 0; 0; 0x010800; s8 "STR8"; PCSYSMIS;
+    0; 0; 0; 0x010f00; s8 "STR15"; PCSYSMIS;
+    0 * 8;
+VARS_END:
+
+DATA:
+    i8 101 1 101 100 255 1 1 1;
+        s8 "11/28/14"; s8 "abcd"; s8 "efghj"; s8 "efghijkl";
+    i8 1; i8 102 101 101 1 0 1 1;
+         s8 "ABCDEFG"; 1000.0; s8 "PQRS"; s8 "TUVWXYZa";
+    i8 1 1 0 0 0 0 0 0;
+        s16 "bcdefghijklmnop";
+DATA_END:
+])
+AT_CHECK([sack --le pc+-file.sack > pc+-file.sav])
+AT_DATA([pc+-file.sps], [dnl
+GET FILE='pc+-file.sav' ENCODING='us-ascii'.
+DISPLAY FILE LABEL.
+DISPLAY DICTIONARY.
+LIST.
+])
+AT_CHECK([pspp -O format=csv pc+-file.sps], [0], [dnl
+File label: PSPP synthetic test file
+
+Variable,Description,Position
+NUM1,Format: F8.0,1
+NUM2,Format: F8.0,2
+STR4,Format: A4,3
+STR8,Format: A8,4
+STR15,Format: A15,5
+
+warning: `pc+-file.sav' near offset 0x308: Possible compressed data corruption: string contains compressed integer (opcode 101).
+
+Table: Data List
+NUM1,NUM2,STR4,STR8,STR15
+-5,150,abcd,efghj   ,efghijklABCDEFG
+1000,.,PQRS,TUVWXYZa,bcdefghijklmnop
+])
+AT_CLEANUP

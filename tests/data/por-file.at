@@ -114,4 +114,62 @@ Table: Data List
 VAR1,VAR2,VAR3,VAR4,VAR5
 1,2,3,4,5
 ])
+AT_DATA([sys-file-info.sps], [SYSFILE INFO FILE='data.por'
+])
+AT_CHECK([pspp -O format=csv sys-file-info.sps | sed '/Encoding/d
+/Integer Format/d
+/Real Format/d
+/Created/d
+'], [0], [dnl
+File:,data.por
+Label:,No label.
+Product:,x86_64-unknown-linux-gnu
+Variables:,5
+Cases:,Unknown
+Type:,SPSS Portable File
+Weight:,Not weighted.
+Compression:,None
+
+Variable,Description,Position
+VAR1,"Format: F1.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8
+
+Value,Label
+1,one",1
+VAR2,"Format: F1.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8
+
+Value,Label
+2,two",2
+VAR3,"Format: F1.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8
+
+Value,Label
+3,three",3
+VAR4,"Format: F1.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8
+
+Value,Label
+4,four",4
+VAR5,"Format: F1.0
+Measure: Scale
+Role: Input
+Display Alignment: Right
+Display Width: 8
+
+Value,Label
+5,five",5
+])
 AT_CLEANUP

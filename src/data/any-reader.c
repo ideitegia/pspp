@@ -24,12 +24,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "data/dataset-reader.h"
+#include "data/casereader.h"
+#include "data/dataset.h"
+#include "data/dictionary.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
-#include "data/por-file-reader.h"
-#include "data/sys-file-reader.h"
 #include "libpspp/assertion.h"
+#include "libpspp/cast.h"
 #include "libpspp/message.h"
 #include "libpspp/str.h"
 
@@ -37,84 +38,85 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) (msgid)
 
-/* Tries to detect whether FILE is a given type of file, by opening the file
-   and passing it to DETECT, and returns a detect_result. */
-static enum detect_result
-try_detect (const char *file_name, bool (*detect) (FILE *))
+static const struct any_reader_class dataset_reader_class;
+
+static const struct any_reader_class *classes[] =
+  {
+    &sys_file_reader_class,
+    &por_file_reader_class,
+    &pcp_file_reader_class,
+  };
+enum { N_CLASSES = sizeof classes / sizeof *classes };
+
+int
+any_reader_detect (const char *file_name,
+                   const struct any_reader_class **classp)
 {
+  struct detector
+    {
+      enum any_type type;
+      int (*detect) (FILE *);
+    };
+
   FILE *file;
-  bool is_type;
+  int retval;
+
+  if (classp)
+    *classp = NULL;
 
   file = fn_open (file_name, "rb");
   if (file == NULL)
     {
       msg (ME, _("An error occurred while opening `%s': %s."),
            file_name, strerror (errno));
-      return ANY_ERROR;
+      return -errno;
     }
 
-  is_type = detect (file);
+  retval = 0;
+  for (int i = 0; i < N_CLASSES; i++)
+    {
+      int rc = classes[i]->detect (file);
+      if (rc == 1)
+        {
+          retval = 1;
+          if (classp)
+            *classp = classes[i];
+          break;
+        }
+      else if (rc < 0)
+        retval = rc;
+    }
+
+  if (retval < 0)
+    msg (ME, _("Error reading `%s': %s."), file_name, strerror (-retval));
 
   fn_close (file_name, file);
 
-  return is_type ? ANY_YES : ANY_NO;
+  return retval;
 }
 
-/* Returns true if any_reader_open() would be able to open FILE as a data
-   file, false otherwise. */
-enum detect_result
-any_reader_may_open (const char *file)
-{
-  enum detect_result res = try_detect (file, sfm_detect);
-  
-  if (res == ANY_NO)
-    res = try_detect (file, pfm_detect);
-
-  return res;
-}
-
-/* Returns a casereader for HANDLE.  On success, returns the new
-   casereader and stores the file's dictionary into *DICT.  On
-   failure, returns a null pointer.
-
-   Ordinarily the reader attempts to automatically detect the character
-   encoding based on the file's contents.  This isn't always possible,
-   especially for files written by old versions of SPSS or PSPP, so specifying
-   a nonnull ENCODING overrides the choice of character encoding.  */
-struct casereader *
-any_reader_open (struct file_handle *handle, const char *encoding,
-                 struct dictionary **dict)
+struct any_reader *
+any_reader_open (struct file_handle *handle)
 {
   switch (fh_get_referent (handle))
     {
     case FH_REF_FILE:
       {
-        enum detect_result result;
+        const struct any_reader_class *class;
+        int retval;
 
-        result = try_detect (fh_get_file_name (handle), sfm_detect);
-        if (result == ANY_ERROR)
-          return NULL;
-        else if (result == ANY_YES)
+        retval = any_reader_detect (fh_get_file_name (handle), &class);
+        if (retval <= 0)
           {
-            struct sfm_reader *r;
-
-            r = sfm_open (handle);
-            if (r == NULL)
-              return NULL;
-
-            return sfm_decode (r, encoding, dict, NULL);
+            if (retval == 0)
+              msg (SE, _("`%s' is not a system or portable file."),
+                   fh_get_file_name (handle));
+            return NULL;
           }
 
-        result = try_detect (fh_get_file_name (handle), pfm_detect);
-        if (result == ANY_ERROR)
-          return NULL;
-        else if (result == ANY_YES)
-          return pfm_open_reader (handle, dict, NULL);
-
-        msg (SE, _("`%s' is not a system or portable file."),
-             fh_get_file_name (handle));
-        return NULL;
+        return class->open (handle);
       }
 
     case FH_REF_INLINE:
@@ -122,7 +124,139 @@ any_reader_open (struct file_handle *handle, const char *encoding,
       return NULL;
 
     case FH_REF_DATASET:
-      return dataset_reader_open (handle, dict);
+      return dataset_reader_class.open (handle);
     }
   NOT_REACHED ();
 }
+
+bool
+any_reader_close (struct any_reader *any_reader)
+{
+  return any_reader ? any_reader->klass->close (any_reader) : true;
+}
+
+struct casereader *
+any_reader_decode (struct any_reader *any_reader,
+                   const char *encoding,
+                   struct dictionary **dictp,
+                   struct any_read_info *info)
+{
+  const struct any_reader_class *class = any_reader->klass;
+  struct casereader *reader;
+
+  reader = any_reader->klass->decode (any_reader, encoding, dictp, info);
+  if (reader && info)
+    info->klass = class;
+  return reader;
+}
+
+size_t
+any_reader_get_strings (const struct any_reader *any_reader, struct pool *pool,
+                        char ***labels, bool **ids, char ***values)
+{
+  return (any_reader->klass->get_strings
+          ? any_reader->klass->get_strings (any_reader, pool, labels, ids,
+                                            values)
+          : 0);
+}
+
+struct casereader *
+any_reader_open_and_decode (struct file_handle *handle,
+                            const char *encoding,
+                            struct dictionary **dictp,
+                            struct any_read_info *info)
+{
+  struct any_reader *any_reader = any_reader_open (handle);
+  return (any_reader
+          ? any_reader_decode (any_reader, encoding, dictp, info)
+          : NULL);
+}
+
+struct dataset_reader
+  {
+    struct any_reader any_reader;
+    struct dictionary *dict;
+    struct casereader *reader;
+  };
+
+/* Opens FH, which must have referent type FH_REF_DATASET, and returns a
+   dataset_reader for it, or a null pointer on failure.  Stores a copy of the
+   dictionary for the dataset file into *DICT.  The caller takes ownership of
+   the casereader and the dictionary.  */
+static struct any_reader *
+dataset_reader_open (struct file_handle *fh)
+{
+  struct dataset_reader *reader;
+  struct dataset *ds;
+
+  /* We don't bother doing fh_lock or fh_ref on the file handle,
+     as there's no advantage in this case, and doing these would
+     require us to keep track of the "struct file_handle" and
+     "struct fh_lock" and undo our work later. */
+  assert (fh_get_referent (fh) == FH_REF_DATASET);
+
+  ds = fh_get_dataset (fh);
+  if (ds == NULL || !dataset_has_source (ds))
+    {
+      msg (SE, _("Cannot read from dataset %s because no dictionary or data "
+                 "has been written to it yet."),
+           fh_get_name (fh));
+      return NULL;
+    }
+
+  reader = xmalloc (sizeof *reader);
+  reader->any_reader.klass = &dataset_reader_class;
+  reader->dict = dict_clone (dataset_dict (ds));
+  reader->reader = casereader_clone (dataset_source (ds));
+  return &reader->any_reader;
+}
+
+static struct dataset_reader *
+dataset_reader_cast (const struct any_reader *r_)
+{
+  assert (r_->klass == &dataset_reader_class);
+  return UP_CAST (r_, struct dataset_reader, any_reader);
+}
+
+static bool
+dataset_reader_close (struct any_reader *r_)
+{
+  struct dataset_reader *r = dataset_reader_cast (r_);
+  dict_destroy (r->dict);
+  casereader_destroy (r->reader);
+  free (r);
+
+  return true;
+}
+
+static struct casereader *
+dataset_reader_decode (struct any_reader *r_, const char *encoding UNUSED,
+                       struct dictionary **dictp, struct any_read_info *info)
+{
+  struct dataset_reader *r = dataset_reader_cast (r_);
+  struct casereader *reader;
+
+  *dictp = r->dict;
+  reader = r->reader;
+  if (info)
+    {
+      memset (info, 0, sizeof *info);
+      info->integer_format = INTEGER_NATIVE;
+      info->float_format = FLOAT_NATIVE_DOUBLE;
+      info->compression = ANY_COMP_NONE;
+      info->case_cnt = casereader_get_case_cnt (reader);
+    }
+  free (r);
+
+  return reader;
+}
+
+static const struct any_reader_class dataset_reader_class =
+  {
+    N_("Dataset"),
+    NULL,
+    dataset_reader_open,
+    dataset_reader_close,
+    dataset_reader_decode,
+    NULL,
+  };

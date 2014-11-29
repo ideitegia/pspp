@@ -16,8 +16,6 @@
 
 #include <config.h>
 
-#include "data/por-file-reader.h"
-
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
@@ -27,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "data/any-reader.h"
 #include "data/casereader-provider.h"
 #include "data/casereader.h"
 #include "data/dictionary.h"
@@ -47,6 +46,7 @@
 #include "gl/intprops.h"
 #include "gl/minmax.h"
 #include "gl/xalloc.h"
+#include "gl/xmemdup0.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -65,10 +65,13 @@ static const char portable_to_local[256] =
 /* Portable file reader. */
 struct pfm_reader
   {
+    struct any_reader any_reader;
     struct pool *pool;          /* All the portable file state. */
 
     jmp_buf bail_out;           /* longjmp() target for error handling. */
 
+    struct dictionary *dict;
+    struct any_read_info info;
     struct file_handle *fh;     /* File handle. */
     struct fh_lock *lock;       /* Read lock for file. */
     FILE *file;			/* File stream. */
@@ -82,6 +85,13 @@ struct pfm_reader
   };
 
 static const struct casereader_class por_file_casereader_class;
+
+static struct pfm_reader *
+pfm_reader_cast (const struct any_reader *r_)
+{
+  assert (r_->klass == &por_file_reader_class);
+  return UP_CAST (r_, struct pfm_reader, any_reader);
+}
 
 static void
 error (struct pfm_reader *r, const char *msg,...)
@@ -151,12 +161,13 @@ warning (struct pfm_reader *r, const char *msg, ...)
 /* Close and destroy R.
    Returns false if an error was detected on R, true otherwise. */
 static bool
-close_reader (struct pfm_reader *r)
+pfm_close (struct any_reader *r_)
 {
+  struct pfm_reader *r = pfm_reader_cast (r_);
   bool ok;
-  if (r == NULL)
-    return true;
 
+  dict_destroy (r->dict);
+  any_read_info_destroy (&r->info);
   if (r->file)
     {
       if (fn_close (fh_get_file_name (r->fh), r->file) == EOF)
@@ -182,7 +193,7 @@ static void
 por_file_casereader_destroy (struct casereader *reader, void *r_)
 {
   struct pfm_reader *r = r_;
-  if (!close_reader (r))
+  if (!pfm_close (&r->any_reader))
     casereader_force_error (reader);
 }
 
@@ -236,7 +247,7 @@ match (struct pfm_reader *r, int c)
 }
 
 static void read_header (struct pfm_reader *);
-static void read_version_data (struct pfm_reader *, struct pfm_read_info *);
+static void read_version_data (struct pfm_reader *, struct any_read_info *);
 static void read_variables (struct pfm_reader *, struct dictionary *);
 static void read_value_label (struct pfm_reader *, struct dictionary *);
 static void read_documents (struct pfm_reader *, struct dictionary *);
@@ -244,18 +255,18 @@ static void read_documents (struct pfm_reader *, struct dictionary *);
 /* Reads the dictionary from file with handle H, and returns it in a
    dictionary structure.  This dictionary may be modified in order to
    rename, reorder, and delete variables, etc. */
-struct casereader *
-pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
-                 struct pfm_read_info *info)
+struct any_reader *
+pfm_open (struct file_handle *fh)
 {
   struct pool *volatile pool = NULL;
   struct pfm_reader *volatile r = NULL;
 
-  *dict = dict_create (get_default_encoding ());
-
   /* Create and initialize reader. */
   pool = pool_create ();
   r = pool_alloc (pool, sizeof *r);
+  r->any_reader.klass = &por_file_reader_class;
+  r->dict = dict_create (get_default_encoding ());
+  memset (&r->info, 0, sizeof r->info);
   r->pool = pool;
   r->fh = fh_ref (fh);
   r->lock = NULL;
@@ -288,30 +299,46 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
   /* Read header, version, date info, product id, variables. */
   read_header (r);
-  read_version_data (r, info);
-  read_variables (r, *dict);
+  read_version_data (r, &r->info);
+  read_variables (r, r->dict);
 
   /* Read value labels. */
   while (match (r, 'D'))
-    read_value_label (r, *dict);
+    read_value_label (r, r->dict);
 
   /* Read documents. */
   if (match (r, 'E'))
-    read_documents (r, *dict);
+    read_documents (r, r->dict);
 
   /* Check that we've made it to the data. */
   if (!match (r, 'F'))
     error (r, _("Data record expected."));
 
-  r->proto = caseproto_ref_pool (dict_get_proto (*dict), r->pool);
-  return casereader_create_sequential (NULL, r->proto, CASENUMBER_MAX,
-                                       &por_file_casereader_class, r);
+  r->proto = caseproto_ref_pool (dict_get_proto (r->dict), r->pool);
+  return &r->any_reader;
 
  error:
-  close_reader (r);
-  dict_destroy (*dict);
-  *dict = NULL;
+  pfm_close (&r->any_reader);
   return NULL;
+}
+
+struct casereader *
+pfm_decode (struct any_reader *r_, const char *encoding UNUSED,
+            struct dictionary **dictp, struct any_read_info *info)
+{
+  struct pfm_reader *r = pfm_reader_cast (r_);
+
+  *dictp = r->dict;
+  r->dict = NULL;
+
+  if (info)
+    {
+      *info = r->info;
+      memset (&r->info, 0, sizeof r->info);
+    }
+
+  return casereader_create_sequential (NULL, r->proto, CASENUMBER_MAX,
+                                       &por_file_casereader_class, r);
 }
 
 /* Returns the value of base-30 digit C,
@@ -536,7 +563,7 @@ read_header (struct pfm_reader *r)
 /* Reads the version and date info record, as well as product and
    subproduct identification records if present. */
 static void
-read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
+read_version_data (struct pfm_reader *r, struct any_read_info *info)
 {
   static const char empty_string[] = "";
   char *date, *time;
@@ -565,16 +592,25 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
   /* Save file info. */
   if (info != NULL)
     {
+      memset (info, 0, sizeof *info);
+
+      info->float_format = FLOAT_NATIVE_DOUBLE;
+      info->integer_format = INTEGER_NATIVE;
+      info->compression = ANY_COMP_NONE;
+      info->case_cnt = -1;
+
       /* Date. */
+      info->creation_date = xmalloc (11);
       for (i = 0; i < 8; i++)
         {
           static const int map[] = {6, 7, 8, 9, 3, 4, 0, 1};
           info->creation_date[map[i]] = date[i];
         }
       info->creation_date[2] = info->creation_date[5] = ' ';
-      info->creation_date[10] = 0;
+      info->creation_date[10] = '\0';
 
       /* Time. */
+      info->creation_time = xmalloc (9);
       for (i = 0; i < 6; i++)
         {
           static const int map[] = {0, 1, 3, 4, 6, 7};
@@ -584,8 +620,8 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
       info->creation_time[8] = 0;
 
       /* Product. */
-      str_copy_trunc (info->product, sizeof info->product, product);
-      str_copy_trunc (info->subproduct, sizeof info->subproduct, subproduct);
+      info->product = xstrdup (product);
+      info->product_ext = xstrdup (subproduct);
     }
 }
 
@@ -888,7 +924,7 @@ por_file_casereader_read (struct casereader *reader, void *r_)
 
 /* Returns true if FILE is an SPSS portable file,
    false otherwise. */
-bool
+int
 pfm_detect (FILE *file)
 {
   unsigned char header[464];
@@ -902,7 +938,7 @@ pfm_detect (FILE *file)
     {
       int c = getc (file);
       if (c == EOF || raw_cnt++ > 512)
-        return false;
+        return 0;
       else if (c == '\n')
         {
           while (line_len < 80 && cooked_cnt < sizeof header)
@@ -929,9 +965,9 @@ pfm_detect (FILE *file)
 
   for (i = 0; i < 8; i++)
     if (trans[header[i + 456]] != "SPSSPORT"[i])
-      return false;
+      return 0;
 
-  return true;
+  return 1;
 }
 
 static const struct casereader_class por_file_casereader_class =
@@ -940,4 +976,14 @@ static const struct casereader_class por_file_casereader_class =
     por_file_casereader_destroy,
     NULL,
     NULL,
+  };
+
+const struct any_reader_class por_file_reader_class =
+  {
+    N_("SPSS Portable File"),
+    pfm_detect,
+    pfm_open,
+    pfm_close,
+    pfm_decode,
+    NULL,                       /* get_strings */
   };

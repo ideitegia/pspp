@@ -46,7 +46,6 @@
 #include <data/identifier.h>
 #include <data/settings.h>
 #include <data/sys-file-writer.h>
-#include <data/sys-file-reader.h>
 #include <data/value.h>
 #include <data/vardict.h>
 #include <data/value-labels.h>
@@ -78,7 +77,7 @@ struct syswriter_info
 /*  A thin wrapper around sfm_reader */
 struct sysreader_info
 {
-  struct sfm_read_info opts;
+  struct any_read_info opts;
 
   /* A pointer to the reader. The reader is owned by the struct */
   struct casereader *reader;
@@ -633,8 +632,8 @@ INIT:
 
     opts.create_writeable = readonly ? ! SvIV (*readonly) : true;
     opts.compression = (compress && SvIV (*compress)
-                        ? SFM_COMP_SIMPLE
-			: SFM_COMP_NONE);
+                        ? ANY_COMP_SIMPLE
+			: ANY_COMP_NONE);
     opts.version = version ? SvIV (*version) : 3 ;
   }
 CODE:
@@ -755,26 +754,16 @@ CODE:
  struct file_handle *fh =
  	 fh_create_file (NULL, name, fh_default_properties () );
  struct dictionary *dict;
- struct sfm_reader *r;
 
  sri = xmalloc (sizeof (*sri));
- r = sfm_open (fh);
- if (r)
-   {
-     sri->reader = sfm_decode (r, NULL, &dict, &sri->opts);
-     if (sri->reader)
-       sri->dict = create_pspp_dict (dict);
-     else
-       {
-	 free (sri);
-	 sri = NULL;
-       }
-   }
+ sri->reader = any_reader_open_and_decode (fh, NULL, &dict, &sri->opts);
+ if (sri->reader)
+   sri->dict = create_pspp_dict (dict);
  else
    {
      free (sri);
      sri = NULL;
-   } 
+   }
 
  RETVAL = sri;
  OUTPUT:

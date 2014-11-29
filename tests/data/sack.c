@@ -29,6 +29,8 @@
 #include "libpspp/assertion.h"
 #include "libpspp/compiler.h"
 #include "libpspp/float-format.h"
+#include "libpspp/hash-functions.h"
+#include "libpspp/hmap.h"
 #include "libpspp/integer-format.h"
 
 #include "gl/c-ctype.h"
@@ -52,16 +54,23 @@ enum token_type
     T_EOF,
     T_INTEGER,
     T_FLOAT,
+    T_PCSYSMIS,
     T_STRING,
     T_SEMICOLON,
     T_ASTERISK,
     T_LPAREN,
     T_RPAREN,
     T_I8,
+    T_I16,
     T_I64,
     T_S,
     T_COUNT,
-    T_HEX
+    T_COUNT8,
+    T_HEX,
+    T_LABEL,
+    T_AT,
+    T_MINUS,
+    T_PLUS,
   };
 
 static enum token_type token;
@@ -69,6 +78,16 @@ static unsigned long long int tok_integer;
 static double tok_float;
 static char *tok_string;
 static size_t tok_strlen, tok_allocated;
+
+/* Symbol table. */
+struct symbol
+  {
+    struct hmap_node hmap_node;
+    const char *name;
+    unsigned int offset;
+  };
+
+static struct hmap symbol_table = HMAP_INITIALIZER (symbol_table);
 
 /* --be, --le: Integer and floating-point formats. */
 static enum float_format float_format = FLOAT_IEEE_DOUBLE_BE;
@@ -136,8 +155,6 @@ get_token (void)
     }
   else if (isdigit (c) || c == '-')
     {
-      char *tail;
-
       do
         {
           add_char (c);
@@ -147,19 +164,26 @@ get_token (void)
       add_char__ ('\0');
       ungetc (c, input);
 
-      errno = 0;
-      if (strchr (tok_string, '.') == NULL)
-        {
-          token = T_INTEGER;
-          tok_integer = strtoull (tok_string, &tail, 0);
-        }
+      if (!strcmp (tok_string, "-"))
+        token = T_MINUS;
       else
         {
-          token = T_FLOAT;
-          tok_float = strtod (tok_string, &tail);
+          char *tail;
+
+          errno = 0;
+          if (strchr (tok_string, '.') == NULL)
+            {
+              token = T_INTEGER;
+              tok_integer = strtoull (tok_string, &tail, 0);
+            }
+          else
+            {
+              token = T_FLOAT;
+              tok_float = strtod (tok_string, &tail);
+            }
+          if (errno || *tail)
+            fatal ("invalid numeric syntax \"%s\"", tok_string);
         }
-      if (errno || *tail)
-        fatal ("invalid numeric syntax");
     }
   else if (c == '"')
     {
@@ -176,23 +200,38 @@ get_token (void)
     token = T_SEMICOLON;
   else if (c == '*')
     token = T_ASTERISK;
+  else if (c == '+')
+    token = T_PLUS;
   else if (c == '(')
     token = T_LPAREN;
   else if (c == ')')
     token = T_RPAREN;
-  else if (isalpha (c))
+  else if (isalpha (c) || c == '@' || c == '_')
     {
       do
         {
           add_char (c);
           c = getc (input);
         }
-      while (isdigit (c) || isalpha (c) || c == '.');
+      while (isdigit (c) || isalpha (c) || c == '.' || c == '_');
       add_char ('\0');
+
+      if (c == ':')
+        {
+          token = T_LABEL;
+          return;
+        }
       ungetc (c, input);
+      if (tok_string[0] == '@')
+        {
+          token = T_AT;
+          return;
+        }
 
       if (!strcmp (tok_string, "i8"))
         token = T_I8;
+      else if (!strcmp (tok_string, "i16"))
+        token = T_I16;
       else if (!strcmp (tok_string, "i64"))
         token = T_I64;
       else if (tok_string[0] == 's')
@@ -205,6 +244,8 @@ get_token (void)
           token = T_FLOAT;
           tok_float = -DBL_MAX;
         }
+      else if (!strcmp (tok_string, "PCSYSMIS"))
+        token = T_PCSYSMIS;
       else if (!strcmp (tok_string, "LOWEST"))
         {
           token = T_FLOAT;
@@ -222,6 +263,8 @@ get_token (void)
         }
       else if (!strcmp (tok_string, "COUNT"))
         token = T_COUNT;
+      else if (!strcmp (tok_string, "COUNT8"))
+        token = T_COUNT8;
       else if (!strcmp (tok_string, "hex"))
         token = T_HEX;
       else
@@ -288,14 +331,13 @@ stdout.  A data item is one of the following\n\
     to fill up <number> bytes.  For example, s8 \"foo\" is output as\n\
     the \"foo\" followed by 5 spaces.\n\
 \n\
-  - The literal \"i8\" followed by an integer.  Output as a single\n\
-    byte with the specified value.\n\
-\n\
-  - The literal \"i64\" followed by an integer.  Output as a 64-bit\n\
-    binary integer.\n\
+  - The literal \"i8\", \"i16\", or \"i64\" followed by an integer.  Output\n\
+    as a binary integer with the specified number of bits.\n\
 \n\
   - One of the literals SYSMIS, LOWEST, or HIGHEST.  Output as a\n\
     64-bit IEEE 754 float of the appropriate PSPP value.\n\
+\n\
+  - PCSYSMIS.  Output as SPSS/PC+ system-missing value.\n\
 \n\
   - The literal ENDIAN.  Output as a 32-bit binary integer, either\n\
     with value 1 if --be is in effect or 2 if --le is in effect.\n\
@@ -304,9 +346,9 @@ stdout.  A data item is one of the following\n\
     followed by a semicolon (the last semicolon is optional).\n\
     Output as the enclosed data items in sequence.\n\
 \n\
-  - The literal COUNT followed by a sequence of parenthesized data\n\
-    items, as above.  Output as a 32-bit binary integer whose value\n\
-    is the number of bytes enclosed within the parentheses, followed\n\
+  - The literal COUNT or COUNT8 followed by a sequence of parenthesized\n\
+    data items, as above.  Output as a 32-bit or 8-bit binary integer whose\n\
+    value is the number of bytes enclosed within the parentheses, followed\n\
     by the enclosed data items themselves.\n\
 \n\
 optionally followed by an asterisk and a positive integer, which\n\
@@ -371,6 +413,27 @@ parse_options (int argc, char **argv)
   return argv[optind];
 }
 
+static struct symbol *
+symbol_find (const char *name)
+{
+  struct symbol *symbol;
+  unsigned int hash;
+
+  if (name[0] == '@')
+    name++;
+  hash = hash_string (name, 0);
+  HMAP_FOR_EACH_WITH_HASH (symbol, struct symbol, hmap_node,
+                           hash, &symbol_table)
+    if (!strcmp (name, symbol->name))
+      return symbol;
+
+  symbol = xmalloc (sizeof *symbol);
+  hmap_insert (&symbol_table, &symbol->hmap_node, hash);
+  symbol->name = xstrdup (name);
+  symbol->offset = UINT_MAX;
+  return symbol;
+}
+
 static void
 parse_data_item (struct buffer *output)
 {
@@ -388,6 +451,13 @@ parse_data_item (struct buffer *output)
                      float_format, buffer_put_uninit (output, 8));
       get_token ();
     }
+  else if (token == T_PCSYSMIS)
+    {
+      static const uint8_t pcsysmis[] =
+        { 0xf5, 0x1e, 0x26, 0x02, 0x8a, 0x8c, 0xed, 0xff, };
+      buffer_put (output, pcsysmis, sizeof pcsysmis);
+      get_token ();
+    }
   else if (token == T_I8)
     {
       uint8_t byte;
@@ -399,6 +469,19 @@ parse_data_item (struct buffer *output)
             fatal ("integer expected after `i8'");
           byte = tok_integer;
           buffer_put (output, &byte, 1);
+          get_token ();
+        }
+      while (token == T_INTEGER);
+    }
+  else if (token == T_I16)
+    {
+      get_token ();
+      do
+        {
+          if (token != T_INTEGER)
+            fatal ("integer expected after `i16'");
+          integer_put (tok_integer, integer_format,
+                       buffer_put_uninit (output, 2), 2);
           get_token ();
         }
       while (token == T_INTEGER);
@@ -464,6 +547,22 @@ parse_data_item (struct buffer *output)
       integer_put (output->size - old_size - 4, integer_format,
                    output->data + old_size, 4);
     }
+  else if (token == T_COUNT8)
+    {
+      buffer_put_uninit (output, 1);
+
+      get_token ();
+      if (token != T_LPAREN)
+        fatal ("`(' expected after COUNT8");
+      get_token ();
+
+      while (token != T_RPAREN)
+        parse_data_item (output);
+      get_token ();
+
+      integer_put (output->size - old_size - 1, integer_format,
+                   output->data + old_size, 1);
+    }
   else if (token == T_HEX)
     {
       const char *p;
@@ -490,6 +589,42 @@ parse_data_item (struct buffer *output)
             fatal ("invalid format in hex string");
         }
       get_token ();
+    }
+  else if (token == T_LABEL)
+    {
+      struct symbol *sym = symbol_find (tok_string);
+      if (sym->offset == UINT_MAX)
+        sym->offset = output->size;
+      else if (sym->offset != output->size)
+        fatal ("%s: can't redefine label for offset %u with offset %u",
+               tok_string, sym->offset, output->size);
+      get_token ();
+      return;
+    }
+  else if (token == T_AT)
+    {
+      unsigned int value = symbol_find (tok_string)->offset;
+      get_token ();
+
+      while (token == T_MINUS || token == T_PLUS)
+        {
+          enum token_type op = token;
+          unsigned int operand;
+          get_token ();
+          if (token == T_AT)
+            operand = symbol_find (tok_string)->offset;
+          else if (token == T_INTEGER)
+            operand = tok_integer;
+          else
+            fatal ("expecting @label");
+          get_token ();
+
+          if (op == T_PLUS)
+            value += operand;
+          else
+            value -= operand;
+        }
+      integer_put (value, integer_format, buffer_put_uninit (output, 4), 4);
     }
   else
     fatal ("syntax error");
@@ -547,6 +682,24 @@ main (int argc, char **argv)
   get_token ();
   while (token != T_EOF)
     parse_data_item (&output);
+
+  if (!hmap_is_empty (&symbol_table))
+    {
+      struct symbol *symbol;
+
+      HMAP_FOR_EACH (symbol, struct symbol, hmap_node, &symbol_table)
+        if (symbol->offset == UINT_MAX)
+          error (1, 0, "label %s used but never defined", symbol->name);
+
+      output.size = 0;
+      if (fseek (input, 0, SEEK_SET) != 0)
+        error (1, 0, "failed to rewind stdin for second pass");
+
+      line_number = 1;
+      get_token ();
+      while (token != T_EOF)
+        parse_data_item (&output);
+    }
 
   if (input != stdin)
     fclose (input);

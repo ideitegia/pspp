@@ -16,10 +16,11 @@ Synopsis:
 @t{pspp-convert -@w{-}version}
 @end display
 
-The format of @var{Iinput} is automatically detected, except that the
-character encoding of old system files cannot always be guessed
-correctly.  Use @code{-e @var{encoding}} to specify the encoding in this
-case.
+The format of @var{Iinput} is automatically detected, when possible.
+The character encoding of old SPSS system files cannot always be
+guessed correctly, and SPSS/PC+ system files do not include any
+indication of their encoding.  Use @code{-e @var{encoding}} to specify
+the encoding in this case.
 
 By default, the intended format for @var{output} is inferred based on its
 extension:
@@ -60,8 +61,8 @@ Specifying this option to limit the number of cases written to
 @item -e @var{charset}
 @itemx --encoding=@var{charset}
 Overrides the encoding in which character strings in @var{input} are
-interpreted.  This option is necessary because old SPSS system files
-do not self-identify their encoding.
+interpreted.  This option is necessary because old SPSS system files,
+and SPSS/PC+ system files, do not self-identify their encoding.
 
 @item -h
 @itemx --help

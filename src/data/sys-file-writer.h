@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2009, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,14 +18,14 @@
 #define SFM_WRITE_H 1
 
 #include <stdbool.h>
-#include "sys-file.h"
+#include "any-reader.h"
 
 /* Writing system files. */
 
 /* Options for creating a system file. */
 struct sfm_write_options
   {
-    enum sfm_compression compression;
+    enum any_compression compression;
     bool create_writeable;      /* File perms: writeable or read/only? */
     int version;                /* System file version (currently 2 or 3). */
   };

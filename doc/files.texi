@@ -145,10 +145,9 @@ GET
 @cmd{GET} clears the current dictionary and active dataset and
 replaces them with the dictionary and data from a specified file.
 
-The @subcmd{FILE} subcommand is the only required subcommand.  
-Specify the system
-file or portable file to be read as a string file name or
-a file handle (@pxref{File Handles}).
+The @subcmd{FILE} subcommand is the only required subcommand.  Specify
+the SPSS system file, SPSS/PC+ system file, or SPSS portable file to
+be read as a string file name or a file handle (@pxref{File Handles}).
 
 By default, all the variables in a file are read.  The DROP
 subcommand can be used to specify a list of variables that are not to be
@@ -175,10 +174,11 @@ Each may be present any number of times.  @cmd{GET} never modifies a
 file on disk.  Only the active dataset read from the file
 is affected by these subcommands.
 
-@pspp{} tries to automatically detect the encoding of string data in the
-file.  Sometimes, however, this does not work well,
-especially for files written by old versions of SPSS or @pspp{}.  Specify
-the @subcmd{ENCODING} subcommand with an @acronym{IANA} character set name as its string
+@pspp{} automatically detects the encoding of string data in the file,
+when possible.  The character encoding of old SPSS system files cannot
+always be guessed correctly, and SPSS/PC+ system files do not include
+any indication of their encoding.  Specify the @subcmd{ENCODING}
+subcommand with an @acronym{IANA} character set name as its string
 argument to override the default.  Use @cmd{SYSFILE INFO} to analyze
 the encodings that might be valid for a system file.  The
 @subcmd{ENCODING} subcommand is a @pspp{} extension.
@@ -914,20 +914,21 @@ qualifier character that appears within a value is doubled.
 SYSFILE INFO FILE='@var{file_name}' [ENCODING='@var{encoding}'].
 @end display
 
-@cmd{SYSFILE INFO} reads the dictionary in a system file and
-displays the information in its dictionary.
+@cmd{SYSFILE INFO} reads the dictionary in an SPSS system file,
+SPSS/PC+ system file, or SPSS portable file, and displays the
+information in its dictionary.
 
-Specify a file name or file handle.  @cmd{SYSFILE INFO} reads that file as
-a system file and displays information on its dictionary.
+Specify a file name or file handle.  @cmd{SYSFILE INFO} reads that
+file and displays information on its dictionary.
 
-@pspp{} tries to automatically detect the encoding of string data in
-the file.  Sometimes, however, this does not work well, especially for
-files written by old versions of SPSS or @pspp{}.  Specify the
-@subcmd{ENCODING} subcommand with an @acronym{IANA} character set name
-as its string argument to override the default, or specify
-@code{ENCODING='DETECT'} to analyze and report possibly valid
-encodings for the system file.  The @subcmd{ENCODING} subcommand is a
-@pspp{} extension.
+@pspp{} automatically detects the encoding of string data in the file,
+when possible.  The character encoding of old SPSS system files cannot
+always be guessed correctly, and SPSS/PC+ system files do not include
+any indication of their encoding.  Specify the @subcmd{ENCODING}
+subcommand with an @acronym{IANA} character set name as its string
+argument to override the default, or specify @code{ENCODING='DETECT'}
+to analyze and report possibly valid encodings for the system file.
+The @subcmd{ENCODING} subcommand is a @pspp{} extension.
 
 @cmd{SYSFILE INFO} does not affect the current active dataset.
 

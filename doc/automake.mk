@@ -38,6 +38,7 @@ doc_pspp_dev_TEXINFOS = doc/version-dev.texi \
 	doc/dev/i18n.texi \
 	doc/dev/output.texi \
 	doc/dev/system-file-format.texi \
+	doc/dev/pc+-file-format.texi \
 	doc/dev/portable-file-format.texi \
 	doc/dev/q2c.texi
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-2000, 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-2000, 2006-2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ struct sfm_writer
     FILE *file;			/* File stream. */
     struct replace_file *rf;    /* Ticket for replacing output file. */
 
-    enum sfm_compression compression;
+    enum any_compression compression;
     casenumber case_cnt;	/* Number of cases written so far. */
     uint8_t space;              /* ' ' in the file's character encoding. */
 
@@ -183,8 +183,8 @@ sfm_writer_default_options (void)
 {
   struct sfm_write_options opts;
   opts.compression = (settings_get_scompression ()
-                      ? SFM_COMP_SIMPLE
-                      : SFM_COMP_NONE);
+                      ? ANY_COMP_SIMPLE
+                      : ANY_COMP_NONE);
   opts.create_writeable = true;
   opts.version = 3;
   return opts;
@@ -224,9 +224,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
      files have been observed, so drop back to simple compression for those
      files. */
   w->compression = opts.compression;
-  if (w->compression == SFM_COMP_ZLIB
+  if (w->compression == ANY_COMP_ZLIB
       && is_encoding_ebcdic_compatible (dict_get_encoding (d)))
-    w->compression = SFM_COMP_SIMPLE;
+    w->compression = ANY_COMP_SIMPLE;
 
   w->case_cnt = 0;
 
@@ -306,7 +306,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_int (w, 999);
   write_int (w, 0);
 
-  if (w->compression == SFM_COMP_ZLIB)
+  if (w->compression == ANY_COMP_ZLIB)
     {
       w->zstream.zalloc = Z_NULL;
       w->zstream.zfree = Z_NULL;
@@ -377,7 +377,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   /* Record-type code. */
   if (is_encoding_ebcdic_compatible (dict_encoding))
     write_string (w, EBCDIC_MAGIC, 4);
-  else if (w->compression == SFM_COMP_ZLIB)
+  else if (w->compression == ANY_COMP_ZLIB)
     write_string (w, ASCII_ZMAGIC, 4);
   else
     write_string (w, ASCII_MAGIC, 4);
@@ -394,8 +394,8 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
   write_int (w, calc_oct_idx (d, NULL));
 
   /* Compressed? */
-  write_int (w, (w->compression == SFM_COMP_NONE ? 0
-                 : w->compression == SFM_COMP_SIMPLE ? 1
+  write_int (w, (w->compression == ANY_COMP_NONE ? 0
+                 : w->compression == ANY_COMP_SIMPLE ? 1
                  : 2));
 
   /* Weight variable. */
@@ -1216,7 +1216,7 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
 
   w->case_cnt++;
 
-  if (w->compression == SFM_COMP_NONE)
+  if (w->compression == ANY_COMP_NONE)
     write_case_uncompressed (w, c);
   else
     write_case_compressed (w, c);
@@ -1255,7 +1255,7 @@ close_writer (struct sfm_writer *w)
     {
       /* Flush buffer. */
       flush_compressed (w);
-      if (w->compression == SFM_COMP_ZLIB)
+      if (w->compression == ANY_COMP_ZLIB)
         {
           finish_zstream (w);
           write_ztrailer (w);
@@ -1507,7 +1507,7 @@ flush_compressed (struct sfm_writer *w)
   if (w->n_opcodes)
     {
       unsigned int n = 8 * (1 + w->n_elements);
-      if (w->compression == SFM_COMP_SIMPLE)
+      if (w->compression == ANY_COMP_SIMPLE)
         write_bytes (w, w->cbuf, n);
       else
         write_zlib (w, w->cbuf, n);

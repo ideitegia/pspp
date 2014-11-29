@@ -260,6 +260,7 @@ TESTSUITE_AT = \
 	tests/data/datasheet-test.at \
 	tests/data/dictionary.at \
 	tests/data/format-guesser.at \
+	tests/data/pc+-file-reader.at \
 	tests/data/por-file.at \
 	tests/data/sys-file-reader.at \
 	tests/data/sys-file.at \

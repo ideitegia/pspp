@@ -53,9 +53,9 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   handle = fh_parse (lexer, FH_REF_FILE, dataset_session (ds));
   if (!handle)
     return CMD_FAILURE;
-  reader = any_reader_open (handle, NULL, &dict);
+  reader = any_reader_open_and_decode (handle, NULL, &dict, NULL);
   fh_unref (handle);
-  if (dict == NULL)
+  if (!reader)
     return CMD_FAILURE;
 
   casereader_destroy (reader);

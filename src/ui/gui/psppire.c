@@ -29,10 +29,8 @@
 #include "data/datasheet.h"
 #include "data/file-handle-def.h"
 #include "data/file-name.h"
-#include "data/por-file-reader.h"
 #include "data/session.h"
 #include "data/settings.h"
-#include "data/sys-file-reader.h"
 
 #include "language/lexer/lexer.h"
 #include "libpspp/i18n.h"
@@ -107,13 +105,13 @@ initialize (const char *data_file)
     {
       gchar *filename = local_to_filename_encoding (data_file);
 
-      enum detect_result res = any_reader_may_open (filename);
+      int retval = any_reader_detect (filename, NULL);
 
       /* Check to see if the file is a .sav or a .por file.  If not
          assume that it is a syntax file */
-      if (res == ANY_YES)
+      if (retval == 1)
 	open_data_window (NULL, filename, NULL, NULL);
-      else if (res == ANY_NO)
+      else if (retval == 0)
         {
           create_data_window ();
           open_syntax_window (filename, NULL);

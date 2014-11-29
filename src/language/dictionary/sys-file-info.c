@@ -21,6 +21,7 @@
 #include <float.h>
 #include <stdlib.h>
 
+#include "data/any-reader.h"
 #include "data/attributes.h"
 #include "data/casereader.h"
 #include "data/dataset.h"
@@ -28,7 +29,6 @@
 #include "data/file-handle-def.h"
 #include "data/format.h"
 #include "data/missing-values.h"
-#include "data/sys-file-reader.h"
 #include "data/value-labels.h"
 #include "data/variable.h"
 #include "data/vector.h"
@@ -76,19 +76,20 @@ static unsigned int dict_display_mask (const struct dictionary *);
 
 static struct table *describe_variable (const struct variable *v, int flags);
 
-static void report_encodings (const struct file_handle *,
-                              const struct sfm_reader *);
+static void report_encodings (const struct file_handle *, struct pool *,
+                              char **titles, bool *ids,
+                              char **strings, size_t n_strings);
 
 /* SYSFILE INFO utility. */
 int
 cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  struct sfm_reader *sfm_reader;
+  struct any_reader *any_reader;
   struct file_handle *h;
   struct dictionary *d;
   struct tab_table *t;
   struct casereader *reader;
-  struct sfm_read_info info;
+  struct any_read_info info;
   char *encoding;
   struct table *table;
   int r, i;
@@ -130,21 +131,32 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
       goto error;
     }
 
-  sfm_reader = sfm_open (h);
-  if (sfm_reader == NULL)
-    goto error;
+  any_reader = any_reader_open (h);
+  if (!any_reader)
+    return CMD_FAILURE;
 
   if (encoding && !strcasecmp (encoding, "detect"))
     {
-      report_encodings (h, sfm_reader);
+      char **titles, **strings;
+      struct pool *pool;
+      size_t n_strings;
+      bool *ids;
+
+      pool = pool_create ();
+      n_strings = any_reader_get_strings (any_reader, pool,
+                                          &titles, &ids, &strings);
+      any_reader_close (any_reader);
+
+      report_encodings (h, pool, titles, ids, strings, n_strings);
       fh_unref (h);
+      pool_destroy (pool);
+
       return CMD_SUCCESS;
     }
 
-  reader = sfm_decode (sfm_reader, encoding, &d, &info);
+  reader = any_reader_decode (any_reader, encoding, &d, &info);
   if (!reader)
     goto error;
-
   casereader_destroy (reader);
 
   t = tab_create (2, 11 + (info.product_ext != NULL));
@@ -198,7 +210,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   r++;
 
   tab_text (t, 0, r, TAB_LEFT, _("Type:"));
-  tab_text (t, 1, r++, TAB_LEFT, _("System File"));
+  tab_text (t, 1, r++, TAB_LEFT, gettext (info.klass->name));
 
   tab_text (t, 0, r, TAB_LEFT, _("Weight:"));
   {
@@ -210,8 +222,8 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
   tab_text (t, 0, r, TAB_LEFT, _("Compression:"));
   tab_text_format (t, 1, r++, TAB_LEFT,
-                   info.compression == SFM_COMP_NONE ? _("None")
-                   : info.compression == SFM_COMP_SIMPLE ? "SAV"
+                   info.compression == ANY_COMP_NONE ? _("None")
+                   : info.compression == ANY_COMP_SIMPLE ? "SAV"
                    : "ZSAV");
 
   tab_text (t, 0, r, TAB_LEFT, _("Encoding:"));
@@ -237,7 +249,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   dict_destroy (d);
 
   fh_unref (h);
-  sfm_read_info_destroy (&info);
+  any_read_info_destroy (&info);
   return CMD_SUCCESS;
 
 error:
@@ -941,20 +953,14 @@ equal_suffix (const struct encoding *encodings, size_t n_encodings,
 }
 
 static void
-report_encodings (const struct file_handle *h, const struct sfm_reader *r)
+report_encodings (const struct file_handle *h, struct pool *pool,
+                  char **titles, bool *ids, char **strings, size_t n_strings)
 {
-  char **titles;
-  char **strings;
-  bool *ids;
   struct encoding encodings[N_ENCODING_NAMES];
-  size_t n_encodings, n_strings, n_unique_strings;
+  size_t n_encodings, n_unique_strings;
   size_t i, j;
   struct tab_table *t;
-  struct pool *pool;
   size_t row;
-
-  pool = pool_create ();
-  n_strings = sfm_get_strings (r, pool, &titles, &ids, &strings);
 
   n_encodings = 0;
   for (i = 0; i < N_ENCODING_NAMES; i++)
@@ -990,7 +996,6 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
   if (!n_encodings)
     {
       msg (SW, _("No valid encodings found."));
-      pool_destroy (pool);
       return;
     }
 
@@ -1026,10 +1031,7 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
     if (!all_equal (encodings, n_encodings, i))
       n_unique_strings++;
   if (!n_unique_strings)
-    {
-      pool_destroy (pool);
-      return;
-    }
+    return;
 
   t = tab_create (3, (n_encodings * n_unique_strings) + 1);
   tab_title (t, _("%s encoded text strings."), fh_get_name (h));
@@ -1078,8 +1080,6 @@ report_encodings (const struct file_handle *h, const struct sfm_reader *r)
           }
       }
   tab_submit (t);
-
-  pool_destroy (pool);
 }
 
 static unsigned int

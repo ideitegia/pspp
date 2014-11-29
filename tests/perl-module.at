@@ -571,7 +571,7 @@ AT_DATA([test.pl],
     print $PSPP::errstr, "\n";
 ]])
 AT_CHECK([RUN_PERL_MODULE test.pl], [0],
-  [[Error opening `no-such-file.sav' for reading as a system file: No such file or directory.
+  [[An error occurred while opening `no-such-file.sav': No such file or directory.
 ]],
   [[Name "PSPP::errstr" used only once: possible typo at test.pl line 8.
 ]])

@@ -6,6 +6,14 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
  
 Changes since 0.8.4:
 
+ * SPSS/PC+ system files are now supported on GET and other commands
+   that read SPSS system files.  The pspp-convert program can now read
+   SPSS/PC+ system files.  Writing the obsolete SPSS/PC+ system file
+   format is not supported.
+
+ * SYSFILE INFO can now read SPSS/PC+ system files and SPSS portable
+   files.
+
  * FREQUENCIES: A bug was fixed where an assertion failure occured
    when an empty dataset was presented.
 

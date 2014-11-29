@@ -522,7 +522,7 @@ SYNTAX
 
   ok ( !ref $sf, "Returns undef on opening failure");
 
-  ok ("$PSPP::errstr" eq "Error opening `$tempdir/no-such-file.sav' for reading as a system file: No such file or directory.",
+  ok ("$PSPP::errstr" eq "An error occurred while opening `$tempdir/no-such-file.sav': No such file or directory.",
       "Error string on open failure");
 }
 

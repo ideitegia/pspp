@@ -17,14 +17,16 @@ pspp\-convert \- convert SPSS system and portable files to other formats
 \fBpspp\-convert \-\-version\fR | \fB\-v\fR
 .
 .SH DESCRIPTION
-The \fBpspp\-convert\fR program reads SPSS system or portable file
-\fIinput\fR and writes it to \fIoutput\fR, performing format
-conversion as necessary.
+The \fBpspp\-convert\fR program reads \fIinput\fR, which may be an
+SPSS system file, an SPSS/PC+ system file, or an SPSS portable file,
+and writes it to \fIoutput\fR, performing format conversion as
+necessary.
 .PP
-The format of \fIinput\fR is automatically detected, except that the
-character encoding of old system files cannot always be guessed
-correctly.  Use \fB\-e \fIencoding\fR to specify the encoding in this
-case.
+The format of \fIinput\fR is automatically detected, when possible.
+The character encoding of old SPSS system files cannot always be
+guessed correctly, and SPSS/PC+ system files do not include any
+indication of their encoding.  Use \fB\-e \fIencoding\fR to specify
+the encoding in this case.
 .PP
 By default, the intended format for \fIoutput\fR is inferred from its
 extension:

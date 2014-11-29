@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-#include "data/sys-file-reader.h"
 #include "data/sys-file-private.h"
 
 #include <errno.h>
@@ -26,6 +25,7 @@
 #include <sys/stat.h>
 #include <zlib.h>
 
+#include "data/any-reader.h"
 #include "data/attributes.h"
 #include "data/case.h"
 #include "data/casereader-provider.h"
@@ -98,7 +98,7 @@ struct sfm_header_record
     int weight_idx;             /* 0 if unweighted, otherwise a var index. */
     int nominal_case_size;      /* Number of var positions. */
 
-    /* These correspond to the members of struct sfm_file_info or a dictionary
+    /* These correspond to the members of struct any_file_info or a dictionary
        but in the system file's encoding rather than ASCII. */
     char creation_date[10];	/* "dd mmm yy". */
     char creation_time[9];	/* "hh:mm:ss". */
@@ -168,11 +168,13 @@ struct sfm_extension_record
 /* System file reader. */
 struct sfm_reader
   {
+    struct any_reader any_reader;
+
     /* Resource tracking. */
     struct pool *pool;          /* All system file state. */
 
     /* File data. */
-    struct sfm_read_info info;
+    struct any_read_info info;
     struct sfm_header_record header;
     struct sfm_var_record *vars;
     size_t n_vars;
@@ -200,7 +202,7 @@ struct sfm_reader
     const char *encoding;       /* String encoding. */
 
     /* Decompression. */
-    enum sfm_compression compression;
+    enum any_compression compression;
     double bias;		/* Compression bias, usually 100.0. */
     uint8_t opcodes[8];         /* Current block of opcodes. */
     size_t opcode_idx;          /* Next opcode to interpret, 8 if none left. */
@@ -218,6 +220,15 @@ struct sfm_reader
   };
 
 static const struct casereader_class sys_file_casereader_class;
+
+static struct sfm_reader *
+sfm_reader_cast (const struct any_reader *r_)
+{
+  assert (r_->klass == &sys_file_reader_class);
+  return UP_CAST (r_, struct sfm_reader, any_reader);
+}
+
+static bool sfm_close (struct any_reader *);
 
 static struct variable *lookup_var_by_index (struct sfm_reader *, off_t,
                                              const struct sfm_var_record *,
@@ -312,11 +323,11 @@ enum which_format
 static bool read_dictionary (struct sfm_reader *);
 static bool read_record (struct sfm_reader *, int type,
                          size_t *allocated_vars, size_t *allocated_labels);
-static bool read_header (struct sfm_reader *, struct sfm_read_info *,
+static bool read_header (struct sfm_reader *, struct any_read_info *,
                          struct sfm_header_record *);
 static void parse_header (struct sfm_reader *,
                           const struct sfm_header_record *,
-                          struct sfm_read_info *, struct dictionary *);
+                          struct any_read_info *, struct dictionary *);
 static bool parse_variable_records (struct sfm_reader *, struct dictionary *,
                                     struct sfm_var_record *, size_t n);
 static void parse_format_spec (struct sfm_reader *, off_t pos,
@@ -328,12 +339,12 @@ static void parse_display_parameters (struct sfm_reader *,
                                       struct dictionary *);
 static bool parse_machine_integer_info (struct sfm_reader *,
                                         const struct sfm_extension_record *,
-                                        struct sfm_read_info *);
+                                        struct any_read_info *);
 static void parse_machine_float_info (struct sfm_reader *,
                                       const struct sfm_extension_record *);
 static void parse_extra_product_info (struct sfm_reader *,
                                       const struct sfm_extension_record *,
-                                      struct sfm_read_info *);
+                                      struct any_read_info *);
 static void parse_mrsets (struct sfm_reader *,
                           const struct sfm_extension_record *,
                           size_t *allocated_mrsets);
@@ -364,7 +375,7 @@ static bool parse_long_string_missing_values (
 
 /* Frees the strings inside INFO. */
 void
-sfm_read_info_destroy (struct sfm_read_info *info)
+any_read_info_destroy (struct any_read_info *info)
 {
   if (info)
     {
@@ -377,7 +388,7 @@ sfm_read_info_destroy (struct sfm_read_info *info)
 
 /* Tries to open FH for reading as a system file.  Returns an sfm_reader if
    successful, otherwise NULL. */
-struct sfm_reader *
+static struct any_reader *
 sfm_open (struct file_handle *fh)
 {
   size_t allocated_mrsets = 0;
@@ -385,6 +396,7 @@ sfm_open (struct file_handle *fh)
 
   /* Create and initialize reader. */
   r = xzalloc (sizeof *r);
+  r->any_reader.klass = &sys_file_reader_class;
   r->pool = pool_create ();
   pool_register (r->pool, free, r);
   r->fh = fh_ref (fh);
@@ -413,9 +425,11 @@ sfm_open (struct file_handle *fh)
   if (r->extensions[EXT_MRSETS2] != NULL)
     parse_mrsets (r, r->extensions[EXT_MRSETS2], &allocated_mrsets);
 
-  return r;
+  return &r->any_reader;
+
 error:
-  sfm_close (r);
+  if (r)
+    sfm_close (&r->any_reader);
   return NULL;
 }
 
@@ -445,7 +459,7 @@ read_dictionary (struct sfm_reader *r)
   if (!skip_bytes (r, 4))
     return false;
 
-  if (r->compression == SFM_COMP_ZLIB && !read_zheader (r))
+  if (r->compression == ANY_COMP_ZLIB && !read_zheader (r))
     return false;
 
   return true;
@@ -628,10 +642,11 @@ add_id (struct get_strings_aux *aux, const char *id, const char *title, ...)
    whatever encoding system file R uses.  *IDS[I] is true if *STRINGSP[I] must
    be a valid PSPP language identifier, false if *STRINGSP[I] is free-form
    text. */
-size_t
-sfm_get_strings (const struct sfm_reader *r, struct pool *pool,
+static size_t
+sfm_get_strings (const struct any_reader *r_, struct pool *pool,
                  char ***titlesp, bool **idsp, char ***stringsp)
 {
+  struct sfm_reader *r = sfm_reader_cast (r_);
   const struct sfm_mrset *mrset;
   struct get_strings_aux aux;
   size_t var_idx;
@@ -722,15 +737,16 @@ sfm_get_strings (const struct sfm_reader *r, struct pool *pool,
    ENCODING is null, or the locale encoding if R specifies no encoding.
 
    If INFOP is non-null, then it receives additional info about the system
-   file, which the caller must eventually free with sfm_read_info_destroy()
+   file, which the caller must eventually free with any_read_info_destroy()
    when it is no longer needed.
 
    This function consumes R.  The caller must use it again later, even to
    destroy it with sfm_close(). */
-struct casereader *
-sfm_decode (struct sfm_reader *r, const char *encoding,
-            struct dictionary **dictp, struct sfm_read_info *infop)
+static struct casereader *
+sfm_decode (struct any_reader *r_, const char *encoding,
+            struct dictionary **dictp, struct any_read_info *infop)
 {
+  struct sfm_reader *r = sfm_reader_cast (r_);
   struct dictionary *dict;
   size_t i;
 
@@ -863,7 +879,7 @@ sfm_decode (struct sfm_reader *r, const char *encoding,
                                        &sys_file_casereader_class, r);
 
 error:
-  sfm_close (r);
+  sfm_close (r_);
   dict_destroy (dict);
   *dictp = NULL;
   return NULL;
@@ -873,13 +889,11 @@ error:
    closed with sfm_decode() or this function.
    Returns true if an I/O error has occurred on READER, false
    otherwise. */
-bool
-sfm_close (struct sfm_reader *r)
+static bool
+sfm_close (struct any_reader *r_)
 {
+  struct sfm_reader *r = sfm_reader_cast (r_);
   bool error;
-
-  if (r == NULL)
-    return true;
 
   if (r->file)
     {
@@ -892,7 +906,7 @@ sfm_close (struct sfm_reader *r)
       r->file = NULL;
     }
 
-  sfm_read_info_destroy (&r->info);
+  any_read_info_destroy (&r->info);
   fh_unlock (r->lock);
   fh_unref (r->fh);
 
@@ -907,18 +921,21 @@ static void
 sys_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
   struct sfm_reader *r = r_;
-  sfm_close (r);
+  sfm_close (&r->any_reader);
 }
 
-/* Returns true if FILE is an SPSS system file,
-   false otherwise. */
-bool
+/* Returns 1 if FILE is an SPSS system file,
+   0 if it is not,
+   otherwise a negative errno value. */
+static int
 sfm_detect (FILE *file)
 {
   char magic[5];
 
+  if (fseek (file, 0, SEEK_SET) != 0)
+    return -errno;
   if (fread (magic, 4, 1, file) != 1)
-    return false;
+    return feof (file) ? 0 : -errno;
   magic[4] = '\0';
 
   return (!strcmp (ASCII_MAGIC, magic)
@@ -930,7 +947,7 @@ sfm_detect (FILE *file)
    except for the string fields in *INFO, which parse_header() will initialize
    later once the file's encoding is known. */
 static bool
-read_header (struct sfm_reader *r, struct sfm_read_info *info,
+read_header (struct sfm_reader *r, struct any_read_info *info,
              struct sfm_header_record *header)
 {
   uint8_t raw_layout_code[4];
@@ -979,9 +996,9 @@ read_header (struct sfm_reader *r, struct sfm_read_info *info,
   if (!zmagic)
     {
       if (compressed == 0)
-        r->compression = SFM_COMP_NONE;
+        r->compression = ANY_COMP_NONE;
       else if (compressed == 1)
-        r->compression = SFM_COMP_SIMPLE;
+        r->compression = ANY_COMP_SIMPLE;
       else if (compressed != 0)
         {
           sys_error (r, 0, "System file header has invalid compression "
@@ -992,7 +1009,7 @@ read_header (struct sfm_reader *r, struct sfm_read_info *info,
   else
     {
       if (compressed == 2)
-        r->compression = SFM_COMP_ZLIB;
+        r->compression = ANY_COMP_ZLIB;
       else
         {
           sys_error (r, 0, "ZLIB-compressed system file header has invalid "
@@ -1351,7 +1368,7 @@ skip_extension_record (struct sfm_reader *r, int subtype)
 
 static void
 parse_header (struct sfm_reader *r, const struct sfm_header_record *header,
-              struct sfm_read_info *info, struct dictionary *dict)
+              struct any_read_info *info, struct dictionary *dict)
 {
   const char *dict_encoding = dict_get_encoding (dict);
   struct substring product;
@@ -1477,14 +1494,8 @@ parse_variable_records (struct sfm_reader *r, struct dictionary *dict,
                 }
             }
           else
-            {
-              union value value;
-
-              value_init_pool (r->pool, &value, width);
-              value_set_missing (&value, width);
-              for (i = 0; i < rec->missing_value_code; i++)
-                mv_add_str (&mv, rec->missing + 8 * i, MIN (width, 8));
-            }
+            for (i = 0; i < rec->missing_value_code; i++)
+              mv_add_str (&mv, rec->missing + 8 * i, MIN (width, 8));
           var_set_missing_values (var, &mv);
         }
 
@@ -1585,7 +1596,7 @@ parse_document (struct dictionary *dict, struct sfm_document_record *record)
 static bool
 parse_machine_integer_info (struct sfm_reader *r,
                             const struct sfm_extension_record *record,
-                            struct sfm_read_info *info)
+                            struct any_read_info *info)
 {
   int float_representation, expected_float_format;
   int integer_representation, expected_integer_format;
@@ -1667,7 +1678,7 @@ parse_machine_float_info (struct sfm_reader *r,
 static void
 parse_extra_product_info (struct sfm_reader *r,
                           const struct sfm_extension_record *record,
-                          struct sfm_read_info *info)
+                          struct any_read_info *info)
 {
   struct text_record *text;
 
@@ -2711,7 +2722,7 @@ read_error (struct casereader *r, const struct sfm_reader *sfm)
 static bool
 read_case_number (struct sfm_reader *r, double *d)
 {
-  if (r->compression == SFM_COMP_NONE)
+  if (r->compression == ANY_COMP_NONE)
     {
       uint8_t number[8];
       if (!try_read_bytes (r, number, sizeof number))
@@ -2766,7 +2777,7 @@ read_case_string (struct sfm_reader *r, uint8_t *s, size_t length)
 static int
 read_opcode (struct sfm_reader *r)
 {
-  assert (r->compression != SFM_COMP_NONE);
+  assert (r->compression != ANY_COMP_NONE);
   for (;;)
     {
       int opcode;
@@ -2878,7 +2889,7 @@ static int
 read_whole_strings (struct sfm_reader *r, uint8_t *s, size_t length)
 {
   assert (length % 8 == 0);
-  if (r->compression == SFM_COMP_NONE)
+  if (r->compression == ANY_COMP_NONE)
     return try_read_bytes (r, s, length);
   else
     {
@@ -3186,9 +3197,8 @@ sys_warn (struct sfm_reader *r, off_t offset, const char *format, ...)
   va_end (args);
 }
 
-/* Displays an error for the current file position,
-   marks it as in an error state,
-   and aborts reading it using longjmp. */
+/* Displays an error for the current file position and marks it as in an error
+   state. */
 static void
 sys_error (struct sfm_reader *r, off_t offset, const char *format, ...)
 {
@@ -3704,7 +3714,7 @@ read_bytes_zlib (struct sfm_reader *r, void *buf_, size_t byte_cnt)
 static int
 read_compressed_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
 {
-  if (r->compression == SFM_COMP_SIMPLE)
+  if (r->compression == ANY_COMP_SIMPLE)
     return read_bytes (r, buf, byte_cnt);
   else
     {
@@ -3718,7 +3728,7 @@ read_compressed_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
 static int
 try_read_compressed_bytes (struct sfm_reader *r, void *buf, size_t byte_cnt)
 {
-  if (r->compression == SFM_COMP_SIMPLE)
+  if (r->compression == ANY_COMP_SIMPLE)
     return try_read_bytes (r, buf, byte_cnt);
   else
     return read_bytes_zlib (r, buf, byte_cnt);
@@ -3744,4 +3754,14 @@ static const struct casereader_class sys_file_casereader_class =
     sys_file_casereader_destroy,
     NULL,
     NULL,
+  };
+
+const struct any_reader_class sys_file_reader_class =
+  {
+    N_("SPSS System File"),
+    sfm_detect,
+    sfm_open,
+    sfm_close,
+    sfm_decode,
+    sfm_get_strings,
   };

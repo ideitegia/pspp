@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -234,13 +234,13 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
         }
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "COMPRESSED"))
-	sysfile_opts.compression = SFM_COMP_SIMPLE;
+	sysfile_opts.compression = ANY_COMP_SIMPLE;
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "UNCOMPRESSED"))
-	sysfile_opts.compression = SFM_COMP_NONE;
+	sysfile_opts.compression = ANY_COMP_NONE;
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "ZCOMPRESSED"))
-	sysfile_opts.compression = SFM_COMP_ZLIB;
+	sysfile_opts.compression = ANY_COMP_ZLIB;
       else if (writer_type == SYSFILE_WRITER
                && lex_match_id (lexer, "VERSION"))
 	{

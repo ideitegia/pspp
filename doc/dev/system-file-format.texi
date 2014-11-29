@@ -178,7 +178,7 @@ contribute to this value beyond the first 255 bytes.   Further, system
 files written by some systems set this value to -1.  In general, it is
 unsafe for systems reading system files to rely upon this value.
 
-@item int32 compressed;
+@item int32 compression;
 Set to 0 if the data in the file is not compressed, 1 if the data is
 compressed with simple bytecode compression, 2 if the data is ZLIB
 compressed.  This field has value 2 if and only if @code{rec_type} is
@@ -352,6 +352,7 @@ in the range.  When a range plus a value are present, the third
 element denotes the additional discrete missing value.
 @end table
 
+@anchor{System File Output Formats}
 The @code{print} and @code{write} members of sysfile_variable are output
 formats coded into @code{int32} types.  The least-significant byte
 of the @code{int32} represents the number of decimal places, and the

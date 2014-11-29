@@ -83,6 +83,7 @@ Free Documentation License".
 
 * Portable File Format::        Format of PSPP portable files.
 * System File Format::          Format of PSPP system files.
+* SPSS/PC+ System File Format:: Format of SPSS/PC+ system files.
 * q2c Input Format::            Format of syntax accepted by q2c.
 
 * GNU Free Documentation License:: License for copying this manual.
@@ -100,6 +101,7 @@ Free Documentation License".
 
 @include dev/portable-file-format.texi
 @include dev/system-file-format.texi
+@include dev/pc+-file-format.texi
 @include dev/q2c.texi
 
 @include fdl.texi

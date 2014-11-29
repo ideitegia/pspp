@@ -777,10 +777,12 @@ psppire_window_open (PsppireWindow *de)
         gchar *encoding = psppire_encoding_selector_get_encoding (
           gtk_file_chooser_get_extra_widget (GTK_FILE_CHOOSER (dialog)));
 
-	enum detect_result res = any_reader_may_open (sysname);
-	if (ANY_YES == res)
+        int retval;
+
+        retval = any_reader_detect (sysname, NULL);
+	if (retval == 1)
           open_data_window (de, name, encoding, NULL);
-	else if (ANY_NO == res)
+	else if (retval == 0)
 	  open_syntax_window (name, encoding);
 
         g_free (encoding);

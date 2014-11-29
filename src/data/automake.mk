@@ -50,8 +50,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/data-out.h \
 	src/data/dataset.c \
 	src/data/dataset.h \
-	src/data/dataset-reader.c \
-	src/data/dataset-reader.h \
 	src/data/dataset-writer.c \
 	src/data/dataset-writer.h \
 	src/data/datasheet.c \
@@ -84,8 +82,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/mrset.h \
 	src/data/ods-reader.c \
 	src/data/ods-reader.h \
+	src/data/pc+-file-reader.c \
 	src/data/por-file-reader.c \
-	src/data/por-file-reader.h \
 	src/data/por-file-writer.c \
 	src/data/por-file-writer.h \
 	src/data/psql-reader.c \
@@ -106,10 +104,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/sys-file-private.c \
 	src/data/sys-file-private.h \
 	src/data/sys-file-reader.c \
-	src/data/sys-file-reader.h \
 	src/data/sys-file-writer.c \
 	src/data/sys-file-writer.h \
-	src/data/sys-file.h \
 	src/data/transformations.c \
 	src/data/transformations.h \
 	src/data/val-type.h \

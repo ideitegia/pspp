@@ -229,7 +229,8 @@ combine_files (enum comb_command_type command,
           if (file->handle == NULL)
             goto error;
 
-          file->reader = any_reader_open (file->handle, NULL, &file->dict);
+          file->reader = any_reader_open_and_decode (file->handle, NULL,
+                                                     &file->dict, NULL);
           if (file->reader == NULL)
             goto error;
         }
