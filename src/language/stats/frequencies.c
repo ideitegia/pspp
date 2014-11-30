@@ -766,6 +766,7 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 		  lex_error (lexer, NULL);
 		  goto error;
 		}
+              lex_match (lexer, T_COMMA);
 	    }
 	}
       else if (lex_match_id (lexer, "FORMAT"))
