@@ -82,6 +82,14 @@ ptile_3way (const void *_p1, const void *_p2)
   if (p1->p < p2->p)
     return -1;
 
+  if (p1->p == p2->p)
+    {
+      if (p1->show > p2->show)
+	return -1;
+
+      return (p1->show < p2->show);
+    }
+
   return (p1->p > p2->p);
 }
 
