@@ -195,9 +195,13 @@ For instance, @subcmd{/NTILES=4} would cause quartiles to be reported.
 The @subcmd{HISTOGRAM} subcommand causes the output to include a histogram for
 each specified numeric variable.  The X axis by default ranges from
 the minimum to the maximum value observed in the data, but the @subcmd{MINIMUM}
-and @subcmd{MAXIMUM} keywords can set an explicit range.  Specify @subcmd{NORMAL} to
-superimpose a normal curve on the histogram.  Histograms are not
-created for string variables.
+and @subcmd{MAXIMUM} keywords can set an explicit range. The number of
+bins are 2IQR(x)n^-1/3 according to the Freedman-Diaconis rule.  (Note that
+@cmd{EXAMINE} uses a different algorithm to determine bin sizes.)
+Histograms are not created for string variables.
+
+Specify @subcmd{NORMAL} to superimpose a normal curve on the
+histogram.
 
 @cindex piechart
 The @subcmd{PIECHART} subcommand adds a pie chart for each variable to the data.  Each
@@ -288,6 +292,10 @@ The first three can be used to visualise how closely each cell conforms to a
 normal distribution, whilst the spread vs.@: level plot can be useful to visualise
 how the variance of differs between factors.
 Boxplots will also show you the outliers and extreme values.
+
+@subcmd{HISTOGRAM} uses Sturges' rule to determine the number of
+bins, as approximately 1 + log2(n).  (Note that @cmd{FREQUENCIES} uses a
+different algorithm to find the bin size.)
 
 The @subcmd{SPREADLEVEL} plot displays the interquartile range versus the 
 median.  It takes an optional parameter @var{t}, which specifies how the data
