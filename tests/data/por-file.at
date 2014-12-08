@@ -120,10 +120,10 @@ AT_CHECK([pspp -O format=csv sys-file-info.sps | sed '/Encoding/d
 /Integer Format/d
 /Real Format/d
 /Created/d
+/Product/d
 '], [0], [dnl
 File:,data.por
 Label:,No label.
-Product:,x86_64-unknown-linux-gnu
 Variables:,5
 Cases:,Unknown
 Type:,SPSS Portable File
