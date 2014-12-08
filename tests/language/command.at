@@ -13,6 +13,14 @@ command.sps:2: error: EXECUTE: EXECUTE is allowed only after the active dataset 
 ])
 AT_CLEANUP
 
+dnl Tests for a bug where FINISH or EXIT wasn't executed until the lexer
+dnl read the first token of the next command.
+dnl
+dnl (If this reecurs, the the test will run forever.)
+AT_SETUP([FINISH executes immediately])
+AT_CHECK([(echo "FINISH."; while :; do echo; done) | pspp])
+AT_CLEANUP
+
 AT_BANNER([ERASE])
 
 AT_SETUP([ERASE -- safer mode])
