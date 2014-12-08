@@ -36,12 +36,14 @@ This version of PSPP should work with the Gnulib commit shown below.
 Gnulib does not maintain a stable API or ABI, so it is possible that
 PSPP will not work with older or newer versions of Gnulib.
 
-	commit 5191133e01659a051c21ea16765d9233b6a9fe47
-	Author: Paul Eggert <eggert@cs.ucla.edu>
-	Date:   Tue Apr 30 23:14:19 2013 -0700
+	commit c5c4f53b31f1ad04f4033a6124120ffec9257847
+	Author: Pádraig Brady <P@draigBrady.com>
+	Date:   Sat Dec 6 01:14:02 2014 +0000
 
-	    utimensat-tests, etc.: try to fix some races
+	    vasnprintf: fix potential use after free
 
+	    * lib/vasnprintf.c (VASNPRINTF): Fix free-memory read,
+	    flagged by clang-analyzer 3.4.2.
 
 To clone Gnulib into a directory named "gnulib" using Git, and then
 check out this particular commit, run these commands:
