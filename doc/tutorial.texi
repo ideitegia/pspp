@@ -85,6 +85,7 @@ The following sections explain how to define a dataset.
 * Reading data from a pre-prepared PSPP file::  
 * Saving data to a PSPP file.::  
 * Reading data from other sources::  
+* Exiting PSPP::
 @end menu
 
 @node Defining Variables
@@ -286,6 +287,13 @@ separated text, from spreadsheets, databases or other sources.
 In these instances you should
 use the @cmd{GET DATA} command (@pxref{GET DATA}).
 
+@node Exiting PSPP
+@subsection Exiting PSPP
+
+Use the @cmd{FINISH} command to exit PSPP:
+@example
+@prompt{PSPP>} finish.
+@end example
   
 @node Data Screening and Transformation
 @section Data Screening and Transformation
