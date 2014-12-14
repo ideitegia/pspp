@@ -233,6 +233,7 @@ enum
     FT_HTML,
     FT_ODT,
     FT_TXT,
+    FT_ASCII,
     FT_PS,
     FT_CSV,
     n_FT
@@ -246,6 +247,7 @@ struct file_types ft[n_FT] = {
   {N_("HTML (*.html)"),                   ".html"},
   {N_("OpenDocument (*.odt)"),            ".odt"},
   {N_("Text (*.txt)"),                    ".txt"},
+  {N_("Text [plain] (*.txt)"),            ".txt"},
   {N_("PostScript (*.ps)"),               ".ps"},
   {N_("Comma-Separated Values (*.csv)"),  ".csv"}
 };
@@ -444,6 +446,10 @@ psppire_output_window_export (PsppireOutputWindow *window)
 	  break;
 
 	case FT_TXT:
+          string_map_insert (&options, "box", "unicode");
+	  /* Fall through */
+
+	case FT_ASCII:
           string_map_insert (&options, "headers", "false");
           string_map_insert (&options, "paginate", "false");
           string_map_insert (&options, "squeeze", "true");
