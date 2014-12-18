@@ -684,7 +684,7 @@ FACTOR  VARIABLES=@var{var_list}
 
         [ /EXTRACTION=@{PC, PAF@}] 
 
-        [ /ROTATION=@{VARIMAX, EQUAMAX, QUARTIMAX, NOROTATE@}]
+        [ /ROTATION=@{VARIMAX, EQUAMAX, QUARTIMAX, PROMAX[(@var{k})], NOROTATE@}]
 
         [ /PRINT=[INITIAL] [EXTRACTION] [ROTATION] [UNIVARIATE] [CORRELATION] [COVARIANCE] [DET] [KMO] [SIG] [ALL] [DEFAULT] ]
 
@@ -708,9 +708,13 @@ If @subcmd{PAF} is specified, then Principal Axis Factoring is
 used. By default Principal Components Analysis will be used.
 
 The @subcmd{/ROTATION} subcommand is used to specify the method by which the extracted solution will be rotated.
-Three methods are available: @subcmd{VARIMAX} (which is the default), @subcmd{EQUAMAX}, and @subcmd{QUARTIMAX}.
-If don't want any rotation to be performed, the word @subcmd{NOROTATE} will prevent the command from performing any
-rotation on the data. Oblique rotations are not supported.
+Three orthogonal rotation methods are available: 
+@subcmd{VARIMAX} (which is the default), @subcmd{EQUAMAX}, and @subcmd{QUARTIMAX}.
+There is one oblique rotation method, @i{viz}: @subcmd{PROMAX}.
+Optionally you may enter the power of the promax rotation @var{k}, which must be enclosed in parentheses.
+The default value of @var{k} is 5.
+If you don't want any rotation to be performed, the word @subcmd{NOROTATE} will prevent the command from performing any
+rotation on the data. 
 
 The @subcmd{/METHOD} subcommand should be used to determine whether the covariance matrix or the correlation matrix of the data is
 to be analysed.  By default, the correlation matrix is analysed.

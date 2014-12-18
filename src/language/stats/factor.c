@@ -96,6 +96,7 @@ enum rotation_type
     ROT_VARIMAX = 0,
     ROT_EQUAMAX,
     ROT_QUARTIMAX,
+    ROT_PROMAX,
     ROT_NONE
   };
 
@@ -131,11 +132,63 @@ quartimax_coefficients (double *x, double *y,
   *y = c ;
 }
 
-static const rotation_coefficients rotation_coeff[3] = {
+static const rotation_coefficients rotation_coeff[] = {
   varimax_coefficients,
   equamax_coefficients,
-  quartimax_coefficients
+  quartimax_coefficients,
+  varimax_coefficients  /* PROMAX is identical to VARIMAX */
 };
+
+
+/* return diag (C'C) ^ {-0.5} */
+static gsl_matrix *
+diag_rcp_sqrt (const gsl_matrix *C) 
+{
+  int j;
+  gsl_matrix *d =  gsl_matrix_calloc (C->size1, C->size2);
+  gsl_matrix *r =  gsl_matrix_calloc (C->size1, C->size2);
+
+  assert (C->size1 == C->size2);
+
+  gsl_linalg_matmult_mod (C,  GSL_LINALG_MOD_TRANSPOSE,
+			  C,  GSL_LINALG_MOD_NONE,
+			  d);
+
+  for (j = 0 ; j < d->size2; ++j)
+    {
+      double e = gsl_matrix_get (d, j, j);
+      e = 1.0 / sqrt (e);
+      gsl_matrix_set (r, j, j, e);
+    }
+
+  gsl_matrix_free (d);
+
+  return r;
+}
+
+
+
+/* return diag ((C'C)^-1) ^ {-0.5} */
+static gsl_matrix *
+diag_rcp_inv_sqrt (const gsl_matrix *CCinv) 
+{
+  int j;
+  gsl_matrix *r =  gsl_matrix_calloc (CCinv->size1, CCinv->size2);
+
+  assert (CCinv->size1 == CCinv->size2);
+
+  for (j = 0 ; j < CCinv->size2; ++j)
+    {
+      double e = gsl_matrix_get (CCinv, j, j);
+      e = 1.0 / sqrt (e);
+      gsl_matrix_set (r, j, j, e);
+    }
+
+  return r;
+}
+
+
+
 
 
 struct cmd_factor 
@@ -153,6 +206,7 @@ struct cmd_factor
   enum plot_opts plot;
   enum rotation_type rotation;
   int rotation_iterations;
+  int promax_power;
 
   /* Extraction Criteria */
   int n_factors;
@@ -262,7 +316,7 @@ ssq_od_n (const gsl_matrix *m, int n)
 
 
 
-#if 0
+#if 1
 static void
 dump_matrix (const gsl_matrix *m)
 {
@@ -622,7 +676,9 @@ static void
 rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
 	const gsl_vector *communalities,
 	gsl_matrix *result,
-	gsl_vector *rotated_loadings
+	gsl_vector *rotated_loadings,
+	gsl_matrix *pattern_matrix,
+	gsl_matrix *factor_correlation_matrix
 	)
 {
   int j, k;
@@ -731,6 +787,125 @@ rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
   gsl_matrix_free (h_sqrt);
   gsl_matrix_free (normalised);
 
+  if (cf->rotation == ROT_PROMAX) 
+    {
+      /* general purpose m by m matrix, where m is the number of factors */
+      gsl_matrix *mm1 =  gsl_matrix_calloc (unrot->size2, unrot->size2); 
+      gsl_matrix *mm2 =  gsl_matrix_calloc (unrot->size2, unrot->size2);
+
+      /* general purpose m by p matrix, where p is the number of variables */
+      gsl_matrix *mp1 =  gsl_matrix_calloc (unrot->size2, unrot->size1);
+
+      gsl_matrix *pm1 =  gsl_matrix_calloc (unrot->size1, unrot->size2);
+
+      gsl_permutation *perm = gsl_permutation_alloc (unrot->size2);
+
+      int signum;
+
+      int i, j;
+
+      /* The following variables follow the notation by SPSS Statistical Algorithms
+	 page 342 */
+      gsl_matrix *L =  gsl_matrix_calloc (unrot->size2, unrot->size2);
+      gsl_matrix *P = clone_matrix (result);
+      gsl_matrix *D ;
+      gsl_matrix *Q ;
+
+
+      /* Vector of length p containing (indexed by i)
+	 \Sum^m_j {\lambda^2_{ij}} */
+      gsl_vector *rssq = gsl_vector_calloc (unrot->size1); 
+
+      for (i = 0; i < P->size1; ++i)
+	{
+	  double sum = 0;
+	  for (j = 0; j < P->size2; ++j)
+	    {
+	      sum += gsl_matrix_get (result, i, j)
+		* gsl_matrix_get (result, i, j);
+		    
+	    }
+		
+	  gsl_vector_set (rssq, i, sqrt (sum));
+	}
+
+      for (i = 0; i < P->size1; ++i)
+	{
+	  for (j = 0; j < P->size2; ++j)
+	    {
+	      double l = gsl_matrix_get (result, i, j);
+	      double r = gsl_vector_get (rssq, i);
+	      gsl_matrix_set (P, i, j, pow (fabs (l / r), cf->promax_power + 1) * r / l);
+	    }
+	}
+
+      gsl_vector_free (rssq);
+
+      gsl_linalg_matmult_mod (result,
+			      GSL_LINALG_MOD_TRANSPOSE,
+			      result,
+			      GSL_LINALG_MOD_NONE,
+			      mm1);
+
+      gsl_linalg_LU_decomp (mm1, perm, &signum);
+      gsl_linalg_LU_invert (mm1, perm, mm2);
+
+      gsl_linalg_matmult_mod (mm2,   GSL_LINALG_MOD_NONE,
+			      result,  GSL_LINALG_MOD_TRANSPOSE,
+			      mp1);
+
+      gsl_linalg_matmult_mod (mp1, GSL_LINALG_MOD_NONE,
+			      P,   GSL_LINALG_MOD_NONE,
+			      L);
+
+      D = diag_rcp_sqrt (L);
+      Q = gsl_matrix_calloc (unrot->size2, unrot->size2);
+
+      gsl_linalg_matmult_mod (L, GSL_LINALG_MOD_NONE,
+			      D, GSL_LINALG_MOD_NONE,
+			      Q);
+
+      gsl_matrix *QQinv = gsl_matrix_calloc (unrot->size2, unrot->size2);
+
+      gsl_linalg_matmult_mod (Q, GSL_LINALG_MOD_TRANSPOSE,
+			      Q,  GSL_LINALG_MOD_NONE,
+			      QQinv);
+
+      gsl_linalg_cholesky_decomp (QQinv);
+      gsl_linalg_cholesky_invert (QQinv);
+
+
+      gsl_matrix *C = diag_rcp_inv_sqrt (QQinv);
+      gsl_matrix *Cinv =  clone_matrix (C);
+
+      gsl_linalg_cholesky_decomp (Cinv);
+      gsl_linalg_cholesky_invert (Cinv);
+
+
+      gsl_linalg_matmult_mod (result, GSL_LINALG_MOD_NONE,
+			      Q,      GSL_LINALG_MOD_NONE,
+			      pm1);
+
+      gsl_linalg_matmult_mod (pm1,      GSL_LINALG_MOD_NONE,
+			      Cinv,         GSL_LINALG_MOD_NONE,
+			      pattern_matrix);
+
+
+      gsl_linalg_matmult_mod (C,      GSL_LINALG_MOD_NONE,
+			      QQinv,  GSL_LINALG_MOD_NONE,
+			      mm1);
+
+      gsl_linalg_matmult_mod (mm1,      GSL_LINALG_MOD_NONE,
+			      C,  GSL_LINALG_MOD_TRANSPOSE,
+			      factor_correlation_matrix);
+      
+      gsl_linalg_matmult_mod (pattern_matrix,      GSL_LINALG_MOD_NONE,
+			      factor_correlation_matrix,  GSL_LINALG_MOD_NONE,
+			      pm1);
+
+      gsl_matrix_memcpy (result, pm1);
+    }
+
 
   /* reflect negative sums and populate the rotated loadings vector*/
   for (i = 0 ; i < result->size2; ++i)
@@ -741,7 +916,7 @@ rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
 	{
 	  double s = gsl_matrix_get (result, j, i);
 	  ssq += s * s;
-	  sum += gsl_matrix_get (result, j, i);
+	  sum += s;
 	}
 
       gsl_vector_set (rotated_loadings, i, ssq);
@@ -917,6 +1092,18 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	      else if (lex_match_id (lexer, "QUARTIMAX"))
 		{
 		  factor.rotation = ROT_QUARTIMAX;
+		}
+	      else if (lex_match_id (lexer, "PROMAX"))
+		{
+		  factor.promax_power = 5;
+		  if (lex_match (lexer, T_LPAREN))
+		    {
+		      lex_force_int (lexer);
+		      factor.promax_power = lex_integer (lexer);
+		      lex_get (lexer);
+		      lex_force_match (lexer, T_RPAREN);
+		    }
+		  factor.rotation = ROT_PROMAX;
 		}
 	      else if (lex_match_id (lexer, "NOROTATE"))
 		{
@@ -1337,6 +1524,7 @@ static void
 show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const char *title, const gsl_matrix *fm)
 {
   int i;
+
   const int n_factors = idata->n_extractions;
 
   const int heading_columns = 1;
@@ -1456,7 +1644,9 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
     nc += 3;
 
   if (factor->print & PRINT_ROTATION)
-    nc += 3;
+    {
+      nc += factor->rotation == ROT_PROMAX ? 1 : 3;
+    }
 
   /* No point having a table with only headings */
   if ( nc <= heading_columns)
@@ -1508,18 +1698,23 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 
   if (factor->print & PRINT_ROTATION)
     {
-      tab_joint_text (t, c, 0, c + 2, 0, TAB_CENTER | TAT_TITLE, _("Rotation Sums of Squared Loadings"));
-      c += 3;
+      const int width = factor->rotation == ROT_PROMAX ? 0 : 2;
+      tab_joint_text (t, c, 0, c + width, 0, TAB_CENTER | TAT_TITLE, _("Rotation Sums of Squared Loadings"));
+      c += width + 1;
     }
 
-  for (i = 0; i < (nc - heading_columns) / 3 ; ++i)
+  for (i = 0; i < (nc - heading_columns + 2) / 3 ; ++i)
     {
       tab_text (t, i * 3 + 1, 1, TAB_CENTER | TAT_TITLE, _("Total"));
+
+      tab_vline (t, TAL_2, heading_columns + i * 3, 0, nr - 1);
+
+      if (i == 2 && factor->rotation == ROT_PROMAX)
+	continue;
+
       /* xgettext:no-c-format */
       tab_text (t, i * 3 + 2, 1, TAB_CENTER | TAT_TITLE, _("% of Variance"));
       tab_text (t, i * 3 + 3, 1, TAB_CENTER | TAT_TITLE, _("Cumulative %"));
-
-      tab_vline (t, TAL_2, heading_columns + i * 3, 0, nr - 1);
     }
 
   for (i = 0 ; i < initial_eigenvalues->size; ++i)
@@ -1580,11 +1775,75 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
                 {
                   r_cum += r_percent;
                   tab_double (t, c++, i + heading_rows, 0, r_lambda, NULL, RC_OTHER);
-                  tab_double (t, c++, i + heading_rows, 0, r_percent, NULL, RC_OTHER);
-                  tab_double (t, c++, i + heading_rows, 0, r_cum, NULL, RC_OTHER);
+		  if (factor->rotation != ROT_PROMAX)
+		    {
+		      tab_double (t, c++, i + heading_rows, 0, r_percent, NULL, RC_OTHER);
+		      tab_double (t, c++, i + heading_rows, 0, r_cum, NULL, RC_OTHER);
+		    }
                 }
             }
         }
+    }
+
+  tab_submit (t);
+}
+
+
+static void
+show_factor_correlation (const struct cmd_factor * factor, const gsl_matrix *fcm)
+{
+  size_t i, j;
+  const int heading_columns = 1;
+  const int heading_rows = 1;
+  const int nr = heading_rows + fcm->size2;
+  const int nc = heading_columns + fcm->size1;
+  struct tab_table *t = tab_create (nc, nr);
+
+  tab_title (t, _("Factor Correlation Matrix"));
+
+  tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+  /* Outline the box */
+  tab_box (t,
+	   TAL_2, TAL_2,
+	   -1, -1,
+	   0, 0,
+	   nc - 1, nr - 1);
+
+  /* Vertical lines */
+  tab_box (t,
+	   -1, -1,
+	   -1, TAL_1,
+	   heading_columns, 0,
+	   nc - 1, nr - 1);
+
+  tab_hline (t, TAL_1, 0, nc - 1, heading_rows);
+  tab_hline (t, TAL_1, 1, nc - 1, 1);
+
+  tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+
+
+  if ( factor->extraction == EXTRACTION_PC)
+    tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Component"));
+  else
+    tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Factor"));
+
+  for (i = 0 ; i < fcm->size1; ++i)
+    {
+      tab_text_format (t, heading_columns + i, 0, TAB_CENTER | TAT_TITLE, _("%d"), i + 1);
+    }
+
+  for (i = 0 ; i < fcm->size2; ++i)
+    {
+      tab_text_format (t, 0, heading_rows + i, TAB_CENTER | TAT_TITLE, _("%d"), i + 1);
+    }
+
+
+  for (i = 0 ; i < fcm->size1; ++i)
+    {
+      for (j = 0 ; j < fcm->size2; ++j)
+	tab_double (t, heading_columns + i,  heading_rows +j, 0, 
+		    gsl_matrix_get (fcm, i, j), NULL, RC_OTHER);
     }
 
   tab_submit (t);
@@ -1938,6 +2197,8 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
     
   {
     gsl_matrix *rotated_factors = NULL;
+    gsl_matrix *pattern_matrix = NULL;
+    gsl_matrix *fcm = NULL;
     gsl_vector *rotated_loadings = NULL;
 
     const gsl_vector *extracted_eigenvalues = NULL;
@@ -2004,10 +2265,16 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       {
 	rotated_factors = gsl_matrix_calloc (factor_matrix->size1, factor_matrix->size2);
 	rotated_loadings = gsl_vector_calloc (factor_matrix->size2);
+	if (factor->rotation == ROT_PROMAX)
+	  {
+	    pattern_matrix = gsl_matrix_calloc (factor_matrix->size1, factor_matrix->size2);
+	    fcm = gsl_matrix_calloc (factor_matrix->size2, factor_matrix->size2);
+	  }
+	  
 
-	rotate (factor, factor_matrix, extracted_communalities, rotated_factors, rotated_loadings);
+	rotate (factor, factor_matrix, extracted_communalities, rotated_factors, rotated_loadings, pattern_matrix, fcm);
       }
-
+    
     show_explained_variance (factor, idata, idata->eval, extracted_eigenvalues, rotated_loadings);
 
     factor_matrix_workspace_free (fmw);
@@ -2018,16 +2285,27 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 			factor->extraction == EXTRACTION_PC ? _("Component Matrix") : _("Factor Matrix"),
 			factor_matrix);
 
+    if ( factor->rotation == ROT_PROMAX)
+      {
+	show_factor_matrix (factor, idata, _("Pattern Matrix"),  pattern_matrix);
+	gsl_matrix_free (pattern_matrix);
+      }
+
     if ( factor->rotation != ROT_NONE)
       {
 	show_factor_matrix (factor, idata,
-			    factor->extraction == EXTRACTION_PC ? _("Rotated Component Matrix") : _("Rotated Factor Matrix"),
+			    (factor->rotation == ROT_PROMAX) ? _("Structure Matrix") :
+			    (factor->extraction == EXTRACTION_PC ? _("Rotated Component Matrix") : _("Rotated Factor Matrix")),
 			    rotated_factors);
 
 	gsl_matrix_free (rotated_factors);
       }
 
-
+    if ( factor->rotation == ROT_PROMAX)
+      {
+	show_factor_correlation (factor, fcm);
+	gsl_matrix_free (fcm);
+      }
 
     gsl_matrix_free (factor_matrix);
     gsl_vector_free (rotated_loadings);
@@ -2041,6 +2319,5 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
   casereader_destroy (r);
 }
-
 
 
