@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -316,7 +316,7 @@ ssq_od_n (const gsl_matrix *m, int n)
 
 
 
-#if 1
+#if 0
 static void
 dump_matrix (const gsl_matrix *m)
 {
