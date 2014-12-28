@@ -1,0 +1,45 @@
+@node Invoking pspp-dump-sav
+@chapter Invoking @command{pspp-dump-sav}
+@cindex Invocation
+@cindex @command{pspp-dump-sav}
+
+@command{pspp-dump-sav} is a command-line utility accompanying
+@pspp{}.  It reads one or more SPSS system files and prints their
+contents.  The output format is useful for debugging system file
+readers and writers and for discovering how to interpret unknown or
+poorly understood records.  End users may find the output useful for
+providing the PSPP developers information about system files that PSPP
+does not accurately read.
+
+Synopsis:
+
+@display
+@t{pspp-dump-sav} [@t{-d}[@var{maxcases}] | @t{-@w{-}data}[@t{=}@var{maxcases}]] @var{file}@dots{}
+
+@t{pspp-dump-sav -@w{-}help} | @t{-h}
+
+@t{pspp-dump-sav -@w{-}version} | @t{-v}
+@end display
+
+The following options are accepted:
+
+@table @asis
+@item @t{-d}[@var{maxcases}]
+@item @t{-@w{-}data}[@t{=}@var{maxcases}]
+By default, @command{pspp-dump-sav} does not print any of the data in a
+system file, only the file headers.  Specify this option to print the
+data as well.  If @var{maxcases} is specified, then it limits the
+number of cases printed.
+
+@item @t{-h}
+@itemx @t{-@w{-}help}
+Prints a usage message on stdout and exits.
+
+@item @t{-v}
+@itemx @t{-@w{-}version}
+Prints version information on stdout and exits.
+@end table
+
+Some errors that prevent files from being interpreted successfully
+cause @command{pspp-dump-sav} to exit without reading any additional
+files given on the command line.

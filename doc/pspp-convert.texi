@@ -16,7 +16,7 @@ Synopsis:
 @t{pspp-convert -@w{-}version}
 @end display
 
-The format of @var{Iinput} is automatically detected, when possible.
+The format of @var{input} is automatically detected, when possible.
 The character encoding of old SPSS system files cannot always be
 guessed correctly, and SPSS/PC+ system files do not include any
 indication of their encoding.  Use @code{-e @var{encoding}} to specify
