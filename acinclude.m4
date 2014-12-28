@@ -61,13 +61,6 @@ AC_DEFUN([PSPP_CHECK_CC_OPTION],
   fi
 ])
 
-dnl PSPP_ENABLE_OPTION([OPTION])
-dnl Check whether the given C compiler OPTION is accepted.
-dnl If so, add it to CFLAGS.
-dnl Example: PSPP_ENABLE_OPTION([-Wdeclaration-after-statement])
-AC_DEFUN([PSPP_ENABLE_OPTION], 
-  [PSPP_CHECK_CC_OPTION([$1], [CFLAGS="$CFLAGS $1"])])
-
 dnl Check for readline and history libraries.
 
 dnl Modified for PSPP, based on readline.m4 serial 3 from

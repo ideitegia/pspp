@@ -20,7 +20,6 @@ PKG_PROG_PKG_CONFIG
 m4_pattern_forbid([PKG_CHECK_MODULES])
 PSPP_CHECK_CLICKSEQUENCE
 
-PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
 PSPP_ENABLE_WERROR
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
