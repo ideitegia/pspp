@@ -904,6 +904,23 @@ rotate (const struct cmd_factor *cf, const gsl_matrix *unrot,
 			      pm1);
 
       gsl_matrix_memcpy (result, pm1);
+
+
+      gsl_matrix_free (QQinv);
+      gsl_matrix_free (C);
+      gsl_matrix_free (Cinv);
+
+      gsl_matrix_free (D);
+      gsl_matrix_free (Q);
+      gsl_matrix_free (L);
+      gsl_matrix_free (P);
+
+      gsl_permutation_free (perm);
+
+      gsl_matrix_free (mm1);
+      gsl_matrix_free (mm2);
+      gsl_matrix_free (mp1);
+      gsl_matrix_free (pm1);
     }
 
 
