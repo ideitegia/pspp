@@ -63,20 +63,28 @@ acc (struct statistic *s, const struct ccase *cx,
   bool extreme;
   struct outlier *o;
 
-  if ( y < bw->hinges[2] + bw->step)
-      bw->whiskers[1] = y;
+  if ( y > bw->hinges[2] + bw->step) /* Upper outlier */
+    {
+      extreme = (y > bw->hinges[2] + 2 * bw->step) ;
+    }
 
-  if (bw->whiskers[0] == SYSMIS ||  bw->hinges[0] - bw->step > y)
-      bw->whiskers[0] = y;
+  else if (y < bw->hinges[0] - bw->step) /* Lower outlier */
+    {
+      extreme = (y < bw->hinges[0] - 2 * bw->step) ;
+    }
 
-  if ( y > bw->hinges[2] + bw->step)
-    extreme = (y > bw->hinges[2] + 2 * bw->step) ;
+  else /* Not an outlier */
+    {
+      if (bw->whiskers[0] == SYSMIS)
+	bw->whiskers[0] = y;
 
-  else if (y < bw->hinges[0] - bw->step)
-    extreme = (y < bw->hinges[0] - 2 * bw->step) ;
+      if (y > bw->whiskers[1])
+	bw->whiskers[1] = y;
+	  
+      return;
+    }
 
-  else
-    return;
+  /* y is an outlier */
 
   o = xzalloc (sizeof *o) ;
   o->value = y;
