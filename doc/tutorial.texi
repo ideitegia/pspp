@@ -492,14 +492,14 @@ A sensible check to perform on survey data is the calculation of
 reliability.
 This gives the statistician some confidence that the questionnaires have been 
 completed thoughtfully.
-If you examine the labels of variables @var{v1},  @var{v3} and @var{v5},
+If you examine the labels of variables @var{v1},  @var{v3} and @var{v4},
 you will notice that they ask very similar questions.
 One would therefore expect the values of these variables (after recoding) 
 to closely follow one another, and we can test that with the @cmd{RELIABILITY} 
 command (@pxref{RELIABILITY}).
 @ref{reliability} shows a @pspp{} session where the user (after recoding
 negatively scaled variables) requests reliability statistics for
-@var{v1}, @var{v3} and @var{v5}.
+@var{v1}, @var{v3} and @var{v4}.
 
 @float Example, reliability
 @cartouche
@@ -509,7 +509,7 @@ negatively scaled variables) requests reliability statistics for
 @prompt{PSPP>} * recode negatively worded questions.
 @prompt{PSPP>} compute v3 = 6 - v3.
 @prompt{PSPP>} compute v5 = 6 - v5.
-@prompt{PSPP>} reliability v1, v3, v5.
+@prompt{PSPP>} reliability v1, v3, v4.
 @end example
 
 Output (dictionary information omitted for clarity):
@@ -527,19 +527,19 @@ Output (dictionary information omitted for clarity):
 #================#==========#
 #Cronbach's Alpha#N of Items#
 #================#==========#
-#             .86#         3#
+#             .81#         3#
 #================#==========#
 @end example
 @end cartouche
 @caption{Recoding negatively scaled variables, and testing for
 reliability with the @cmd{RELIABILITY} command. The Cronbach Alpha
 coefficient suggests a high degree of reliability among variables
-@var{v1}, @var{v2} and @var{v5}.}
+@var{v1}, @var{v3} and @var{v4}.}
 @end float
 
 As a rule of thumb, many statisticians consider a value of Cronbach's Alpha of 
 0.7 or higher to indicate reliable data.
-Here, the value is 0.86 so the data and the recoding that we performed 
+Here, the value is 0.81 so the data and the recoding that we performed 
 are vindicated.
 
 
