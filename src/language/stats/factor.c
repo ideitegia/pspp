@@ -1847,12 +1847,12 @@ show_factor_correlation (const struct cmd_factor * factor, const gsl_matrix *fcm
 
   for (i = 0 ; i < fcm->size1; ++i)
     {
-      tab_text_format (t, heading_columns + i, 0, TAB_CENTER | TAT_TITLE, _("%d"), i + 1);
+      tab_text_format (t, heading_columns + i, 0, TAB_CENTER | TAT_TITLE, _("%zu"), i + 1);
     }
 
   for (i = 0 ; i < fcm->size2; ++i)
     {
-      tab_text_format (t, 0, heading_rows + i, TAB_CENTER | TAT_TITLE, _("%d"), i + 1);
+      tab_text_format (t, 0, heading_rows + i, TAB_CENTER | TAT_TITLE, _("%zu"), i + 1);
     }
 
 

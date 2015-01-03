@@ -596,7 +596,7 @@ parse_data_item (struct buffer *output)
       if (sym->offset == UINT_MAX)
         sym->offset = output->size;
       else if (sym->offset != output->size)
-        fatal ("%s: can't redefine label for offset %u with offset %u",
+        fatal ("%s: can't redefine label for offset %u with offset %zu",
                tok_string, sym->offset, output->size);
       get_token ();
       return;
