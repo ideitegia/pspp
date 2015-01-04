@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -563,24 +563,19 @@ xr_submit (struct output_driver *driver, const struct output_item *output_item)
 
    See the big comment in cairo.h for intended usage. */
 
-/* Gives new page CAIRO to XR for output.  CAIRO may be null to skip actually
-   rendering the page (which might be useful to find out how many pages an
-   output document has without actually rendering it). */
+/* Gives new page CAIRO to XR for output. */
 void
 xr_driver_next_page (struct xr_driver *xr, cairo_t *cairo)
 {
-  if (cairo != NULL)
-    {
-      cairo_save (cairo);
-      cairo_set_source_rgb (cairo, xr->bg.red, xr->bg.green, xr->bg.blue);
-      cairo_rectangle (cairo, 0, 0, xr->width, xr->length);
-      cairo_fill (cairo);
-      cairo_restore (cairo);
+  cairo_save (cairo);
+  cairo_set_source_rgb (cairo, xr->bg.red, xr->bg.green, xr->bg.blue);
+  cairo_rectangle (cairo, 0, 0, xr->width, xr->length);
+  cairo_fill (cairo);
+  cairo_restore (cairo);
 
-      cairo_translate (cairo,
-		       xr_to_pt (xr->left_margin),
-		       xr_to_pt (xr->top_margin));
-    }
+  cairo_translate (cairo,
+                   xr_to_pt (xr->left_margin),
+                   xr_to_pt (xr->top_margin));
 
   xr->page_number++;
   xr->cairo = cairo;
