@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008-2014 Free Software Foundation.
+   Copyright (C) 2008-2015 Free Software Foundation.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -839,7 +839,7 @@ paginate (GtkPrintOperation *operation,
                              view->items[view->print_item++].item);
       while (xr_driver_need_new_page (view->print_xrd))
 	{
-	  xr_driver_next_page (view->print_xrd, NULL);
+	  xr_driver_next_page (view->print_xrd, get_cairo_context_from_print_context (context));
 	  view->print_n_pages ++;
 	}
       return FALSE;
