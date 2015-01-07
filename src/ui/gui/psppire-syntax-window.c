@@ -370,26 +370,6 @@ on_edit_copy (PsppireSyntaxWindow *sw)
 }
 
 
-/* A callback for when the clipboard contents have been received */
-static void
-contents_received_callback (GtkClipboard *clipboard,
-			    GtkSelectionData *sd,
-			    gpointer data)
-{
-  PsppireSyntaxWindow *syntax_window = data;
-
-  if ( sd->length < 0 )
-    return;
-
-  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
-    return;
-
-  gtk_text_buffer_insert_at_cursor (GTK_TEXT_BUFFER (syntax_window->buffer),
-				    (gchar *) sd->data,
-				    sd->length);
-
-}
-
 static void
 on_edit_paste (PsppireSyntaxWindow *sw)
 {
@@ -397,10 +377,7 @@ on_edit_paste (PsppireSyntaxWindow *sw)
   GtkClipboard *clipboard =
     gtk_clipboard_get_for_display (display, GDK_SELECTION_CLIPBOARD);
 
-  gtk_clipboard_request_contents (clipboard,
-				  gdk_atom_intern ("UTF8_STRING", TRUE),
-				  contents_received_callback,
-				  sw);
+  gtk_text_buffer_paste_clipboard (GTK_TEXT_BUFFER (sw->buffer), clipboard, NULL, TRUE);
 }
 
 
