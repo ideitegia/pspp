@@ -255,7 +255,7 @@ factors which tell @pspp{} how to break down the analysis for each
 dependent variable. 
 
 Following the dependent variables, factors may be specified.
-The factors (if desired) should be preceeded by a single @subcmd{BY} keyword.
+The factors (if desired) should be preceded by a single @subcmd{BY} keyword.
 The format for each factor is 
 @display
 @var{factorvar} [BY @var{subfactorvar}].
@@ -318,10 +318,10 @@ If the @subcmd{/COMPARE} subcommand is omitted, then @pspp{} behaves as if
  
 The @subcmd{ID} subcommand is relevant only if @subcmd{/PLOT=BOXPLOT} or 
 @subcmd{/STATISTICS=EXTREME} has been given.
-If given, it shoule provide the name of a variable which is to be used
+If given, it should provide the name of a variable which is to be used
 to labels extreme values and outliers.
 Numeric or string variables are permissible.  
-If the @subcmd{ID} subcommand is not given, then the casenumber will be used for
+If the @subcmd{ID} subcommand is not given, then the case number will be used for
 labelling.
 
 The @subcmd{CINTERVAL} subcommand specifies the confidence interval to use in
@@ -415,15 +415,16 @@ GRAPH
         /SCATTERPLOT = @var{height} WITH @var{weight} BY @var{gender}.
 @end example
 
-This example will produce a scatterplot where height is plotted versus weight. Depending
-on the value of the gender variable, the colour of the datapoint is different. With
-this plot it is possible to analyze gender differences for height vs. weight relation.
+This example will produce a scatterplot where @var{height} is plotted versus @var{weight}. Depending
+on the value of the @var{gender} variable, the colour of the datapoint is different. With
+this plot it is possible to analyze gender differences for @var{height} vs.@: @var{weight} relation.
 
 @cindex histogram
 
 The subcommand @subcmd{HISTOGRAM} produces a histogram. Only one variable is allowed for
-the histogram plot. For an alternative method to produce histograms @pxref{EXAMINE}. The
-following example produces a histogram plot for variable weigth.
+the histogram plot.
+For an alternative method to produce histograms @pxref{EXAMINE}. The
+following example produces a histogram plot for the variable @var{weight}.
 
 @example
 GRAPH   
@@ -1137,7 +1138,7 @@ outside the  specified range are excluded from the analysis.
 The @subcmd{/EXPECTED} subcommand specifies the expected values of each
 category.  
 There must be exactly one non-zero expected value, for each observed
-category, or the @subcmd{EQUAL} keywork must be specified.
+category, or the @subcmd{EQUAL} keyword must be specified.
 You may use the notation @subcmd{@var{n}*@var{f}} to specify @var{n}
 consecutive expected categories all taking a frequency of @var{f}.
 The frequencies given are proportions, not absolute frequencies.  The
@@ -1388,7 +1389,7 @@ of variable preceding @code{WITH} against variable following
 The @subcmd{/WILCOXON} subcommand tests for differences between medians of the 
 variables listed.
 The test does not make any assumptions about the variances of the samples.
-It does however assume that the distribution is symetrical.
+It does however assume that the distribution is symmetrical.
 
 If the @subcmd{WITH} keyword is omitted, then tests for all
 combinations of the listed variables are performed.
@@ -1552,7 +1553,7 @@ The list of variables must be followed by the @subcmd{BY} keyword and
 the name of the independent (or factor) variable.
 
 You can use the @subcmd{STATISTICS} subcommand to tell @pspp{} to display
-ancilliary information.  The options accepted are:
+ancillary information.  The options accepted are:
 @itemize
 @item DESCRIPTIVES
 Displays descriptive statistics about the groups factored by the independent
@@ -1724,7 +1725,7 @@ RELIABILITY
 @end display
 
 @cindex Cronbach's Alpha
-The @cmd{RELIABILTY} command performs reliability analysis on the data.
+The @cmd{RELIABILITY} command performs reliability analysis on the data.
 
 The @subcmd{VARIABLES} subcommand is required. It determines the set of variables 
 upon which analysis is to be performed.
