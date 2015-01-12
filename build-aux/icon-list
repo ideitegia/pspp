@@ -1,0 +1,30 @@
+#! /bin/sh
+
+id=$1
+name=$2
+shift; shift
+
+cat <<EOF
+static const char *${id}_icon_name[] =
+{
+EOF
+for i
+do
+    echo $i
+done \
+    | sed -e 's%[a-zA-Z/]*/[1-9]*x[1-9]*/\([^ ]*\)\.png%\1%g' \
+    | sort -u \
+    | while read f
+do
+    printf '  "%s", \n' $f
+done
+cat <<EOF
+};
+
+const struct icon_context ${id}_icon_context = {
+  ${id}_icon_name,
+  sizeof (${id}_icon_name) / sizeof (${id}_icon_name[0]),
+  "$name"
+};
+
+EOF
